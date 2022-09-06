@@ -26,6 +26,22 @@ describe('Leaves unknown contents untouched', () => {
 			title: undefined,
 		})
 	})
+
+	test('Unknown properties in curly braces', () => {
+		expect(preprocessMeta('whoops={13}')).toStrictEqual({
+			inlineMarkings: [],
+			lineMarkings: [],
+			meta: 'whoops={13}',
+			title: undefined,
+		})
+
+		expect(preprocessMeta('nothingToSee={1-99}')).toStrictEqual({
+			inlineMarkings: [],
+			lineMarkings: [],
+			meta: 'nothingToSee={1-99}',
+			title: undefined,
+		})
+	})
 })
 
 describe('Extracts known properties', () => {
@@ -82,13 +98,155 @@ describe('Extracts known properties', () => {
 		})
 	})
 
-	test.todo('Plaintext inline markings in single or double quotes', () => {
-		// TODO: Test inline markings
-		// TODO: Test optional marker type prefix
+	describe('Plaintext inline markings in single or double quotes', () => {
+		test('Simple text', () => {
+			expect(preprocessMeta('some "double-quoted text"')).toStrictEqual({
+				inlineMarkings: ['mark="double-quoted text"'],
+				lineMarkings: [],
+				meta: 'some',
+				title: undefined,
+			})
+
+			expect(preprocessMeta("and 'single-quoted text' too")).toStrictEqual({
+				inlineMarkings: ["mark='single-quoted text'"],
+				lineMarkings: [],
+				meta: 'and too',
+				title: undefined,
+			})
+		})
+
+		test('Containing quotes of different type', () => {
+			expect(preprocessMeta('"double-quoted \'with nested single\'"')).toStrictEqual({
+				inlineMarkings: ['mark="double-quoted \'with nested single\'"'],
+				lineMarkings: [],
+				meta: '',
+				title: undefined,
+			})
+
+			expect(preprocessMeta('\'single-quoted "with nested double"\'')).toStrictEqual({
+				inlineMarkings: ['mark=\'single-quoted "with nested double"\''],
+				lineMarkings: [],
+				meta: '',
+				title: undefined,
+			})
+		})
+
+		test('Containing escaped quotes of same type', () => {
+			expect(preprocessMeta('"double-quoted \\"with escaped inner double\\""')).toStrictEqual({
+				inlineMarkings: ['mark="double-quoted \\"with escaped inner double\\""'],
+				lineMarkings: [],
+				meta: '',
+				title: undefined,
+			})
+
+			expect(preprocessMeta("'single-quoted \\'with escaped inner single\\''")).toStrictEqual({
+				inlineMarkings: ["mark='single-quoted \\'with escaped inner single\\''"],
+				lineMarkings: [],
+				meta: '',
+				title: undefined,
+			})
+		})
+
+		test('With optional marker type prefixes', () => {
+			expect(preprocessMeta('mark="prefixed with mark"')).toStrictEqual({
+				inlineMarkings: ['mark="prefixed with mark"'],
+				lineMarkings: [],
+				meta: '',
+				title: undefined,
+			})
+
+			expect(preprocessMeta('del="prefixed with del"')).toStrictEqual({
+				inlineMarkings: ['del="prefixed with del"'],
+				lineMarkings: [],
+				meta: '',
+				title: undefined,
+			})
+
+			expect(preprocessMeta('ins="prefixed with ins"')).toStrictEqual({
+				inlineMarkings: ['ins="prefixed with ins"'],
+				lineMarkings: [],
+				meta: '',
+				title: undefined,
+			})
+		})
 	})
 
-	test.todo('RegExp inline markings in forward slashes', () => {
-		// TODO: Test inline markings
-		// TODO: Test optional marker type prefix
+	describe('RegExp inline markings in forward slashes', () => {
+		test('Simple RegExp', () => {
+			expect(preprocessMeta('/he(llo|y)/')).toStrictEqual({
+				inlineMarkings: ['mark=/he(llo|y)/'],
+				lineMarkings: [],
+				meta: '',
+				title: undefined,
+			})
+		})
+
+		test('Containing quotes', () => {
+			expect(preprocessMeta('/they said ["\']oh, hi!["\']/')).toStrictEqual({
+				inlineMarkings: ['mark=/they said ["\']oh, hi!["\']/'],
+				lineMarkings: [],
+				meta: '',
+				title: undefined,
+			})
+		})
+
+		test('Containing escaped slashes', () => {
+			expect(preprocessMeta('/use \\/slashes\\/ like this/')).toStrictEqual({
+				inlineMarkings: ['mark=/use \\/slashes\\/ like this/'],
+				lineMarkings: [],
+				meta: '',
+				title: undefined,
+			})
+		})
+
+		test('With optional marker type prefixes', () => {
+			expect(preprocessMeta('mark=/prefixed with mark/')).toStrictEqual({
+				inlineMarkings: ['mark=/prefixed with mark/'],
+				lineMarkings: [],
+				meta: '',
+				title: undefined,
+			})
+
+			expect(preprocessMeta('del=/prefixed with del/')).toStrictEqual({
+				inlineMarkings: ['del=/prefixed with del/'],
+				lineMarkings: [],
+				meta: '',
+				title: undefined,
+			})
+
+			expect(preprocessMeta('ins=/prefixed with ins/')).toStrictEqual({
+				inlineMarkings: ['ins=/prefixed with ins/'],
+				lineMarkings: [],
+				meta: '',
+				title: undefined,
+			})
+		})
+	})
+})
+
+test('Everything combined', () => {
+	expect(
+		preprocessMeta(
+			[
+				// Non-processed meta string
+				'twoslash',
+				// Title attribute
+				'title="src/components/DynamicAttributes.astro"',
+				// Regular strings
+				'"{name}"',
+				'"${name}"',
+				// Inline-level RegExp marking
+				'/(?:[(]|=== )(tag)/',
+				// Line-level deletion marking
+				'del={4-5}',
+				// Inline-level insertion marking
+				'ins=":where(.astro-XXXXXX)"',
+			].join(' ')
+		)
+	).toStrictEqual({
+		inlineMarkings: ['mark="{name}"', 'mark="${name}"', 'mark=/(?:[(]|=== )(tag)/', 'ins=":where(.astro-XXXXXX)"'],
+		lineMarkings: ['del={4-5}'],
+		meta: 'twoslash',
+		title: 'src/components/DynamicAttributes.astro',
 	})
 })
