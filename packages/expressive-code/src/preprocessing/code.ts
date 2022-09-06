@@ -59,7 +59,7 @@ export function preprocessCode(code: string, lang: string, extractFileName: bool
 		lines.pop()
 	}
 
-	// If requested, try to find a file name comment in the first 5 lines of the given code
+	// If requested, try to find a file name comment in the first 4 lines of the given code
 	if (extractFileName) {
 		const lineIdx = lines.slice(0, 4).findIndex((line) => {
 			const matches = FileNameCommentRegExp.exec(line)
