@@ -7,8 +7,8 @@
     "prepare": "husky install",
     "build": "pnpm -r build",
     "lint": "eslint .",
-    "coverage": "vitest run --coverage",
-    "test": "vitest"
+    "coverage": "pnpm -r coverage",
+    "test": "pnpm -r test"
   },
   "workspaces": [
     "packages/*"
