@@ -42,3 +42,9 @@ export type InsertionPoint = {
 	tokenIndex: number
 	innerHtmlOffset: number
 }
+
+export type Annotations = {
+	title?: string
+	lineMarkings?: LineMarkingDefinition[]
+	inlineMarkings?: InlineMarkingDefinition[]
+}

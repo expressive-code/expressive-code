@@ -1,11 +1,17 @@
-import { MarkerTypeOrder } from '../common'
+import rangeParser from 'parse-numeric-range'
+import { Annotations, InlineMarkingDefinition, LineMarkingDefinition, MarkerType, MarkerTypeOrder } from '../common'
+
+export type PreprocessMetaResult = {
+	meta: string
+	annotations: Annotations
+}
 
 /**
  * Preprocesses the given meta information string and returns contained supported properties.
  *
  * Meta information is the string after the opening code fence and language name.
  */
-export function preprocessMeta(meta: string) {
+export function preprocessMeta(meta: string): PreprocessMetaResult {
 	// Try to find the meta property `title="..."` or `title='...'`,
 	// store its value and remove it from meta
 	let title: string | undefined
@@ -21,12 +27,25 @@ export function preprocessMeta(meta: string) {
 	// - `mark={4-5,10}`
 	// - `del={4-5,10}`
 	// - `ins={4-5,10}`
-	const lineMarkings: string[] = []
-	meta = meta.replace(/(?:\s|^)(?:([a-zA-Z]+)\s*=\s*)?({[0-9,\s-]*})/g, (match, prefix, range) => {
-		if (prefix && !MarkerTypeOrder.includes(prefix)) return match
-		lineMarkings.push(`${prefix || 'mark'}=${range}`)
-		return ''
-	})
+	const lineMarkings: LineMarkingDefinition[] = []
+	meta = meta.replace(
+		/(?:\s|^)(?:([a-zA-Z]+)\s*=\s*)?{([0-9,\s-]*)}/g,
+		// Process the current match along with its capture group string contents
+		(match: string, prefix: string, range: string) => {
+			const markerType = markerTypeFromString(prefix || 'mark')
+			if (!markerType) return match
+
+			// Add new line marking definition
+			const lines = rangeParser(range)
+			lineMarkings.push({
+				markerType,
+				lines,
+			})
+
+			// We handled the current match, so remove it from `meta`
+			return ''
+		}
+	)
 
 	// Find inline marking definitions inside single or double quotes (to match plaintext strings)
 	// or forward slashes (to match regular expressions), with an optional marker type prefix.
@@ -43,17 +62,65 @@ export function preprocessMeta(meta: string) {
 	// - `mark=/slot="(.*?)"/`         (if capture groups are contained, these will be marked)
 	// - `del=/src\/pages\/.*\.astro/` (escaping special chars with a backslash works, too)
 	// - `ins=/this|that/`
-	const inlineMarkings: string[] = []
-	meta = meta.replace(/(?:\s|^)(?:([a-zA-Z]+)\s*=\s*)?([/"'])(.*?)(?<!\\)\2(?=\s|$)/g, (match, prefix, delimiter, expression) => {
-		if (prefix && !MarkerTypeOrder.includes(prefix)) return match
-		inlineMarkings.push(`${prefix || 'mark'}=${delimiter}${expression}${delimiter}`)
-		return ''
-	})
+	const inlineMarkings: InlineMarkingDefinition[] = []
+	meta = meta.replace(
+		/(?:\s|^)(?:([a-zA-Z]+)\s*=\s*)?([/"'])(.*?)(?<!\\)\2(?=\s|$)/g,
+		// Process the current match along with its capture group string contents
+		(match: string, prefix: string, delimiter: string, expression: string) => {
+			const markerType = markerTypeFromString(prefix || 'mark')
+			if (!markerType) return match
+
+			if (delimiter === '/') {
+				// Add new regular expression-based inline marking definition
+				let regExp: RegExp | undefined
+				try {
+					// Try to use regular expressions with capture group indices
+					regExp = new RegExp(expression, 'gd')
+					/* c8 ignore start */
+				} catch (error) {
+					// Use fallback if unsupported
+					regExp = new RegExp(expression, 'g')
+				}
+				/* c8 ignore stop */
+				inlineMarkings.push({
+					markerType,
+					regExp,
+				})
+			} else {
+				// Add new plaintext-based inline marking definition
+				inlineMarkings.push({
+					markerType,
+					text: expression,
+				})
+			}
+
+			// We handled the current match, so remove it from `meta`
+			return ''
+		}
+	)
 
 	return {
-		title,
-		lineMarkings,
-		inlineMarkings,
 		meta,
+		annotations: {
+			title,
+			lineMarkings,
+			inlineMarkings,
+		},
 	}
+}
+
+/**
+ * If the given input string represents a valid marker type, converts it to a `MarkerType`
+ * and returns it.
+ *
+ * Otherwise, returns `undefined`.
+ */
+function markerTypeFromString(input: string) {
+	// Fix common marker type mistakes
+	if (input === 'add') input = 'ins'
+	if (input === 'rem') input = 'del'
+
+	// Return either the converted type or undefined
+	const markerType = input as MarkerType
+	return MarkerTypeOrder.includes(markerType) ? markerType : undefined
 }

@@ -1,252 +1,298 @@
 import { describe, expect, test } from 'vitest'
-import { preprocessMeta } from '../src/index'
+import { preprocessMeta, PreprocessMetaResult } from '../src/index'
+
+const expectMetaResult = (input: string, partialExpectedResult: Partial<PreprocessMetaResult>) => {
+	const { meta, annotations, ...rest } = partialExpectedResult
+	const expectedResult: PreprocessMetaResult = {
+		meta: meta || '',
+		annotations: {
+			title: undefined,
+			lineMarkings: [],
+			inlineMarkings: [],
+			...annotations,
+		},
+		...rest,
+	}
+	expect(preprocessMeta(input)).toEqual(expectedResult)
+}
+
+const createMarkerRegExp = (input: string) => {
+	try {
+		return new RegExp(input, 'dg')
+	} catch (error) {
+		return new RegExp(input, 'g')
+	}
+}
 
 describe('Leaves unknown contents untouched', () => {
 	test('Simple text', () => {
-		expect(preprocessMeta('twoslash')).toMatchObject({
-			inlineMarkings: [],
-			lineMarkings: [],
+		expectMetaResult('twoslash', {
 			meta: 'twoslash',
-			title: undefined,
 		})
 	})
 
 	test('Unknown properties in single or double quotes', () => {
-		expect(preprocessMeta('yabba="dabba doo!"')).toMatchObject({
-			inlineMarkings: [],
-			lineMarkings: [],
+		expectMetaResult('yabba="dabba doo!"', {
 			meta: 'yabba="dabba doo!"',
-			title: undefined,
 		})
 
-		expect(preprocessMeta("multipass='leeloo dallas'")).toMatchObject({
-			inlineMarkings: [],
-			lineMarkings: [],
+		expectMetaResult("multipass='leeloo dallas'", {
 			meta: "multipass='leeloo dallas'",
-			title: undefined,
 		})
 	})
 
 	test('Unknown properties in curly braces', () => {
-		expect(preprocessMeta('whoops={13}')).toMatchObject({
-			inlineMarkings: [],
-			lineMarkings: [],
+		expectMetaResult('whoops={13}', {
 			meta: 'whoops={13}',
-			title: undefined,
 		})
 
-		expect(preprocessMeta('nothingToSee={1-99}')).toMatchObject({
-			inlineMarkings: [],
-			lineMarkings: [],
+		expectMetaResult('nothingToSee={1-99}', {
 			meta: 'nothingToSee={1-99}',
-			title: undefined,
 		})
 	})
 })
 
 describe('Extracts known properties', () => {
 	test('Titles in single or double quotes', () => {
-		expect(preprocessMeta('title="That works!"')).toMatchObject({
-			inlineMarkings: [],
-			lineMarkings: [],
+		expectMetaResult('title="That works!"', {
 			meta: '',
-			title: 'That works!',
+			annotations: {
+				title: 'That works!',
+			},
 		})
 
-		expect(preprocessMeta('hello title="A double-quoted title" world')).toMatchObject({
-			inlineMarkings: [],
-			lineMarkings: [],
+		expectMetaResult('hello title="A double-quoted title" world', {
 			meta: 'hello world',
-			title: 'A double-quoted title',
+			annotations: {
+				title: 'A double-quoted title',
+			},
 		})
 
-		expect(preprocessMeta("hello title='A single-quoted title' world")).toMatchObject({
-			inlineMarkings: [],
-			lineMarkings: [],
+		expectMetaResult("hello title='A single-quoted title' world", {
 			meta: 'hello world',
-			title: 'A single-quoted title',
+			annotations: {
+				title: 'A single-quoted title',
+			},
 		})
 	})
 
 	test('Line markings in curly braces', () => {
-		expect(preprocessMeta('{2-5}')).toMatchObject({
-			inlineMarkings: [],
-			lineMarkings: ['mark={2-5}'],
+		expectMetaResult('{2-5}', {
 			meta: '',
-			title: undefined,
+			annotations: {
+				lineMarkings: [{ markerType: 'mark', lines: [2, 3, 4, 5] }],
+			},
 		})
 
-		expect(preprocessMeta('ins={4,10-12}')).toMatchObject({
-			inlineMarkings: [],
-			lineMarkings: ['ins={4,10-12}'],
+		expectMetaResult('ins={4,10-12}', {
 			meta: '',
-			title: undefined,
+			annotations: {
+				lineMarkings: [{ markerType: 'ins', lines: [4, 10, 11, 12] }],
+			},
 		})
 
-		expect(preprocessMeta('hello {2-5} world')).toMatchObject({
-			inlineMarkings: [],
-			lineMarkings: ['mark={2-5}'],
+		expectMetaResult('hello {2-5} world', {
 			meta: 'hello world',
-			title: undefined,
+			annotations: {
+				lineMarkings: [{ markerType: 'mark', lines: [2, 3, 4, 5] }],
+			},
 		})
 
-		expect(preprocessMeta('twoslash del={1,2,3}')).toMatchObject({
-			inlineMarkings: [],
-			lineMarkings: ['del={1,2,3}'],
+		expectMetaResult('twoslash del={1,2,3}', {
 			meta: 'twoslash',
-			title: undefined,
+			annotations: {
+				lineMarkings: [{ markerType: 'del', lines: [1, 2, 3] }],
+			},
 		})
 	})
 
 	describe('Plaintext inline markings in single or double quotes', () => {
 		test('Simple text', () => {
-			expect(preprocessMeta('some "double-quoted text"')).toMatchObject({
-				inlineMarkings: ['mark="double-quoted text"'],
-				lineMarkings: [],
+			expectMetaResult('some "double-quoted text"', {
 				meta: 'some',
-				title: undefined,
+				annotations: {
+					inlineMarkings: [{ markerType: 'mark', text: 'double-quoted text' }],
+				},
 			})
 
-			expect(preprocessMeta("and 'single-quoted text' too")).toMatchObject({
-				inlineMarkings: ["mark='single-quoted text'"],
-				lineMarkings: [],
+			expectMetaResult("and 'single-quoted text' too", {
 				meta: 'and too',
-				title: undefined,
+				annotations: {
+					inlineMarkings: [{ markerType: 'mark', text: 'single-quoted text' }],
+				},
 			})
 		})
 
 		test('Containing quotes of different type', () => {
-			expect(preprocessMeta('"double-quoted \'with nested single\'"')).toMatchObject({
-				inlineMarkings: ['mark="double-quoted \'with nested single\'"'],
-				lineMarkings: [],
+			expectMetaResult('"double-quoted \'with nested single\'"', {
 				meta: '',
-				title: undefined,
+				annotations: {
+					inlineMarkings: [{ markerType: 'mark', text: "double-quoted 'with nested single'" }],
+				},
 			})
 
-			expect(preprocessMeta('\'single-quoted "with nested double"\'')).toMatchObject({
-				inlineMarkings: ['mark=\'single-quoted "with nested double"\''],
-				lineMarkings: [],
+			expectMetaResult('\'single-quoted "with nested double"\'', {
 				meta: '',
-				title: undefined,
+				annotations: {
+					inlineMarkings: [{ markerType: 'mark', text: 'single-quoted "with nested double"' }],
+				},
 			})
 		})
 
 		test('Containing escaped quotes of same type', () => {
-			expect(preprocessMeta('"double-quoted \\"with escaped inner double\\""')).toMatchObject({
-				inlineMarkings: ['mark="double-quoted \\"with escaped inner double\\""'],
-				lineMarkings: [],
+			expectMetaResult('"double-quoted \\"with escaped inner double\\""', {
 				meta: '',
-				title: undefined,
+				annotations: {
+					inlineMarkings: [{ markerType: 'mark', text: 'double-quoted \\"with escaped inner double\\"' }],
+				},
 			})
 
-			expect(preprocessMeta("'single-quoted \\'with escaped inner single\\''")).toMatchObject({
-				inlineMarkings: ["mark='single-quoted \\'with escaped inner single\\''"],
-				lineMarkings: [],
+			expectMetaResult("'single-quoted \\'with escaped inner single\\''", {
 				meta: '',
-				title: undefined,
+				annotations: {
+					inlineMarkings: [{ markerType: 'mark', text: "single-quoted \\'with escaped inner single\\'" }],
+				},
 			})
 		})
 
 		test('With optional marker type prefixes', () => {
-			expect(preprocessMeta('mark="prefixed with mark"')).toMatchObject({
-				inlineMarkings: ['mark="prefixed with mark"'],
-				lineMarkings: [],
+			expectMetaResult('mark="prefixed with mark"', {
 				meta: '',
-				title: undefined,
+				annotations: {
+					inlineMarkings: [{ markerType: 'mark', text: 'prefixed with mark' }],
+				},
 			})
 
-			expect(preprocessMeta('del="prefixed with del"')).toMatchObject({
-				inlineMarkings: ['del="prefixed with del"'],
-				lineMarkings: [],
+			expectMetaResult('ins="prefixed with ins"', {
 				meta: '',
-				title: undefined,
+				annotations: {
+					inlineMarkings: [{ markerType: 'ins', text: 'prefixed with ins' }],
+					lineMarkings: [],
+					title: undefined,
+				},
 			})
 
-			expect(preprocessMeta('ins="prefixed with ins"')).toMatchObject({
-				inlineMarkings: ['ins="prefixed with ins"'],
-				lineMarkings: [],
+			expectMetaResult('del="prefixed with del"', {
 				meta: '',
-				title: undefined,
+				annotations: {
+					inlineMarkings: [{ markerType: 'del', text: 'prefixed with del' }],
+					lineMarkings: [],
+					title: undefined,
+				},
+			})
+		})
+
+		test('With marker type prefix aliases', () => {
+			expectMetaResult('add="prefixed with add"', {
+				meta: '',
+				annotations: {
+					inlineMarkings: [{ markerType: 'ins', text: 'prefixed with add' }],
+					lineMarkings: [],
+					title: undefined,
+				},
+			})
+
+			expectMetaResult('rem="prefixed with rem"', {
+				meta: '',
+				annotations: {
+					inlineMarkings: [{ markerType: 'del', text: 'prefixed with rem' }],
+					lineMarkings: [],
+					title: undefined,
+				},
 			})
 		})
 	})
 
 	describe('RegExp inline markings in forward slashes', () => {
 		test('Simple RegExp', () => {
-			expect(preprocessMeta('/he(llo|y)/')).toMatchObject({
-				inlineMarkings: ['mark=/he(llo|y)/'],
-				lineMarkings: [],
+			expectMetaResult('/he(llo|y)/', {
 				meta: '',
-				title: undefined,
+				annotations: {
+					inlineMarkings: [{ markerType: 'mark', regExp: createMarkerRegExp('he(llo|y)') }],
+				},
 			})
 		})
 
 		test('Containing quotes', () => {
-			expect(preprocessMeta('/they said ["\']oh, hi!["\']/')).toMatchObject({
-				inlineMarkings: ['mark=/they said ["\']oh, hi!["\']/'],
-				lineMarkings: [],
+			expectMetaResult('/they said ["\']oh, hi!["\']/', {
 				meta: '',
-				title: undefined,
+				annotations: {
+					inlineMarkings: [{ markerType: 'mark', regExp: createMarkerRegExp('they said ["\']oh, hi!["\']') }],
+				},
 			})
 		})
 
 		test('Containing escaped slashes', () => {
-			expect(preprocessMeta('/use \\/slashes\\/ like this/')).toMatchObject({
-				inlineMarkings: ['mark=/use \\/slashes\\/ like this/'],
-				lineMarkings: [],
+			expectMetaResult('/use \\/slashes\\/ like this/', {
 				meta: '',
-				title: undefined,
+				annotations: {
+					inlineMarkings: [{ markerType: 'mark', regExp: createMarkerRegExp('use \\/slashes\\/ like this') }],
+					lineMarkings: [],
+					title: undefined,
+				},
 			})
 		})
 
 		test('With optional marker type prefixes', () => {
-			expect(preprocessMeta('mark=/prefixed with mark/')).toMatchObject({
-				inlineMarkings: ['mark=/prefixed with mark/'],
-				lineMarkings: [],
+			expectMetaResult('mark=/prefixed with mark/', {
 				meta: '',
-				title: undefined,
+				annotations: {
+					inlineMarkings: [{ markerType: 'mark', regExp: createMarkerRegExp('prefixed with mark') }],
+					lineMarkings: [],
+					title: undefined,
+				},
 			})
 
-			expect(preprocessMeta('del=/prefixed with del/')).toMatchObject({
-				inlineMarkings: ['del=/prefixed with del/'],
-				lineMarkings: [],
+			expectMetaResult('ins=/prefixed with ins/', {
 				meta: '',
-				title: undefined,
+				annotations: {
+					inlineMarkings: [{ markerType: 'ins', regExp: createMarkerRegExp('prefixed with ins') }],
+					lineMarkings: [],
+					title: undefined,
+				},
 			})
 
-			expect(preprocessMeta('ins=/prefixed with ins/')).toMatchObject({
-				inlineMarkings: ['ins=/prefixed with ins/'],
-				lineMarkings: [],
+			expectMetaResult('del=/prefixed with del/', {
 				meta: '',
-				title: undefined,
+				annotations: {
+					inlineMarkings: [{ markerType: 'del', regExp: createMarkerRegExp('prefixed with del') }],
+					lineMarkings: [],
+					title: undefined,
+				},
 			})
 		})
 	})
 })
 
 test('Everything combined', () => {
-	expect(
-		preprocessMeta(
-			[
-				// Non-processed meta string
-				'twoslash',
-				// Title attribute
-				'title="src/components/DynamicAttributes.astro"',
-				// Regular strings
-				'"{name}"',
-				'"${name}"',
-				// Inline-level RegExp marking
-				'/(?:[(]|=== )(tag)/',
-				// Line-level deletion marking
-				'del={4-5}',
-				// Inline-level insertion marking
-				'ins=":where(.astro-XXXXXX)"',
-			].join(' ')
-		)
-	).toMatchObject({
-		inlineMarkings: ['mark="{name}"', 'mark="${name}"', 'mark=/(?:[(]|=== )(tag)/', 'ins=":where(.astro-XXXXXX)"'],
-		lineMarkings: ['del={4-5}'],
-		meta: 'twoslash',
-		title: 'src/components/DynamicAttributes.astro',
-	})
+	expectMetaResult(
+		[
+			// Non-processed meta string
+			'twoslash',
+			// Title attribute
+			'title="src/components/DynamicAttributes.astro"',
+			// Regular strings
+			'"{name}"',
+			'"${name}"',
+			// Inline-level RegExp marking
+			'/(?:[(]|=== )(tag)/',
+			// Line-level deletion marking
+			'del={4-5}',
+			// Inline-level insertion marking
+			'ins=":where(.astro-XXXXXX)"',
+		].join(' '),
+		{
+			meta: 'twoslash',
+			annotations: {
+				title: 'src/components/DynamicAttributes.astro',
+				lineMarkings: [{ markerType: 'del', lines: [4, 5] }],
+				inlineMarkings: [
+					{ markerType: 'mark', text: '{name}' },
+					{ markerType: 'mark', text: '${name}' },
+					{ markerType: 'mark', regExp: createMarkerRegExp('(?:[(]|=== )(tag)') },
+					{ markerType: 'ins', text: ':where(.astro-XXXXXX)' },
+				],
+			},
+		}
+	)
 })

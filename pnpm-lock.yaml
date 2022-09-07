@@ -36,11 +36,13 @@ importers:
       '@types/html-escaper': ^3.0.0
       chroma-js: ^2.4.2
       html-escaper: ^3.0.3
+      parse-numeric-range: ^1.3.0
     devDependencies:
       '@types/chroma-js': 2.1.4
       '@types/html-escaper': 3.0.0
       chroma-js: 2.4.2
       html-escaper: 3.0.3
+      parse-numeric-range: 1.3.0
 
 packages:
 
@@ -1848,6 +1850,10 @@ packages:
     engines: {node: '>=6'}
     dependencies:
       callsites: 3.1.0
+    dev: true
+
+  /parse-numeric-range/1.3.0:
+    resolution: {integrity: sha512-twN+njEipszzlMJd4ONUYgSfZPDxgHhT9Ahed5uTigpQn90FggW4SA/AIPq/6a149fTbE9qBEcSwE3FAEp6wQQ==}
     dev: true
 
   /path-exists/4.0.0:
