@@ -1,3 +1,5 @@
+import { Annotations } from '../common'
+
 const LanguageGroups = {
 	code: ['astro', 'cjs', 'htm', 'html', 'js', 'jsx', 'mjs', 'svelte', 'ts', 'tsx', 'vue'],
 	data: ['env', 'json', 'yaml', 'yml'],
@@ -35,20 +37,43 @@ const FileNameCommentRegExp = new RegExp(
 	].join('')
 )
 
+export type PreprocessCodeOptions = {
+	/**
+	 * If true, preprocessing will try to find and extract a comment line containing
+	 * the code snippet file name from the first 4 lines of the code.
+	 */
+	extractFileName: boolean
+	/**
+	 * Pass all existing annotations here that are defined outside of the code,
+	 * e.g. in Markdown/MDX code fences or external sources.
+	 *
+	 * If preprocessing removes any special comments or lines from the code, shifted line numbers
+	 * in existing annotations will be updated automatically.
+	 */
+	annotations?: Annotations
+}
+
+export type PreprocessCodeResult = {
+	code: string
+	extractedFileName?: string
+	annotations: Annotations
+}
+
 /**
  * Preprocesses the given raw code snippet before being handed to the syntax highlighter.
  *
  * Does the following things:
  * - Trims empty lines at the beginning or end of the code block
- * - If `extractFileName` is true, checks the first lines for a comment line with a file name.
+ * - If `options.extractFileName` is true, checks the first 4 lines
+ *   for a comment line with a file name
  *   - If a matching line is found, removes it from the code
- *     and returns the extracted file name in the result object.
+ *     and returns the extracted file name in the result object
  * - Normalizes whitespace and line endings
  */
-export function preprocessCode(code: string, lang: string, extractFileName: boolean) {
+export function preprocessCode(code: string, lang: string, options: PreprocessCodeOptions): PreprocessCodeResult {
+	const { extractFileName, annotations = {} } = options
+
 	let extractedFileName: string | undefined
-	let removedLineIndex: number | undefined
-	let removedLineCount: number | undefined
 
 	// Split the code into lines and remove any empty lines at the beginning & end
 	const lines = code.split(/\r?\n/)
@@ -85,13 +110,11 @@ export function preprocessCode(code: string, lang: string, extractFileName: bool
 		// Was a valid file name comment line found?
 		if (extractedFileName) {
 			// Yes, remove it from the code
-			lines.splice(lineIdx, 1)
-			removedLineIndex = lineIdx
-			removedLineCount = 1
+			removeLines({ lines, annotations, lineIndex: lineIdx, lineCount: 1 })
+
 			// If the following line is empty, remove it as well
 			if (!lines[lineIdx]?.trim().length) {
-				lines.splice(lineIdx, 1)
-				removedLineCount++
+				removeLines({ lines, annotations, lineIndex: lineIdx, lineCount: 1 })
 			}
 		}
 	}
@@ -106,9 +129,35 @@ export function preprocessCode(code: string, lang: string, extractFileName: bool
 	preprocessedCode = preprocessedCode.replace(/\t/g, '  ')
 
 	return {
-		preprocessedCode,
+		code: preprocessedCode,
 		extractedFileName,
-		removedLineIndex,
-		removedLineCount,
+		annotations,
 	}
+}
+
+function removeLines({
+	lines,
+	annotations,
+	lineIndex,
+	lineCount = 1,
+}: {
+	/** Array to remove the given lines from. */
+	lines: string[]
+	/** Annotations to update when following line numbers are shifted by the removal. */
+	annotations: Annotations
+	lineIndex: number
+	lineCount?: number
+}) {
+	lines.splice(lineIndex, lineCount)
+	// If any lines were removed during preprocessing,
+	// automatically shift marked line numbers accordingly
+	annotations.lineMarkings?.forEach((lineMarking) => {
+		lineMarking.lines = lineMarking.lines
+			.map((lineNum) => {
+				if (lineNum <= lineIndex) return lineNum
+				if (lineNum > lineIndex + lineCount) return lineNum - lineCount
+				return -1
+			})
+			.filter((lineNum) => lineNum > -1)
+	})
 }

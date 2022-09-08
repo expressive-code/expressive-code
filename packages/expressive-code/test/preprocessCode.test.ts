@@ -1,65 +1,70 @@
 import { describe, expect, test } from 'vitest'
-import { preprocessCode } from '../src/index'
+import { preprocessCode, PreprocessCodeOptions, PreprocessCodeResult } from '../src/index'
+
+const expectCodeResult = (input: string, lang: string, options: PreprocessCodeOptions, partialExpectedResult: Partial<PreprocessCodeResult>) => {
+	const { code, annotations, ...rest } = partialExpectedResult
+	const expectedResult: PreprocessCodeResult = {
+		code: code || '',
+		annotations: {
+			title: undefined,
+			lineMarkings: undefined,
+			inlineMarkings: undefined,
+			...annotations,
+		},
+		...rest,
+	}
+	expect(preprocessCode(input, lang, options)).toEqual(expectedResult)
+}
 
 describe('Extracts file name comments from the first lines', () => {
 	test('JS comments without prefix', () => {
-		expect(
-			preprocessCode(
-				`
+		expectCodeResult(
+			`
 // test.config.mjs
 import { defineConfig } from 'example/config'
 				`,
-				'js',
-				true
-			)
-		).toMatchObject({
-			extractedFileName: 'test.config.mjs',
-			preprocessedCode: `import { defineConfig } from 'example/config'`,
-			removedLineCount: 1,
-			removedLineIndex: 0,
-		})
+			'js',
+			{ extractFileName: true },
+			{
+				extractedFileName: 'test.config.mjs',
+				code: `import { defineConfig } from 'example/config'`,
+			}
+		)
 	})
 
 	test('JS comments with prefix followed by a colon', () => {
-		expect(
-			preprocessCode(
-				`
+		expectCodeResult(
+			`
 // Example file: test.config.ts
 import { defineConfig } from 'example/config'
 				`,
-				'ts',
-				true
-			)
-		).toMatchObject({
-			extractedFileName: 'test.config.ts',
-			preprocessedCode: `import { defineConfig } from 'example/config'`,
-			removedLineCount: 1,
-			removedLineIndex: 0,
-		})
+			'ts',
+			{ extractFileName: true },
+			{
+				extractedFileName: 'test.config.ts',
+				code: `import { defineConfig } from 'example/config'`,
+			}
+		)
 	})
 
 	test('HTML comments', () => {
-		expect(
-			preprocessCode(
-				`
+		expectCodeResult(
+			`
 <!-- Example: src/pages/stars.htm -->
 <img src="/assets/stars.png" alt="A starry night sky.">
 				`,
-				'html',
-				true
-			)
-		).toMatchObject({
-			extractedFileName: 'src/pages/stars.htm',
-			preprocessedCode: `<img src="/assets/stars.png" alt="A starry night sky.">`,
-			removedLineCount: 1,
-			removedLineIndex: 0,
-		})
+			'html',
+			{ extractFileName: true },
+			{
+				extractedFileName: 'src/pages/stars.htm',
+				code: `<img src="/assets/stars.png" alt="A starry night sky.">`,
+			}
+		)
 	})
 
 	test('YAML comments', () => {
-		expect(
-			preprocessCode(
-				`
+		expectCodeResult(
+			`
 ---
 # src/pages/post/blog-post.md
 layout: ../../layouts/BaseLayout.astro
@@ -71,12 +76,11 @@ This is my in-progress blog post.
 
 No page will be built for this post.
 				`,
-				'markdown',
-				true
-			)
-		).toMatchObject({
-			extractedFileName: 'src/pages/post/blog-post.md',
-			preprocessedCode: `---
+			'markdown',
+			{ extractFileName: true },
+			{
+				extractedFileName: 'src/pages/post/blog-post.md',
+				code: `---
 layout: ../../layouts/BaseLayout.astro
 title: My Blog Post
 draft: true
@@ -85,28 +89,86 @@ draft: true
 This is my in-progress blog post.
 
 No page will be built for this post.`,
-			removedLineCount: 1,
-			removedLineIndex: 1,
-		})
+			}
+		)
 	})
 
 	test('Removes line of whitespace afterwards', () => {
-		expect(
-			preprocessCode(
-				`
+		expectCodeResult(
+			`
 // test.config.mjs
 
 import { defineConfig } from 'example/config'
 				`,
-				'js',
-				true
-			)
-		).toMatchObject({
-			extractedFileName: 'test.config.mjs',
-			preprocessedCode: `import { defineConfig } from 'example/config'`,
-			removedLineCount: 2,
-			removedLineIndex: 0,
-		})
+			'js',
+			{ extractFileName: true },
+			{
+				extractedFileName: 'test.config.mjs',
+				code: `import { defineConfig } from 'example/config'`,
+			}
+		)
+	})
+})
+
+describe('Shifts existing annotations after removing lines', () => {
+	test('By -1 when extracting file name comments', () => {
+		expectCodeResult(
+			`
+// test.config.mjs
+import test from 'example'
+import { defineConfig } from 'example/config'
+				`,
+			'js',
+			{ extractFileName: true, annotations: { lineMarkings: [{ markerType: 'ins', lines: [3] }] } },
+			{
+				extractedFileName: 'test.config.mjs',
+				code: `import test from 'example'
+import { defineConfig } from 'example/config'`,
+				annotations: {
+					lineMarkings: [{ markerType: 'ins', lines: [2] }],
+				},
+			}
+		)
+	})
+
+	test('By -2 when removing a line of whitespace afterwards', () => {
+		expectCodeResult(
+			`
+// test.config.mjs
+
+import { defineConfig } from 'example/config'
+				`,
+			'js',
+			{ extractFileName: true, annotations: { lineMarkings: [{ markerType: 'mark', lines: [3] }] } },
+			{
+				extractedFileName: 'test.config.mjs',
+				code: `import { defineConfig } from 'example/config'`,
+				annotations: {
+					lineMarkings: [{ markerType: 'mark', lines: [1] }],
+				},
+			}
+		)
+	})
+
+	test('Removes lines that got deleted from annotations', () => {
+		expectCodeResult(
+			`
+// This is an example
+// test.config.mjs
+
+import { defineConfig } from 'example/config'
+				`,
+			'js',
+			{ extractFileName: true, annotations: { lineMarkings: [{ markerType: 'mark', lines: [1, 2, 3, 4] }] } },
+			{
+				extractedFileName: 'test.config.mjs',
+				code: `// This is an example
+import { defineConfig } from 'example/config'`,
+				annotations: {
+					lineMarkings: [{ markerType: 'mark', lines: [1, 2] }],
+				},
+			}
+		)
 	})
 })
 
@@ -121,12 +183,15 @@ Line 4
 
 import { defineConfig } from 'example/config'
 		`
-		expect(preprocessCode(sampleCode, 'js', true)).toMatchObject({
-			extractedFileName: undefined,
-			preprocessedCode: sampleCode.trim(),
-			removedLineCount: undefined,
-			removedLineIndex: undefined,
-		})
+		expectCodeResult(
+			sampleCode,
+			'js',
+			{ extractFileName: true },
+			{
+				extractedFileName: undefined,
+				code: sampleCode.trim(),
+			}
+		)
 	})
 
 	test('Links ending with a file name', () => {
@@ -134,38 +199,34 @@ import { defineConfig } from 'example/config'
 // You can access the file like this:
 // https://example.com/test.js
 		`
-		expect(preprocessCode(sampleCode, 'js', true)).toMatchObject({
-			extractedFileName: undefined,
-			preprocessedCode: sampleCode.trim(),
-			removedLineCount: undefined,
-			removedLineIndex: undefined,
-		})
+		expectCodeResult(
+			sampleCode,
+			'js',
+			{ extractFileName: true },
+			{
+				extractedFileName: undefined,
+				code: sampleCode.trim(),
+			}
+		)
 	})
 
 	test('File extensions not matching the language', () => {
-		expect(
-			preprocessCode(
-				`
+		const sampleCode = `
 <head>
   <!-- Local: /public/styles/global.css -->
   <link rel="stylesheet" href="/styles/global.css" />
   <!-- External -->
   <link rel="stylesheet" href="https://example.com/test.css" />
 </head>
-				`,
-				'jsx',
-				true
-			)
-		).toMatchObject({
-			extractedFileName: undefined,
-			preprocessedCode: `<head>
-  <!-- Local: /public/styles/global.css -->
-  <link rel="stylesheet" href="/styles/global.css" />
-  <!-- External -->
-  <link rel="stylesheet" href="https://example.com/test.css" />
-</head>`,
-			removedLineCount: undefined,
-			removedLineIndex: undefined,
-		})
+		`
+		expectCodeResult(
+			sampleCode,
+			'jsx',
+			{ extractFileName: true },
+			{
+				extractedFileName: undefined,
+				code: sampleCode.trim(),
+			}
+		)
 	})
 })
