@@ -1,7 +1,8 @@
 import chroma from 'chroma-js'
 import { escape, unescape } from 'html-escaper'
 import { ensureTextContrast } from './color-contrast'
-import { InlineMarkingDefinition, InlineToken, InsertionPoint, MarkedRange as MarkedRange, MarkerToken, MarkerType, MarkerTypeOrder } from '../common'
+import { InlineMarkingDefinition, MarkerType, MarkerTypeOrder } from './annotations'
+import { InlineToken, InsertionPoint, MarkedRange, MarkerToken } from './tokens'
 
 export class ShikiLine {
 	readonly tokens: InlineToken[]

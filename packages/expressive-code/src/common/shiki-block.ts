@@ -1,5 +1,5 @@
 import { ShikiLine } from './shiki-line'
-import { LineMarkingDefinition, InlineMarkingDefinition, MarkerTypeOrder } from '../common'
+import { LineMarkingDefinition, InlineMarkingDefinition, MarkerTypeOrder } from './annotations'
 
 export class ShikiBlock {
 	private htmlBeforeFirstLine = ''

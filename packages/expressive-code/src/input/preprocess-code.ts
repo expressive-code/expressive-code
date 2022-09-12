@@ -1,4 +1,4 @@
-import { Annotations } from '../common'
+import { Annotations } from '../common/annotations'
 
 export type PreprocessCodeOptions = {
 	/**

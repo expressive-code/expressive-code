@@ -1,5 +1,5 @@
 import rangeParser from 'parse-numeric-range'
-import { Annotations, InlineMarkingDefinition, LineMarkingDefinition, MarkerType, MarkerTypeOrder } from '../common'
+import { Annotations, InlineMarkingDefinition, LineMarkingDefinition, MarkerType, MarkerTypeOrder } from '../common/annotations'
 
 export type PreprocessMetaResult = {
 	meta: string
