@@ -15,7 +15,7 @@ export function preprocessMeta(meta: string): PreprocessMetaResult {
 	// Try to find the meta property `title="..."` or `title='...'`,
 	// store its value and remove it from meta
 	let title: string | undefined
-	meta = meta.replace(/(?:\s|^)title\s*=\s*(["'])(.*?)(?<!\\)\1/, (_, __, content) => {
+	meta = meta.replace(/(?:\s|^)title\s*=\s*(["'])(.*?)(?<!\\)\1/, (_, __, content: string) => {
 		title = content
 		return ''
 	})

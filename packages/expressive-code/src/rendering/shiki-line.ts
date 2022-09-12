@@ -120,13 +120,13 @@ export class ShikiLine {
 		return `${this.beforeClassValue}${classValue}${this.afterClassValue}${innerHtml}${this.afterTokens}`
 	}
 
-	getLineMarkerType(): MarkerType {
-		return MarkerTypeOrder.find((markerType) => markerType && this.classes.has(markerType.toString()))
+	getLineMarkerType(): MarkerType | undefined {
+		return MarkerTypeOrder.find((markerType) => this.classes.has(markerType.toString()))
 	}
 
-	setLineMarkerType(newType: MarkerType) {
+	setLineMarkerType(newType?: MarkerType) {
 		// Remove all existing marker type classes (if any)
-		MarkerTypeOrder.forEach((markerType) => markerType && this.classes.delete(markerType.toString()))
+		MarkerTypeOrder.forEach((markerType) => this.classes.delete(markerType.toString()))
 
 		if (newType === undefined) return
 		this.classes.add(newType.toString())
@@ -155,7 +155,7 @@ export class ShikiLine {
 				// Read the start and end ranges from the `indices` property,
 				// which is made available through the RegExp flag `d`
 				// (and unfortunately not recognized by TypeScript)
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
 				let groupIndices = (match as any).indices as ([start: number, end: number] | null)[]
 				// If accessing the group indices is unsupported, use fallback logic
 				if (!groupIndices || !groupIndices.length) {

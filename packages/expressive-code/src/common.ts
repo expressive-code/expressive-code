@@ -1,4 +1,4 @@
-export type MarkerType = 'mark' | 'ins' | 'del' | undefined
+export type MarkerType = 'mark' | 'ins' | 'del'
 
 /** When markers overlap, those with higher indices override lower ones. */
 export const MarkerTypeOrder: MarkerType[] = ['mark', 'del', 'ins']
