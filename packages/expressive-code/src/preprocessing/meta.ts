@@ -110,8 +110,8 @@ export function preprocessMeta(meta: string): PreprocessMetaResult {
 }
 
 /**
- * If the given input string represents a valid marker type, converts it to a `MarkerType`
- * and returns it.
+ * If the given input string represents a valid marker type,
+ * converts it to a {@link MarkerType} and returns it.
  *
  * Otherwise, returns `undefined`.
  */
