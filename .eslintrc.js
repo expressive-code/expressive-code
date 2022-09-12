@@ -9,6 +9,8 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
+    tsconfigRootDir: __dirname,
+    project: ['./tsconfig.base.json', './packages/*/tsconfig.json'],
   },
   rules: {
     'prettier/prettier': 'warn',
@@ -46,15 +48,16 @@ module.exports = {
     {
       files: ['**/*.ts'],
       parser: '@typescript-eslint/parser',
-      extends: ['plugin:@typescript-eslint/recommended'],
+      extends: ['plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-requiring-type-checking'],
       rules: {
         '@typescript-eslint/no-unused-vars': [
-          'error',
+          'warn',
           {
             argsIgnorePattern: '^_',
             destructuredArrayIgnorePattern: '^_',
           },
         ],
+        '@typescript-eslint/no-empty-function': 'warn',
         '@typescript-eslint/no-non-null-assertion': 'off',
       },
     },
