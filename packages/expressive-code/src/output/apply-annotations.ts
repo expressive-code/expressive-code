@@ -1,11 +1,10 @@
 import { ShikiBlock } from '../common/shiki-block'
 import { Annotations } from '../common/annotations'
 
-export type ApplyAnnotationsOptions = { highlightedCodeHtml: string; lang: string; annotations: Annotations }
+export type ApplyAnnotationsOptions = { lang: string; annotations: Annotations }
 
-export function applyAnnotations(options: ApplyAnnotationsOptions) {
+export function applyAnnotations(highlightedCodeHtml: string, options: ApplyAnnotationsOptions) {
 	const {
-		highlightedCodeHtml,
 		annotations: { lineMarkings = [], inlineMarkings = [] },
 	} = options
 
