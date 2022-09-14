@@ -14,19 +14,22 @@ const createMarkerRegExp = (input: string) => {
 
 const highlighter = await createShikiHighlighter({})
 
+type Element = NonNullable<ReturnType<typeof DomUtils.findOne>>
+
 type ParsedContent = {
 	classes?: string[]
-	markerType?: MarkerType
+	markerType: MarkerType | undefined
 	text?: string
+	getEl?: () => Element
 }
 
 type AnnotationResult = {
-	allLines?: ParsedContent[]
-	lineMarkings?: ParsedContent[]
-	inlineMarkings?: ParsedContent[]
+	allLines: Required<ParsedContent>[]
+	lineMarkings: Required<ParsedContent>[]
+	inlineMarkings: Required<ParsedContent>[]
 }
 
-const getAnnotationResult = (code: string, options: ApplyAnnotationsOptions): Required<AnnotationResult> => {
+const getAnnotationResult = (code: string, options: ApplyAnnotationsOptions): AnnotationResult => {
 	const { lang } = options
 	const inputCodeLines = code.trim().split(/\r?\n/)
 
@@ -38,7 +41,7 @@ const getAnnotationResult = (code: string, options: ApplyAnnotationsOptions): Re
 
 	// Parse the annotated HTML output
 	const nodes = parseDocument(annotatedCodeHtml).children
-	const allLines: ParsedContent[] = DomUtils
+	const allLines: Required<ParsedContent>[] = DomUtils
 		// Get all divs containing the `line` class
 		.findAll((el) => el.name === 'div' && el.attribs.class?.split(' ').includes('line'), nodes)
 		// Map elements to properties required for the test
@@ -87,6 +90,7 @@ const codeSnippet = `
 import MyReactComponent from '../components/MyReactComponent.jsx';
 import MyAstroComponent from '../components/MyAstroComponent.astro';
 ---
+
 <MyReactComponent>
 	<MyAstroComponent slot="name" />
 </MyReactComponent>
@@ -137,38 +141,42 @@ describe('Does not fail if there is nothing to do', () => {
 })
 
 describe('Correctly applies line markings', () => {
-	test('Regular markings', () => {
-		const singleLineResult = getAnnotationResult(codeSnippet, {
-			annotations: {
-				lineMarkings: [{ markerType: 'mark', lines: [3] }],
-			},
-			lang: 'astro',
+	describe('Regular markings', () => {
+		test('Single line', () => {
+			const annotationResult = getAnnotationResult(codeSnippet, {
+				annotations: {
+					lineMarkings: [{ markerType: 'mark', lines: [3] }],
+				},
+				lang: 'astro',
+			})
+
+			expect(annotationResult.lineMarkings).toMatchObject<ParsedContent[]>([
+				{
+					markerType: 'mark',
+					text: `import MyAstroComponent from '../components/MyAstroComponent.astro';`,
+				},
+			])
 		})
 
-		expect(singleLineResult.lineMarkings).toMatchObject<ParsedContent[]>([
-			{
-				markerType: 'mark',
-				text: `import MyAstroComponent from '../components/MyAstroComponent.astro';`,
-			},
-		])
+		test('Multiple lines', () => {
+			const annotationResult = getAnnotationResult(codeSnippet, {
+				annotations: {
+					lineMarkings: [{ markerType: 'mark', lines: [3, 7] }],
+				},
+				lang: 'astro',
+			})
 
-		const multiLineResult = getAnnotationResult(codeSnippet, {
-			annotations: {
-				lineMarkings: [{ markerType: 'mark', lines: [3, 6] }],
-			},
-			lang: 'astro',
+			expect(annotationResult.lineMarkings).toMatchObject<ParsedContent[]>([
+				{
+					markerType: 'mark',
+					text: `import MyAstroComponent from '../components/MyAstroComponent.astro';`,
+				},
+				{
+					markerType: 'mark',
+					text: expect.stringContaining(`<MyAstroComponent slot="name" />`),
+				},
+			])
 		})
-
-		expect(multiLineResult.lineMarkings).toMatchObject<ParsedContent[]>([
-			{
-				markerType: 'mark',
-				text: `import MyAstroComponent from '../components/MyAstroComponent.astro';`,
-			},
-			{
-				markerType: 'mark',
-				text: expect.stringContaining(`<MyAstroComponent slot="name" />`),
-			},
-		])
 	})
 
 	test('Insertions', () => {
@@ -215,6 +223,30 @@ describe('Correctly applies line markings', () => {
 			{
 				markerType: 'del',
 				text: `---`,
+			},
+		])
+	})
+
+	test('Ensures empty lines can be highlighted', () => {
+		const annotationResult = getAnnotationResult(codeSnippet, {
+			annotations: {
+				lineMarkings: [{ markerType: 'ins', lines: [5] }],
+			},
+			lang: 'astro',
+		})
+		expect(annotationResult.lineMarkings).toMatchObject<ParsedContent[]>([
+			{
+				markerType: 'ins',
+				text: ``,
+			},
+		])
+
+		// Require the empty line to contain a `span` with `class="empty"`
+		const el = annotationResult.lineMarkings[0].getEl()
+		expect(el.children).toMatchObject<Partial<Element>[]>([
+			{
+				name: 'span',
+				attribs: { class: 'empty' },
 			},
 		])
 	})
