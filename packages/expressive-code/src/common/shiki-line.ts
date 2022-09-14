@@ -8,29 +8,25 @@ export class ShikiLine {
 	readonly tokens: InlineToken[]
 	readonly textLine: string
 
-	private beforeClassValue: string
 	private classes: Set<string>
-	private afterClassValue: string
-	private afterTokens: string
+	private otherAttributes: string
 
 	constructor(highlightedCodeLine: string) {
-		const lineRegExp = /^(<span class=")(line.*?)(".*?>)(.*)(<\/span>)$/
+		const lineRegExp = /^<(span|div) class=(["'])(line.*?)\2(.*?)>(.*)<\/\1>$/
 		const lineMatches = highlightedCodeLine.match(lineRegExp)
 		if (!lineMatches) throw new Error(`Shiki-highlighted code line HTML did not match expected format. HTML code:\n${highlightedCodeLine}`)
 
-		this.beforeClassValue = lineMatches[1]
-		this.classes = new Set(lineMatches[2].split(' '))
-		this.afterClassValue = lineMatches[3]
-		const tokensHtml = lineMatches[4]
-		this.afterTokens = lineMatches[5]
+		this.classes = new Set(lineMatches[3].split(' '))
+		this.otherAttributes = lineMatches[4]
+		const tokensHtml = lineMatches[5]
 
 		// Split line into inline tokens
-		const tokenRegExp = /<span style="color: (#[0-9A-Fa-f]+)([^"]*)">(.*?)<\/span>/g
+		const tokenRegExp = /<span style=(["'])color: (#[0-9A-Fa-f]+)(.*?)\1>(.*?)<\/span>/g
 		const tokenMatches = tokensHtml.matchAll(tokenRegExp)
 		this.tokens = []
 		this.textLine = ''
 		for (const tokenMatch of tokenMatches) {
-			const [, color, otherStyles, innerHtml] = tokenMatch
+			const [, , color, otherStyles, innerHtml] = tokenMatch
 			const text = unescape(innerHtml)
 			this.tokens.push({
 				tokenType: 'syntax',
@@ -118,7 +114,8 @@ export class ShikiLine {
 		// and attach a CSS class that displays a space inside a ::before pseudo-element.
 		if (!innerHtml && this.getLineMarkerType() !== undefined) innerHtml = '<span class="empty"></span>'
 
-		return `${this.beforeClassValue}${classValue}${this.afterClassValue}${innerHtml}${this.afterTokens}`
+		// Always render lines in Shiki Twoslash style (divs without newlines)
+		return `<div class="${classValue}"${this.otherAttributes}>${innerHtml}</div>`
 	}
 
 	getLineMarkerType(): MarkerType | undefined {
