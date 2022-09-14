@@ -30,7 +30,14 @@ module.exports = {
     'consistent-this': ['warn', 'thisObj'],
     semi: ['warn', 'never'],
     quotes: ['warn', 'single', { avoidEscape: true, allowTemplateLiterals: true }],
-    'space-before-function-paren': ['warn', 'never'],
+    'space-before-function-paren': [
+      'warn',
+      {
+        named: 'never',
+        anonymous: 'always',
+        asyncArrow: 'always',
+      },
+    ],
     'func-call-spacing': ['warn', 'never'],
     'comma-spacing': ['warn', { before: false, after: true }],
     indent: ['warn', 'tab', { SwitchCase: 1 }],
