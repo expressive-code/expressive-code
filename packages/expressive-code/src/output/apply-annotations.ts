@@ -1,12 +1,10 @@
 import { ShikiBlock } from '../common/shiki-block'
 import { Annotations } from '../common/annotations'
 
-export type ApplyAnnotationsOptions = { lang: string; annotations: Annotations }
+export type ApplyAnnotationsOptions = { lang: string; annotations?: Annotations }
 
 export function applyAnnotations(highlightedCodeHtml: string, options: ApplyAnnotationsOptions) {
-	const {
-		annotations: { lineMarkings = [], inlineMarkings = [] },
-	} = options
+	const { annotations: { lineMarkings = [], inlineMarkings = [] } = {} } = options
 
 	// TODO: Further implement function
 	// const isTerminal = ['shellscript', 'shell', 'bash', 'sh', 'zsh'].includes(lang)

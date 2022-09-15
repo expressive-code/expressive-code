@@ -131,23 +131,27 @@ export class ShikiLine {
 	}
 
 	private getInlineMarkingDefinitionMatches(inlineMarking: InlineMarkingDefinition) {
+		const { markerType = 'mark', text, regExp } = inlineMarking
 		const markedRanges: MarkedRange[] = []
 
-		if (inlineMarking.text) {
-			let idx = this.textLine.indexOf(inlineMarking.text, 0)
+		if (!MarkerTypeOrder.includes(markerType))
+			throw new Error(`Expected inline marking definition to contain a valid or undefined markerType, but got ${JSON.stringify(inlineMarking)}`)
+
+		if (text) {
+			let idx = this.textLine.indexOf(text, 0)
 			while (idx > -1) {
 				markedRanges.push({
-					markerType: inlineMarking.markerType,
+					markerType,
 					start: idx,
-					end: idx + inlineMarking.text.length,
+					end: idx + text.length,
 				})
-				idx = this.textLine.indexOf(inlineMarking.text, idx + inlineMarking.text.length)
+				idx = this.textLine.indexOf(text, idx + text.length)
 			}
 			return markedRanges
 		}
 
-		if (inlineMarking.regExp) {
-			const matches = this.textLine.matchAll(inlineMarking.regExp)
+		if (regExp) {
+			const matches = this.textLine.matchAll(regExp)
 			for (const match of matches) {
 				const fullMatchIndex = match.index as number
 				// Read the start and end ranges from the `indices` property,
@@ -181,7 +185,7 @@ export class ShikiLine {
 				groupIndices.forEach((range) => {
 					if (!range) return
 					markedRanges.push({
-						markerType: inlineMarking.markerType,
+						markerType,
 						start: range[0],
 						end: range[1],
 					})
@@ -190,7 +194,7 @@ export class ShikiLine {
 			return markedRanges
 		}
 
-		throw new Error(`Missing matching logic for inlineMarking=${JSON.stringify(inlineMarking)}`)
+		throw new Error(`Expected inline marking definition to contain a valid query property ("text" or "regExp"), but got ${JSON.stringify(inlineMarking)}`)
 	}
 
 	private textPositionToTokenPosition(textPosition: number): InsertionPoint {

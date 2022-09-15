@@ -8,7 +8,7 @@ export class ShikiBlock {
 
 	constructor(highlightedCodeHtml: string) {
 		const codeBlockRegExp = /^\s*(<pre.*?>(?:<div class="language-id">.*?<\/div>)?(?:<div class='code-container'>)?<code.*?>)([\s\S]*)(<\/code>(?:<\/div>)?<\/pre>)\s*$/
-		const matches = highlightedCodeHtml.match(codeBlockRegExp)
+		const matches = typeof highlightedCodeHtml === 'string' && highlightedCodeHtml.match(codeBlockRegExp)
 		if (!matches) throw new Error(`Shiki-highlighted code block HTML did not match expected format. HTML code:\n${highlightedCodeHtml}`)
 
 		this.htmlBeforeFirstLine = matches[1]
@@ -33,7 +33,7 @@ export class ShikiBlock {
 			// Determine line marker type (if any)
 			const matchingDefinitions = lineMarkings.filter((def) => def.lines.includes(i + 1))
 			if (matchingDefinitions) {
-				const markerTypes = matchingDefinitions.map((def) => def.markerType)
+				const markerTypes = matchingDefinitions.map((def) => def.markerType || 'mark')
 				markerTypes.sort((a, b) => MarkerTypeOrder.indexOf(a) - MarkerTypeOrder.indexOf(b))
 				const highestPrioMarkerType = markerTypes[0]
 				line.setLineMarkerType(highestPrioMarkerType)
