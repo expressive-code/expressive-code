@@ -7,8 +7,6 @@ export class ShikiBlock {
 	private htmlAfterLastLine = ''
 
 	constructor(highlightedCodeHtml: string) {
-		if (!highlightedCodeHtml) return
-
 		const codeBlockRegExp = /^\s*(<pre.*?>(?:<div class="language-id">.*?<\/div>)?(?:<div class='code-container'>)?<code.*?>)([\s\S]*)(<\/code>(?:<\/div>)?<\/pre>)\s*$/
 		const matches = highlightedCodeHtml.match(codeBlockRegExp)
 		if (!matches) throw new Error(`Shiki-highlighted code block HTML did not match expected format. HTML code:\n${highlightedCodeHtml}`)

@@ -97,6 +97,15 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 `
 
 describe('Does not fail if there is nothing to do', () => {
+	test('Code snippet is empty', () => {
+		const annotationResult = getAnnotationResult('', {
+			annotations: {},
+			lang: 'astro',
+		})
+
+		expect(annotationResult.lineMarkings).toMatchObject<ParsedContent[]>([])
+	})
+
 	test('lineMarkings is undefined', () => {
 		const annotationResult = getAnnotationResult(codeSnippet, {
 			annotations: {},
@@ -138,6 +147,10 @@ describe('Does not fail if there is nothing to do', () => {
 
 		expect(annotationResult.lineMarkings).toMatchObject<ParsedContent[]>([])
 	})
+})
+
+test.todo('Throws an error on unexpected syntax-highlighted code', () => {
+	// TODO: Add test for error on mismatching content
 })
 
 describe('Correctly applies line markings', () => {
@@ -380,3 +393,5 @@ describe('Correctly applies inline markings', () => {
 		})
 	})
 })
+
+// TODO: Add color contrast tests, including cases where color must be inverted, and where contrast cannot be improved
