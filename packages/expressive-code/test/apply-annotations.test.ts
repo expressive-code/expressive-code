@@ -1,88 +1,6 @@
 import { describe, expect, test } from 'vitest'
-import { applyAnnotations, ApplyAnnotationsOptions } from '../src/index'
-import { createShikiHighlighter, renderCodeToHTML } from 'shiki-twoslash'
-import { parseDocument, DomUtils } from 'htmlparser2'
-import { MarkerType, MarkerTypeOrder } from '../src/common/annotations'
-
-const createMarkerRegExp = (input: string) => {
-	try {
-		return new RegExp(input, 'dg')
-	} catch (error) {
-		return new RegExp(input, 'g')
-	}
-}
-
-const highlighter = await createShikiHighlighter({})
-
-type Element = NonNullable<ReturnType<typeof DomUtils.findOne>>
-
-type ParsedContent = {
-	classes?: string[]
-	markerType: MarkerType | undefined
-	text?: string
-	getEl?: () => Element
-}
-
-type AnnotationResult = {
-	allLines: Required<ParsedContent>[]
-	lineMarkings: Required<ParsedContent>[]
-	inlineMarkings: Required<ParsedContent>[]
-}
-
-const getAnnotationResult = (code: string, partialOptions?: Partial<ApplyAnnotationsOptions>): AnnotationResult => {
-	const options = { annotations: {}, lang: 'astro', ...partialOptions }
-	const { lang } = options
-	const inputCodeLines = code.trim().split(/\r?\n/)
-
-	// Run the code through shiki-twoslash first to get the syntax-highlighted HTML
-	const highlightedCodeHtml = renderCodeToHTML(inputCodeLines.join('\n'), lang, {}, undefined, highlighter)
-
-	// Now annotate the result
-	const annotatedCodeHtml = applyAnnotations(highlightedCodeHtml, options)
-
-	// Parse the annotated HTML output
-	const nodes = parseDocument(annotatedCodeHtml).children
-	const allLines: Required<ParsedContent>[] = DomUtils
-		// Get all divs containing the `line` class
-		.findAll((el) => el.name === 'div' && el.attribs.class?.split(' ').includes('line'), nodes)
-		// Map elements to properties required for the test
-		.map((el) => {
-			const classes = el.attribs.class?.split(' ') || []
-			return {
-				classes,
-				markerType: MarkerTypeOrder.find((markerType) => classes.includes(markerType.toString())),
-				text: DomUtils.textContent(el),
-				getEl: () => el,
-			}
-		})
-
-	// Validate that the output code text without any annotations still equals the input code
-	expect(inputCodeLines).toEqual(allLines.map((line) => line.text))
-
-	// Collect line-level markings
-	const lineMarkings = allLines.filter((line) => line.markerType !== undefined)
-
-	// Collect inline markings
-	const inlineMarkings = DomUtils
-		// Get all HTML elements used for inline markings
-		.findAll((el) => ['mark', 'ins', 'del'].includes(el.name), nodes)
-		// Map elements to properties required for the test
-		.map((el) => {
-			const classes = el.attribs.class?.split(' ') || []
-			return {
-				classes,
-				markerType: MarkerTypeOrder.find((markerType) => el.name === markerType.toString()),
-				text: DomUtils.textContent(el),
-				getEl: () => el,
-			}
-		})
-
-	return {
-		allLines,
-		lineMarkings,
-		inlineMarkings,
-	}
-}
+import { applyAnnotations } from '../src/index'
+import { createMarkerRegExp, Element, getAnnotationResult, ParsedContent } from './utils'
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
@@ -684,5 +602,3 @@ describe('Processes inline markings correctly', () => {
 		})
 	})
 })
-
-// TODO: Add color contrast tests, including cases where color must be inverted, and where contrast cannot be improved
