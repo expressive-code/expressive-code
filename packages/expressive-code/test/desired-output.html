@@ -1,0 +1,132 @@
+<style>
+	:root {
+		--theme-code-border: hsl(226, 0%, 50%);
+		--theme-code-selection-bg: hsl(269, 79%, 54%, 0.4);
+		--theme-code-mark-bg: hsl(226, 50%, 33%);
+		--theme-code-mark-border: hsl(224, 50%, 54%);
+		--theme-code-ins-bg: hsl(122, 22%, 23%);
+		--theme-code-ins-border: hsl(128, 42%, 38%);
+		--theme-code-ins-text: hsl(128, 31%, 65%);
+		--theme-code-del-bg: hsl(338, 40%, 26%);
+		--theme-code-del-border: hsl(338, 46%, 53%);
+		--theme-code-del-text: hsl(338, 36%, 70%);
+	}
+
+	pre {
+		--padding-block: 1rem;
+		--padding-inline: 2rem;
+		position: relative;
+		border: 1px solid var(--theme-code-border);
+		padding: var(--padding-block) 0;
+		padding-inline-end: calc(var(--padding-inline) * 2);
+		margin: 0;
+		font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+		font-size: 0.85rem;
+		line-height: 1.65;
+		overflow-y: hidden;
+		overflow-x: auto;
+		-webkit-text-size-adjust: none;
+	}
+	
+	pre code {
+		all: unset;
+		display: inline-block;
+		min-width: 100%;
+		--padding-inline: 1.25rem;
+	}
+
+	pre code * {
+		box-sizing: border-box;
+	}
+
+	pre code .line {
+		--accent-margin: 0rem;
+		/*display: inline-block;*/
+		min-width: calc(100% - var(--accent-margin));
+		padding-inline-start: var(--padding-inline);
+		padding-inline-end: calc(2 * var(--padding-inline));
+	}
+
+	pre code .line.mark,
+	pre code .line.ins,
+	pre code .line.del {
+		--accent-margin: 0rem;
+		--accent-width: 0.15rem;
+		background: var(--line-marker-bg-color);
+		margin-inline-start: var(--accent-margin);
+		border-inline-start: var(--accent-width) solid var(--line-marker-border-color);
+		padding-inline-start: calc(var(--padding-inline) - var(--accent-margin) - var(--accent-width)) !important;
+	}
+
+	pre code .line.mark::before,
+	pre code .line.ins::before,
+	pre code .line.del::before {
+		position: absolute;
+		left: 0.5rem;
+	}
+	
+	pre code .line.mark {
+		--line-marker-bg-color: var(--theme-code-mark-bg);
+		--line-marker-border-color: var(--theme-code-mark-border);
+	}
+	pre code .line.ins {
+		--line-marker-bg-color: var(--theme-code-ins-bg);
+		--line-marker-border-color: var(--theme-code-ins-border);
+	}
+	pre code .line.ins::before {
+			content: '+';
+			color: var(--theme-code-ins-text);
+	}
+	pre code .line.del {
+		--line-marker-bg-color: var(--theme-code-del-bg);
+		--line-marker-border-color: var(--theme-code-del-border);
+	}
+	pre code .line.del::before {
+		content: '-';
+		color: var(--theme-code-del-text);
+	}
+</style>
+<figure class="code-snippet">
+<pre class="astro-code shiki" style="background-color: #ffffff; color: #24292f"
+	><div class="language-id">astro</div
+	><div class="code-container"
+		><code
+			><div class="line"><span style="color: #6e7781">---</span></div
+			><div class="line mark"
+				><span style="color: #eca8ad">import</span
+				><span style="color: #b9babc"> MyReactComponent </span
+				><span style="color: #eca8ad">from</span
+				><span style="color: #b9babc"> </span
+				><span style="color: #afbbce">'../components/MyReactComponent.jsx'</span
+				><span style="color: #b9babc">;</span></div
+			><div class="line"
+				><mark><span style="color: #cf222e">import</span
+				></mark><span style="color: #24292f"> MyAstroComponent </span
+				><span style="color: #cf222e">from</span
+				><span style="color: #24292f"> </span
+				><span style="color: #0a3069"
+					>'../components/MyAstroComponent.astro'</span
+				><span style="color: #24292f">;</span></div
+			><div class="line"><span style="color: #6e7781">---</span></div
+			><div class="line"></div
+			><div class="line"
+				><span style="color: #24292f">&lt;</span
+				><span style="color: #116329">MyReactComponent</span
+				><span style="color: #24292f">&gt;</span></div
+			><div class="line ins"
+				><span style="color: #b9babc">  &lt;</span
+				><span style="color: #a2c2ab">MyAstroComponent</span
+				><span style="color: #b9babc"> </span
+				><span style="color: #a0bde0">slot</span
+				><span style="color: #b9babc">=</span
+				><span style="color: #afbbce">"name"</span
+				><span style="color: #b9babc"> /&gt;</span></div
+			><div class="line"
+				><span style="color: #24292f">&lt;/</span
+				><span style="color: #116329">MyReactComponent</span
+				><span style="color: #24292f">&gt;</span></div
+			></code
+		></div
+	></pre
+>
+</figure>
