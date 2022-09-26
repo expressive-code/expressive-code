@@ -1,5 +1,6 @@
 import { expect } from 'vitest'
-import { createShikiHighlighter, renderCodeToHTML } from 'shiki-twoslash'
+import { getHighlighter, Highlighter, HighlighterOptions } from 'shiki'
+import { renderCodeToHTML } from 'shiki-twoslash'
 import { parseDocument, DomUtils } from 'htmlparser2'
 import { format } from 'prettier'
 import { applyAnnotations, ApplyAnnotationsOptions } from '../src/index'
@@ -13,9 +14,6 @@ export const createMarkerRegExp = (input: string) => {
 	}
 }
 
-const defaultHighlighter = await createShikiHighlighter({})
-
-export type Highlighter = Awaited<ReturnType<typeof createShikiHighlighter>>
 export type Element = NonNullable<ReturnType<typeof DomUtils.findOne>>
 
 export type ParsedContent = {
@@ -35,6 +33,15 @@ export type AnnotationResult = {
 export type GetAnnotationOptions = Partial<ApplyAnnotationsOptions> & {
 	highlighter?: Highlighter
 }
+
+export const createHighlighter = async (settings: HighlighterOptions = { theme: 'light-plus' }) => {
+	if (settings.themes) throw new Error('The "themes" setting is not supported in tests, you must use a single "theme".')
+
+	const highlighter = await getHighlighter(settings)
+	return highlighter
+}
+
+const defaultHighlighter = await createHighlighter({})
 
 export const getAnnotationResult = (code: string, getAnnotationOptions?: GetAnnotationOptions): AnnotationResult => {
 	const { highlighter = defaultHighlighter, ...partialApplyAnnotationsOptions } = getAnnotationOptions || {}
