@@ -1,5 +1,5 @@
-import { beforeAll, describe, expect, test } from 'vitest'
-import { addPrettierHtmlSnapshotSerializer, createHighlighter, getAnnotationResult } from './utils'
+import { describe, test } from 'vitest'
+import { createHighlighter, expectHtmlSnapshotMatch, getAnnotationResult } from './utils'
 
 const codeSnippet = `
 interface PropsType {
@@ -22,12 +22,8 @@ class Component extends React.Component<PropsType, {}> {
 </Component>
 `
 
-beforeAll(() => {
-	addPrettierHtmlSnapshotSerializer()
-})
-
 describe('Color contrast', () => {
-	test('Lightens tokens inside marked lines', async () => {
+	test('Lightens tokens in marked lines', async () => {
 		const highlighter = await createHighlighter({
 			theme: 'material-default',
 		})
@@ -40,7 +36,7 @@ describe('Color contrast', () => {
 			},
 		})
 
-		expect(annotationResult.annotatedCodeHtml).toMatchSnapshot()
+		expectHtmlSnapshotMatch({ annotationResult, name: 'lightens-tokens-in-marked-lines' })
 	})
 })
 
