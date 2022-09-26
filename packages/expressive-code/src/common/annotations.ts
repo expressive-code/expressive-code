@@ -4,12 +4,12 @@ export type MarkerType = 'mark' | 'ins' | 'del'
 export const MarkerTypeOrder: MarkerType[] = ['mark', 'del', 'ins']
 
 export type LineMarkingDefinition = {
-	markerType: MarkerType
+	markerType?: MarkerType
 	lines: number[]
 }
 
 export type InlineMarkingDefinition = {
-	markerType: MarkerType
+	markerType?: MarkerType
 	text?: string
 	regExp?: RegExp
 }

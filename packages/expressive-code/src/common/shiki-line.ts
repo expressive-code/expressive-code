@@ -8,29 +8,25 @@ export class ShikiLine {
 	readonly tokens: InlineToken[]
 	readonly textLine: string
 
-	private beforeClassValue: string
 	private classes: Set<string>
-	private afterClassValue: string
-	private afterTokens: string
+	private otherAttributes: string
 
 	constructor(highlightedCodeLine: string) {
-		const lineRegExp = /^(<span class=")(line.*?)(".*?>)(.*)(<\/span>)$/
+		const lineRegExp = /^<(span|div) class=(["'])(line.*?)\2(.*?)>(.*)<\/\1>$/
 		const lineMatches = highlightedCodeLine.match(lineRegExp)
 		if (!lineMatches) throw new Error(`Shiki-highlighted code line HTML did not match expected format. HTML code:\n${highlightedCodeLine}`)
 
-		this.beforeClassValue = lineMatches[1]
-		this.classes = new Set(lineMatches[2].split(' '))
-		this.afterClassValue = lineMatches[3]
-		const tokensHtml = lineMatches[4]
-		this.afterTokens = lineMatches[5]
+		this.classes = new Set(lineMatches[3].split(' '))
+		this.otherAttributes = lineMatches[4]
+		const tokensHtml = lineMatches[5]
 
 		// Split line into inline tokens
-		const tokenRegExp = /<span style="color: (#[0-9A-Fa-f]+)([^"]*)">(.*?)<\/span>/g
+		const tokenRegExp = /<span style=(["'])color: (#[0-9A-Fa-f]+)(.*?)\1>(.*?)<\/span>/g
 		const tokenMatches = tokensHtml.matchAll(tokenRegExp)
 		this.tokens = []
 		this.textLine = ''
 		for (const tokenMatch of tokenMatches) {
-			const [, color, otherStyles, innerHtml] = tokenMatch
+			const [, , color, otherStyles, innerHtml] = tokenMatch
 			const text = unescape(innerHtml)
 			this.tokens.push({
 				tokenType: 'syntax',
@@ -45,6 +41,12 @@ export class ShikiLine {
 		}
 	}
 
+	/**
+	 * Applies the given inline markings to the line.
+	 *
+	 * Note that this currently assumes that the line does not contain any markings yet,
+	 * so it should only be called once per line.
+	 */
 	applyInlineMarkings(inlineMarkings: InlineMarkingDefinition[]) {
 		const markedRanges: MarkedRange[] = []
 
@@ -118,7 +120,8 @@ export class ShikiLine {
 		// and attach a CSS class that displays a space inside a ::before pseudo-element.
 		if (!innerHtml && this.getLineMarkerType() !== undefined) innerHtml = '<span class="empty"></span>'
 
-		return `${this.beforeClassValue}${classValue}${this.afterClassValue}${innerHtml}${this.afterTokens}`
+		// Always render lines in Shiki Twoslash style (divs without newlines)
+		return `<div class="${classValue}"${this.otherAttributes}>${innerHtml}</div>`
 	}
 
 	getLineMarkerType(): MarkerType | undefined {
@@ -134,47 +137,39 @@ export class ShikiLine {
 	}
 
 	private getInlineMarkingDefinitionMatches(inlineMarking: InlineMarkingDefinition) {
+		const { markerType = 'mark', text, regExp } = inlineMarking
 		const markedRanges: MarkedRange[] = []
 
-		if (inlineMarking.text) {
-			let idx = this.textLine.indexOf(inlineMarking.text, 0)
+		if (!MarkerTypeOrder.includes(markerType))
+			throw new Error(`Expected inline marking definition to contain a valid or undefined markerType, but got ${JSON.stringify(inlineMarking)}`)
+
+		if (text) {
+			let idx = this.textLine.indexOf(text, 0)
 			while (idx > -1) {
 				markedRanges.push({
-					markerType: inlineMarking.markerType,
+					markerType,
 					start: idx,
-					end: idx + inlineMarking.text.length,
+					end: idx + text.length,
 				})
-				idx = this.textLine.indexOf(inlineMarking.text, idx + inlineMarking.text.length)
+				idx = this.textLine.indexOf(text, idx + text.length)
 			}
 			return markedRanges
 		}
 
-		if (inlineMarking.regExp) {
-			const matches = this.textLine.matchAll(inlineMarking.regExp)
+		if (regExp) {
+			const matches = this.textLine.matchAll(regExp)
 			for (const match of matches) {
-				const fullMatchIndex = match.index as number
-				// Read the start and end ranges from the `indices` property,
-				// which is made available through the RegExp flag `d`
-				// (and unfortunately not recognized by TypeScript)
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
-				let groupIndices = (match as any).indices as ([start: number, end: number] | null)[]
-				// If accessing the group indices is unsupported, use fallback logic
-				if (!groupIndices || !groupIndices.length) {
-					// Try to find the position of each capture group match inside the full match
-					groupIndices = match.map((groupValue) => {
-						const groupIndex = groupValue ? match[0].indexOf(groupValue) : -1
-						if (groupIndex === -1) return null
-						const groupStart = fullMatchIndex + groupIndex
-						const groupEnd = groupStart + groupValue.length
-						return [groupStart, groupEnd]
-					})
-				}
+				const rawGroupIndices = this.getGroupIndicesFromRegExpMatch(match)
 				// Remove null group indices
-				groupIndices = groupIndices.filter((range) => range)
+				let groupIndices = rawGroupIndices.flatMap((range) => (range ? [range] : []))
 				// If there are no non-null indices, use the full match instead
+				// (capture group feature fallback, impossible to cover in tests)
+				/* c8 ignore start */
 				if (!groupIndices.length) {
+					const fullMatchIndex = match.index as number
 					groupIndices = [[fullMatchIndex, fullMatchIndex + match[0].length]]
 				}
+				/* c8 ignore end */
 				// If there are multiple non-null indices, remove the first one
 				// as it is the full match and we only want to mark capture groups
 				if (groupIndices.length > 1) {
@@ -182,9 +177,8 @@ export class ShikiLine {
 				}
 				// Create marked ranges from all remaining group indices
 				groupIndices.forEach((range) => {
-					if (!range) return
 					markedRanges.push({
-						markerType: inlineMarking.markerType,
+						markerType,
 						start: range[0],
 						end: range[1],
 					})
@@ -193,12 +187,49 @@ export class ShikiLine {
 			return markedRanges
 		}
 
-		throw new Error(`Missing matching logic for inlineMarking=${JSON.stringify(inlineMarking)}`)
+		throw new Error(`Expected inline marking definition to contain a valid query property ("text" or "regExp"), but got ${JSON.stringify(inlineMarking)}`)
+	}
+
+	/**
+	 * Retrieves all group indices from the given RegExp match. Group indices are ranges
+	 * defined by start & end positions. The first group index refers to the full match,
+	 * and the following indices to RegExp capture groups (if any).
+	 *
+	 * If the RegExp flag `d` was enabled (and supported), it returns the native group indices.
+	 *
+	 * Otherwise, it uses fallback logic to manually search for the group contents inside the
+	 * full match. Note that this can be wrong if a group's contents can be found multiple times
+	 * inside the full match, but that's probably a rare case and still better than failing.
+	 */
+	private getGroupIndicesFromRegExpMatch(match: RegExpMatchArray) {
+		// Read the start and end ranges from the `indices` property,
+		// which is made available through the RegExp flag `d`
+		// (and unfortunately not recognized by TypeScript)
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access
+		let groupIndices = (match as any).indices as ([start: number, end: number] | null)[]
+		if (groupIndices?.length) return groupIndices
+
+		// We could not access native group indices, so we need to use fallback logic
+		// to find the position of each capture group match inside the full match
+		const fullMatchIndex = match.index as number
+		groupIndices = match.map((groupValue) => {
+			const groupIndex = groupValue ? match[0].indexOf(groupValue) : -1
+			if (groupIndex === -1) return null
+			const groupStart = fullMatchIndex + groupIndex
+			const groupEnd = groupStart + groupValue.length
+			return [groupStart, groupEnd]
+		})
+
+		return groupIndices
 	}
 
 	private textPositionToTokenPosition(textPosition: number): InsertionPoint {
 		for (const [tokenIndex, token] of this.tokens.entries()) {
+			// Currently, `applyInlineMarkings` is designed to be called only once per line,
+			// so the following condition cannot happen unless there is an error in the code
+			/* c8 ignore start */
 			if (token.tokenType !== 'syntax') continue
+			/* c8 ignore end */
 
 			if (textPosition === token.textStart) {
 				return {
@@ -238,7 +269,11 @@ export class ShikiLine {
 		// Insert the new token inside the given token by splitting it
 		if (position.innerHtmlOffset > 0) {
 			const insideToken = this.tokens[position.tokenIndex]
+			// This is an internal error that only gets thrown if my other code is wrong,
+			// therefore not coverable by tests :)
+			/* c8 ignore start */
 			if (insideToken.tokenType !== 'syntax') throw new Error(`Cannot insert a marker token inside a token of type "${insideToken.tokenType}"!`)
+			/* c8 ignore end */
 
 			const newInnerHtmlBeforeMarker = insideToken.innerHtml.slice(0, position.innerHtmlOffset)
 			const tokenAfterMarker = {
