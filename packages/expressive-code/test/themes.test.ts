@@ -1,7 +1,7 @@
 import { describe, test } from 'vitest'
 import { createHighlighter, expectHtmlSnapshotMatch, getAnnotationResult } from './utils'
 
-const codeSnippet = `
+const jsxCodeSnippet = `
 interface PropsType {
   children: JSX.Element
   name: string
@@ -9,15 +9,17 @@ interface PropsType {
 
 class Component extends React.Component<PropsType, {}> {
   render() {
+    // Wrap some custom HTML around the given children
     return (
-      <h2>
-        {this.props.children}
-      </h2>
+      <article title={\`Found \${this.props.children.length} children\`}>
+        <div>{this.props.children}</div>
+      </article>
     )
   }
 }
 
 <Component name="foo">
+  {/* This is a JSX comment */}
   <h1>Hello World</h1>
 </Component>
 `
@@ -28,11 +30,11 @@ describe('Color contrast', () => {
 			theme: 'material-default',
 		})
 
-		const annotationResult = getAnnotationResult(codeSnippet, {
+		const annotationResult = getAnnotationResult(jsxCodeSnippet, {
 			lang: 'tsx',
 			highlighter,
 			annotations: {
-				lineMarkings: [{ lines: [2, 7] }],
+				lineMarkings: [{ lines: [2] }, { markerType: 'ins', lines: [10] }],
 			},
 		})
 

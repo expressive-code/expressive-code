@@ -34,11 +34,9 @@ export const baseCss = `
 
 pre {
 	--padding-block: 1rem;
-	--padding-inline: 2rem;
 	position: relative;
 	border: 1px solid var(--theme-code-border);
 	padding: var(--padding-block) 0;
-	padding-inline-end: calc(var(--padding-inline) * 2);
 	margin: 0;
 	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
 	font-size: 0.85rem;
@@ -62,6 +60,7 @@ pre code * {
 pre code .line {
 	--accent-margin: 0rem;
 	/*display: inline-block;*/
+	min-height: 1.65em;
 	min-width: calc(100% - var(--accent-margin));
 	padding-inline-start: var(--padding-inline);
 	padding-inline-end: calc(2 * var(--padding-inline));

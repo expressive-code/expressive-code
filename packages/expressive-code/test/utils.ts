@@ -114,6 +114,7 @@ function prettifyHtml(html: string) {
 		parser: 'html',
 		useTabs: true,
 		htmlWhitespaceSensitivity: 'strict',
+		printWidth: 9999,
 		// Try to match the most likely git repo setting
 		endOfLine: EOL === '\n' ? 'cr' : 'crlf',
 	})

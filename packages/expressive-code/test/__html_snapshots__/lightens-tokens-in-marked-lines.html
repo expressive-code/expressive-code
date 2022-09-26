@@ -16,11 +16,9 @@
 
 			pre {
 				--padding-block: 1rem;
-				--padding-inline: 2rem;
 				position: relative;
 				border: 1px solid var(--theme-code-border);
 				padding: var(--padding-block) 0;
-				padding-inline-end: calc(var(--padding-inline) * 2);
 				margin: 0;
 				font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
 				font-size: 0.85rem;
@@ -44,6 +42,7 @@
 			pre code .line {
 				--accent-margin: 0rem;
 				/*display: inline-block;*/
+				min-height: 1.65em;
 				min-width: calc(100% - var(--accent-margin));
 				padding-inline-start: var(--padding-inline);
 				padding-inline-end: calc(2 * var(--padding-inline));
@@ -56,11 +55,8 @@
 				--accent-width: 0.15rem;
 				background: var(--line-marker-bg-color);
 				margin-inline-start: var(--accent-margin);
-				border-inline-start: var(--accent-width) solid
-					var(--line-marker-border-color);
-				padding-inline-start: calc(
-					var(--padding-inline) - var(--accent-margin) - var(--accent-width)
-				) !important;
+				border-inline-start: var(--accent-width) solid var(--line-marker-border-color);
+				padding-inline-start: calc(var(--padding-inline) - var(--accent-margin) - var(--accent-width)) !important;
 			}
 
 			pre code .line.mark::before,
@@ -95,108 +91,24 @@
 			><div class="language-id">tsx</div
 			><div class="code-container"
 				><code
-					><div class="line"
-						><span style="color: #c792ea">interface</span
-						><span style="color: #eeffff"> </span
-						><span style="color: #ffcb6b">PropsType</span
-						><span style="color: #eeffff"> </span
-						><span style="color: #89ddff">{</span></div
-					><div class="line mark"
-						><span style="color: #eeffff">  </span
-						><span style="color: #f5a4a9">children</span
-						><span style="color: #89ddff">:</span
-						><span style="color: #eeffff"> </span
-						><span style="color: #ffcb6b">JSX</span
-						><span style="color: #89ddff">.</span
-						><span style="color: #ffcb6b">Element</span></div
-					><div class="line"
-						><span style="color: #eeffff">  </span
-						><span style="color: #f07178">name</span
-						><span style="color: #89ddff">:</span
-						><span style="color: #eeffff"> </span
-						><span style="color: #ffcb6b">string</span></div
+					><div class="line"><span style="color: #c792ea">interface</span><span style="color: #eeffff"> </span><span style="color: #ffcb6b">PropsType</span><span style="color: #eeffff"> </span><span style="color: #89ddff">{</span></div
+					><div class="line mark"><span style="color: #eeffff">  </span><span style="color: #f5a4a9">children</span><span style="color: #89ddff">:</span><span style="color: #eeffff"> </span><span style="color: #ffcb6b">JSX</span><span style="color: #89ddff">.</span><span style="color: #ffcb6b">Element</span></div
+					><div class="line"><span style="color: #eeffff">  </span><span style="color: #f07178">name</span><span style="color: #89ddff">:</span><span style="color: #eeffff"> </span><span style="color: #ffcb6b">string</span></div
 					><div class="line"><span style="color: #89ddff">}</span></div
-					><div class="line"></div
-					><div class="line"
-						><span style="color: #c792ea">class</span
-						><span style="color: #eeffff"> </span
-						><span style="color: #ffcb6b">Component</span
-						><span style="color: #eeffff"> </span
-						><span style="color: #c792ea">extends</span
-						><span style="color: #eeffff"> </span
-						><span style="color: #ffcb6b">React</span
-						><span style="color: #89ddff">.</span
-						><span style="color: #ffcb6b">Component</span
-						><span style="color: #89ddff">&lt;</span
-						><span style="color: #ffcb6b">PropsType</span
-						><span style="color: #89ddff">,</span
-						><span style="color: #eeffff"> </span
-						><span style="color: #89ddff">{}&gt;</span
-						><span style="color: #eeffff"> </span
-						><span style="color: #89ddff">{</span></div
-					><div class="line mark"
-						><span style="color: #eeffff">  </span
-						><span style="color: #f5a4a9">render</span
-						><span style="color: #89ddff">()</span
-						><span style="color: #eeffff"> </span
-						><span style="color: #89ddff">{</span></div
-					><div class="line"
-						><span style="color: #f07178">    </span
-						><span style="color: #89ddff">return</span
-						><span style="color: #f07178"> (</span></div
-					><div class="line"
-						><span style="color: #f07178"
-							>      </span
-						><span style="color: #89ddff">&lt;</span
-						><span style="color: #f07178">h2</span
-						><span style="color: #89ddff">&gt;</span></div
-					><div class="line"
-						><span style="color: #eeffff"
-							>        </span
-						><span style="color: #89ddff">{this.</span
-						><span style="color: #eeffff">props</span
-						><span style="color: #89ddff">.</span
-						><span style="color: #eeffff">children</span
-						><span style="color: #89ddff">}</span></div
-					><div class="line"
-						><span style="color: #eeffff"
-							>      </span
-						><span style="color: #89ddff">&lt;/</span
-						><span style="color: #f07178">h2</span
-						><span style="color: #89ddff">&gt;</span></div
-					><div class="line"
-						><span style="color: #f07178"
-							>    )</span
-						></div
-					><div class="line"
-						><span style="color: #f07178">  </span
-						><span style="color: #89ddff">}</span></div
+					><div class="line"></div><div class="line"><span style="color: #c792ea">class</span><span style="color: #eeffff"> </span><span style="color: #ffcb6b">Component</span><span style="color: #eeffff"> </span><span style="color: #c792ea">extends</span><span style="color: #eeffff"> </span><span style="color: #ffcb6b">React</span><span style="color: #89ddff">.</span><span style="color: #ffcb6b">Component</span><span style="color: #89ddff">&lt;</span><span style="color: #ffcb6b">PropsType</span><span style="color: #89ddff">,</span><span style="color: #eeffff"> </span><span style="color: #89ddff">{}&gt;</span><span style="color: #eeffff"> </span><span style="color: #89ddff">{</span></div
+					><div class="line"><span style="color: #eeffff">  </span><span style="color: #f07178">render</span><span style="color: #89ddff">()</span><span style="color: #eeffff"> </span><span style="color: #89ddff">{</span></div
+					><div class="line"><span style="color: #89ddff">    </span><span style="color: #546e7a">// Wrap some custom HTML around the given children</span></div
+					><div class="line"><span style="color: #f07178">    </span><span style="color: #89ddff">return</span><span style="color: #f07178"> (</span></div
+					><div class="line ins"><span style="color: #f5a4a9">      </span><span style="color: #89ddff">&lt;</span><span style="color: #f5a4a9">article</span><span style="color: #89ddff"> </span><span style="color: #d4aaef">title</span><span style="color: #89ddff">={</span><span style="color: #89ddff">`</span><span style="color: #c3e88d">Found </span><span style="color: #89ddff">${</span><span style="color: #89ddff">this.</span><span style="color: #eeffff">props</span><span style="color: #89ddff">.</span><span style="color: #eeffff">children</span><span style="color: #89ddff">.</span><span style="color: #eeffff">length</span><span style="color: #89ddff">}</span><span style="color: #c3e88d"> children</span><span style="color: #89ddff">`</span><span style="color: #89ddff">}&gt;</span></div
+					><div class="line"><span style="color: #eeffff">        </span><span style="color: #89ddff">&lt;</span><span style="color: #f07178">div</span><span style="color: #89ddff">&gt;{this.</span><span style="color: #eeffff">props</span><span style="color: #89ddff">.</span><span style="color: #eeffff">children</span><span style="color: #89ddff">}&lt;/</span><span style="color: #f07178">div</span><span style="color: #89ddff">&gt;</span></div
+					><div class="line"><span style="color: #eeffff">      </span><span style="color: #89ddff">&lt;/</span><span style="color: #f07178">article</span><span style="color: #89ddff">&gt;</span></div
+					><div class="line"><span style="color: #f07178">    )</span></div
+					><div class="line"><span style="color: #f07178">  </span><span style="color: #89ddff">}</span></div
 					><div class="line"><span style="color: #89ddff">}</span></div
-					><div class="line"></div
-					><div class="line"
-						><span style="color: #89ddff">&lt;</span
-						><span style="color: #ffcb6b">Component</span
-						><span style="color: #89ddff"> </span
-						><span style="color: #c792ea">name</span
-						><span style="color: #89ddff">=</span
-						><span style="color: #89ddff">"</span
-						><span style="color: #c3e88d">foo</span
-						><span style="color: #89ddff">"</span
-						><span style="color: #89ddff">&gt;</span></div
-					><div class="line"
-						><span style="color: #eeffff">  </span
-						><span style="color: #89ddff">&lt;</span
-						><span style="color: #f07178">h1</span
-						><span style="color: #89ddff">&gt;</span
-						><span style="color: #eeffff">Hello World</span
-						><span style="color: #89ddff">&lt;/</span
-						><span style="color: #f07178">h1</span
-						><span style="color: #89ddff">&gt;</span></div
-					><div class="line"
-						><span style="color: #89ddff">&lt;/</span
-						><span style="color: #ffcb6b">Component</span
-						><span style="color: #89ddff">&gt;</span></div
-					></code
+					><div class="line"></div><div class="line"><span style="color: #89ddff">&lt;</span><span style="color: #ffcb6b">Component</span><span style="color: #89ddff"> </span><span style="color: #c792ea">name</span><span style="color: #89ddff">=</span><span style="color: #89ddff">"</span><span style="color: #c3e88d">foo</span><span style="color: #89ddff">"</span><span style="color: #89ddff">&gt;</span></div
+					><div class="line"><span style="color: #eeffff">  </span><span style="color: #89ddff">{</span><span style="color: #546e7a">/* This is a JSX comment */</span><span style="color: #89ddff">}</span></div
+					><div class="line"><span style="color: #eeffff">  </span><span style="color: #89ddff">&lt;</span><span style="color: #f07178">h1</span><span style="color: #89ddff">&gt;</span><span style="color: #eeffff">Hello World</span><span style="color: #89ddff">&lt;/</span><span style="color: #f07178">h1</span><span style="color: #89ddff">&gt;</span></div
+					><div class="line"><span style="color: #89ddff">&lt;/</span><span style="color: #ffcb6b">Component</span><span style="color: #89ddff">&gt;</span></div></code
 				></div
 			></pre
 		>
