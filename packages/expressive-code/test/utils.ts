@@ -5,7 +5,6 @@ import { expect } from 'vitest'
 import { getHighlighter, Highlighter, HighlighterOptions } from 'shiki'
 import { renderCodeToHTML } from 'shiki-twoslash'
 import { parseDocument, DomUtils } from 'htmlparser2'
-import { format } from 'prettier'
 import { applyAnnotations, ApplyAnnotationsOptions, baseCss } from '../src/index'
 import { MarkerType, MarkerTypeOrder } from '../src/common/annotations'
 
@@ -175,36 +174,23 @@ export function getAnnotationResult(code: string, getAnnotationOptions?: GetAnno
 }
 
 function prettifyHtml(html: string) {
-	const preprocessed = html
-		.replace(/<pre /g, '<Xpre ')
-		.replace(/<\/pre/g, '</Xpre')
-		.replace(/(>)([ \t]+)/g, (_, start: string, whitespace: string) => {
-			return `${start}${whitespace.replace(/ /g, '&#0032;').replace(/\t/g, '&#0009;')}`
-		})
-	const formatted = format(preprocessed, {
-		parser: 'html',
-		useTabs: true,
-		htmlWhitespaceSensitivity: 'strict',
-		printWidth: 9999,
-		// Try to match the most likely git repo setting
-		endOfLine: EOL === '\n' ? 'cr' : 'crlf',
-	})
-	const postprocessed = formatted
-		.replace(/(>)((&#0032;|&#0009;)+)/g, (_, start: string, whitespace: string) => {
-			return `${start}${whitespace.replace(/&#0032;/g, ' ').replace(/&#0009;/g, '\t')}`
-		})
-		.replace(/<Xpre /g, '<pre ')
-		.replace(/<\/Xpre/g, '</pre')
+	let postprocessed = html
+		.replace(/(><\/pre.*?>)/g, '\n    $1')
+		.replace(/(><\/code.*?>)/g, '\n      $1')
+		.replace(/(><div.*?>)/g, '\n      $1')
+	if (EOL !== '\n') postprocessed = postprocessed.replace(/\n/g, EOL)
 	return postprocessed
 }
 
 export type PrepareHtmlSnapshotOptions = {
 	name: string
 	annotationResult: AnnotationResult
+	loadActual?: boolean
+	loadExpected?: boolean
 }
 
 export function prepareHtmlSnapshot(options: PrepareHtmlSnapshotOptions) {
-	const { name, annotationResult } = options
+	const { name, annotationResult, loadActual = false, loadExpected = false } = options
 
 	const snapshotBasePath = join(__dirname, '__html_snapshots__')
 	const snapshotFileName = `${name}.html`
@@ -216,12 +202,12 @@ export function prepareHtmlSnapshot(options: PrepareHtmlSnapshotOptions) {
 
 	// Load both actual and expected from file to prevent
 	// potential mismatches caused by prettifyHtml
-	const actual = AnnotationResult.loadFromFile(actualFilePath)
+	const actual = loadActual ? AnnotationResult.loadFromFile(actualFilePath) : undefined
 
 	mkdirSync(dirname(expectedFilePath), { recursive: true })
-	let expected: AnnotationResult
+	let expected: AnnotationResult | undefined
 	try {
-		expected = AnnotationResult.loadFromFile(expectedFilePath)
+		expected = loadExpected ? AnnotationResult.loadFromFile(expectedFilePath) : undefined
 	} catch (error) {
 		console.warn(`There is no expected HTML snapshot for "${name}" yet, creating it now`)
 		annotationResult.saveToFile(expectedFilePath)

@@ -26,7 +26,7 @@ class Component extends React.Component<PropsType, {}> {
 `
 
 describe('Color contrast in marked lines', () => {
-	test('Lightens tokens where text is lighter than background', async () => {
+	test('Lightens lighter token text if contrast is too low', async () => {
 		const highlighter = await createHighlighter({
 			theme: 'material-default',
 		})
@@ -39,16 +39,41 @@ describe('Color contrast in marked lines', () => {
 			},
 		})
 
-		const snapshot = prepareHtmlSnapshot({ annotationResult, name: 'low-contrast-light-text' })
+		prepareHtmlSnapshot({ annotationResult, name: 'low-contrast-lighter-text' })
 
 		// Get the opening and closing `article` tags and their colors
-		const htmlTagTokens = snapshot.actual.annotatedCode.shikiTokens.filter((token) => token.text === 'article')
+		const htmlTagTokens = annotationResult.annotatedCode.shikiTokens.filter((token) => token.text === 'article')
 		expect(htmlTagTokens).toHaveLength(2)
 		const openingTagColor = chroma(htmlTagTokens[0].color || '')
 		const closingTagColor = chroma(htmlTagTokens[1].color || '')
 
 		// Expect the (inserted) opening tag to be lighter than the (regular) closing tag
 		expect(openingTagColor.luminance()).toBeGreaterThan(closingTagColor.luminance())
+	})
+
+	test('Does not modify lighter token text if contrast is good', async () => {
+		const highlighter = await createHighlighter({
+			theme: 'rose-pine',
+		})
+
+		const annotationResult = getAnnotationResult(jsxCodeSnippet, {
+			lang: 'tsx',
+			highlighter,
+			annotations: {
+				lineMarkings: [{ lines: [2] }, { markerType: 'ins', lines: [10] }],
+			},
+		})
+
+		prepareHtmlSnapshot({ annotationResult, name: 'good-contrast-lighter-text' })
+
+		// Get the opening and closing `article` tags and their colors
+		const htmlTagTokens = annotationResult.annotatedCode.shikiTokens.filter((token) => token.text === 'article')
+		expect(htmlTagTokens).toHaveLength(2)
+		const openingTagColor = chroma(htmlTagTokens[0].color || '')
+		const closingTagColor = chroma(htmlTagTokens[1].color || '')
+
+		// Expect the (inserted) opening tag to have the same color as the (regular) closing tag
+		expect(openingTagColor.hex()).toEqual(closingTagColor.hex())
 	})
 })
 
