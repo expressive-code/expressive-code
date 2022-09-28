@@ -18,6 +18,8 @@ export function createMarkerRegExp(input: string) {
 }
 
 export type Element = NonNullable<ReturnType<typeof DomUtils.findOne>>
+export type Document = NonNullable<ReturnType<typeof parseDocument>>
+export type ChildNode = Document['children'][0]
 
 export type ParsedContent = {
 	classes?: string[]
@@ -26,11 +28,47 @@ export type ParsedContent = {
 	getEl?: () => Element
 }
 
-export type AnnotationResult = {
-	annotatedCodeHtml: string
-	allLines: Required<ParsedContent>[]
-	lineMarkings: Required<ParsedContent>[]
-	inlineMarkings: Required<ParsedContent>[]
+export class AnnotationResult {
+	highlightedCode: ShikiOutput
+	annotatedCode: ShikiOutput
+
+	constructor({ highlightedCode, annotatedCode }: { highlightedCode: ShikiOutput; annotatedCode: ShikiOutput }) {
+		this.highlightedCode = highlightedCode
+		this.annotatedCode = annotatedCode
+	}
+
+	saveToFile(filePath: string) {
+		const html = `
+<html>
+<body>
+  <style>${baseCss}</style>
+
+  <h2>Annotated code</h2>
+  <div id="annotated">
+    ${this.annotatedCode.html}
+  </div><!--end:annotated-->
+
+  <h2>Original Shiki-highlighted code</h2>
+  <div id="highlighted">
+    ${this.highlightedCode.html}
+  </div><!--end:highlighted-->
+</body>
+</html>
+		`
+		const prettifiedHtml = prettifyHtml(html)
+		writeFileSync(filePath, prettifiedHtml, 'utf8')
+	}
+
+	static loadFromFile(filePath: string) {
+		const prettifiedHtml = readFileSync(filePath, 'utf8')
+		const highlightedCodeHtml = prettifiedHtml.match(/<div id="highlighted">([\s\S]*?)<\/div\s*><!--end:highlighted-->/)?.[1] || ''
+		const annotatedCodeHtml = prettifiedHtml.match(/<div id="annotated">([\s\S]*?)<\/div\s*><!--end:annotated-->/)?.[1] || ''
+
+		return new AnnotationResult({
+			highlightedCode: new ShikiOutput(highlightedCodeHtml),
+			annotatedCode: new ShikiOutput(annotatedCodeHtml),
+		})
+	}
 }
 
 export type GetAnnotationOptions = Partial<ApplyAnnotationsOptions> & {
@@ -46,6 +84,73 @@ export async function createHighlighter(settings: HighlighterOptions = { theme: 
 
 const defaultHighlighter = await createHighlighter({})
 
+class ShikiOutput {
+	html: string
+	nodes: ChildNode[]
+	allLines: Required<ParsedContent>[]
+
+	constructor(html: string) {
+		this.html = html
+		this.nodes = parseDocument(html).children
+
+		this.allLines = DomUtils
+			// Get all divs containing the `line` class
+			.findAll((el) => el.name === 'div' && el.attribs.class?.split(' ').includes('line'), this.nodes)
+			// Map elements to properties required for the test
+			.map((el) => {
+				const classes = el.attribs.class?.split(' ') || []
+				return {
+					classes,
+					markerType: MarkerTypeOrder.find((markerType) => classes.includes(markerType.toString())),
+					text: DomUtils.textContent(el),
+					getEl: () => el,
+				}
+			})
+	}
+
+	get shikiTokens() {
+		return (
+			DomUtils
+				// Get all divs containing the `line` class
+				.findAll((el) => el.name === 'span' && el.attribs.style !== undefined, this.nodes)
+				// Map elements to properties required for the test
+				.map((el) => {
+					const style = el.attribs.style || ''
+					const styles = new Map([...style.matchAll(/([^:\s]*)\s*:\s*((?:[^;&]*[^;&]*))(?:;|$)/g)].map(([, property, value]) => [property, value]))
+					const color = styles.get('color')
+					return {
+						text: DomUtils.textContent(el),
+						color,
+						getStyles: () => styles,
+						getEl: () => el,
+					}
+				})
+		)
+	}
+
+	get lineMarkings() {
+		return this.allLines.filter((line) => line.markerType !== undefined)
+	}
+
+	get inlineMarkings() {
+		return (
+			DomUtils
+				// Get all HTML elements used for inline markings
+				.findAll((el) => ['mark', 'ins', 'del'].includes(el.name), this.nodes)
+				// Map elements to properties required for the test
+				.map((el) => {
+					const classes = el.attribs.class?.split(' ') || []
+					return {
+						classes,
+						markerType: MarkerTypeOrder.find((markerType) => el.name === markerType.toString()),
+						text: DomUtils.textContent(el),
+						getEl: () => el,
+					}
+				})
+		)
+	}
+}
+
 export function getAnnotationResult(code: string, getAnnotationOptions?: GetAnnotationOptions): AnnotationResult {
 	const { highlighter = defaultHighlighter, ...partialApplyAnnotationsOptions } = getAnnotationOptions || {}
 	const applyAnnotationsOptions = { annotations: {}, lang: 'astro', ...partialApplyAnnotationsOptions }
@@ -54,53 +159,19 @@ export function getAnnotationResult(code: string, getAnnotationOptions?: GetAnno
 
 	// Run the code through shiki-twoslash first to get the syntax-highlighted HTML
 	const highlightedCodeHtml = renderCodeToHTML(inputCodeLines.join('\n'), lang, {}, undefined, highlighter)
+	const highlightedCode = new ShikiOutput(highlightedCodeHtml)
 
 	// Now annotate the result
 	const annotatedCodeHtml = applyAnnotations(highlightedCodeHtml, applyAnnotationsOptions)
-
-	// Parse the annotated HTML output
-	const nodes = parseDocument(annotatedCodeHtml).children
-	const allLines: Required<ParsedContent>[] = DomUtils
-		// Get all divs containing the `line` class
-		.findAll((el) => el.name === 'div' && el.attribs.class?.split(' ').includes('line'), nodes)
-		// Map elements to properties required for the test
-		.map((el) => {
-			const classes = el.attribs.class?.split(' ') || []
-			return {
-				classes,
-				markerType: MarkerTypeOrder.find((markerType) => classes.includes(markerType.toString())),
-				text: DomUtils.textContent(el),
-				getEl: () => el,
-			}
-		})
+	const annotatedCode = new ShikiOutput(annotatedCodeHtml)
 
 	// Validate that the output code text without any annotations still equals the input code
-	expect(inputCodeLines, 'Annotated code plaintext does not match input code!').toEqual(allLines.map((line) => line.text))
+	expect(inputCodeLines, 'Annotated code plaintext does not match input code!').toEqual(annotatedCode.allLines.map((line) => line.text))
 
-	// Collect line-level markings
-	const lineMarkings = allLines.filter((line) => line.markerType !== undefined)
-
-	// Collect inline markings
-	const inlineMarkings = DomUtils
-		// Get all HTML elements used for inline markings
-		.findAll((el) => ['mark', 'ins', 'del'].includes(el.name), nodes)
-		// Map elements to properties required for the test
-		.map((el) => {
-			const classes = el.attribs.class?.split(' ') || []
-			return {
-				classes,
-				markerType: MarkerTypeOrder.find((markerType) => el.name === markerType.toString()),
-				text: DomUtils.textContent(el),
-				getEl: () => el,
-			}
-		})
-
-	return {
-		annotatedCodeHtml,
-		allLines,
-		lineMarkings,
-		inlineMarkings,
-	}
+	return new AnnotationResult({
+		highlightedCode,
+		annotatedCode,
+	})
 }
 
 function prettifyHtml(html: string) {
@@ -127,12 +198,12 @@ function prettifyHtml(html: string) {
 	return postprocessed
 }
 
-export type ExpectHtmlSnapshotMatchOptions = {
+export type PrepareHtmlSnapshotOptions = {
 	name: string
 	annotationResult: AnnotationResult
 }
 
-export function expectHtmlSnapshotMatch(options: ExpectHtmlSnapshotMatchOptions) {
+export function prepareHtmlSnapshot(options: PrepareHtmlSnapshotOptions) {
 	const { name, annotationResult } = options
 
 	const snapshotBasePath = join(__dirname, '__html_snapshots__')
@@ -140,26 +211,25 @@ export function expectHtmlSnapshotMatch(options: ExpectHtmlSnapshotMatchOptions)
 	const expectedFilePath = join(snapshotBasePath, snapshotFileName)
 	const actualFilePath = join(snapshotBasePath, '__actual__', snapshotFileName)
 
-	const actualHtml = `
-<html>
-<body>
-  <style>${baseCss}</style>
-  ${annotationResult.annotatedCodeHtml}
-</body>
-</html>
-	`
-	const prettifiedActualHtml = prettifyHtml(actualHtml)
 	mkdirSync(dirname(actualFilePath), { recursive: true })
-	writeFileSync(actualFilePath, prettifiedActualHtml, 'utf8')
+	annotationResult.saveToFile(actualFilePath)
+
+	// Load both actual and expected from file to prevent
+	// potential mismatches caused by prettifyHtml
+	const actual = AnnotationResult.loadFromFile(actualFilePath)
 
 	mkdirSync(dirname(expectedFilePath), { recursive: true })
-	let expectedHtml: string
+	let expected: AnnotationResult
 	try {
-		expectedHtml = readFileSync(expectedFilePath, 'utf8')
+		expected = AnnotationResult.loadFromFile(expectedFilePath)
 	} catch (error) {
 		console.warn(`There is no expected HTML snapshot for "${name}" yet, creating it now`)
-		writeFileSync(expectedFilePath, prettifiedActualHtml, 'utf8')
-		expectedHtml = prettifiedActualHtml
+		annotationResult.saveToFile(expectedFilePath)
+		expected = AnnotationResult.loadFromFile(expectedFilePath)
 	}
-	expect(prettifiedActualHtml, `Expected HTML for snapshot "${name}" did not match actual HTML`).toEqual(expectedHtml)
+
+	return {
+		actual,
+		expected,
+	}
 }
