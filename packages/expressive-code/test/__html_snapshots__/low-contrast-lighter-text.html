@@ -1,0 +1,150 @@
+
+<html>
+<body>
+  <style>
+pre.expressive-code {
+	--ec-border: hsl(226, 0%, 50%);
+	--ec-selection-bg: hsl(269, 79%, 54%, 0.4);
+	--ec-mark-bg: hsl(226, 50%, 33%);
+	--ec-mark-border: hsl(224, 50%, 54%);
+	--ec-ins-bg: hsl(122, 22%, 23%);
+	--ec-ins-border: hsl(128, 42%, 38%);
+	--ec-ins-text: hsl(128, 31%, 65%);
+	--ec-del-bg: hsl(338, 40%, 26%);
+	--ec-del-border: hsl(338, 46%, 53%);
+	--ec-del-text: hsl(338, 36%, 70%);
+}
+
+pre.expressive-code {
+	--padding-block: 1rem;
+	position: relative;
+	border: 1px solid var(--ec-border);
+	padding: var(--padding-block) 0;
+	margin: 0;
+	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
+	font-size: 0.85rem;
+	line-height: 1.65;
+	overflow-y: hidden;
+	overflow-x: auto;
+	-webkit-text-size-adjust: none;
+}
+
+pre.expressive-code code {
+	all: unset;
+	display: inline-block;
+	min-width: 100%;
+	--padding-inline: 1.25rem;
+}
+
+pre.expressive-code code * {
+	box-sizing: border-box;
+}
+
+pre.expressive-code code .line {
+	--accent-margin: 0rem;
+	min-height: 1.65em;
+	min-width: calc(100% - var(--accent-margin));
+	padding-inline-start: var(--padding-inline);
+	padding-inline-end: calc(2 * var(--padding-inline));
+}
+
+pre.expressive-code code .line.mark,
+pre.expressive-code code .line.ins,
+pre.expressive-code code .line.del {
+	--accent-margin: 0rem;
+	--accent-width: 0.15rem;
+	background: var(--ec-line-bg-color);
+	margin-inline-start: var(--accent-margin);
+	border-inline-start: var(--accent-width) solid var(--ec-line-border-color);
+	padding-inline-start: calc(var(--padding-inline) - var(--accent-margin) - var(--accent-width)) !important;
+}
+
+pre.expressive-code code .line.mark::before,
+pre.expressive-code code .line.ins::before,
+pre.expressive-code code .line.del::before {
+	position: absolute;
+	left: 0.5rem;
+}
+
+pre.expressive-code code .line.mark {
+	--ec-line-bg-color: var(--ec-mark-bg);
+	--ec-line-border-color: var(--ec-mark-border);
+}
+pre.expressive-code code .line.ins {
+	--ec-line-bg-color: var(--ec-ins-bg);
+	--ec-line-border-color: var(--ec-ins-border);
+}
+pre.expressive-code code .line.ins::before {
+	content: '+';
+	color: var(--ec-ins-text);
+}
+pre.expressive-code code .line.del {
+	--ec-line-bg-color: var(--ec-del-bg);
+	--ec-line-border-color: var(--ec-del-border);
+}
+pre.expressive-code code .line.del::before {
+	content: '-';
+	color: var(--ec-del-text);
+}
+</style>
+
+  <h2>Annotated code</h2>
+  <div id="annotated">
+    <pre class="shiki" style="background-color: #263238; color: #EEFFFF"
+      ><div class="language-id">tsx</div
+      ><div class='code-container'><code
+      ><div class="line"><span style="color:#C792EA">interface</span><span style="color:#EEFFFF"> </span><span style="color:#FFCB6B">PropsType</span><span style="color:#EEFFFF"> </span><span style="color:#89DDFF">{</span></div
+      ><div class="line mark"><span style="color:#eeffff">  </span><span style="color:#f5a4a9">children</span><span style="color:#89ddff">:</span><span style="color:#eeffff"> </span><span style="color:#ffcb6b">JSX</span><span style="color:#89ddff">.</span><span style="color:#ffcb6b">Element</span></div
+      ><div class="line"><span style="color:#EEFFFF">  </span><span style="color:#F07178">name</span><span style="color:#89DDFF">:</span><span style="color:#EEFFFF"> </span><span style="color:#FFCB6B">string</span></div
+      ><div class="line"><span style="color:#89DDFF">}</span></div
+      ><div class="line"></div
+      ><div class="line"><span style="color:#C792EA">class</span><span style="color:#EEFFFF"> </span><span style="color:#FFCB6B">Component</span><span style="color:#EEFFFF"> </span><span style="color:#C792EA">extends</span><span style="color:#EEFFFF"> </span><span style="color:#FFCB6B">React</span><span style="color:#89DDFF">.</span><span style="color:#FFCB6B">Component</span><span style="color:#89DDFF">&lt;</span><span style="color:#FFCB6B">PropsType</span><span style="color:#89DDFF">,</span><span style="color:#EEFFFF"> </span><span style="color:#89DDFF">{}&gt;</span><span style="color:#EEFFFF"> </span><span style="color:#89DDFF">{</span></div
+      ><div class="line"><span style="color:#EEFFFF">  </span><span style="color:#F07178">render</span><span style="color:#89DDFF">()</span><span style="color:#EEFFFF"> </span><span style="color:#89DDFF">{</span></div
+      ><div class="line"><span style="color:#89DDFF">    </span><span style="color:#546E7A">// Wrap some custom HTML around the given children</span></div
+      ><div class="line"><span style="color:#F07178">    </span><span style="color:#89DDFF">return</span><span style="color:#F07178"> (</span></div
+      ><div class="line ins"><span style="color:#f5a4a9">      </span><span style="color:#89ddff">&lt;</span><span style="color:#f5a4a9">article</span><span style="color:#89ddff"> </span><span style="color:#d4aaef">title</span><span style="color:#89ddff">={</span><span style="color:#89ddff">`</span><span style="color:#c3e88d">Found </span><span style="color:#89ddff">${</span><span style="color:#89ddff">this.</span><span style="color:#eeffff">props</span><span style="color:#89ddff">.</span><span style="color:#eeffff">children</span><span style="color:#89ddff">.</span><span style="color:#eeffff">length</span><span style="color:#89ddff">}</span><span style="color:#c3e88d"> children</span><span style="color:#89ddff">`</span><span style="color:#89ddff">}&gt;</span></div
+      ><div class="line"><span style="color:#EEFFFF">        </span><span style="color:#89DDFF">&lt;</span><span style="color:#F07178">div</span><span style="color:#89DDFF">&gt;{this.</span><span style="color:#EEFFFF">props</span><span style="color:#89DDFF">.</span><span style="color:#EEFFFF">children</span><span style="color:#89DDFF">}&lt;/</span><span style="color:#F07178">div</span><span style="color:#89DDFF">&gt;</span></div
+      ><div class="line"><span style="color:#EEFFFF">      </span><span style="color:#89DDFF">&lt;/</span><span style="color:#F07178">article</span><span style="color:#89DDFF">&gt;</span></div
+      ><div class="line"><span style="color:#F07178">    )</span></div
+      ><div class="line"><span style="color:#F07178">  </span><span style="color:#89DDFF">}</span></div
+      ><div class="line"><span style="color:#89DDFF">}</span></div
+      ><div class="line"></div
+      ><div class="line"><span style="color:#89DDFF">&lt;</span><span style="color:#FFCB6B">Component</span><span style="color:#89DDFF"> </span><span style="color:#C792EA">name</span><span style="color:#89DDFF">=</span><span style="color:#89DDFF">"</span><span style="color:#C3E88D">foo</span><span style="color:#89DDFF">"</span><span style="color:#89DDFF">&gt;</span></div
+      ><div class="line"><span style="color:#EEFFFF">  </span><span style="color:#89DDFF">{</span><span style="color:#546E7A">/* This is a JSX comment */</span><span style="color:#89DDFF">}</span></div
+      ><div class="line"><span style="color:#EEFFFF">  </span><span style="color:#89DDFF">&lt;</span><span style="color:#F07178">h1</span><span style="color:#89DDFF">&gt;</span><span style="color:#EEFFFF">Hello World</span><span style="color:#89DDFF">&lt;/</span><span style="color:#F07178">h1</span><span style="color:#89DDFF">&gt;</span></div
+      ><div class="line"><span style="color:#89DDFF">&lt;/</span><span style="color:#FFCB6B">Component</span><span style="color:#89DDFF">&gt;</span></div
+      ></code></div
+    ></pre>
+  </div><!--end:annotated-->
+
+  <h2>Original Shiki-highlighted code</h2>
+  <div id="highlighted">
+    <pre class="shiki" style="background-color: #263238; color: #EEFFFF"
+      ><div class="language-id">tsx</div
+      ><div class='code-container'><code
+      ><div class='line'><span style="color: #C792EA">interface</span><span style="color: #EEFFFF"> </span><span style="color: #FFCB6B">PropsType</span><span style="color: #EEFFFF"> </span><span style="color: #89DDFF">{</span></div
+      ><div class='line'><span style="color: #EEFFFF">  </span><span style="color: #F07178">children</span><span style="color: #89DDFF">:</span><span style="color: #EEFFFF"> </span><span style="color: #FFCB6B">JSX</span><span style="color: #89DDFF">.</span><span style="color: #FFCB6B">Element</span></div
+      ><div class='line'><span style="color: #EEFFFF">  </span><span style="color: #F07178">name</span><span style="color: #89DDFF">:</span><span style="color: #EEFFFF"> </span><span style="color: #FFCB6B">string</span></div
+      ><div class='line'><span style="color: #89DDFF">}</span></div
+      ><div class='line'></div
+      ><div class='line'><span style="color: #C792EA">class</span><span style="color: #EEFFFF"> </span><span style="color: #FFCB6B">Component</span><span style="color: #EEFFFF"> </span><span style="color: #C792EA">extends</span><span style="color: #EEFFFF"> </span><span style="color: #FFCB6B">React</span><span style="color: #89DDFF">.</span><span style="color: #FFCB6B">Component</span><span style="color: #89DDFF">&lt;</span><span style="color: #FFCB6B">PropsType</span><span style="color: #89DDFF">,</span><span style="color: #EEFFFF"> </span><span style="color: #89DDFF">{}&gt;</span><span style="color: #EEFFFF"> </span><span style="color: #89DDFF">{</span></div
+      ><div class='line'><span style="color: #EEFFFF">  </span><span style="color: #F07178">render</span><span style="color: #89DDFF">()</span><span style="color: #EEFFFF"> </span><span style="color: #89DDFF">{</span></div
+      ><div class='line'><span style="color: #89DDFF">    </span><span style="color: #546E7A">// Wrap some custom HTML around the given children</span></div
+      ><div class='line'><span style="color: #F07178">    </span><span style="color: #89DDFF">return</span><span style="color: #F07178"> (</span></div
+      ><div class='line'><span style="color: #F07178">      </span><span style="color: #89DDFF">&lt;</span><span style="color: #F07178">article</span><span style="color: #89DDFF"> </span><span style="color: #C792EA">title</span><span style="color: #89DDFF">={</span><span style="color: #89DDFF">`</span><span style="color: #C3E88D">Found </span><span style="color: #89DDFF">${</span><span style="color: #89DDFF">this.</span><span style="color: #EEFFFF">props</span><span style="color: #89DDFF">.</span><span style="color: #EEFFFF">children</span><span style="color: #89DDFF">.</span><span style="color: #EEFFFF">length</span><span style="color: #89DDFF">}</span><span style="color: #C3E88D"> children</span><span style="color: #89DDFF">`</span><span style="color: #89DDFF">}&gt;</span></div
+      ><div class='line'><span style="color: #EEFFFF">        </span><span style="color: #89DDFF">&lt;</span><span style="color: #F07178">div</span><span style="color: #89DDFF">&gt;{this.</span><span style="color: #EEFFFF">props</span><span style="color: #89DDFF">.</span><span style="color: #EEFFFF">children</span><span style="color: #89DDFF">}&lt;/</span><span style="color: #F07178">div</span><span style="color: #89DDFF">&gt;</span></div
+      ><div class='line'><span style="color: #EEFFFF">      </span><span style="color: #89DDFF">&lt;/</span><span style="color: #F07178">article</span><span style="color: #89DDFF">&gt;</span></div
+      ><div class='line'><span style="color: #F07178">    )</span></div
+      ><div class='line'><span style="color: #F07178">  </span><span style="color: #89DDFF">}</span></div
+      ><div class='line'><span style="color: #89DDFF">}</span></div
+      ><div class='line'></div
+      ><div class='line'><span style="color: #89DDFF">&lt;</span><span style="color: #FFCB6B">Component</span><span style="color: #89DDFF"> </span><span style="color: #C792EA">name</span><span style="color: #89DDFF">=</span><span style="color: #89DDFF">"</span><span style="color: #C3E88D">foo</span><span style="color: #89DDFF">"</span><span style="color: #89DDFF">&gt;</span></div
+      ><div class='line'><span style="color: #EEFFFF">  </span><span style="color: #89DDFF">{</span><span style="color: #546E7A">/* This is a JSX comment */</span><span style="color: #89DDFF">}</span></div
+      ><div class='line'><span style="color: #EEFFFF">  </span><span style="color: #89DDFF">&lt;</span><span style="color: #F07178">h1</span><span style="color: #89DDFF">&gt;</span><span style="color: #EEFFFF">Hello World</span><span style="color: #89DDFF">&lt;/</span><span style="color: #F07178">h1</span><span style="color: #89DDFF">&gt;</span></div
+      ><div class='line'><span style="color: #89DDFF">&lt;/</span><span style="color: #FFCB6B">Component</span><span style="color: #89DDFF">&gt;</span></div
+      ></code></div
+    ></pre>
+  </div><!--end:highlighted-->
+</body>
+</html>
+		

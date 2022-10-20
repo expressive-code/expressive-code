@@ -5,6 +5,7 @@ import { expect } from 'vitest'
 import { getHighlighter, Highlighter, HighlighterOptions } from 'shiki'
 import { renderCodeToHTML } from 'shiki-twoslash'
 import { parseDocument, DomUtils } from 'htmlparser2'
+import { Window } from 'happy-dom'
 import { applyAnnotations, ApplyAnnotationsOptions, baseCss } from '../src/index'
 import { MarkerType, MarkerTypeOrder } from '../src/common/annotations'
 
@@ -36,7 +37,7 @@ export class AnnotationResult {
 		this.annotatedCode = annotatedCode
 	}
 
-	saveToFile(filePath: string) {
+	toHtmlDocument() {
 		const html = `
 <html>
 <body>
@@ -55,11 +56,10 @@ export class AnnotationResult {
 </html>
 		`
 		const prettifiedHtml = prettifyHtml(html)
-		writeFileSync(filePath, prettifiedHtml, 'utf8')
+		return prettifiedHtml
 	}
 
-	static loadFromFile(filePath: string) {
-		const prettifiedHtml = readFileSync(filePath, 'utf8')
+	static fromHtmlDocument(prettifiedHtml: string) {
 		const highlightedCodeHtml = prettifiedHtml.match(/<div id="highlighted">([\s\S]*?)<\/div\s*><!--end:highlighted-->/)?.[1] || ''
 		const annotatedCodeHtml = prettifiedHtml.match(/<div id="annotated">([\s\S]*?)<\/div\s*><!--end:annotated-->/)?.[1] || ''
 
@@ -185,37 +185,43 @@ function prettifyHtml(html: string) {
 export type PrepareHtmlSnapshotOptions = {
 	name: string
 	annotationResult: AnnotationResult
-	loadActual?: boolean
-	loadExpected?: boolean
 }
 
 export function prepareHtmlSnapshot(options: PrepareHtmlSnapshotOptions) {
-	const { name, annotationResult, loadActual = false, loadExpected = false } = options
+	const { name, annotationResult } = options
 
 	const snapshotBasePath = join(__dirname, '__html_snapshots__')
 	const snapshotFileName = `${name}.html`
 	const expectedFilePath = join(snapshotBasePath, snapshotFileName)
 	const actualFilePath = join(snapshotBasePath, '__actual__', snapshotFileName)
 
+	// Write the actual snapshot to an HTML file for easy inspection of failed tests
+	const actualHtmlDocument = annotationResult.toHtmlDocument()
 	mkdirSync(dirname(actualFilePath), { recursive: true })
-	annotationResult.saveToFile(actualFilePath)
+	writeFileSync(actualFilePath, actualHtmlDocument, 'utf8')
+
+	// Load snapshot into a virtual browser
+	const window = new Window()
+	const document = window.document
+	document.body.innerHTML = actualHtmlDocument
 
 	// Load both actual and expected from file to prevent
 	// potential mismatches caused by prettifyHtml
-	const actual = loadActual ? AnnotationResult.loadFromFile(actualFilePath) : undefined
+	const actual = AnnotationResult.fromHtmlDocument(actualHtmlDocument)
 
-	mkdirSync(dirname(expectedFilePath), { recursive: true })
 	let expected: AnnotationResult | undefined
+	mkdirSync(dirname(expectedFilePath), { recursive: true })
 	try {
-		expected = loadExpected ? AnnotationResult.loadFromFile(expectedFilePath) : undefined
+		expected = AnnotationResult.fromHtmlDocument(readFileSync(expectedFilePath, 'utf8'))
 	} catch (error) {
 		console.warn(`There is no expected HTML snapshot for "${name}" yet, creating it now`)
-		annotationResult.saveToFile(expectedFilePath)
-		expected = AnnotationResult.loadFromFile(expectedFilePath)
+		writeFileSync(expectedFilePath, actualHtmlDocument, 'utf8')
+		expected = AnnotationResult.fromHtmlDocument(actualHtmlDocument)
 	}
 
 	return {
 		actual,
 		expected,
+		window,
 	}
 }

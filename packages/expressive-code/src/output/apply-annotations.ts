@@ -19,23 +19,23 @@ export function applyAnnotations(highlightedCodeHtml: string, options: ApplyAnno
 }
 
 export const baseCss = `
-:root {
-	--theme-code-border: hsl(226, 0%, 50%);
-	--theme-code-selection-bg: hsl(269, 79%, 54%, 0.4);
-	--theme-code-mark-bg: hsl(226, 50%, 33%);
-	--theme-code-mark-border: hsl(224, 50%, 54%);
-	--theme-code-ins-bg: hsl(122, 22%, 23%);
-	--theme-code-ins-border: hsl(128, 42%, 38%);
-	--theme-code-ins-text: hsl(128, 31%, 65%);
-	--theme-code-del-bg: hsl(338, 40%, 26%);
-	--theme-code-del-border: hsl(338, 46%, 53%);
-	--theme-code-del-text: hsl(338, 36%, 70%);
+pre.expressive-code {
+	--ec-border: hsl(226, 0%, 50%);
+	--ec-selection-bg: hsl(269, 79%, 54%, 0.4);
+	--ec-mark-bg: hsl(226, 50%, 33%);
+	--ec-mark-border: hsl(224, 50%, 54%);
+	--ec-ins-bg: hsl(122, 22%, 23%);
+	--ec-ins-border: hsl(128, 42%, 38%);
+	--ec-ins-text: hsl(128, 31%, 65%);
+	--ec-del-bg: hsl(338, 40%, 26%);
+	--ec-del-border: hsl(338, 46%, 53%);
+	--ec-del-text: hsl(338, 36%, 70%);
 }
 
-pre {
+pre.expressive-code {
 	--padding-block: 1rem;
 	position: relative;
-	border: 1px solid var(--theme-code-border);
+	border: 1px solid var(--ec-border);
 	padding: var(--padding-block) 0;
 	margin: 0;
 	font-family: Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
@@ -46,62 +46,61 @@ pre {
 	-webkit-text-size-adjust: none;
 }
 
-pre code {
+pre.expressive-code code {
 	all: unset;
 	display: inline-block;
 	min-width: 100%;
 	--padding-inline: 1.25rem;
 }
 
-pre code * {
+pre.expressive-code code * {
 	box-sizing: border-box;
 }
 
-pre code .line {
+pre.expressive-code code .line {
 	--accent-margin: 0rem;
-	/*display: inline-block;*/
 	min-height: 1.65em;
 	min-width: calc(100% - var(--accent-margin));
 	padding-inline-start: var(--padding-inline);
 	padding-inline-end: calc(2 * var(--padding-inline));
 }
 
-pre code .line.mark,
-pre code .line.ins,
-pre code .line.del {
+pre.expressive-code code .line.mark,
+pre.expressive-code code .line.ins,
+pre.expressive-code code .line.del {
 	--accent-margin: 0rem;
 	--accent-width: 0.15rem;
-	background: var(--line-marker-bg-color);
+	background: var(--ec-line-bg-color);
 	margin-inline-start: var(--accent-margin);
-	border-inline-start: var(--accent-width) solid var(--line-marker-border-color);
+	border-inline-start: var(--accent-width) solid var(--ec-line-border-color);
 	padding-inline-start: calc(var(--padding-inline) - var(--accent-margin) - var(--accent-width)) !important;
 }
 
-pre code .line.mark::before,
-pre code .line.ins::before,
-pre code .line.del::before {
+pre.expressive-code code .line.mark::before,
+pre.expressive-code code .line.ins::before,
+pre.expressive-code code .line.del::before {
 	position: absolute;
 	left: 0.5rem;
 }
 
-pre code .line.mark {
-	--line-marker-bg-color: var(--theme-code-mark-bg);
-	--line-marker-border-color: var(--theme-code-mark-border);
+pre.expressive-code code .line.mark {
+	--ec-line-bg-color: var(--ec-mark-bg);
+	--ec-line-border-color: var(--ec-mark-border);
 }
-pre code .line.ins {
-	--line-marker-bg-color: var(--theme-code-ins-bg);
-	--line-marker-border-color: var(--theme-code-ins-border);
+pre.expressive-code code .line.ins {
+	--ec-line-bg-color: var(--ec-ins-bg);
+	--ec-line-border-color: var(--ec-ins-border);
 }
-pre code .line.ins::before {
-		content: '+';
-		color: var(--theme-code-ins-text);
+pre.expressive-code code .line.ins::before {
+	content: '+';
+	color: var(--ec-ins-text);
 }
-pre code .line.del {
-	--line-marker-bg-color: var(--theme-code-del-bg);
-	--line-marker-border-color: var(--theme-code-del-border);
+pre.expressive-code code .line.del {
+	--ec-line-bg-color: var(--ec-del-bg);
+	--ec-line-border-color: var(--ec-del-border);
 }
-pre code .line.del::before {
+pre.expressive-code code .line.del::before {
 	content: '-';
-	color: var(--theme-code-del-text);
+	color: var(--ec-del-text);
 }
 `

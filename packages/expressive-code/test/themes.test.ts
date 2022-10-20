@@ -1,4 +1,5 @@
 import chroma from 'chroma-js'
+import { HTMLElement } from 'happy-dom'
 import { describe, test, expect } from 'vitest'
 import { createHighlighter, prepareHtmlSnapshot, getAnnotationResult } from './utils'
 
@@ -76,7 +77,7 @@ describe('Color contrast in marked lines', () => {
 		expect(openingTagColor.hex()).toEqual(closingTagColor.hex())
 	})
 
-	test('Inverts darker token text to lighter if contrast is too low', async () => {
+	test.skip('Inverts darker token text to lighter if contrast is too low', async () => {
 		const highlighter = await createHighlighter({
 			theme: 'min-light',
 		})
@@ -89,7 +90,19 @@ describe('Color contrast in marked lines', () => {
 			},
 		})
 
-		prepareHtmlSnapshot({ annotationResult, name: 'low-contrast-invert-darker-text' })
+		const snapshot = prepareHtmlSnapshot({ annotationResult, name: 'low-contrast-invert-darker-text' })
+
+		const pre = <HTMLElement>snapshot.window.document.querySelector('#annotated pre')
+		const preStyle = snapshot.window.getComputedStyle(pre)
+
+		const firstMarkedLine = <HTMLElement>pre.querySelector('mark')
+		const firstMarkedLineStyle = snapshot.window.getComputedStyle(firstMarkedLine)
+		console.log({
+			preBg: preStyle.backgroundColor,
+			preText: preStyle.color,
+			markBg: firstMarkedLineStyle.backgroundColor,
+			markText: firstMarkedLineStyle.color,
+		})
 
 		// TODO: Get background color of mark highlight
 		// TODO: Test that regular "name" text is darker than mark color
