@@ -19,13 +19,13 @@ describe('Does not fail if there is nothing to do', () => {
 	test('Code snippet is empty', () => {
 		const annotationResult = getAnnotationResult('')
 
-		expect(annotationResult.lineMarkings).toMatchObject<ParsedContent[]>([])
+		expect(annotationResult.annotatedCode.lineMarkings).toMatchObject<ParsedContent[]>([])
 	})
 
 	test('lineMarkings is undefined', () => {
 		const annotationResult = getAnnotationResult(codeSnippet)
 
-		expect(annotationResult.lineMarkings).toMatchObject<ParsedContent[]>([])
+		expect(annotationResult.annotatedCode.lineMarkings).toMatchObject<ParsedContent[]>([])
 	})
 
 	test('lineMarkings is empty', () => {
@@ -35,7 +35,7 @@ describe('Does not fail if there is nothing to do', () => {
 			},
 		})
 
-		expect(annotationResult.lineMarkings).toMatchObject<ParsedContent[]>([])
+		expect(annotationResult.annotatedCode.lineMarkings).toMatchObject<ParsedContent[]>([])
 	})
 
 	test('lineMarkings contains an empty lines array', () => {
@@ -45,7 +45,7 @@ describe('Does not fail if there is nothing to do', () => {
 			},
 		})
 
-		expect(annotationResult.lineMarkings).toMatchObject<ParsedContent[]>([])
+		expect(annotationResult.annotatedCode.lineMarkings).toMatchObject<ParsedContent[]>([])
 	})
 
 	test('lineMarkings only contains non-existing lines', () => {
@@ -55,7 +55,7 @@ describe('Does not fail if there is nothing to do', () => {
 			},
 		})
 
-		expect(annotationResult.lineMarkings).toMatchObject<ParsedContent[]>([])
+		expect(annotationResult.annotatedCode.lineMarkings).toMatchObject<ParsedContent[]>([])
 	})
 })
 
@@ -154,7 +154,7 @@ describe('Processes line markings correctly', () => {
 			},
 		})
 
-		expect(annotationResult.lineMarkings).toMatchObject<ParsedContent[]>([
+		expect(annotationResult.annotatedCode.lineMarkings).toMatchObject<ParsedContent[]>([
 			{
 				markerType: 'mark',
 				text: `import MyAstroComponent from '../components/MyAstroComponent.astro';`,
@@ -170,7 +170,7 @@ describe('Processes line markings correctly', () => {
 				},
 			})
 
-			expect(annotationResult.lineMarkings).toMatchObject<ParsedContent[]>([
+			expect(annotationResult.annotatedCode.lineMarkings).toMatchObject<ParsedContent[]>([
 				{
 					markerType: 'mark',
 					text: `import MyAstroComponent from '../components/MyAstroComponent.astro';`,
@@ -185,7 +185,7 @@ describe('Processes line markings correctly', () => {
 				},
 			})
 
-			expect(annotationResult.lineMarkings).toMatchObject<ParsedContent[]>([
+			expect(annotationResult.annotatedCode.lineMarkings).toMatchObject<ParsedContent[]>([
 				{
 					markerType: 'mark',
 					text: `import MyAstroComponent from '../components/MyAstroComponent.astro';`,
@@ -205,7 +205,7 @@ describe('Processes line markings correctly', () => {
 			},
 		})
 
-		expect(annotationResult.lineMarkings).toMatchObject<ParsedContent[]>([
+		expect(annotationResult.annotatedCode.lineMarkings).toMatchObject<ParsedContent[]>([
 			{
 				markerType: 'ins',
 				text: `import MyReactComponent from '../components/MyReactComponent.jsx';`,
@@ -224,7 +224,7 @@ describe('Processes line markings correctly', () => {
 			},
 		})
 
-		expect(annotationResult.lineMarkings).toMatchObject<ParsedContent[]>([
+		expect(annotationResult.annotatedCode.lineMarkings).toMatchObject<ParsedContent[]>([
 			{
 				markerType: 'del',
 				text: `---`,
@@ -250,7 +250,7 @@ describe('Processes line markings correctly', () => {
 				lineMarkings: [{ markerType: 'ins', lines: [5] }],
 			},
 		})
-		expect(annotationResult.lineMarkings).toMatchObject<ParsedContent[]>([
+		expect(annotationResult.annotatedCode.lineMarkings).toMatchObject<ParsedContent[]>([
 			{
 				markerType: 'ins',
 				text: ``,
@@ -258,7 +258,7 @@ describe('Processes line markings correctly', () => {
 		])
 
 		// Require the empty line to contain a `span` with `class="empty"`
-		const el = annotationResult.lineMarkings[0].getEl()
+		const el = annotationResult.annotatedCode.lineMarkings[0].getEl()
 		expect(el.children).toMatchObject<Partial<Element>[]>([
 			{
 				name: 'span',
@@ -300,7 +300,7 @@ describe('Processes inline markings correctly', () => {
 				},
 			})
 
-			expect(annotationResult.inlineMarkings).toMatchObject<ParsedContent[]>([
+			expect(annotationResult.annotatedCode.inlineMarkings).toMatchObject<ParsedContent[]>([
 				{
 					markerType: 'mark',
 					text: `slot="name"`,
@@ -315,7 +315,7 @@ describe('Processes inline markings correctly', () => {
 				},
 			})
 
-			expect(annotationResult.inlineMarkings).toMatchObject<ParsedContent[]>([
+			expect(annotationResult.annotatedCode.inlineMarkings).toMatchObject<ParsedContent[]>([
 				{
 					markerType: 'mark',
 					text: `slot="name"`,
@@ -333,7 +333,7 @@ describe('Processes inline markings correctly', () => {
 				},
 			})
 
-			expect(annotationResult.inlineMarkings).toMatchObject<ParsedContent[]>([
+			expect(annotationResult.annotatedCode.inlineMarkings).toMatchObject<ParsedContent[]>([
 				{
 					markerType: 'ins',
 					text: `<MyReactComponent>`,
@@ -352,7 +352,7 @@ describe('Processes inline markings correctly', () => {
 				},
 			})
 
-			expect(annotationResult.inlineMarkings).toMatchObject<ParsedContent[]>([
+			expect(annotationResult.annotatedCode.inlineMarkings).toMatchObject<ParsedContent[]>([
 				{
 					markerType: 'del',
 					text: `<MyAstroComponent slot="name" />`,
@@ -369,7 +369,7 @@ describe('Processes inline markings correctly', () => {
 				},
 			})
 
-			expect(annotationResult.inlineMarkings).toMatchObject<ParsedContent[]>([
+			expect(annotationResult.annotatedCode.inlineMarkings).toMatchObject<ParsedContent[]>([
 				{
 					markerType: 'mark',
 					text: `slot="name"`,
@@ -384,7 +384,7 @@ describe('Processes inline markings correctly', () => {
 				},
 			})
 
-			expect(annotationResult.inlineMarkings).toMatchObject<ParsedContent[]>([
+			expect(annotationResult.annotatedCode.inlineMarkings).toMatchObject<ParsedContent[]>([
 				{
 					markerType: 'mark',
 					text: `slot="name"`,
@@ -399,7 +399,7 @@ describe('Processes inline markings correctly', () => {
 				},
 			})
 
-			expect(annotationResult.inlineMarkings).toMatchObject<ParsedContent[]>([
+			expect(annotationResult.annotatedCode.inlineMarkings).toMatchObject<ParsedContent[]>([
 				{
 					markerType: 'ins',
 					text: `<MyReactComponent>`,
@@ -418,7 +418,7 @@ describe('Processes inline markings correctly', () => {
 				},
 			})
 
-			expect(annotationResult.inlineMarkings).toMatchObject<ParsedContent[]>([
+			expect(annotationResult.annotatedCode.inlineMarkings).toMatchObject<ParsedContent[]>([
 				{
 					markerType: 'del',
 					text: `<MyAstroComponent slot="name" />`,
@@ -434,7 +434,7 @@ describe('Processes inline markings correctly', () => {
 					},
 				})
 
-				expect(annotationResult.inlineMarkings).toMatchObject<ParsedContent[]>([
+				expect(annotationResult.annotatedCode.inlineMarkings).toMatchObject<ParsedContent[]>([
 					{
 						markerType: 'mark',
 						text: `name`,
@@ -449,7 +449,7 @@ describe('Processes inline markings correctly', () => {
 					},
 				})
 
-				expect(annotationResult.inlineMarkings).toMatchObject<ParsedContent[]>([
+				expect(annotationResult.annotatedCode.inlineMarkings).toMatchObject<ParsedContent[]>([
 					{
 						markerType: 'mark',
 						text: `import MyReact`,
@@ -464,7 +464,7 @@ describe('Processes inline markings correctly', () => {
 					},
 				})
 
-				expect(annotationResult.inlineMarkings).toMatchObject<ParsedContent[]>([
+				expect(annotationResult.annotatedCode.inlineMarkings).toMatchObject<ParsedContent[]>([
 					{
 						markerType: 'mark',
 						text: `name`,
@@ -491,7 +491,7 @@ describe('Processes inline markings correctly', () => {
 				},
 			})
 
-			expect(annotationResult.inlineMarkings).toMatchObject<ParsedContent[]>([
+			expect(annotationResult.annotatedCode.inlineMarkings).toMatchObject<ParsedContent[]>([
 				{
 					markerType: 'ins',
 					text: `../components/MyReactComponent.jsx`,
@@ -515,7 +515,7 @@ describe('Processes inline markings correctly', () => {
 				},
 			})
 
-			expect(annotationResult.inlineMarkings).toMatchObject<ParsedContent[]>([
+			expect(annotationResult.annotatedCode.inlineMarkings).toMatchObject<ParsedContent[]>([
 				{
 					markerType: 'mark',
 					text: `<MyAstroComponent `,
@@ -546,7 +546,7 @@ describe('Processes inline markings correctly', () => {
 				},
 			})
 
-			expect(annotationResult.inlineMarkings).toMatchObject<ParsedContent[]>([
+			expect(annotationResult.annotatedCode.inlineMarkings).toMatchObject<ParsedContent[]>([
 				{
 					markerType: 'mark',
 					text: `<MyAstroComponent `,
@@ -581,7 +581,7 @@ describe('Processes inline markings correctly', () => {
 				},
 			})
 
-			expect(annotationResult.inlineMarkings).toMatchObject<ParsedContent[]>([
+			expect(annotationResult.annotatedCode.inlineMarkings).toMatchObject<ParsedContent[]>([
 				{
 					markerType: 'mark',
 					text: `<MyAstroComponent `,

@@ -1,6 +1,7 @@
 node_modules/
 coverage/
 dist/
+__actual__/
 .buildcache
 .DS_Store
 .pnpm-debug.log

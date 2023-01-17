@@ -1,5 +1,5 @@
 import { ShikiLine } from './shiki-line'
-import { LineMarkingDefinition, InlineMarkingDefinition, MarkerTypeOrder } from './annotations'
+import { LineMarkingDefinition, InlineMarkingDefinition, MarkerTypeOrder, ColorMapping } from './annotations'
 
 export class ShikiBlock {
 	private htmlBeforeFirstLine = ''
@@ -43,14 +43,14 @@ export class ShikiBlock {
 		})
 	}
 
-	renderToHtml() {
+	renderToHtml(customColors?: ColorMapping) {
 		const linesHtml = this.shikiLines
 			.map((line) => {
-				line.ensureTokenColorContrast()
+				line.ensureTokenColorContrast(customColors)
 				return line.renderToHtml()
 			})
 			.join('')
 
-		return `${this.htmlBeforeFirstLine}${linesHtml}${this.htmlAfterLastLine}`
+		return `${this.htmlBeforeFirstLine.replace('<pre class="shiki"', '<pre class="shiki expressive-code"')}${linesHtml}${this.htmlAfterLastLine}`
 	}
 }
