@@ -1,7 +1,7 @@
 import chroma from 'chroma-js'
 import { escape, unescape } from 'html-escaper'
 import { ensureTextContrast } from './color-contrast'
-import { InlineMarkingDefinition, MarkerType, MarkerTypeOrder } from './annotations'
+import { ColorMapping, getThemeColor, InlineMarkingDefinition, MarkerType, MarkerTypeOrder } from './annotations'
 import { InlineToken, InsertionPoint, MarkedRange, MarkerToken } from './tokens'
 
 export class ShikiLine {
@@ -83,18 +83,20 @@ export class ShikiLine {
 		})
 	}
 
-	ensureTokenColorContrast() {
+	ensureTokenColorContrast(customColors?: ColorMapping) {
 		// Ensure proper color contrast of syntax tokens inside marked ranges
 		// (note that only the lightness of the background color is used)
-		const backgroundColor = chroma('#2e336b')
-		const isLineMarked = this.getLineMarkerType() !== undefined
-		let inInlineMarker = false
+		const lineMarkerType = this.getLineMarkerType()
+		let inlineMarkerType: MarkerType | undefined
 		this.tokens.forEach((token) => {
 			if (token.tokenType === 'marker') {
-				inInlineMarker = !token.closing
+				inlineMarkerType = !token.closing ? token.markerType : undefined
 				return
 			}
-			if (inInlineMarker || isLineMarked) {
+			const closestMarkerType = inlineMarkerType || lineMarkerType
+			if (closestMarkerType) {
+				const markerTypeString = closestMarkerType.toString()
+				const backgroundColor = chroma(getThemeColor(`${markerTypeString}.background`, customColors))
 				const tokenColor = chroma(token.color)
 				const fixedTokenColor = ensureTextContrast(tokenColor, backgroundColor)
 				token.color = fixedTokenColor.hex()

@@ -1,13 +1,14 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'fs'
+import { mkdirSync, writeFileSync } from 'fs'
 import { dirname, join } from 'path'
 import { EOL } from 'os'
 import { expect } from 'vitest'
 import { getHighlighter, Highlighter, HighlighterOptions } from 'shiki'
 import { renderCodeToHTML } from 'shiki-twoslash'
 import { parseDocument, DomUtils } from 'htmlparser2'
-import { Window } from 'happy-dom'
-import { applyAnnotations, ApplyAnnotationsOptions, baseCss } from '../src/index'
-import { MarkerType, MarkerTypeOrder } from '../src/common/annotations'
+import chroma from 'chroma-js'
+import * as HappyDOM from 'happy-dom'
+import { applyAnnotations, ApplyAnnotationsOptions, getBaseCss } from '../src/index'
+import { ColorMapping, MarkerType, MarkerTypeOrder } from '../src/common/annotations'
 
 export function createMarkerRegExp(input: string) {
 	try {
@@ -17,7 +18,7 @@ export function createMarkerRegExp(input: string) {
 	}
 }
 
-export type Element = NonNullable<ReturnType<typeof DomUtils.findOne>>
+export type DomUtilsElement = NonNullable<ReturnType<typeof DomUtils.findOne>>
 export type Document = NonNullable<ReturnType<typeof parseDocument>>
 export type ChildNode = Document['children'][0]
 
@@ -25,23 +26,26 @@ export type ParsedContent = {
 	classes?: string[]
 	markerType: MarkerType | undefined
 	text?: string
-	getEl?: () => Element
+	getEl?: () => DomUtilsElement
 }
 
 export class AnnotationResult {
 	highlightedCode: ShikiOutput
 	annotatedCode: ShikiOutput
+	customColors: ColorMapping | undefined
 
-	constructor({ highlightedCode, annotatedCode }: { highlightedCode: ShikiOutput; annotatedCode: ShikiOutput }) {
+	constructor({ highlightedCode, annotatedCode, customColors }: { highlightedCode: ShikiOutput; annotatedCode: ShikiOutput; customColors?: ColorMapping }) {
 		this.highlightedCode = highlightedCode
 		this.annotatedCode = annotatedCode
+		this.customColors = customColors
 	}
 
 	toHtmlDocument() {
 		const html = `
+<!DOCTYPE html>
 <html>
 <body>
-  <style>${baseCss}</style>
+  <style>${getBaseCss(this.customColors)}</style>
 
   <h2>Annotated code</h2>
   <div id="annotated">
@@ -170,6 +174,7 @@ export function getAnnotationResult(code: string, getAnnotationOptions?: GetAnno
 	return new AnnotationResult({
 		highlightedCode,
 		annotatedCode,
+		customColors: getAnnotationOptions?.customColors,
 	})
 }
 
@@ -182,46 +187,62 @@ function prettifyHtml(html: string) {
 	return postprocessed
 }
 
-export type PrepareHtmlSnapshotOptions = {
-	name: string
-	annotationResult: AnnotationResult
+export type ElementColors = {
+	text: chroma.Color
+	background: chroma.Color
 }
 
-export function prepareHtmlSnapshot(options: PrepareHtmlSnapshotOptions) {
-	const { name, annotationResult } = options
+export type RunDomTestsFunc = ({
+	domWindow,
+	getCssVar,
+	getElementColors,
+}: {
+	domWindow: HappyDOM.Window
+	getCssVar: (varName: string) => string
+	getElementColors: (element: HappyDOM.IElement, defaultStyles?: { text?: string; background?: string }) => ElementColors
+}) => void
+
+export type AnnotationResultToHtmlOptions = {
+	testName: string
+	annotationResult: AnnotationResult
+	runDomTests?: RunDomTestsFunc
+}
+
+export function annotationResultToHtml(options: AnnotationResultToHtmlOptions) {
+	const { testName, annotationResult, runDomTests } = options
 
 	const snapshotBasePath = join(__dirname, '__html_snapshots__')
-	const snapshotFileName = `${name}.html`
-	const expectedFilePath = join(snapshotBasePath, snapshotFileName)
-	const actualFilePath = join(snapshotBasePath, '__actual__', snapshotFileName)
+	const snapshotFileName = `${testName.replace(/[<>:"/\\|?*.]/g, '').toLowerCase()}.html`
+	const snapshotFilePath = join(snapshotBasePath, '__actual__', snapshotFileName)
 
-	// Write the actual snapshot to an HTML file for easy inspection of failed tests
-	const actualHtmlDocument = annotationResult.toHtmlDocument()
-	mkdirSync(dirname(actualFilePath), { recursive: true })
-	writeFileSync(actualFilePath, actualHtmlDocument, 'utf8')
+	// Write the snapshot to an HTML file for easy inspection of failed tests
+	const htmlDocument = annotationResult.toHtmlDocument()
+	mkdirSync(dirname(snapshotFilePath), { recursive: true })
+	writeFileSync(snapshotFilePath, htmlDocument, 'utf8')
 
-	// Load snapshot into a virtual browser
-	const window = new Window()
-	const document = window.document
-	document.body.innerHTML = actualHtmlDocument
+	if (runDomTests) {
+		// Load snapshot into a virtual browser
+		const domWindow = new HappyDOM.Window()
+		const domDocument = domWindow.document
+		domDocument.body.innerHTML = htmlDocument
 
-	// Load both actual and expected from file to prevent
-	// potential mismatches caused by prettifyHtml
-	const actual = AnnotationResult.fromHtmlDocument(actualHtmlDocument)
+		const styleBlocks = domWindow.document.querySelectorAll('style')
+		const allStyleBlockContents = styleBlocks.map((styleBlock) => styleBlock.innerHTML).join('\n')
 
-	let expected: AnnotationResult | undefined
-	mkdirSync(dirname(expectedFilePath), { recursive: true })
-	try {
-		expected = AnnotationResult.fromHtmlDocument(readFileSync(expectedFilePath, 'utf8'))
-	} catch (error) {
-		console.warn(`There is no expected HTML snapshot for "${name}" yet, creating it now`)
-		writeFileSync(expectedFilePath, actualHtmlDocument, 'utf8')
-		expected = AnnotationResult.fromHtmlDocument(actualHtmlDocument)
-	}
-
-	return {
-		actual,
-		expected,
-		window,
+		runDomTests({
+			domWindow,
+			getCssVar: (varName) => {
+				const varMatches = [...allStyleBlockContents.matchAll(new RegExp(`${varName}:\\s*(.*?)\\s*;`, 'g'))]
+				if (varMatches.length !== 1) throw new Error(`Expected CSS variable "${varName}" to be defined exactly 1 time, but got ${varMatches.length} matches`)
+				return varMatches[0][1]
+			},
+			getElementColors(element, defaultStyles) {
+				const style = element && domWindow.getComputedStyle(element)
+				return {
+					text: chroma(style?.color || defaultStyles?.text || '#000'),
+					background: chroma(style?.backgroundColor || defaultStyles?.background || '#fff'),
+				}
+			},
+		})
 	}
 }

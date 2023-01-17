@@ -1,10 +1,10 @@
 import { ShikiBlock } from '../common/shiki-block'
-import { Annotations } from '../common/annotations'
+import { Annotations, ColorMapping, getThemeColor } from '../common/annotations'
 
-export type ApplyAnnotationsOptions = { lang: string; annotations?: Annotations }
+export type ApplyAnnotationsOptions = { lang: string; annotations?: Annotations; customColors?: ColorMapping }
 
 export function applyAnnotations(highlightedCodeHtml: string, options: ApplyAnnotationsOptions) {
-	const { annotations: { lineMarkings = [], inlineMarkings = [] } = {} } = options
+	const { annotations: { lineMarkings = [], inlineMarkings = [] } = {}, customColors } = options
 
 	// TODO: Further implement function
 	// const isTerminal = ['shellscript', 'shell', 'bash', 'sh', 'zsh'].includes(lang)
@@ -15,21 +15,21 @@ export function applyAnnotations(highlightedCodeHtml: string, options: ApplyAnno
 
 	const shikiBlock = new ShikiBlock(highlightedCodeHtml)
 	shikiBlock.applyMarkings(lineMarkings, inlineMarkings)
-	return shikiBlock.renderToHtml()
+	return shikiBlock.renderToHtml(customColors)
 }
 
-export const baseCss = `
+export const getBaseCss = (customColors?: ColorMapping) => `
 pre.expressive-code {
 	--ec-border: hsl(226, 0%, 50%);
 	--ec-selection-bg: hsl(269, 79%, 54%, 0.4);
-	--ec-mark-bg: hsl(226, 50%, 33%);
-	--ec-mark-border: hsl(224, 50%, 54%);
-	--ec-ins-bg: hsl(122, 22%, 23%);
-	--ec-ins-border: hsl(128, 42%, 38%);
-	--ec-ins-text: hsl(128, 31%, 65%);
-	--ec-del-bg: hsl(338, 40%, 26%);
-	--ec-del-border: hsl(338, 46%, 53%);
-	--ec-del-text: hsl(338, 36%, 70%);
+	--ec-mark-bg: ${getThemeColor('mark.background', customColors)};
+	--ec-mark-border: ${getThemeColor('mark.border', customColors)};
+	--ec-ins-bg: ${getThemeColor('ins.background', customColors)};
+	--ec-ins-border: ${getThemeColor('ins.border', customColors)};
+	--ec-ins-text: ${getThemeColor('ins.label', customColors)};
+	--ec-del-bg: ${getThemeColor('del.background', customColors)};
+	--ec-del-border: ${getThemeColor('del.border', customColors)};
+	--ec-del-text: ${getThemeColor('del.label', customColors)};
 }
 
 pre.expressive-code {
