@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { applyAnnotations } from '../src/index'
-import { createMarkerRegExp, Element, getAnnotationResult, ParsedContent } from './utils'
+import { createMarkerRegExp, DomUtilsElement, getAnnotationResult, ParsedContent } from './utils'
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
@@ -259,7 +259,7 @@ describe('Processes line markings correctly', () => {
 
 		// Require the empty line to contain a `span` with `class="empty"`
 		const el = annotationResult.annotatedCode.lineMarkings[0].getEl()
-		expect(el.children).toMatchObject<Partial<Element>[]>([
+		expect(el.children).toMatchObject<Partial<DomUtilsElement>[]>([
 			{
 				name: 'span',
 				attribs: { class: 'empty' },
