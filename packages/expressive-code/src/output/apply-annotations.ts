@@ -65,6 +65,8 @@ pre.expressive-code code .line {
 	padding-inline-end: calc(2 * var(--padding-inline));
 }
 
+/* Support line-level mark/ins/del */
+
 pre.expressive-code code .line.mark,
 pre.expressive-code code .line.ins,
 pre.expressive-code code .line.del {
@@ -102,5 +104,30 @@ pre.expressive-code code .line.del {
 pre.expressive-code code .line.del::before {
 	content: '-';
 	color: var(--ec-del-text);
+}
+
+/* Support inline mark/ins/del */
+
+pre.expressive-code code .line mark,
+pre.expressive-code code .line ins,
+pre.expressive-code code .line del {
+	all: unset;
+	background: var(--ec-inline-bg-color);
+	box-shadow: 0 0 0 0.05rem var(--ec-inline-bg-color), 0 0 0 0.1rem var(--ec-inline-border-color);
+	border-radius: 0.05rem;
+	padding-inline: 0.05rem;
+	margin-inline: 0.1rem;
+}
+pre.expressive-code code .line mark {
+	--ec-inline-bg-color: var(--ec-mark-bg);
+	--ec-inline-border-color: var(--ec-mark-border);
+}
+pre.expressive-code code .line ins {
+	--ec-inline-bg-color: var(--ec-ins-bg);
+	--ec-inline-border-color: var(--ec-ins-border);
+}
+pre.expressive-code code .line del {
+	--ec-inline-bg-color: var(--ec-del-bg);
+	--ec-inline-border-color: var(--ec-del-border);
 }
 `
