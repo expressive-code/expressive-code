@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { applyAnnotations } from '../src/index'
-import { createMarkerRegExp, DomUtilsElement, getAnnotationResult, ParsedContent } from './utils'
+import { createMarkerRegExp, DomUtilsElement, getAnnotationResult, getClassicShikiHighlightedCode, getShikiTwoslashHighlightedCode, ParsedContent } from './utils'
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
@@ -601,4 +601,54 @@ describe('Processes inline markings correctly', () => {
 			])
 		})
 	})
+})
+
+describe('Can process HTML code coming from all supported highlighters', () => {
+	const runSharedAnnotationTest = (preHighlightedCodeHtml: string) => {
+		const annotationResult = getAnnotationResult(codeSnippet, {
+			annotations: {
+				lineMarkings: [{ markerType: 'ins', lines: [6, 7, 8] }],
+				inlineMarkings: [{ text: 'slot="name"' }],
+			},
+			preHighlightedCodeHtml,
+		})
+
+		expect(annotationResult.annotatedCode.lineMarkings).toMatchObject<ParsedContent[]>([
+			{
+				markerType: 'ins',
+				text: `<MyReactComponent>`,
+			},
+			{
+				markerType: 'ins',
+				text: expect.stringContaining(`<MyAstroComponent slot="name" />`),
+			},
+			{
+				markerType: 'ins',
+				text: `</MyReactComponent>`,
+			},
+		])
+
+		expect(annotationResult.annotatedCode.inlineMarkings).toMatchObject<ParsedContent[]>([
+			{
+				markerType: 'mark',
+				text: `slot="name"`,
+			},
+		])
+	}
+
+	test('Classic Shiki', () => {
+		const preHighlightedCodeHtml = getClassicShikiHighlightedCode(codeSnippet, 'astro')
+		expect(preHighlightedCodeHtml).toContain('<pre class="shiki"')
+		expect(preHighlightedCodeHtml, 'Expected classic Shiki output to use line spans separated by newlines').toContain('>\n<span class="line">')
+		runSharedAnnotationTest(preHighlightedCodeHtml)
+	})
+
+	test('Shiki-Twoslash with non-TS input', () => {
+		const preHighlightedCodeHtml = getShikiTwoslashHighlightedCode(codeSnippet, 'astro')
+		expect(preHighlightedCodeHtml).toContain('<pre class="shiki"')
+		expect(preHighlightedCodeHtml, 'Expected Shiki-Twoslash output to use line divs without newlines').toContain(`><div class='line'>`)
+		runSharedAnnotationTest(preHighlightedCodeHtml)
+	})
+
+	// TODO: Add a test for Shiki-Twoslash with TS input that ran through Twoslash processing
 })

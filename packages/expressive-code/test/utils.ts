@@ -76,6 +76,7 @@ export class AnnotationResult {
 
 export type GetAnnotationOptions = Partial<ApplyAnnotationsOptions> & {
 	highlighter?: Highlighter
+	preHighlightedCodeHtml?: string
 }
 
 export async function createHighlighter(settings: HighlighterOptions = { theme: 'light-plus' }) {
@@ -154,14 +155,34 @@ class ShikiOutput {
 	}
 }
 
+function trimCodeBeforeHighlighting(code: string) {
+	return code.trim().split(/\r?\n/).join('\n')
+}
+
+/**
+ * Runs code through classic Shiki to get its classic syntax-highlighted HTML style
+ * for compatibility testing purposes.
+ */
+export function getClassicShikiHighlightedCode(code: string, lang: string, highlighter: Highlighter = defaultHighlighter) {
+	return highlighter.codeToHtml(trimCodeBeforeHighlighting(code), { lang })
+}
+
+/**
+ * Runs code through Shiki-Twoslash (which is our default), separated into this function
+ * for compatibility testing purposes.
+ */
+export function getShikiTwoslashHighlightedCode(code: string, lang: string, highlighter: Highlighter = defaultHighlighter) {
+	return renderCodeToHTML(trimCodeBeforeHighlighting(code), lang, {}, undefined, highlighter)
+}
+
 export function getAnnotationResult(code: string, getAnnotationOptions?: GetAnnotationOptions): AnnotationResult {
-	const { highlighter = defaultHighlighter, ...partialApplyAnnotationsOptions } = getAnnotationOptions || {}
+	const { highlighter = defaultHighlighter, preHighlightedCodeHtml, ...partialApplyAnnotationsOptions } = getAnnotationOptions || {}
 	const applyAnnotationsOptions = { annotations: {}, lang: 'astro', ...partialApplyAnnotationsOptions }
 	const { lang } = applyAnnotationsOptions
-	const inputCodeLines = code.trim().split(/\r?\n/)
 
-	// Run the code through shiki-twoslash first to get the syntax-highlighted HTML
-	const highlightedCodeHtml = renderCodeToHTML(inputCodeLines.join('\n'), lang, {}, undefined, highlighter)
+	// If no preHighlightedCodeHtml was given, run the input code through the highlighter
+	// to get the syntax-highlighted HTML
+	const highlightedCodeHtml = preHighlightedCodeHtml || getShikiTwoslashHighlightedCode(code, lang, highlighter)
 	const highlightedCode = new ShikiOutput(highlightedCodeHtml)
 
 	// Now annotate the result
@@ -169,7 +190,9 @@ export function getAnnotationResult(code: string, getAnnotationOptions?: GetAnno
 	const annotatedCode = new ShikiOutput(annotatedCodeHtml)
 
 	// Validate that the output code text without any annotations still equals the input code
-	expect(inputCodeLines, 'Annotated code plaintext does not match input code!').toEqual(annotatedCode.allLines.map((line) => line.text))
+	const inputCodePlaintext = trimCodeBeforeHighlighting(code).split('\n')
+	const annotatedCodePlaintext = annotatedCode.allLines.map((line) => line.text)
+	expect(inputCodePlaintext, 'Annotated code plaintext does not match input code!').toEqual(annotatedCodePlaintext)
 
 	return new AnnotationResult({
 		highlightedCode,
