@@ -36,8 +36,41 @@ importers:
       vite: 4.0.4
       vitest: 0.27.1_happy-dom@8.1.4
 
+  packages/@expressive-code/core:
+    specifiers:
+      '@types/html-escaper': ^3.0.0
+      html-escaper: ^3.0.3
+      htmlparser2: ^8.0.1
+    devDependencies:
+      '@types/html-escaper': 3.0.0
+      html-escaper: 3.0.3
+      htmlparser2: 8.0.1
+
+  packages/@expressive-code/plugin-shiki-twoslash:
+    specifiers:
+      '@expressive-code/core': workspace:^0.1.0
+      shiki-twoslash: ^3.1.0
+    dependencies:
+      '@expressive-code/core': link:../core
+      shiki-twoslash: 3.1.0
+
+  packages/@expressive-code/plugin-text-markers:
+    specifiers:
+      '@expressive-code/core': workspace:^0.1.0
+    dependencies:
+      '@expressive-code/core': link:../core
+
+  packages/astro-expressive-code:
+    specifiers:
+      remark-expressive-code: workspace:^0.1.0
+    dependencies:
+      remark-expressive-code: link:../remark-expressive-code
+
   packages/expressive-code:
     specifiers:
+      '@expressive-code/core': workspace:^0.1.0
+      '@expressive-code/plugin-shiki-twoslash': workspace:^0.1.0
+      '@expressive-code/plugin-text-markers': workspace:^0.1.0
       '@types/chroma-js': ^2.1.4
       '@types/html-escaper': ^3.0.0
       chroma-js: ^2.4.2
@@ -45,6 +78,10 @@ importers:
       htmlparser2: ^8.0.1
       parse-numeric-range: ^1.3.0
       shiki-twoslash: ^3.1.0
+    dependencies:
+      '@expressive-code/core': link:../@expressive-code/core
+      '@expressive-code/plugin-shiki-twoslash': link:../@expressive-code/plugin-shiki-twoslash
+      '@expressive-code/plugin-text-markers': link:../@expressive-code/plugin-text-markers
     devDependencies:
       '@types/chroma-js': 2.1.4
       '@types/html-escaper': 3.0.0
@@ -53,6 +90,15 @@ importers:
       htmlparser2: 8.0.1
       parse-numeric-range: 1.3.0
       shiki-twoslash: 3.1.0
+
+  packages/remark-expressive-code:
+    specifiers:
+      expressive-code: workspace:^0.1.0
+      parse-numeric-range: ^1.3.0
+    dependencies:
+      expressive-code: link:../expressive-code
+    devDependencies:
+      parse-numeric-range: 1.3.0
 
 packages:
 
@@ -530,7 +576,6 @@ packages:
       lz-string: 1.4.4
     transitivePeerDependencies:
       - supports-color
-    dev: true
 
   /@typescript/vfs/1.3.4:
     resolution: {integrity: sha512-RbyJiaAGQPIcAGWFa3jAXSuAexU4BFiDRF1g3hy7LmRqfNpYlTQWGXjcrOaVZjJ8YkkpuwG0FcsYvtWQpd9igQ==}
@@ -538,7 +583,6 @@ packages:
       debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
-    dev: true
 
   /@typescript/vfs/1.3.5:
     resolution: {integrity: sha512-pI8Saqjupf9MfLw7w2+og+fmb0fZS0J6vsKXXrp4/PDXEFvntgzXmChCXC/KefZZS0YGS6AT8e0hGAJcTsdJlg==}
@@ -546,7 +590,6 @@ packages:
       debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
-    dev: true
 
   /@vitest/coverage-c8/0.27.1_happy-dom@8.1.4:
     resolution: {integrity: sha512-/9VTGDIAp4hv8PBawfyijxhkiyucfOxFRRP+7kzy3Dj0wONy1Mc2MBoPmiH4aZVc0LViQqecrQLs8JVGt42keA==}
@@ -864,7 +907,6 @@ packages:
         optional: true
     dependencies:
       ms: 2.1.2
-    dev: true
 
   /deep-eql/4.1.3:
     resolution: {integrity: sha512-WaEtAOpRA1MQ0eohqZjpGD8zdI0Ovsm8mmFhaDN8dvDZzyoUMcYDnf5Y6iu7HTXxf8JDS23qWa4a+hKCDyOPzw==}
@@ -1738,7 +1780,6 @@ packages:
 
   /jsonc-parser/3.2.0:
     resolution: {integrity: sha512-gfFQZrcTc8CnKXp6Y4/CBT3fTc0OVuDofpre4aEeEpSBPV5X5v4+Vmx+8snU7RLPrNHPKSgLxGo9YuQzz20o+w==}
-    dev: true
 
   /levn/0.4.1:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
@@ -1850,7 +1891,6 @@ packages:
   /lz-string/1.4.4:
     resolution: {integrity: sha512-0ckx7ZHRPqb0oUm8zNr+90mtf9DQB60H1wMCjBtfi62Kl3a7JbHob6gA2bC+xRvZoOL+1hzUK8jeuEIQE8svEQ==}
     hasBin: true
-    dev: true
 
   /make-dir/3.1.0:
     resolution: {integrity: sha512-g3FeP20LNwhALb/6Cz6Dd4F2ngze0jz7tbzrD2wAV+o9FeNHe4rL+yK2md0J/fiSf1sa1ADhXqi5+oVwOM/eGw==}
@@ -1903,7 +1943,6 @@ packages:
 
   /ms/2.1.2:
     resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
-    dev: true
 
   /mz/2.7.0:
     resolution: {integrity: sha512-z81GNO7nnYMEhrGh9LeymoE4+Yr0Wn5McHIZMK5cfQCl+NDX08sCZgUc9/6MHni9IWuFLm1Z3HTCXu2z9fN62Q==}
@@ -2267,10 +2306,9 @@ packages:
       '@typescript/twoslash': 3.1.0
       '@typescript/vfs': 1.3.4
       shiki: 0.10.1
-      typescript: 4.8.3
+      typescript: 4.9.4
     transitivePeerDependencies:
       - supports-color
-    dev: true
 
   /shiki/0.10.1:
     resolution: {integrity: sha512-VsY7QJVzU51j5o1+DguUd+6vmCmZ5v/6gYu4vyYAhzjuNQU6P/vmSy4uQaOhvje031qQMiW0d2BwgMH52vqMng==}
@@ -2278,7 +2316,6 @@ packages:
       jsonc-parser: 3.2.0
       vscode-oniguruma: 1.6.2
       vscode-textmate: 5.2.0
-    dev: true
 
   /siginfo/2.0.0:
     resolution: {integrity: sha512-ybx0WO1/8bSBLEWXZvEd7gMW3Sn3JFlW3TvX1nREbDLRNQNaeNN8WK0meBwPdAaOI7TtRRRJn/Es1zhrrCHu7g==}
@@ -2576,17 +2613,10 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  /typescript/4.8.3:
-    resolution: {integrity: sha512-goMHfm00nWPa8UvR/CPSvykqf6dVV8x/dp0c5mFTMTIu0u0FlGWRioyy7Nn0PGAdHxpJZnuO/ut+PpQ8UiHAig==}
-    engines: {node: '>=4.2.0'}
-    hasBin: true
-    dev: true
-
   /typescript/4.9.4:
     resolution: {integrity: sha512-Uz+dTXYzxXXbsFpM86Wh3dKCxrQqUcVMxwU54orwlJjOpO3ao8L7j5lH+dWfTwgCwIuM9GQ2kvVotzYJMXTBZg==}
     engines: {node: '>=4.2.0'}
     hasBin: true
-    dev: true
 
   /ufo/1.0.1:
     resolution: {integrity: sha512-boAm74ubXHY7KJQZLlXrtMz52qFvpsbOxDcZOnw/Wf+LS4Mmyu7JxmzD4tDLtUQtmZECypJ0FrCz4QIe6dvKRA==}
@@ -2749,11 +2779,9 @@ packages:
 
   /vscode-oniguruma/1.6.2:
     resolution: {integrity: sha512-KH8+KKov5eS/9WhofZR8M8dMHWN2gTxjMsG4jd04YhpbPR91fUj7rYQ2/XjeHCJWbg7X++ApRIU9NUwM2vTvLA==}
-    dev: true
 
   /vscode-textmate/5.2.0:
     resolution: {integrity: sha512-Uw5ooOQxRASHgu6C7GVvUxisKXfSgW4oFlO+aa+PAkgmH89O3CXxEEzNRNtHSqtXFTl0nAC1uYj0GMSH27uwtQ==}
-    dev: true
 
   /webidl-conversions/3.0.1:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
