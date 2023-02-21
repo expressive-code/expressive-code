@@ -53,10 +53,14 @@ export class ExpressiveCodeLine {
 
 			// If we arrive here, the edit either starts or ends inside the annotation,
 			// so remove the intersection by cutting the annotation range
-			if (editStart < annotationEnd) {
+			if (editStart > annotationStart) {
+				// The edit starts inside the annotation, so we only need to cut the end
 				annotation.inlineRange.columnEnd = editStart
 			} else {
+				// The edit ends inside the annotation, so we need to cut the start
+				// and shift the end based on the edit character delta
 				annotation.inlineRange.columnStart = editEnd + editDelta
+				annotation.inlineRange.columnEnd += editDelta
 			}
 		}
 
