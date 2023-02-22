@@ -61,7 +61,7 @@ describe('ExpressiveCodeLine', () => {
 		})
 
 		describe('Unaffected annotations remain unchanged', () => {
-			test('Full-line annotation', () => {
+			test('Full-line annotations', () => {
 				// Set up an annotated line
 				const line = new ExpressiveCodeLine('This is a test.')
 				const originalAnnotation: ExpressiveCodeAnnotation = {
@@ -83,315 +83,132 @@ describe('ExpressiveCodeLine', () => {
 				expect(getAnnotatedTextParts(line)).toMatchObject([])
 				expect(line.annotations).toMatchObject([expectedAnnotation])
 			})
-			test('Annotation ends before edit starts', () => {
-				// Set up an annotated line
-				const line = new ExpressiveCodeLine('This is a test.')
-				const originalAnnotation: ExpressiveCodeAnnotation = {
-					name: 'del',
-					render: () => true,
-					inlineRange: {
-						columnStart: 0,
-						columnEnd: 4,
-					},
-				}
-				line.annotations.push(originalAnnotation)
-				expect(getAnnotatedTextParts(line)).toMatchObject(['This'])
-
-				// Expect the annotation to stay the same after the edit
-				const expectedAnnotation = cloneAnnotation(originalAnnotation)
-
-				// Perform and validate edit
-				expect(line.text.slice(5, 9)).toEqual('is a')
-				line.editText(5, 9, 'passed the')
-				expect(line.text).toEqual('This passed the test.')
-
-				// Check that the annotation still targets the same text as before
-				expect(getAnnotatedTextParts(line)).toMatchObject(['This'])
-				expect(line.annotations).toMatchObject([expectedAnnotation])
+			test('Annotation ends before first edit', () => {
+				const parts = ['two']
+				expect(getAnnotatedTextPartsAfterEdit(parts)).toMatchObject(parts)
 			})
-			test('Annotation ends where edit starts', () => {
-				// Set up an annotated line
-				const line = new ExpressiveCodeLine('This is a test.')
-				const originalAnnotation: ExpressiveCodeAnnotation = {
-					name: 'del',
-					render: () => true,
-					inlineRange: {
-						columnStart: 8,
-						columnEnd: 14,
-					},
-				}
-				line.annotations.push(originalAnnotation)
-				expect(getAnnotatedTextParts(line)).toMatchObject(['a test'])
-
-				// Expect the annotation to stay the same after the edit
-				const expectedAnnotation = cloneAnnotation(originalAnnotation)
-
-				// Perform and validate edit
-				expect(line.text.slice(14, 15)).toEqual('.')
-				line.editText(14, 15, ' case.')
-				expect(line.text).toEqual('This is a test case.')
-
-				// Check that the intersecting part was removed from the annotated text
-				expect(getAnnotatedTextParts(line)).toMatchObject(['a test'])
-				expect(line.annotations).toMatchObject([expectedAnnotation])
+			test('Annotation ends where first edit starts', () => {
+				const parts = ['three-']
+				expect(getAnnotatedTextPartsAfterEdit(parts)).toMatchObject(parts)
 			})
 		})
 
 		describe('Inline annotations starting at or after edits are shifted', () => {
-			test('Annotation starts where +7ch edit ends', () => {
-				// Set up an annotated line
-				const line = new ExpressiveCodeLine('This is a test.')
-				const originalAnnotation: ExpressiveCodeAnnotation = {
-					name: 'del',
-					render: () => true,
-					inlineRange: {
-						columnStart: 8,
-						columnEnd: 14,
-					},
-				}
-				line.annotations.push(originalAnnotation)
-				expect(getAnnotatedTextParts(line)).toMatchObject(['a test'])
-
-				// Expect the annotation to have a different range after the edit
-				const expectedAnnotation = cloneAnnotation(originalAnnotation)
-				expectedAnnotation.inlineRange = {
-					columnStart: 8 + 7,
-					columnEnd: 14 + 7,
-				}
-
-				// Perform and validate edit
-				expect(line.text.slice(5, 8)).toEqual('is ')
-				line.editText(5, 8, 'should be ')
-				expect(line.text).toEqual('This should be a test.')
-
-				// Check that the intersecting part was removed from the annotated text
-				expect(getAnnotatedTextParts(line)).toMatchObject(['a test'])
-				expect(line.annotations).toMatchObject([expectedAnnotation])
+			test('Annotation starts where edit ends -> gets shifted', () => {
+				const parts = ['-five', '-seven', '-nine']
+				expect(getAnnotatedTextPartsAfterEdit(parts)).toMatchObject(parts)
 			})
-			test('Annotation starts where -2ch edit ends', () => {
-				// Set up an annotated line
-				const line = new ExpressiveCodeLine('This is a test.')
-				const originalAnnotation: ExpressiveCodeAnnotation = {
-					name: 'del',
-					render: () => true,
-					inlineRange: {
-						columnStart: 8,
-						columnEnd: 14,
-					},
-				}
-				line.annotations.push(originalAnnotation)
-				expect(getAnnotatedTextParts(line)).toMatchObject(['a test'])
-
-				// Expect the annotation to have a different range after the edit
-				const expectedAnnotation = cloneAnnotation(originalAnnotation)
-				expectedAnnotation.inlineRange = {
-					columnStart: 8 - 2,
-					columnEnd: 14 - 2,
-				}
-
-				// Perform and validate edit
-				expect(line.text.slice(0, 8)).toEqual('This is ')
-				line.editText(0, 8, 'Cool, ')
-				expect(line.text).toEqual('Cool, a test.')
-
-				// Check that the intersecting part was removed from the annotated text
-				expect(getAnnotatedTextParts(line)).toMatchObject(['a test'])
-				expect(line.annotations).toMatchObject([expectedAnnotation])
-			})
-			test('Annotation starts after +6ch edit ends', () => {
-				// Set up an annotated line
-				const line = new ExpressiveCodeLine('This is a test.')
-				const originalAnnotation: ExpressiveCodeAnnotation = {
-					name: 'del',
-					render: () => true,
-					inlineRange: {
-						columnStart: 10,
-						columnEnd: 14,
-					},
-				}
-				line.annotations.push(originalAnnotation)
-				expect(getAnnotatedTextParts(line)).toMatchObject(['test'])
-
-				// Expect the annotation to have a shifted range after the edit
-				const expectedAnnotation = cloneAnnotation(originalAnnotation)
-				expectedAnnotation.inlineRange = {
-					columnStart: 10 + 6,
-					columnEnd: 14 + 6,
-				}
-
-				// Perform and validate edit
-				expect(line.text.slice(5, 9)).toEqual('is a')
-				line.editText(5, 9, 'passed the')
-				expect(line.text).toEqual('This passed the test.')
-
-				// Check that the annotation still targets the same text as before
-				expect(getAnnotatedTextParts(line)).toMatchObject(['test'])
-				expect(line.annotations).toMatchObject([expectedAnnotation])
-			})
-			test('Annotation starts after -3ch edit ends', () => {
-				// Set up an annotated line
-				const line = new ExpressiveCodeLine('This is a test.')
-				const originalAnnotation: ExpressiveCodeAnnotation = {
-					name: 'del',
-					render: () => true,
-					inlineRange: {
-						columnStart: 10,
-						columnEnd: 14,
-					},
-				}
-				line.annotations.push(originalAnnotation)
-				expect(getAnnotatedTextParts(line)).toMatchObject(['test'])
-
-				// Expect the annotation to have a shifted range after the edit
-				const expectedAnnotation = cloneAnnotation(originalAnnotation)
-				expectedAnnotation.inlineRange = {
-					columnStart: 10 - 3,
-					columnEnd: 14 - 3,
-				}
-
-				// Perform and validate edit
-				expect(line.text.slice(5, 9)).toEqual('is a')
-				line.editText(5, 9, '^')
-				expect(line.text).toEqual('This ^ test.')
-
-				// Check that the annotation still targets the same text as before
-				expect(getAnnotatedTextParts(line)).toMatchObject(['test'])
-				expect(line.annotations).toMatchObject([expectedAnnotation])
+			test('Annotation starts after edit ends -> gets shifted', () => {
+				const parts = ['five', 'seven', 'nine']
+				expect(getAnnotatedTextPartsAfterEdit(parts)).toMatchObject(parts)
 			})
 		})
 
-		describe('Inline annotations partically intersected by edits are trimmed', () => {
-			test('Annotation end gets trimmed by starting +3ch edit', () => {
-				// Set up an annotated line
-				const line = new ExpressiveCodeLine('This is a test.')
-				const originalAnnotation: ExpressiveCodeAnnotation = {
-					name: 'del',
-					render: () => true,
-					inlineRange: {
-						columnStart: 8,
-						columnEnd: 14,
-					},
-				}
-				line.annotations.push(originalAnnotation)
-				expect(getAnnotatedTextParts(line)).toMatchObject(['a test'])
-
-				// Expect the annotation to have a different range after the edit
-				const expectedAnnotation = cloneAnnotation(originalAnnotation)
-				expectedAnnotation.inlineRange = {
-					columnStart: 8,
-					columnEnd: 10,
-				}
-
-				// Perform and validate edit
-				expect(line.text.slice(10, 14)).toEqual('test')
-				line.editText(10, 14, 'success')
-				expect(line.text).toEqual('This is a success.')
-
-				// Check that the intersecting part was removed from the annotated text
-				expect(getAnnotatedTextParts(line)).toMatchObject(['a '])
-				expect(line.annotations).toMatchObject([expectedAnnotation])
+		describe('Inline annotations partially overlapped by edits are trimmed', () => {
+			test('Annotation end is overlapped by starting edit -> end gets trimmed', () => {
+				const partsBefore = ['three-fou', '-five-si', 'even-ei']
+				const partsAfter = ['three-', '-five-', 'even-']
+				expect(getAnnotatedTextPartsAfterEdit(partsBefore)).toMatchObject(partsAfter)
 			})
-			test('Annotation end gets trimmed by starting -1ch edit', () => {
-				// Set up an annotated line
-				const line = new ExpressiveCodeLine('This is a test.')
-				const originalAnnotation: ExpressiveCodeAnnotation = {
-					name: 'del',
-					render: () => true,
-					inlineRange: {
-						columnStart: 8,
-						columnEnd: 14,
-					},
-				}
-				line.annotations.push(originalAnnotation)
-				expect(getAnnotatedTextParts(line)).toMatchObject(['a test'])
-
-				// Expect the annotation to have a different range after the edit
-				const expectedAnnotation = cloneAnnotation(originalAnnotation)
-				expectedAnnotation.inlineRange = {
-					columnStart: 8,
-					columnEnd: 10,
-				}
-
-				// Perform and validate edit
-				expect(line.text.slice(10, 14)).toEqual('test')
-				line.editText(10, 14, 'hit')
-				expect(line.text).toEqual('This is a hit.')
-
-				// Check that the intersecting part was removed from the annotated text
-				expect(getAnnotatedTextParts(line)).toMatchObject(['a '])
-				expect(line.annotations).toMatchObject([expectedAnnotation])
+			test('Annotation start is overlapped by ending edit -> start gets trimmed', () => {
+				const partsBefore = ['our-five', 'ix-seven-', 'ight-ni']
+				const partsAfter = ['-five', '-seven-', '-ni']
+				expect(getAnnotatedTextPartsAfterEdit(partsBefore)).toMatchObject(partsAfter)
 			})
-			test('Annotation start gets trimmed by ending +6ch edit', () => {
-				// Set up an annotated line
-				const line = new ExpressiveCodeLine('This is a test.')
-				const originalAnnotation: ExpressiveCodeAnnotation = {
-					name: 'del',
-					render: () => true,
-					inlineRange: {
-						columnStart: 8,
-						columnEnd: 14,
-					},
-				}
-				line.annotations.push(originalAnnotation)
-				expect(getAnnotatedTextParts(line)).toMatchObject(['a test'])
-
-				// Expect the annotation to have a different range after the edit
-				const expectedAnnotation = cloneAnnotation(originalAnnotation)
-				expectedAnnotation.inlineRange = {
-					columnStart: 10 + 6, // Start gets cut to the end of edit + edit delta
-					columnEnd: 14 + 6, // End gets shifted by edit delta only
-				}
-
-				// Perform and validate edit
-				expect(line.text.slice(5, 10)).toEqual('is a ')
-				line.editText(5, 10, 'passed the ')
-				expect(line.text).toEqual('This passed the test.')
-
-				// Check that the intersecting part was removed from the annotated text
-				expect(getAnnotatedTextParts(line)).toMatchObject(['test'])
-				expect(line.annotations).toMatchObject([expectedAnnotation])
-			})
-			test('Annotation start gets trimmed by ending -3ch edit', () => {
-				// Set up an annotated line
-				const line = new ExpressiveCodeLine('This is a test.')
-				const originalAnnotation: ExpressiveCodeAnnotation = {
-					name: 'del',
-					render: () => true,
-					inlineRange: {
-						columnStart: 8,
-						columnEnd: 14,
-					},
-				}
-				line.annotations.push(originalAnnotation)
-				expect(getAnnotatedTextParts(line)).toMatchObject(['a test'])
-
-				// Expect the annotation to have a different range after the edit
-				const expectedAnnotation = cloneAnnotation(originalAnnotation)
-				expectedAnnotation.inlineRange = {
-					columnStart: 10 - 3, // Start gets cut to the end of edit + edit delta
-					columnEnd: 14 - 3, // End gets shifted by edit delta only
-				}
-
-				// Perform and validate edit
-				expect(line.text.slice(5, 10)).toEqual('is a ')
-				line.editText(5, 10, '^ ')
-				expect(line.text).toEqual('This ^ test.')
-
-				// Check that the intersecting part was removed from the annotated text
-				expect(getAnnotatedTextParts(line)).toMatchObject(['test'])
-				expect(line.annotations).toMatchObject([expectedAnnotation])
+			test('Annotation is overlapped by edits on both sides -> both get trimmed', () => {
+				const partsBefore = ['our-five-si', 'ix-seven-eigh']
+				const partsAfter = ['-five-', '-seven-']
+				expect(getAnnotatedTextPartsAfterEdit(partsBefore)).toMatchObject(partsAfter)
 			})
 		})
 
-		describe.todo('Inline annotations fully contained in edits are removed', () => {
-			// ...
+		describe('Inline annotations fully contained in edits are removed', () => {
+			test('Fully contained annotation starts at edit start -> gets removed', () => {
+				const partsBefore = ['fou', 'si', 'eigh']
+				const partsAfter = []
+				expect(getAnnotatedTextPartsAfterEdit(partsBefore)).toMatchObject(partsAfter)
+			})
+			test('Fully contained annotation ends at edit end -> gets removed', () => {
+				const partsBefore = ['our', 'ix', 'ight']
+				const partsAfter = []
+				expect(getAnnotatedTextPartsAfterEdit(partsBefore)).toMatchObject(partsAfter)
+			})
+			test('Fully contained annotation does not touch edit boundaries -> gets removed', () => {
+				const partsBefore = ['ou', 'igh']
+				const partsAfter = []
+				expect(getAnnotatedTextPartsAfterEdit(partsBefore)).toMatchObject(partsAfter)
+			})
 		})
 
-		describe.todo('Edits fully contained inside inline annotations... do what? (TBD)', () => {
-			// ...
+		describe('Inline annotation contents are changed by fully contained edits', () => {
+			test('Fully contained edit starts at annotation start -> content changes', () => {
+				const partsBefore = ['four-']
+				const partsAfter = ['FOUR-']
+				expect(getAnnotatedTextPartsAfterEdit(partsBefore)).toMatchObject(partsAfter)
+			})
+			test('Fully contained edit ends at annotation end -> content changes', () => {
+				const partsBefore = ['-four']
+				const partsAfter = ['-FOUR']
+				expect(getAnnotatedTextPartsAfterEdit(partsBefore)).toMatchObject(partsAfter)
+			})
+			test('Fully contained edit range matches annotation range -> content changes', () => {
+				const partsBefore = ['four', 'six', 'eight']
+				const partsAfter = ['FOUR', '6', 'wonderful']
+				expect(getAnnotatedTextPartsAfterEdit(partsBefore)).toMatchObject(partsAfter)
+			})
 		})
 	})
 })
+
+/**
+ * Creates a test line, annotates the given parts in it, performs some test edits,
+ * and finally returns the parts that are annotated after the edits.
+ *
+ * Test line:
+ * - Before: `one-two-three-four-five-six-seven-eight-nine-ten`
+ * - Edited: `one-two-three-FOUR-five-6-seven-wonderful-nine-ten`
+ *
+ * Edits:
+ * - Replace `four`  with `FOUR`      (not changing string length)
+ * - Replace `six`   with `6`         (reducing string length)
+ * - Replace `eight` with `wonderful` (extending string length)
+ */
+function getAnnotatedTextPartsAfterEdit(partsToAnnotate: string[]) {
+	// Set up an annotated line
+	const line = new ExpressiveCodeLine('one-two-three-four-five-six-seven-eight-nine-ten')
+
+	// Create annotations for all the given parts
+	partsToAnnotate.forEach((partToAnnotate) => {
+		const columnStart = line.text.indexOf(partToAnnotate)
+		const columnEnd = columnStart + partToAnnotate.length
+		line.annotations.push({
+			name: 'del',
+			render: () => true,
+			inlineRange: {
+				columnStart,
+				columnEnd,
+			},
+		})
+	})
+
+	// Check that the parts were annotated correctly
+	expect(getAnnotatedTextParts(line)).toMatchObject(partsToAnnotate)
+
+	// Perform test edits on the line
+	const testEdits = [
+		['four', 'FOUR'],
+		['six', '6'],
+		['eight', 'wonderful'],
+	]
+	testEdits.forEach(([from, to]) => {
+		const columnStart = line.text.indexOf(from)
+		const columnEnd = columnStart + from.length
+		line.editText(columnStart, columnEnd, to)
+	})
+
+	// Return the resulting annotated text parts
+	return getAnnotatedTextParts(line)
+}
 
 function getAnnotatedTextParts(line: ExpressiveCodeLine) {
 	const parts: string[] = []

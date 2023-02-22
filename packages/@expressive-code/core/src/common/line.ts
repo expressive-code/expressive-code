@@ -45,13 +45,20 @@ export class ExpressiveCodeLine {
 				continue
 			}
 
+			// If the edit is fully contained in the annotation, keep the annotation
+			// and only adjust its end based on the edit character delta
+			if (editStart >= annotationStart && editEnd <= annotationEnd) {
+				annotation.inlineRange.columnEnd += editDelta
+				continue
+			}
+
 			// If the annotation is fully contained in the edit, remove it
 			if (editStart <= annotationStart && editEnd >= annotationEnd) {
 				this._annotations.splice(index, 1)
 				continue
 			}
 
-			// If we arrive here, the edit either starts or ends inside the annotation,
+			// If we arrive here, the edit partially intersects the annotation,
 			// so remove the intersection by cutting the annotation range
 			if (editStart > annotationStart) {
 				// The edit starts inside the annotation, so we only need to cut the end
