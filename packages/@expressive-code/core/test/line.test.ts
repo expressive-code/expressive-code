@@ -1,7 +1,24 @@
 import { describe, expect, test } from 'vitest'
+import { ExpressiveCodeBlock } from '../src/common/block'
 import { ExpressiveCodeAnnotation, ExpressiveCodeLine } from '../src/index'
+import { nonStringValues } from './utils'
 
 describe('ExpressiveCodeLine', () => {
+	describe('Constructor', () => {
+		test('Throws on invalid arguments', () => {
+			nonStringValues.forEach((value) => {
+				expect(() => {
+					// @ts-expect-error Pass invalid first argument type
+					new ExpressiveCodeLine(value)
+				}, `Did not throw when called with \`${JSON.stringify(value)}\` as first argument`).toThrowError()
+			})
+		})
+		test('Returns an instance when given valid input', () => {
+			const line = new ExpressiveCodeLine('This is a test.')
+			expect(line).toBeInstanceOf(ExpressiveCodeLine)
+		})
+	})
+
 	describe('editText()', () => {
 		describe('Column ranges match string.slice() behavior', () => {
 			test('With start & end inside text', () => {
@@ -68,7 +85,7 @@ describe('ExpressiveCodeLine', () => {
 					name: 'del',
 					render: () => true,
 				}
-				line.annotations.push(originalAnnotation)
+				line.addAnnotation(originalAnnotation)
 				expect(getAnnotatedTextParts(line)).toMatchObject([])
 
 				// Expect the annotation to stay the same after the edit
@@ -81,7 +98,7 @@ describe('ExpressiveCodeLine', () => {
 
 				// Check that the annotation still targets the entire line
 				expect(getAnnotatedTextParts(line)).toMatchObject([])
-				expect(line.annotations).toMatchObject([expectedAnnotation])
+				expect(line.getAnnotations()).toMatchObject([expectedAnnotation])
 			})
 			test('Annotation ends before first edit', () => {
 				const parts = ['two']
@@ -157,6 +174,155 @@ describe('ExpressiveCodeLine', () => {
 				expect(getAnnotatedTextPartsAfterEdit(partsBefore)).toMatchObject(partsAfter)
 			})
 		})
+
+		describe('Validates parent state before editing', () => {
+			test('Edits can be prevented when a state is set', () => {
+				const line = new ExpressiveCodeLine('This is a test.')
+				const block = new ExpressiveCodeBlock({ code: '', language: '', meta: '' })
+				line.parent = block
+				const state = {
+					canEditMetadata: true,
+					canEditCode: true,
+					canEditAnnotations: true,
+				}
+
+				// Assign state object to the block and ensure we can still edit the line
+				block.state = state
+				line.editText(10, -1, 'success')
+				expect(line.text).toEqual('This is a success.')
+
+				// Prevent code editing and ensure the line cannot be edited
+				state.canEditCode = false
+				expect(() => {
+					line.editText(10, -1, 'bug')
+				}).toThrow()
+				expect(line.text).toEqual('This is a success.')
+
+				// Allow code editing and ensure editing the line is possible again
+				state.canEditCode = true
+				line.editText(0, 10, '')
+				expect(line.text).toEqual('success.')
+			})
+		})
+	})
+
+	describe('addAnnotation()', () => {
+		test('Can be prevented when a state is set', () => {
+			const line = new ExpressiveCodeLine('This is a test.')
+			const block = new ExpressiveCodeBlock({ code: '', language: '', meta: '' })
+			line.parent = block
+			const state = {
+				canEditMetadata: true,
+				canEditCode: true,
+				canEditAnnotations: true,
+			}
+			const render = () => {
+				// (do nothing)
+			}
+
+			// Assign state object to the block and ensure we can still add an annotation
+			block.state = state
+			line.addAnnotation({ name: 'test', render })
+			expect(line.getAnnotations()).toMatchObject([{ name: 'test' }])
+
+			// Prevent annotation editing and ensure no more annotations can be added
+			state.canEditAnnotations = false
+			expect(() => {
+				line.addAnnotation({ name: 'bug', render })
+			}).toThrow()
+			expect(line.getAnnotations()).toMatchObject([{ name: 'test' }])
+
+			// Allow annotation editing and ensure adding annotations is possible again
+			state.canEditAnnotations = true
+			line.addAnnotation({ name: 'passed', render })
+			expect(line.getAnnotations()).toMatchObject([{ name: 'test' }, { name: 'passed' }])
+		})
+	})
+
+	describe('deleteAnnotation()', () => {
+		test('Throws when the annotation was not found', () => {
+			const line = new ExpressiveCodeLine('This is a test.')
+			const render = () => {
+				// (do nothing)
+			}
+			const testAnnotation = { name: 'test', render }
+			line.addAnnotation(testAnnotation)
+			// Attempt deleting a non-existing annotation
+			expect(() => {
+				line.deleteAnnotation({ name: 'non-existing', render })
+			}).toThrow()
+			// Attempt deleting a clone of the added annotation that has the same properties
+			expect(() => {
+				line.deleteAnnotation({ ...testAnnotation })
+			}).toThrow()
+		})
+		test('Can be prevented when a state is set', () => {
+			const line = new ExpressiveCodeLine('This is a test.')
+			const block = new ExpressiveCodeBlock({ code: '', language: '', meta: '' })
+			line.parent = block
+			const state = {
+				canEditMetadata: true,
+				canEditCode: true,
+				canEditAnnotations: true,
+			}
+			const render = () => {
+				// (do nothing)
+			}
+			const testAnnotation: ExpressiveCodeAnnotation = { name: 'test', render }
+			line.addAnnotation(testAnnotation)
+			expect(line.getAnnotations()).toMatchObject([{ name: 'test' }])
+
+			// Assign state object to the block and ensure we can still delete an annotation
+			block.state = state
+			line.deleteAnnotation(testAnnotation)
+			expect(line.getAnnotations()).toMatchObject([])
+
+			// Re-add the annotation for the next part of the test
+			line.addAnnotation(testAnnotation)
+
+			// Prevent annotation editing and ensure no more annotations can be added
+			state.canEditAnnotations = false
+			expect(() => {
+				line.deleteAnnotation(testAnnotation)
+			}).toThrow()
+			expect(line.getAnnotations()).toMatchObject([{ name: 'test' }])
+
+			// Allow annotation editing and ensure deleting annotations is possible again
+			state.canEditAnnotations = true
+			line.deleteAnnotation(testAnnotation)
+			expect(line.getAnnotations()).toMatchObject([])
+		})
+	})
+
+	describe('parent', () => {
+		test('Is undefined before inserting the line into a block', () => {
+			const line = new ExpressiveCodeLine('This is a test.')
+			expect(line.parent).toEqual(undefined)
+		})
+		test('Can be set to a code block', () => {
+			const line = new ExpressiveCodeLine('This is a test.')
+			const block = new ExpressiveCodeBlock({ code: '', language: '', meta: '' })
+			line.parent = block
+			expect(line.parent).toBe(block)
+		})
+		test('Prevents reassigning the parent after setting it once', () => {
+			const line = new ExpressiveCodeLine('This is a test.')
+			const block = new ExpressiveCodeBlock({ code: '', language: '', meta: '' })
+			const anotherBlock = new ExpressiveCodeBlock({ code: '', language: '', meta: '' })
+			// The initial assignment should always work
+			line.parent = block
+			// Setting it to the same value again should also work
+			line.parent = block
+			// Ensure it's not possible to set it to a different block
+			expect(() => {
+				line.parent = anotherBlock
+			}).toThrow()
+			// Also ensure it's not possible to set it back to undefined
+			expect(() => {
+				line.parent = undefined
+			}).toThrow()
+			expect(line.parent).toBe(block)
+		})
 	})
 })
 
@@ -181,7 +347,7 @@ function getAnnotatedTextPartsAfterEdit(partsToAnnotate: string[]) {
 	partsToAnnotate.forEach((partToAnnotate) => {
 		const columnStart = line.text.indexOf(partToAnnotate)
 		const columnEnd = columnStart + partToAnnotate.length
-		line.annotations.push({
+		line.addAnnotation({
 			name: 'del',
 			render: () => true,
 			inlineRange: {
@@ -212,7 +378,7 @@ function getAnnotatedTextPartsAfterEdit(partsToAnnotate: string[]) {
 
 function getAnnotatedTextParts(line: ExpressiveCodeLine) {
 	const parts: string[] = []
-	line.annotations.forEach(({ inlineRange }) => {
+	line.getAnnotations().forEach(({ inlineRange }) => {
 		if (inlineRange) {
 			parts.push(line.text.slice(inlineRange.columnStart, inlineRange.columnEnd))
 		}

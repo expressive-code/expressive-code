@@ -1,9 +1,15 @@
+import { ExpressiveCodeBlock } from './block'
+
 export interface ExpressiveCodePlugin {
 	name: string
 	hooks: ExpressiveCodePluginHooks
 }
 
-export type ExpressiveCodeHook = (context: object) => void
+export interface ExpressiveCodeHookContext {
+	codeBlock: ExpressiveCodeBlock
+}
+
+export type ExpressiveCodeHook = (context: ExpressiveCodeHookContext) => void
 
 export interface ExpressiveCodePluginHooks {
 	/**

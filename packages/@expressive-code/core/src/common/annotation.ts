@@ -1,12 +1,20 @@
-export interface ExpressiveCodeAnnotation {
-	name: string
-	inlineRange?: ExpressiveCodeInlineRange
-	render: AnnotationRenderFunction
-}
+import { z } from 'zod'
 
-export type AnnotationRenderFunction = () => void
+const ExpressiveCodeInlineRange = z.object({
+	columnStart: z.number(),
+	columnEnd: z.number(),
+})
 
-export interface ExpressiveCodeInlineRange {
-	columnStart: number
-	columnEnd: number
-}
+const AnnotationRenderFunction = z.function().args().returns(z.void())
+
+export const ExpressiveCodeAnnotation = z.object({
+	name: z.string(),
+	inlineRange: ExpressiveCodeInlineRange.optional(),
+	render: AnnotationRenderFunction,
+})
+
+export type ExpressiveCodeInlineRange = z.infer<typeof ExpressiveCodeInlineRange>
+
+export type AnnotationRenderFunction = z.infer<typeof AnnotationRenderFunction>
+
+export type ExpressiveCodeAnnotation = z.infer<typeof ExpressiveCodeAnnotation>

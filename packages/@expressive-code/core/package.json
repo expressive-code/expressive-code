@@ -28,6 +28,7 @@
   "devDependencies": {
     "@types/html-escaper": "^3.0.0",
     "html-escaper": "^3.0.3",
-    "htmlparser2": "^8.0.1"
+    "htmlparser2": "^8.0.1",
+    "zod": "^3.20.6"
   }
 }
