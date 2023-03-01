@@ -1,6 +1,6 @@
 import { ExpressiveCodeBlock } from './block'
+import { isBoolean, newTypeError } from './helpers'
 import { ExpressiveCodePlugin, ExpressiveCodePluginHooks } from './plugin'
-import { z } from 'zod'
 
 export interface ExpressiveCodeConfig {
 	/**
@@ -75,17 +75,13 @@ export class ExpressiveCode {
 	readonly #config: ExpressiveCodeConfig
 }
 
-const invalidExpressiveCodeProcessingState = 'When setting the state of a code block, you must specify a valid state object.'
-export const ExpressiveCodeProcessingState = z.object(
-	{
-		canEditCode: z.boolean(),
-		canEditMetadata: z.boolean(),
-		canEditAnnotations: z.boolean(),
-	},
-	{
-		required_error: invalidExpressiveCodeProcessingState,
-		invalid_type_error: invalidExpressiveCodeProcessingState,
-	}
-)
+export type ExpressiveCodeProcessingState = {
+	canEditCode: boolean
+	canEditMetadata: boolean
+	canEditAnnotations: boolean
+}
 
-export type ExpressiveCodeProcessingState = z.infer<typeof ExpressiveCodeProcessingState>
+export function validateExpressiveCodeProcessingState(state: ExpressiveCodeProcessingState | undefined) {
+	const isValid = state && isBoolean(state.canEditCode) && isBoolean(state.canEditMetadata) && isBoolean(state.canEditAnnotations)
+	if (!isValid) throw newTypeError('ExpressiveCodeProcessingState', state)
+}

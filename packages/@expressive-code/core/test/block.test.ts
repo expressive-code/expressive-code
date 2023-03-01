@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { ExpressiveCodeBlock } from '../src/common/block'
-import { nonArrayValues, nonNumberValues, nonStringValues } from './utils'
+import { nonArrayValues, nonNumberValues, nonObjectValues, nonStringValues } from './utils'
 
 describe('ExpressiveCodeBlock', () => {
 	describe('Constructor', () => {
@@ -250,6 +250,24 @@ describe('ExpressiveCodeBlock', () => {
 		test('Is undefined by default', () => {
 			const block = prepareTestBlock()
 			expect(block.state).toEqual(undefined)
+		})
+		test('Throws on invalid value types', () => {
+			const invalidValues = [
+				// Non-objects
+				...nonObjectValues,
+				// Objects with missing properties
+				{},
+				{ canEditMetadata: true },
+				// Objects with invalid property types
+				{ canEditMetadata: true, canEditCode: false, canEditAnnotations: 'hello' },
+			]
+			invalidValues.forEach((invalidValue) => {
+				const block = prepareTestBlock()
+				expect(() => {
+					// @ts-expect-error Set to invalid type
+					block.state = invalidValue
+				}).toThrow()
+			})
 		})
 		test('Can be set to a state object', () => {
 			const block = prepareTestBlock()

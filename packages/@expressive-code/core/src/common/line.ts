@@ -1,7 +1,6 @@
-import { ExpressiveCodeAnnotation } from './annotation'
+import { ExpressiveCodeAnnotation, validateExpressiveCodeAnnotation } from './annotation'
 import { ExpressiveCodeBlock } from './block'
-import { getAbsoluteRange } from './helpers'
-import { z } from 'zod'
+import { getAbsoluteRange, isNumber, isString, newTypeError } from './helpers'
 
 export class ExpressiveCodeLine {
 	constructor(text: string) {
@@ -19,7 +18,7 @@ export class ExpressiveCodeLine {
 		return this.#parent
 	}
 	set parent(value) {
-		z.instanceof(ExpressiveCodeBlock, { message: 'When setting the parent of a code line, you must specify a valid code block instance.' }).parse(value)
+		if (!(value instanceof ExpressiveCodeBlock)) throw new Error('When setting the parent of a code line, you must specify a valid code block instance.')
 		if (this.#parent) {
 			if (this.#parent === value) return
 			throw new Error(`You cannot change the parent of a code line after it has been added to a code block.`)
@@ -34,13 +33,13 @@ export class ExpressiveCodeLine {
 	}
 
 	addAnnotation(annotation: ExpressiveCodeAnnotation) {
-		ExpressiveCodeAnnotation.parse(annotation)
+		validateExpressiveCodeAnnotation(annotation)
 		if (this.#parent?.state?.canEditAnnotations === false) throw new Error('Cannot edit code line annotations in the current state.')
 		this.#annotations.push(annotation)
 	}
 
 	deleteAnnotation(annotation: ExpressiveCodeAnnotation) {
-		ExpressiveCodeAnnotation.parse(annotation)
+		validateExpressiveCodeAnnotation(annotation)
 		if (this.#parent?.state?.canEditAnnotations === false) throw new Error('Cannot edit code line annotations in the current state.')
 		const index = this.#annotations.indexOf(annotation)
 		if (index === -1)
@@ -49,9 +48,9 @@ export class ExpressiveCodeLine {
 	}
 
 	editText(columnStart: number | undefined, columnEnd: number | undefined, newText: string): string {
-		z.number().optional().parse(columnStart)
-		z.number().optional().parse(columnEnd)
-		z.string().parse(newText)
+		if (columnStart !== undefined && !isNumber(columnStart)) throw newTypeError('number', columnStart)
+		if (columnEnd !== undefined && !isNumber(columnEnd)) throw newTypeError('number', columnEnd)
+		if (!isString(newText)) throw newTypeError('string', newText)
 		if (this.#parent?.state?.canEditCode === false) throw new Error('Cannot edit code line text in the current state.')
 
 		// Convert the given column positions to an absolute range

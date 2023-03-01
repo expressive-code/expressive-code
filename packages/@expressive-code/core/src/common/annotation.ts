@@ -1,20 +1,33 @@
-import { z } from 'zod'
+import { isFunction, isNumber, isString, newTypeError } from './helpers'
 
-const ExpressiveCodeInlineRange = z.object({
-	columnStart: z.number(),
-	columnEnd: z.number(),
-})
+export type ExpressiveCodeInlineRange = {
+	columnStart: number
+	columnEnd: number
+}
 
-const AnnotationRenderFunction = z.function().args().returns(z.void())
+export type AnnotationRenderFunction = () => void
 
-export const ExpressiveCodeAnnotation = z.object({
-	name: z.string(),
-	inlineRange: ExpressiveCodeInlineRange.optional(),
-	render: AnnotationRenderFunction,
-})
+export type ExpressiveCodeAnnotation = {
+	name: string
+	inlineRange?: ExpressiveCodeInlineRange
+	render: AnnotationRenderFunction
+}
 
-export type ExpressiveCodeInlineRange = z.infer<typeof ExpressiveCodeInlineRange>
+function validateExpressiveCodeInlineRange(inlineRange: ExpressiveCodeInlineRange) {
+	if (!isNumber(inlineRange.columnStart) || !isNumber(inlineRange.columnEnd)) throw newTypeError('ExpressiveCodeInlineRange', inlineRange)
+}
 
-export type AnnotationRenderFunction = z.infer<typeof AnnotationRenderFunction>
+function validateAnnotationRenderFunction(renderFunction: AnnotationRenderFunction) {
+	if (!isFunction(renderFunction)) throw newTypeError('AnnotationRenderFunction', renderFunction)
+}
 
-export type ExpressiveCodeAnnotation = z.infer<typeof ExpressiveCodeAnnotation>
+export function validateExpressiveCodeAnnotation(annotation: ExpressiveCodeAnnotation) {
+	try {
+		const { name, inlineRange, render } = annotation
+		if (!isString(name)) throw newTypeError('string', name)
+		if (inlineRange) validateExpressiveCodeInlineRange(inlineRange)
+		validateAnnotationRenderFunction(render)
+	} catch (error) {
+		throw newTypeError('ExpressiveCodeAnnotation', annotation)
+	}
+}

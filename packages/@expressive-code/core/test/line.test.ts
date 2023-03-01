@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { ExpressiveCodeBlock } from '../src/common/block'
 import { ExpressiveCodeAnnotation, ExpressiveCodeLine } from '../src/index'
-import { nonStringValues } from './utils'
+import { nonNumberValues, nonObjectValues, nonStringValues } from './utils'
 
 describe('ExpressiveCodeLine', () => {
 	describe('Constructor', () => {
@@ -20,6 +20,30 @@ describe('ExpressiveCodeLine', () => {
 	})
 
 	describe('editText()', () => {
+		test('Throws on invalid arguments', () => {
+			nonNumberValues
+				.filter((value) => value !== undefined)
+				.forEach((value) => {
+					expect(() => {
+						const line = new ExpressiveCodeLine('This is a test.')
+						// @ts-expect-error Pass invalid first argument type
+						line.editText(value, 10, 'bug')
+					}, `Did not throw when called with \`${JSON.stringify(value)}\` as first argument`).toThrowError()
+					expect(() => {
+						const line = new ExpressiveCodeLine('This is a test.')
+						// @ts-expect-error Pass invalid second argument type
+						line.editText(10, value, 'bug')
+					}, `Did not throw when called with \`${JSON.stringify(value)}\` as second argument`).toThrowError()
+				})
+			nonStringValues.forEach((value) => {
+				expect(() => {
+					const line = new ExpressiveCodeLine('This is a test.')
+					// @ts-expect-error Pass invalid text argument type
+					line.editText(10, 14, value)
+				}, `Did not throw when called with \`${JSON.stringify(value)}\` as text argument`).toThrowError()
+			})
+		})
+
 		describe('Column ranges match string.slice() behavior', () => {
 			test('With start & end inside text', () => {
 				const line = new ExpressiveCodeLine('This is a test.')
@@ -207,6 +231,55 @@ describe('ExpressiveCodeLine', () => {
 	})
 
 	describe('addAnnotation()', () => {
+		test('Throws on invalid arguments', () => {
+			const render = () => {
+				// (do nothing)
+			}
+			const invalidArguments: ExpressiveCodeAnnotation[] = [
+				...nonStringValues.map(
+					(value) =>
+						({
+							name: value,
+							render,
+						} as ExpressiveCodeAnnotation)
+				),
+				...nonNumberValues.map(
+					(value) =>
+						({
+							name: 'test',
+							inlineRange: {
+								columnStart: value,
+								columnEnd: 10,
+							},
+							render,
+						} as ExpressiveCodeAnnotation)
+				),
+				...nonNumberValues.map(
+					(value) =>
+						({
+							name: 'test',
+							inlineRange: {
+								columnStart: 5,
+								columnEnd: value,
+							},
+							render,
+						} as ExpressiveCodeAnnotation)
+				),
+				...nonObjectValues.map(
+					(value) =>
+						({
+							name: 'test',
+							render: value as unknown,
+						} as ExpressiveCodeAnnotation)
+				),
+			]
+			invalidArguments.forEach((invalidArgument) => {
+				expect(() => {
+					const line = new ExpressiveCodeLine('This is a test.')
+					line.addAnnotation(invalidArgument)
+				}, `Did not throw when called with \`${JSON.stringify(invalidArgument)}\``).toThrowError()
+			})
+		})
 		test('Can be prevented when a state is set', () => {
 			const line = new ExpressiveCodeLine('This is a test.')
 			const block = new ExpressiveCodeBlock({ code: '', language: '', meta: '' })

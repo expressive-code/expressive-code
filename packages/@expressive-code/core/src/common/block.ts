@@ -1,18 +1,17 @@
-import { ExpressiveCodeProcessingState } from './engine'
+import { ExpressiveCodeProcessingState, validateExpressiveCodeProcessingState } from './engine'
+import { isNumber, isString, newTypeError } from './helpers'
 import { ExpressiveCodeLine } from './line'
-import { z } from 'zod'
 
-const ExpressiveCodeBlockOptions = z.object({
-	code: z.string(),
-	language: z.string(),
-	meta: z.string(),
-})
-
-type ExpressiveCodeBlockOptions = z.infer<typeof ExpressiveCodeBlockOptions>
+type ExpressiveCodeBlockOptions = {
+	code: string
+	language: string
+	meta: string
+}
 
 export class ExpressiveCodeBlock {
 	constructor(options: ExpressiveCodeBlockOptions) {
-		const { code, language, meta } = ExpressiveCodeBlockOptions.parse(options)
+		const { code, language, meta } = options
+		if (!isString(code) || !isString(language) || !isString(meta)) throw newTypeError('ExpressiveCodeBlockOptions', options)
 		this.#lines = []
 		this.#language = language
 		this.#meta = meta
@@ -47,10 +46,14 @@ export class ExpressiveCodeBlock {
 	}
 
 	get state() {
-		return this.#state && Object.freeze({ ...this.#state })
+		if (this.#state) {
+			const result: ExpressiveCodeProcessingState = { ...this.#state }
+			Object.freeze(result)
+			return result
+		}
 	}
 	set state(value) {
-		ExpressiveCodeProcessingState.parse(value)
+		validateExpressiveCodeProcessingState(value)
 		if (this.#state) {
 			if (this.#state === value) return
 			throw new Error(`You cannot change the state object of a code block after assigning it once.`)
@@ -59,7 +62,7 @@ export class ExpressiveCodeBlock {
 	}
 
 	getLine(index: number): ExpressiveCodeLine | undefined {
-		z.number().nonnegative({ message: 'Line index must be a non-negative number.' }).parse(index)
+		if (!isNumber(index) || index < 0) throw new Error('Line index must be a non-negative number.')
 		return this.getLines(index, index + 1)[0]
 	}
 
@@ -73,7 +76,7 @@ export class ExpressiveCodeBlock {
 
 	deleteLines(indices: number[]) {
 		// Validate arguments
-		z.number().array().nonempty().parse(indices)
+		if (!Array.isArray(indices) || indices.length === 0 || indices.some((index) => !isNumber(index) || index < 0)) throw newTypeError('non-empty non-negative number[]', indices)
 		if (this.#state?.canEditCode === false) throw new Error('Cannot delete code block lines in the current state.')
 
 		// Sort line indices in reverse order and delete them
@@ -95,8 +98,8 @@ export class ExpressiveCodeBlock {
 
 	insertLines(index: number, textLines: string[]) {
 		// Validate arguments
-		z.number().parse(index)
-		z.string().array().nonempty().parse(textLines)
+		if (!isNumber(index) || index < 0) throw newTypeError('non-negative number', index)
+		if (!Array.isArray(textLines) || textLines.length === 0 || textLines.some((textLine) => !isString(textLine))) throw newTypeError('non-empty string[]', textLines)
 		if (this.#state?.canEditCode === false) throw new Error('Cannot insert code block lines in the current state.')
 		// Note: To allow inserting a line after the last one, we need to use `<=` instead of `<`
 		const isValidIndex = index >= 0 && index <= this.#lines.length
