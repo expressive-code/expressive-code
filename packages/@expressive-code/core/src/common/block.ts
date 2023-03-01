@@ -24,7 +24,7 @@ export class ExpressiveCodeBlock {
 	#meta: string
 	#state?: ExpressiveCodeProcessingState
 
-	get text() {
+	get code() {
 		return this.#lines.map((line) => line.text).join('\n')
 	}
 

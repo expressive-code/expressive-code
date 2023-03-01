@@ -140,7 +140,7 @@ describe('ExpressiveCodeBlock', () => {
 		})
 		test('Can be prevented when a state is set', () => {
 			const block = prepareTestBlock()
-			const initialText = block.text
+			const initialCode = block.code
 			block.state = {
 				canEditMetadata: true,
 				canEditCode: false,
@@ -149,7 +149,7 @@ describe('ExpressiveCodeBlock', () => {
 			expect(() => {
 				block.deleteLine(0)
 			}).toThrow()
-			expect(block.text).toEqual(initialText)
+			expect(block.code).toEqual(initialCode)
 		})
 	})
 
@@ -233,7 +233,7 @@ describe('ExpressiveCodeBlock', () => {
 		})
 		test('Can be prevented when a state is set', () => {
 			const block = prepareTestBlock()
-			const initialText = block.text
+			const initialCode = block.code
 			block.state = {
 				canEditMetadata: true,
 				canEditCode: false,
@@ -242,7 +242,7 @@ describe('ExpressiveCodeBlock', () => {
 			expect(() => {
 				block.insertLine(0, 'This should not work.')
 			}).toThrow()
-			expect(block.text).toEqual(initialText)
+			expect(block.code).toEqual(initialCode)
 		})
 	})
 
@@ -339,16 +339,16 @@ describe('ExpressiveCodeBlock', () => {
 			const lineEndings = ['\n', '\r\n']
 			lineEndings.forEach((lineEnding) => {
 				const block = prepareTestBlock({ code: testLines.join(lineEnding) })
-				expect(block.text, `Failed when using line ending ${JSON.stringify(lineEnding)}`).toEqual(testLines.join('\n'))
+				expect(block.code, `Failed when using line ending ${JSON.stringify(lineEnding)}`).toEqual(testLines.join('\n'))
 			})
 		})
 		test('Cannot be edited directly', () => {
 			const block = prepareTestBlock({ code: 'Hello!' })
 			expect(() => {
 				// @ts-expect-error Attempting to set a property without setter
-				block.text = 'Bye?'
+				block.code = 'Bye?'
 			}).toThrow()
-			expect(block.text).toEqual('Hello!')
+			expect(block.code).toEqual('Hello!')
 		})
 	})
 

@@ -22,7 +22,7 @@ export interface ExpressiveCodePluginHooks {
 	 * As the code still matches the plaintext in the containing Markdown/MDX document at this
 	 * point, this hook can be used to apply annotations by line numbers.
 	 */
-	preprocessMetadata: ExpressiveCodeHook
+	preprocessMetadata?: ExpressiveCodeHook
 
 	/**
 	 * Allows preprocessing the code before any language-specific hooks are run.
@@ -35,7 +35,7 @@ export interface ExpressiveCodePluginHooks {
 	 * syntax highlighters, or to provide functionality to include external files into the
 	 * code block.
 	 */
-	preprocessCode: ExpressiveCodeHook
+	preprocessCode?: ExpressiveCodeHook
 
 	/**
 	 * Allows analyzing the preprocessed code and collecting language-specific syntax annotations.
@@ -46,7 +46,7 @@ export interface ExpressiveCodePluginHooks {
 	 * These annotations are then available to the following hooks and will be used during
 	 * rendering.
 	 */
-	performSyntaxAnalysis: ExpressiveCodeHook
+	performSyntaxAnalysis?: ExpressiveCodeHook
 
 	/**
 	 * Allows postprocessing the code plaintext after collecting syntax annotations.
@@ -58,7 +58,7 @@ export interface ExpressiveCodePluginHooks {
 	 *
 	 * After this hook has finished processing, the plaintext of all code lines becomes read-only.
 	 */
-	postprocessAnalyzedCode: ExpressiveCodeHook
+	postprocessAnalyzedCode?: ExpressiveCodeHook
 
 	/**
 	 * Allows annotating the final code plaintext.
@@ -66,23 +66,25 @@ export interface ExpressiveCodePluginHooks {
 	 * As the code is read-only at this point, plugins can use this hook to create annotations
 	 * on lines or inline ranges matching a specific search term.
 	 */
-	annotateCode: ExpressiveCodeHook
+	annotateCode?: ExpressiveCodeHook
 
 	/**
 	 * Allows applying final changes to annotations before rendering.
 	 *
 	 * After this hook has finished processing, all annotations become read-only.
 	 */
-	postprocessAnnotations: ExpressiveCodeHook
+	postprocessAnnotations?: ExpressiveCodeHook
 
 	/**
 	 * Allows editing the AST of a single line of code after all annotations were rendered.
 	 */
-	postprocessRenderedLine: ExpressiveCodeHook
+	postprocessRenderedLine?: ExpressiveCodeHook
 
 	/**
 	 * Allows editing the AST of the entire code block after all annotations were rendered
 	 * and all lines were postprocessed.
 	 */
-	postprocessRenderedBlock: ExpressiveCodeHook
+	postprocessRenderedBlock?: ExpressiveCodeHook
 }
+
+export type ExpressiveCodePluginHookName = keyof ExpressiveCodePluginHooks

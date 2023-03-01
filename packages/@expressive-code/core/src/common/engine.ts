@@ -66,6 +66,10 @@ export class ExpressiveCode {
 		//   - runHook('postprocessRenderedLine') // Note: Needs some kind of line reference
 		// - runHook('postprocessRenderedBlock')
 		// - Return processing result in a format that allows access to the AST
+
+		return {
+			codeBlock,
+		}
 	}
 
 	readonly #config: ExpressiveCodeConfig
