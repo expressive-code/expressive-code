@@ -1,6 +1,7 @@
 import { ExpressiveCodeAnnotation, validateExpressiveCodeAnnotation } from './annotation'
 import { ExpressiveCodeBlock } from './block'
-import { getAbsoluteRange, isNumber, isString, newTypeError } from './helpers'
+import { getAbsoluteRange } from '../internal/ranges'
+import { isNumber, isString, newTypeError } from '../internal/type-checks'
 
 export class ExpressiveCodeLine {
 	constructor(text: string) {

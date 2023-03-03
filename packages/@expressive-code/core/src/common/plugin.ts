@@ -5,8 +5,33 @@ export interface ExpressiveCodePlugin {
 	hooks: ExpressiveCodePluginHooks
 }
 
+export type PluginDataScope = 'block' /*| 'document' */ | 'global'
+export type GetPluginDataFunc = <Type extends object = object>(
+	/**
+	 * Limits the lifetime of the returned data object to the `block`
+	 * currently being processed. Afterwards, a new object will be returned.
+	 *
+	 * To keep reusing the same data object during the full lifetime of the plugin instance,
+	 * use the `global` scope.
+	 *
+	 * Plugins can use all available scopes at the same time to store different kinds of data.
+	 */
+	scope: PluginDataScope,
+	/**
+	 * If no plugin-specific data exists for the given scope yet,
+	 * it will be initialized to this value.
+	 */
+	initialValue: Type
+) => Type
+
 export interface ExpressiveCodeHookContext {
 	codeBlock: ExpressiveCodeBlock
+	/**
+	 * Retrieves a reference to plugin-specific custom data.
+	 *
+	 * Plugins can use this function to persist data between hook calls.
+	 */
+	getPluginData: GetPluginDataFunc
 }
 
 export type ExpressiveCodeHook = (context: ExpressiveCodeHookContext) => void

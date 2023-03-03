@@ -1,6 +1,6 @@
 import { ExpressiveCodeBlock } from './block'
-import { isBoolean, newTypeError } from './helpers'
-import { ExpressiveCodePlugin, ExpressiveCodePluginHooks } from './plugin'
+import { isBoolean, newTypeError } from '../internal/type-checks'
+import { ExpressiveCodePlugin, ExpressiveCodePluginHooks, PluginDataScope } from './plugin'
 
 export interface ExpressiveCodeConfig {
 	/**
@@ -15,6 +15,7 @@ export interface ExpressiveCodeConfig {
 export class ExpressiveCode {
 	constructor(config: ExpressiveCodeConfig) {
 		this.#config = config
+		this.#globalPluginData = new WeakMap()
 	}
 
 	processCode({ code, language, meta }: { code: string; language: string; meta: string }) {
@@ -31,11 +32,16 @@ export class ExpressiveCode {
 		})
 		codeBlock.state = state
 
+		const blockPluginData: PluginDataMap = new WeakMap()
+
 		const runHook = (key: keyof ExpressiveCodePluginHooks) => {
 			this.#config.plugins.forEach((plugin) => {
 				const pluginHookFn = plugin.hooks[key]
 				if (pluginHookFn) {
-					pluginHookFn({ codeBlock })
+					pluginHookFn({
+						codeBlock,
+						getPluginData: this.#buildGetPluginDataFunc(plugin, blockPluginData),
+					})
 				}
 			})
 		}
@@ -72,8 +78,24 @@ export class ExpressiveCode {
 		}
 	}
 
+	#buildGetPluginDataFunc(plugin: ExpressiveCodePlugin, blockPluginData: PluginDataMap) {
+		const getPluginData = <Type extends object = object>(scope: PluginDataScope, initialValue: Type) => {
+			const map = scope === 'global' ? this.#globalPluginData : blockPluginData
+			let data = map.get(plugin) as Type
+			if (data === undefined) {
+				data = initialValue
+				map.set(plugin, data)
+			}
+			return data
+		}
+		return getPluginData
+	}
+
 	readonly #config: ExpressiveCodeConfig
+	readonly #globalPluginData: PluginDataMap
 }
+
+export type PluginDataMap = WeakMap<ExpressiveCodePlugin, object>
 
 export type ExpressiveCodeProcessingState = {
 	canEditCode: boolean

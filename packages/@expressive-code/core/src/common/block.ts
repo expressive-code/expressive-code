@@ -1,5 +1,5 @@
 import { ExpressiveCodeProcessingState, validateExpressiveCodeProcessingState } from './engine'
-import { isNumber, isString, newTypeError } from './helpers'
+import { isNumber, isString, newTypeError } from '../internal/type-checks'
 import { ExpressiveCodeLine } from './line'
 
 type ExpressiveCodeBlockOptions = {

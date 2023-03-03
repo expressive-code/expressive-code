@@ -1,4 +1,4 @@
-import { isFunction, isNumber, isString, newTypeError } from './helpers'
+import { isFunction, isNumber, isString, newTypeError } from '../internal/type-checks'
 
 export type ExpressiveCodeInlineRange = {
 	columnStart: number
