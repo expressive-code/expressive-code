@@ -5,10 +5,10 @@
   "license": "MIT",
   "scripts": {
     "prepare": "husky install",
-    "build": "pnpm -r build",
+    "build": "pnpm -r --stream build",
     "lint": "eslint .",
-    "coverage": "pnpm -r coverage",
-    "test": "pnpm -r test"
+    "coverage": "pnpm -r --no-bail --stream coverage",
+    "test": "pnpm -r --no-bail test"
   },
   "workspaces": [
     "packages/@expressive-code/*",
