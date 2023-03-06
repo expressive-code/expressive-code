@@ -110,6 +110,19 @@ export interface ExpressiveCodePluginHooks {
 	 * and all lines were postprocessed.
 	 */
 	postprocessRenderedBlock?: ExpressiveCodeHook
+
+	/**
+	 * Allows postprocessing all code blocks that were rendered as part of the same group.
+	 *
+	 * Groups are defined by the calling code. For example, a Remark plugin using Expressive Code
+	 * to render code blocks could provide authors with a way to group related code blocks together.
+	 *
+	 * This hook is used by the frames plugin to display multiple code blocks as editor file tabs.
+	 *
+	 * Note: Even if a code block is not part of any group, this hook will still be called.
+	 * Standalone code blocks are treated like a group containing only a single block.
+	 */
+	postprocessRenderedBlockGroup?: ExpressiveCodeHook
 }
 
 export type ExpressiveCodePluginHookName = keyof ExpressiveCodePluginHooks

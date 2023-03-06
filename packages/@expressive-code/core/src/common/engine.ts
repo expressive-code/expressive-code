@@ -71,6 +71,7 @@ export class ExpressiveCode {
 		//       mutating the plaintext nodes with the results
 		//   - runHook('postprocessRenderedLine') // Note: Needs some kind of line reference
 		// - runHook('postprocessRenderedBlock')
+		// - runHook('postprocessRenderedBlockGroup')
 		// - Return processing result in a format that allows access to the AST
 
 		return {
