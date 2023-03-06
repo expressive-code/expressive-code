@@ -46,6 +46,12 @@ importers:
       html-escaper: 3.0.3
       htmlparser2: 8.0.1
 
+  packages/@expressive-code/plugin-frames:
+    specifiers:
+      '@expressive-code/core': workspace:^0.1.0
+    dependencies:
+      '@expressive-code/core': link:../core
+
   packages/@expressive-code/plugin-shiki-twoslash:
     specifiers:
       '@expressive-code/core': workspace:^0.1.0
