@@ -64,7 +64,7 @@ export function replaceDelimitedValues(
 					// Start of non-capturing optional group
 					`(?:`,
 					// Key name (captured)
-					`([a-zA-Z]+)`,
+					`([^\\s"'${escapeRegExp(syntax.keyValueSeparator.replace(/-/g, '\\-'))}]+)`,
 					// Optional whitespace
 					`\\s*`,
 					// Key/value separator (e.g. `=`)

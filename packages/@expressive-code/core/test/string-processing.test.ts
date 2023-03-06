@@ -3,6 +3,22 @@ import { replaceDelimitedValues, ReplaceDelimitedValuesMatch } from '../src/help
 
 describe('String processing', () => {
 	describe('replaceDelimitedValues()', () => {
+		test('Supports keys including non-alphanumeric characters', () => {
+			const chars = ['_', '-', '+', '~', '@', '$', '%', 'ä', '€', '😄']
+			chars.forEach((char) => {
+				const keyNames = [`${char}start`, `mid${char}dle`, `end${char}`]
+				keyNames.forEach((keyName) => {
+					const testString = `Hello ${keyName}="This is a title" special key!`
+					const matches: ReplaceDelimitedValuesMatch[] = []
+					const result = replaceDelimitedValues(testString, (match) => {
+						matches.push(match)
+						return ''
+					})
+					expect(result, `String replacement failed for key name "${keyName}"`).toEqual('Hello special key!')
+					expect(matches, `Match function data was incorrect for key name "${keyName}"`).toMatchObject([{ key: keyName, value: 'This is a title' }])
+				})
+			})
+		})
 		describe('Supports different value delimiter types', () => {
 			test('Same character on both sides', () => {
 				const testString = `Oh title="This is neat!" 'This, too.' hi!`
