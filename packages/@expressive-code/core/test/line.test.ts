@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { ExpressiveCodeBlock } from '../src/common/block'
 import { ExpressiveCodeAnnotation, ExpressiveCodeLine } from '../src/index'
-import { nonNumberValues, nonObjectValues, nonStringValues } from './utils'
+import { annotateMatchingTextParts, cloneAnnotation, getAnnotatedTextParts, nonNumberValues, nonObjectValues, nonStringValues } from './utils'
 
 describe('ExpressiveCodeLine', () => {
 	describe('Constructor', () => {
@@ -166,17 +166,17 @@ describe('ExpressiveCodeLine', () => {
 		describe('Inline annotations fully contained in edits are removed', () => {
 			test('Fully contained annotation starts at edit start -> gets removed', () => {
 				const partsBefore = ['fou', 'si', 'eigh']
-				const partsAfter = []
+				const partsAfter: string[] = []
 				expect(getAnnotatedTextPartsAfterEdit(partsBefore)).toMatchObject(partsAfter)
 			})
 			test('Fully contained annotation ends at edit end -> gets removed', () => {
 				const partsBefore = ['our', 'ix', 'ight']
-				const partsAfter = []
+				const partsAfter: string[] = []
 				expect(getAnnotatedTextPartsAfterEdit(partsBefore)).toMatchObject(partsAfter)
 			})
 			test('Fully contained annotation does not touch edit boundaries -> gets removed', () => {
 				const partsBefore = ['ou', 'igh']
-				const partsAfter = []
+				const partsAfter: string[] = []
 				expect(getAnnotatedTextPartsAfterEdit(partsBefore)).toMatchObject(partsAfter)
 			})
 		})
@@ -417,18 +417,7 @@ function getAnnotatedTextPartsAfterEdit(partsToAnnotate: string[]) {
 	const line = new ExpressiveCodeLine('one-two-three-four-five-six-seven-eight-nine-ten')
 
 	// Create annotations for all the given parts
-	partsToAnnotate.forEach((partToAnnotate) => {
-		const columnStart = line.text.indexOf(partToAnnotate)
-		const columnEnd = columnStart + partToAnnotate.length
-		line.addAnnotation({
-			name: 'del',
-			render: () => true,
-			inlineRange: {
-				columnStart,
-				columnEnd,
-			},
-		})
-	})
+	annotateMatchingTextParts(line, partsToAnnotate)
 
 	// Check that the parts were annotated correctly
 	expect(getAnnotatedTextParts(line)).toMatchObject(partsToAnnotate)
@@ -447,20 +436,4 @@ function getAnnotatedTextPartsAfterEdit(partsToAnnotate: string[]) {
 
 	// Return the resulting annotated text parts
 	return getAnnotatedTextParts(line)
-}
-
-function getAnnotatedTextParts(line: ExpressiveCodeLine) {
-	const parts: string[] = []
-	line.getAnnotations().forEach(({ inlineRange }) => {
-		if (inlineRange) {
-			parts.push(line.text.slice(inlineRange.columnStart, inlineRange.columnEnd))
-		}
-	})
-	return parts
-}
-
-function cloneAnnotation(annotation: ExpressiveCodeAnnotation) {
-	const clone = { ...annotation }
-	if (annotation.inlineRange) clone.inlineRange = { ...annotation.inlineRange }
-	return clone
 }
