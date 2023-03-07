@@ -185,15 +185,20 @@ describe('ExpressiveCodeBlock', () => {
 			})
 		})
 		test('Deletes multiple lines in an array by index', () => {
+			// Note: For this test, we generate test code that is > 10 lines long
+			// to test if the given indices are sorted by their numerical value
+			// and not by their string representation
+			const code = '01234567890123'.split('').join('\n')
 			const testCases = [
-				{ indices: [0, 4], expected: '12356' },
-				{ indices: [3, 6, 1], expected: '0245' },
-				{ indices: [1, 5, 2], expected: '0346' },
-				{ indices: [1, 5, 6, 2, 3, 4], expected: '0' },
-				{ indices: [4, 3, 1, 0, 2, 5, 6], expected: '' },
+				{ indices: [0, 4], expected: '123567890123' },
+				// If indices are not sorted numerically, this will fail
+				{ indices: [3, 6, 12], expected: '01245789013' },
+				{ indices: [1, 5, 2], expected: '03467890123' },
+				{ indices: [1, 5, 6, 2, 3, 4], expected: '07890123' },
+				{ indices: [10, 9, 4, 7, 3, 1, 13, 0, 2, 11, 8, 5, 12, 6], expected: '' },
 			]
 			testCases.forEach((testCase) => {
-				const block = prepareTestBlock()
+				const block = prepareTestBlock({ code })
 				block.deleteLines(testCase.indices)
 				expect(
 					block

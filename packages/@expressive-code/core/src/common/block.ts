@@ -80,7 +80,7 @@ export class ExpressiveCodeBlock {
 		if (this.#state?.canEditCode === false) throw new Error('Cannot delete code block lines in the current state.')
 
 		// Sort line indices in reverse order and delete them
-		const sorted = [...indices].sort().reverse()
+		const sorted = [...indices].sort((a, b) => b - a)
 		let lastIndex: number
 		sorted.forEach((index) => {
 			if (lastIndex === index) throw new Error(`A batch of lines to delete cannot contain the same index twice. Given indices: ${JSON.stringify(indices)}`)
