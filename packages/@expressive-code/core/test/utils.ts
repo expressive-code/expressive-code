@@ -1,5 +1,6 @@
 import { expect } from 'vitest'
-import { ExpressiveCodeAnnotation } from '../src/common/annotation'
+import { h } from 'hastscript'
+import { AnnotationRenderOptions, ExpressiveCodeAnnotation } from '../src/common/annotation'
 import { ExpressiveCodeLine } from '../src/common/line'
 
 const nothings = [undefined, null, NaN]
@@ -19,13 +20,14 @@ export function expectToWorkOrThrow(shouldWork: boolean, testFunc: () => void) {
 
 export function annotateMatchingTextParts(line: ExpressiveCodeLine, partsToAnnotate: string[]) {
 	// Create annotations for all the given parts
-	partsToAnnotate.forEach((partToAnnotate) => {
+	partsToAnnotate.forEach((partToAnnotate, partIndex) => {
 		// For testing purposes, we only annotate the first match per part
 		const columnStart = line.text.indexOf(partToAnnotate)
+		if (columnStart === -1) throw new Error(`Failed to add test annotation: The string "${partToAnnotate}" was not found in line text.`)
 		const columnEnd = columnStart + partToAnnotate.length
 		line.addAnnotation({
 			name: 'del',
-			render: () => true,
+			render: getWrapperRenderer(`${partIndex}`),
 			inlineRange: {
 				columnStart,
 				columnEnd,
@@ -49,3 +51,11 @@ export function cloneAnnotation(annotation: ExpressiveCodeAnnotation) {
 	if (annotation.inlineRange) clone.inlineRange = { ...annotation.inlineRange }
 	return clone
 }
+
+export function getWrapperRenderer(selector = 'span') {
+	return ({ nodesToTransform }: AnnotationRenderOptions) => {
+		return nodesToTransform.map((node) => h(selector, [node]))
+	}
+}
+
+export const testRender = getWrapperRenderer()

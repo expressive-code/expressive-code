@@ -10,7 +10,7 @@ export function isBoolean(input: boolean) {
 	return typeof input === 'boolean'
 }
 
-export function isFunction(input: () => void) {
+export function isFunction<Type>(input: Type) {
 	return typeof input === 'function'
 }
 

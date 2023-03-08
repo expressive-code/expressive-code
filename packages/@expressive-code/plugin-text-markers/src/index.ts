@@ -1,4 +1,5 @@
 import { ExpressiveCodePlugin, replaceDelimitedValues } from '@expressive-code/core'
+import { h } from 'hastscript'
 import rangeParser from 'parse-numeric-range'
 
 export type MarkerType = 'mark' | 'ins' | 'del'
@@ -34,7 +35,11 @@ export function textMarkers(): ExpressiveCodePlugin {
 								const lineIndex = lineNumber - 1
 								codeBlock.getLine(lineIndex)?.addAnnotation({
 									name: markerType,
-									render: () => true,
+									render: ({ nodesToTransform }) => {
+										return nodesToTransform.map((node) => {
+											return h(markerType.toString(), [node])
+										})
+									},
 								})
 							})
 							return ''

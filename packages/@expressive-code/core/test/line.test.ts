@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { ExpressiveCodeBlock } from '../src/common/block'
 import { ExpressiveCodeAnnotation, ExpressiveCodeLine } from '../src/index'
-import { annotateMatchingTextParts, cloneAnnotation, getAnnotatedTextParts, nonNumberValues, nonObjectValues, nonStringValues } from './utils'
+import { annotateMatchingTextParts, cloneAnnotation, getAnnotatedTextParts, nonNumberValues, nonObjectValues, nonStringValues, testRender } from './utils'
 
 describe('ExpressiveCodeLine', () => {
 	describe('Constructor', () => {
@@ -107,7 +107,7 @@ describe('ExpressiveCodeLine', () => {
 				const line = new ExpressiveCodeLine('This is a test.')
 				const originalAnnotation: ExpressiveCodeAnnotation = {
 					name: 'del',
-					render: () => true,
+					render: testRender,
 				}
 				line.addAnnotation(originalAnnotation)
 				expect(getAnnotatedTextParts(line)).toMatchObject([])
@@ -232,9 +232,7 @@ describe('ExpressiveCodeLine', () => {
 
 	describe('addAnnotation()', () => {
 		test('Throws on invalid arguments', () => {
-			const render = () => {
-				// (do nothing)
-			}
+			const render = testRender
 			const invalidArguments: ExpressiveCodeAnnotation[] = [
 				...nonStringValues.map(
 					(value) =>
@@ -289,9 +287,7 @@ describe('ExpressiveCodeLine', () => {
 				canEditCode: true,
 				canEditAnnotations: true,
 			}
-			const render = () => {
-				// (do nothing)
-			}
+			const render = testRender
 
 			// Assign state object to the block and ensure we can still add an annotation
 			block.state = state
@@ -315,9 +311,7 @@ describe('ExpressiveCodeLine', () => {
 	describe('deleteAnnotation()', () => {
 		test('Throws when the annotation was not found', () => {
 			const line = new ExpressiveCodeLine('This is a test.')
-			const render = () => {
-				// (do nothing)
-			}
+			const render = testRender
 			const testAnnotation = { name: 'test', render }
 			line.addAnnotation(testAnnotation)
 			// Attempt deleting a non-existing annotation
@@ -338,9 +332,7 @@ describe('ExpressiveCodeLine', () => {
 				canEditCode: true,
 				canEditAnnotations: true,
 			}
-			const render = () => {
-				// (do nothing)
-			}
+			const render = testRender
 			const testAnnotation: ExpressiveCodeAnnotation = { name: 'test', render }
 			line.addAnnotation(testAnnotation)
 			expect(line.getAnnotations()).toMatchObject([{ name: 'test' }])

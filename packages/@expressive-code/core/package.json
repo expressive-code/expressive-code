@@ -29,5 +29,9 @@
     "@types/html-escaper": "^3.0.0",
     "html-escaper": "^3.0.3",
     "htmlparser2": "^8.0.1"
+  },
+  "dependencies": {
+    "hast-util-to-html": "^8.0.4",
+    "hastscript": "^7.2.0"
   }
 }
