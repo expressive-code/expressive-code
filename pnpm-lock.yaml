@@ -39,6 +39,7 @@ importers:
   packages/@expressive-code/core:
     specifiers:
       '@types/html-escaper': ^3.0.0
+      hast-util-sanitize: ^4.1.0
       hast-util-to-html: ^8.0.4
       hastscript: ^7.2.0
       html-escaper: ^3.0.3
@@ -48,6 +49,7 @@ importers:
       hastscript: 7.2.0
     devDependencies:
       '@types/html-escaper': 3.0.0
+      hast-util-sanitize: 4.1.0
       html-escaper: 3.0.3
       htmlparser2: 8.0.1
 
@@ -625,7 +627,6 @@ packages:
     resolution: {integrity: sha512-wLEm0QvaoawEDoTRwzTXp4b4jpwiJDvR5KMnFnVodm3scufTlBOWRD6N1OBf9TZMhjlNsSfcO5V+7AF4+Vy+9g==}
     dependencies:
       '@types/unist': 2.0.6
-    dev: false
 
   /@types/html-escaper/3.0.0:
     resolution: {integrity: sha512-OcJcvP3Yk8mjYwf/IdXZtTE1tb/u0WF0qa29ER07ZHCYUBZXSN29Z1mBS+/96+kNMGTFUAbSz9X+pHmHpZrTCw==}
@@ -657,7 +658,6 @@ packages:
 
   /@types/unist/2.0.6:
     resolution: {integrity: sha512-PBjIUxZHOuj0R15/xuwJYjFi+KZdNFrehocChv4g5hu6aFroHue8m0lBP0POdK2nKzbw0cgV1mws8+V/JAcEkQ==}
-    dev: false
 
   /@typescript-eslint/eslint-plugin/5.54.0_6mj2wypvdnknez7kws2nfdgupi:
     resolution: {integrity: sha512-+hSN9BdSr629RF02d7mMtXhAJvDTyCbprNYJKrXETlul/Aml6YZwd90XioVbjejQeHbb3R8Dg0CkRgoJDxo8aw==}
@@ -1700,6 +1700,12 @@ packages:
       web-namespaces: 2.0.1
       zwitch: 2.0.4
     dev: false
+
+  /hast-util-sanitize/4.1.0:
+    resolution: {integrity: sha512-Hd9tU0ltknMGRDv+d6Ro/4XKzBqQnP/EZrpiTbpFYfXv/uOhWeKc+2uajcbEvAEH98VZd7eII2PiXm13RihnLw==}
+    dependencies:
+      '@types/hast': 2.3.4
+    dev: true
 
   /hast-util-to-html/8.0.4:
     resolution: {integrity: sha512-4tpQTUOr9BMjtYyNlt0P50mH7xj0Ks2xpo8M943Vykljf99HW6EzulIoJP1N3eKOSScEHzyzi9dm7/cn0RfGwA==}

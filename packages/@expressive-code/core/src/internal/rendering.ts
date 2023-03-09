@@ -1,4 +1,4 @@
-import { Parent } from 'hast-util-to-html/lib'
+import { Parent, Element } from 'hast-util-to-html/lib/types'
 import { h } from 'hastscript'
 import { ExpressiveCodeLine } from '../common/line'
 import { annotationSortFn, ExpressiveCodeAnnotation } from '../common/annotation'
@@ -125,7 +125,7 @@ export function renderLineToAst(line: ExpressiveCodeLine) {
 		// Pass all part nodes to the annotation's render function
 		const renderInput = partIndices.map((partIndex) => partNodes[partIndex])
 		const renderOutput = annotation.render({ nodesToTransform: [...renderInput], line })
-		validateRenderOutput(renderOutput, renderInput.length)
+		validateAnnotationRenderOutput(renderOutput, renderInput.length)
 		partIndices.forEach((partIndex, index) => {
 			partNodes[partIndex] = renderOutput[index]
 		})
@@ -138,14 +138,18 @@ export function renderLineToAst(line: ExpressiveCodeLine) {
 	annotations.forEach((annotation) => {
 		if (annotation.inlineRange) return
 		const renderOutput = annotation.render({ nodesToTransform: [lineNode], line })
-		validateRenderOutput(renderOutput, 1)
+		validateAnnotationRenderOutput(renderOutput, 1)
 		lineNode = renderOutput[0]
 	})
 
 	return lineNode
 }
 
-function validateRenderOutput(nodes: Parent[], expectedLength: number) {
+export function buildCodeBlockFromRenderedAstLines(renderedAstLines: Element[]) {
+	return h('pre.expressive-code', h('code', renderedAstLines))
+}
+
+function validateAnnotationRenderOutput(nodes: Parent[], expectedLength: number) {
 	if (!Array.isArray(nodes) || nodes.length !== expectedLength)
 		throw new Error(`Expected annotation render function to return an array of ${expectedLength} node(s), but got ${JSON.stringify(nodes)}.`)
 	nodes.forEach((node, nodeIndex) => {

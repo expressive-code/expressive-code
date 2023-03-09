@@ -1,6 +1,7 @@
 import { ExpressiveCodeBlock } from './block'
 import { isBoolean, newTypeError } from '../internal/type-checks'
 import { ExpressiveCodePlugin, ExpressiveCodePluginHooks, PluginDataScope } from './plugin'
+import { buildCodeBlockFromRenderedAstLines, renderLineToAst } from '../internal/rendering'
 
 export interface ExpressiveCodeConfig {
 	/**
@@ -34,48 +35,73 @@ export class ExpressiveCode {
 
 		const blockPluginData: PluginDataMap = new WeakMap()
 
-		const runHook = (key: keyof ExpressiveCodePluginHooks) => {
-			this.#config.plugins.forEach((plugin) => {
-				const pluginHookFn = plugin.hooks[key]
-				if (pluginHookFn) {
-					pluginHookFn({
-						codeBlock,
-						getPluginData: this.#buildGetPluginDataFunc(plugin, blockPluginData),
-					})
+		const getHooks = <HookType extends keyof ExpressiveCodePluginHooks>(key: HookType) => {
+			return this.#config.plugins.flatMap((plugin) => {
+				const hookFn = plugin.hooks[key]
+				if (hookFn) {
+					return [
+						{
+							plugin,
+							hookFn,
+							context: {
+								getPluginData: this.#buildGetPluginDataFunc(plugin, blockPluginData),
+							},
+						},
+					]
+				} else {
+					return []
 				}
+			})
+		}
+
+		const runHooks = (key: keyof Omit<ExpressiveCodePluginHooks, 'postprocessRenderedLine' | 'postprocessRenderedBlock'>) => {
+			getHooks(key).forEach(({ hookFn, context }) => {
+				hookFn({ codeBlock, ...context })
 			})
 		}
 
 		// Run hooks for preprocessing metadata and code
 		state.canEditCode = false
-		runHook('preprocessMetadata')
+		runHooks('preprocessMetadata')
 		state.canEditCode = true
-		runHook('preprocessCode')
+		runHooks('preprocessCode')
 
 		// Run hooks for processing & finalizing the code
-		runHook('performSyntaxAnalysis')
-		runHook('postprocessAnalyzedCode')
+		runHooks('performSyntaxAnalysis')
+		runHooks('postprocessAnalyzedCode')
 		state.canEditCode = false
 
 		// Run hooks for annotating the code
-		runHook('annotateCode')
-		runHook('postprocessAnnotations')
+		runHooks('annotateCode')
+		runHooks('postprocessAnnotations')
+		state.canEditMetadata = false
 		state.canEditAnnotations = false
 
 		// Render annotations and run rendering hooks
-		// - Per line, do the following:
-		//   - Flatten intersecting annotations, splitting the line into parts
-		//   - Create an array of plaintext nodes for all resulting parts
-		//   - Per annotation, do the following:
-		//     - Ask the annotation to map their pieces of the array to a processed version,
-		//       mutating the plaintext nodes with the results
-		//   - runHook('postprocessRenderedLine') // Note: Needs some kind of line reference
-		// - runHook('postprocessRenderedBlock')
-		// - runHook('postprocessRenderedBlockGroup')
+		const lines = codeBlock.getLines()
+		const renderedAstLines = lines.map((line, lineIndex) => {
+			const renderData = {
+				lineAst: renderLineToAst(line),
+			}
+			// Allow plugins to modify or even completely replace the AST
+			getHooks('postprocessRenderedLine').forEach(({ hookFn, context }) => {
+				hookFn({ codeBlock, ...context, line, lineIndex, renderData })
+			})
+			return renderData.lineAst
+		})
+
+		// Combine rendered lines into a block AST
+		const blockAst = buildCodeBlockFromRenderedAstLines(renderedAstLines)
+		getHooks('postprocessRenderedBlock').forEach(({ hookFn, context }) => {
+			hookFn({ codeBlock, ...context, renderData: { blockAst } })
+		})
+
+		// - runHooks('postprocessRenderedBlockGroup')
 		// - Return processing result in a format that allows access to the AST
 
 		return {
 			codeBlock,
+			blockAst,
 		}
 	}
 

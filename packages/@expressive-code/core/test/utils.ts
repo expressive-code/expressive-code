@@ -1,6 +1,6 @@
 import { expect } from 'vitest'
 import { h } from 'hastscript'
-import { AnnotationRenderOptions, ExpressiveCodeAnnotation } from '../src/common/annotation'
+import { AnnotationRenderOptions, AnnotationRenderPhase, ExpressiveCodeAnnotation } from '../src/common/annotation'
 import { ExpressiveCodeLine } from '../src/common/line'
 
 const nothings = [undefined, null, NaN]
@@ -18,16 +18,18 @@ export function expectToWorkOrThrow(shouldWork: boolean, testFunc: () => void) {
 	return expect(testFunc).toThrow()
 }
 
-export function annotateMatchingTextParts(line: ExpressiveCodeLine, partsToAnnotate: string[]) {
+export function annotateMatchingTextParts(line: ExpressiveCodeLine, partsToAnnotate: string[], renderPhase?: AnnotationRenderPhase) {
 	// Create annotations for all the given parts
-	partsToAnnotate.forEach((partToAnnotate, partIndex) => {
+	partsToAnnotate.forEach((partToAnnotate) => {
 		// For testing purposes, we only annotate the first match per part
 		const columnStart = line.text.indexOf(partToAnnotate)
 		if (columnStart === -1) throw new Error(`Failed to add test annotation: The string "${partToAnnotate}" was not found in line text.`)
 		const columnEnd = columnStart + partToAnnotate.length
+		const newAnnotationIndex = line.getAnnotations().length
 		line.addAnnotation({
 			name: 'del',
-			render: getWrapperRenderer(`${partIndex}`),
+			render: getWrapperRenderer(`${newAnnotationIndex}`),
+			...(renderPhase ? { renderPhase } : {}),
 			inlineRange: {
 				columnStart,
 				columnEnd,

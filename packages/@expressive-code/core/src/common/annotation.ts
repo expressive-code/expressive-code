@@ -1,4 +1,4 @@
-import { Parent } from 'hast-util-to-html/lib'
+import { Parent } from 'hast-util-to-html/lib/types'
 import { isFunction, isNumber, isString, newTypeError } from '../internal/type-checks'
 import { ExpressiveCodeLine } from './line'
 
@@ -12,6 +12,7 @@ export type AnnotationRenderFunction = ({ nodesToTransform, line }: AnnotationRe
 
 export type AnnotationRenderPhase = 'earliest' | 'earlier' | 'normal' | 'later' | 'latest'
 
+/* c8 ignore next */
 export const AnnotationRenderPhaseOrder: AnnotationRenderPhase[] = ['earliest', 'earlier', 'normal', 'later', 'latest']
 
 export function annotationSortFn(a: ExpressiveCodeAnnotation, b: ExpressiveCodeAnnotation) {

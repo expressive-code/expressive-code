@@ -1,7 +1,9 @@
 import { describe, expect, test } from 'vitest'
+import { sanitize } from 'hast-util-sanitize'
 import { ExpressiveCode, ExpressiveCodeProcessingState } from '../src/common/engine'
 import { ExpressiveCodeHook, ExpressiveCodePlugin, ExpressiveCodePluginHookName, ExpressiveCodePluginHooks } from '../src/common/plugin'
-import { expectToWorkOrThrow } from './utils'
+import { expectToWorkOrThrow, getWrapperRenderer, testRender } from './utils'
+import { toHtml } from 'hast-util-to-html'
 
 describe('ExpressiveCode', () => {
 	describe('processCode()', () => {
@@ -11,19 +13,31 @@ describe('ExpressiveCode', () => {
 				canEditCode: true,
 				canEditAnnotations: true,
 			}
-			const testCases: [ExpressiveCodePluginHookName, ExpressiveCodeProcessingState][] = [
-				['preprocessMetadata', { ...baseState, canEditCode: false }],
-				['preprocessCode', baseState],
-				['performSyntaxAnalysis', baseState],
-				['postprocessAnalyzedCode', baseState],
-				['annotateCode', { ...baseState, canEditCode: false }],
-				['postprocessAnnotations', { ...baseState, canEditCode: false }],
+			const readonlyState: ExpressiveCodeProcessingState = {
+				canEditMetadata: false,
+				canEditCode: false,
+				canEditAnnotations: false,
+			}
+			const testCases: [ExpressiveCodePluginHookName, number, ExpressiveCodeProcessingState][] = [
+				['preprocessMetadata', 1, { ...baseState, canEditCode: false }],
+				['preprocessCode', 1, baseState],
+				['performSyntaxAnalysis', 1, baseState],
+				['postprocessAnalyzedCode', 1, baseState],
+				['annotateCode', 1, { ...baseState, canEditCode: false }],
+				['postprocessAnnotations', 1, { ...baseState, canEditCode: false }],
+				['postprocessRenderedLine', 2, { ...readonlyState }],
+				['postprocessRenderedBlock', 1, { ...readonlyState }],
 			]
-			test.each(testCases)('%s', (hookName, state) => {
+			test.each(testCases)('%s', (hookName, expectedCallCount, state) => {
 				// Ensure that the code block's state property contains the expected data
+				let actualCallCount = 0
 				getHookTestResult(hookName, ({ codeBlock }) => {
 					expect(codeBlock.state).toEqual(state)
+					actualCallCount++
 				})
+
+				// Expect the hook to have been called the expected number of times
+				expect(actualCallCount).toEqual(expectedCallCount)
 
 				// Perform edits of all properties to ensure they work or throw as expected
 				expectToWorkOrThrow(state.canEditMetadata, () => testEditingProperty(hookName, 'meta'))
@@ -171,6 +185,31 @@ describe('ExpressiveCode', () => {
 				})
 			})
 		})
+		describe('Returns the rendered code block AST', () => {
+			test('Plain code block', () => {
+				const { blockAst } = getMultiPluginTestResult({ plugins: [] })
+				const html = toHtml(sanitize(blockAst, {}))
+				expect(html).toEqual('<pre><code><div>Example code...</div><div>...with two lines!</div></code></pre>')
+			})
+			test('Code block with inline annotation', () => {
+				const searchTerm = 'two '
+				const { blockAst } = getHookTestResult('annotateCode', ({ codeBlock }) => {
+					const line = codeBlock.getLine(1)
+					if (!line) return
+					const index = line.text.indexOf(searchTerm)
+					line.addAnnotation({
+						name: 'del',
+						render: getWrapperRenderer('del'),
+						inlineRange: {
+							columnStart: index,
+							columnEnd: index + searchTerm.length,
+						},
+					})
+				})
+				const html = toHtml(sanitize(blockAst, {}))
+				expect(html).toEqual('<pre><code><div>Example code...</div><div>...with <del>two </del>lines!</div></code></pre>')
+			})
+		})
 	})
 })
 
@@ -184,7 +223,7 @@ function testEditingProperty(hookName: ExpressiveCodePluginHookName, propertyNam
 function testAddingAnnotation(hookName: ExpressiveCodePluginHookName) {
 	const testAnnotation = {
 		name: 'del',
-		render: () => true,
+		render: testRender,
 	}
 	const { codeBlock } = getHookTestResult(hookName, ({ codeBlock }) => {
 		codeBlock.getLine(0)?.addAnnotation(testAnnotation)
@@ -223,7 +262,7 @@ function getMultiPluginTestResult({ plugins }: { plugins: ExpressiveCodePlugin[]
 		plugins,
 	})
 	const input = {
-		code: 'Example code',
+		code: ['Example code...', '...with two lines!'].join('\n'),
 		language: 'md',
 		meta: 'test',
 	}

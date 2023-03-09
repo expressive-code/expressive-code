@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@types/html-escaper": "^3.0.0",
+    "hast-util-sanitize": "^4.1.0",
     "html-escaper": "^3.0.3",
     "htmlparser2": "^8.0.1"
   },

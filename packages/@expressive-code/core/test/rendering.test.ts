@@ -236,7 +236,7 @@ describe('renderLineToAst()', () => {
 				return nodesToTransform
 			},
 		})
-		expect(renderLineToHtml(line)).toEqual('<div class="del mark">Wow, <1>I am <0>rendered</0>!</1></div>')
+		expect(renderLineToHtml(line)).toEqual('<div class="del mark">Wow, <2>I am <1>rendered</1>!</2></div>')
 	})
 
 	describe('Multiple non-intersecting annotations', () => {
@@ -272,6 +272,21 @@ describe('renderLineToAst()', () => {
 			const line = new ExpressiveCodeLine(testText)
 			annotateMatchingTextParts(line, ['am', 'I am rendered', '!'])
 			expect(renderLineToHtml(line)).toEqual('<div>Wow, <1>I <0>am</0> rendered</1><2>!</2></div>')
+		})
+	})
+
+	describe('Respects render phases', () => {
+		test('Annotation #0 with phase "latest" is rendered after #1 with "normal"', () => {
+			const line = new ExpressiveCodeLine(testText)
+			annotateMatchingTextParts(line, ['I am rendered'], 'latest')
+			annotateMatchingTextParts(line, ['am'])
+			expect(renderLineToHtml(line)).toEqual('<div>Wow, <0>I <1>am</1> rendered</0>!</div>')
+		})
+		test('Annotation #0 with phase "normal" is rendered after #1 with "earlier"', () => {
+			const line = new ExpressiveCodeLine(testText)
+			annotateMatchingTextParts(line, ['I am rendered'])
+			annotateMatchingTextParts(line, ['am'], 'earlier')
+			expect(renderLineToHtml(line)).toEqual('<div>Wow, <0>I <1>am</1> rendered</0>!</div>')
 		})
 	})
 })

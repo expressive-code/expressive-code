@@ -1,4 +1,6 @@
+import { Element } from 'hast-util-to-html/lib/types'
 import { ExpressiveCodeBlock } from './block'
+import { ExpressiveCodeLine } from './line'
 
 export interface ExpressiveCodePlugin {
 	name: string
@@ -34,7 +36,21 @@ export interface ExpressiveCodeHookContext {
 	getPluginData: GetPluginDataFunc
 }
 
-export type ExpressiveCodeHook = (context: ExpressiveCodeHookContext) => void
+export interface PostprocessRenderedLineContext extends ExpressiveCodeHookContext {
+	line: ExpressiveCodeLine
+	lineIndex: number
+	renderData: {
+		lineAst: Element
+	}
+}
+
+export interface PostprocessRenderedBlockContext extends ExpressiveCodeHookContext {
+	renderData: {
+		blockAst: Element
+	}
+}
+
+export type ExpressiveCodeHook<ContextType = ExpressiveCodeHookContext> = (context: ContextType) => void
 
 export interface ExpressiveCodePluginHooks {
 	/**
@@ -103,13 +119,13 @@ export interface ExpressiveCodePluginHooks {
 	/**
 	 * Allows editing the AST of a single line of code after all annotations were rendered.
 	 */
-	postprocessRenderedLine?: ExpressiveCodeHook
+	postprocessRenderedLine?: ExpressiveCodeHook<PostprocessRenderedLineContext>
 
 	/**
 	 * Allows editing the AST of the entire code block after all annotations were rendered
 	 * and all lines were postprocessed.
 	 */
-	postprocessRenderedBlock?: ExpressiveCodeHook
+	postprocessRenderedBlock?: ExpressiveCodeHook<PostprocessRenderedBlockContext>
 
 	/**
 	 * Allows postprocessing all code blocks that were rendered as part of the same group.
