@@ -1,4 +1,4 @@
-import { Element } from 'hast-util-to-html/lib/types'
+import { Element, Root } from 'hast-util-to-html/lib/types'
 import { ExpressiveCodeBlock } from './block'
 import { ExpressiveCodeLine } from './line'
 
@@ -50,9 +50,16 @@ export interface PostprocessRenderedBlockContext extends ExpressiveCodeHookConte
 	}
 }
 
+export interface PostprocessRenderedBlockGroupContext {
+	groupContents: PostprocessRenderedBlockContext[]
+	renderData: {
+		groupRootAst: Root
+	}
+}
+
 export type ExpressiveCodeHook<ContextType = ExpressiveCodeHookContext> = (context: ContextType) => void
 
-export interface ExpressiveCodePluginHooks {
+export interface ExpressiveCodePluginHooks_BeforeRendering {
 	/**
 	 * Allows preprocessing the meta string and the language before any plugins can
 	 * modify the code.
@@ -115,7 +122,9 @@ export interface ExpressiveCodePluginHooks {
 	 * After this hook has finished processing, all annotations become read-only.
 	 */
 	postprocessAnnotations?: ExpressiveCodeHook
+}
 
+export interface ExpressiveCodePluginHooks_Rendering {
 	/**
 	 * Allows editing the AST of a single line of code after all annotations were rendered.
 	 */
@@ -128,7 +137,8 @@ export interface ExpressiveCodePluginHooks {
 	postprocessRenderedBlock?: ExpressiveCodeHook<PostprocessRenderedBlockContext>
 
 	/**
-	 * Allows postprocessing all code blocks that were rendered as part of the same group.
+	 * Allows editing the ASTs of all code blocks that were rendered as part of the same group,
+	 * as well as the AST of the group root element that contains all group blocks.
 	 *
 	 * Groups are defined by the calling code. For example, a Remark plugin using Expressive Code
 	 * to render code blocks could provide authors with a way to group related code blocks together.
@@ -138,7 +148,9 @@ export interface ExpressiveCodePluginHooks {
 	 * Note: Even if a code block is not part of any group, this hook will still be called.
 	 * Standalone code blocks are treated like a group containing only a single block.
 	 */
-	postprocessRenderedBlockGroup?: ExpressiveCodeHook
+	postprocessRenderedBlockGroup?: ExpressiveCodeHook<PostprocessRenderedBlockGroupContext>
 }
+
+export interface ExpressiveCodePluginHooks extends ExpressiveCodePluginHooks_BeforeRendering, ExpressiveCodePluginHooks_Rendering {}
 
 export type ExpressiveCodePluginHookName = keyof ExpressiveCodePluginHooks

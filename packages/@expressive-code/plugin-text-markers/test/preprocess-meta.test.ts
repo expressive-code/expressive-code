@@ -76,7 +76,9 @@ const expectMetaResult = (input: string, partialExpectedResult: ExpectedTextMark
 		language: 'astro',
 		meta: input,
 	}
-	const { codeBlock } = ec.processCode(data)
+	const { groupContents } = ec.process(data)
+	expect(groupContents).toHaveLength(1)
+	const codeBlock = groupContents[0].codeBlock
 
 	// Expect our wrapper function to have extracted the internal plugin data
 	expect(pluginData).toBeDefined()

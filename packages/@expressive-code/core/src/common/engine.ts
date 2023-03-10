@@ -1,7 +1,7 @@
-import { ExpressiveCodeBlock } from './block'
+import { ExpressiveCodeBlock, ExpressiveCodeBlockOptions } from './block'
 import { isBoolean, newTypeError } from '../internal/type-checks'
-import { ExpressiveCodePlugin, ExpressiveCodePluginHooks, PluginDataScope } from './plugin'
-import { buildCodeBlockFromRenderedAstLines, renderLineToAst } from '../internal/rendering'
+import { ExpressiveCodePlugin, ExpressiveCodePluginHooks, ExpressiveCodePluginHooks_BeforeRendering, PluginDataScope } from './plugin'
+import { buildCodeBlockAstFromRenderedLines, buildGroupRootAstFromRenderedBlocks, renderLineToAst } from '../internal/rendering'
 
 export interface ExpressiveCodeConfig {
 	/**
@@ -13,50 +13,82 @@ export interface ExpressiveCodeConfig {
 	plugins: ExpressiveCodePlugin[]
 }
 
+export type ExpressiveCodeProcessingInput = ExpressiveCodeBlock | ExpressiveCodeBlockOptions | (ExpressiveCodeBlock | ExpressiveCodeBlockOptions)[]
+
 export class ExpressiveCode {
 	constructor(config: ExpressiveCodeConfig) {
 		this.#config = config
 		this.#globalPluginData = new WeakMap()
 	}
 
-	processCode({ code, language, meta }: { code: string; language: string; meta: string }) {
+	process(input: ExpressiveCodeProcessingInput) {
+		// Ensure that the input is an array
+		const inputArray = Array.isArray(input) ? input : [input]
+
+		// Validate input array and create ExpressiveCodeBlock instances if necessary
+		const codeBlocks = inputArray.map((blockOrOptions) => {
+			if (blockOrOptions instanceof ExpressiveCodeBlock) {
+				return blockOrOptions
+			} else {
+				return new ExpressiveCodeBlock(blockOrOptions)
+			}
+		})
+
+		// Prepare group-scoped plugin data
+		const groupData: PluginDataMap = new WeakMap()
+
+		// Render all blocks
+		const renderedBlocks = codeBlocks.map((codeBlock) => {
+			// Create a new scoped plugin data object for each block
+			const scopedPluginData: ScopedPluginData = {
+				global: this.#globalPluginData,
+				group: groupData,
+				block: new WeakMap(),
+			}
+			// Process the block and return it along with the scoped plugin data
+			// and the rendered AST
+			return {
+				codeBlock,
+				scopedPluginData,
+				blockAst: this.#processSingleBlock(codeBlock, scopedPluginData),
+			}
+		})
+
+		// Combine rendered blocks into a group AST
+		const groupRootAst = buildGroupRootAstFromRenderedBlocks(renderedBlocks.map((renderedBlock) => renderedBlock.blockAst))
+		this.#getHooks('postprocessRenderedBlockGroup').forEach(({ hookFn, plugin }) => {
+			hookFn({
+				groupContents: renderedBlocks.map(({ codeBlock, scopedPluginData, blockAst }) => ({
+					codeBlock,
+					renderData: {
+						blockAst,
+					},
+					...this.#getBlockLevelApi(plugin, scopedPluginData),
+				})),
+				renderData: { groupRootAst },
+			})
+		})
+
+		return {
+			renderedAst: groupRootAst,
+			groupContents: renderedBlocks.map(({ codeBlock, blockAst }) => ({
+				codeBlock,
+				blockAst,
+			})),
+		}
+	}
+
+	#processSingleBlock(codeBlock: ExpressiveCodeBlock, scopedPluginData: ScopedPluginData) {
 		const state: ExpressiveCodeProcessingState = {
 			canEditAnnotations: true,
 			canEditCode: true,
 			canEditMetadata: true,
 		}
-
-		const codeBlock = new ExpressiveCodeBlock({
-			code,
-			language,
-			meta,
-		})
 		codeBlock.state = state
 
-		const blockPluginData: PluginDataMap = new WeakMap()
-
-		const getHooks = <HookType extends keyof ExpressiveCodePluginHooks>(key: HookType) => {
-			return this.#config.plugins.flatMap((plugin) => {
-				const hookFn = plugin.hooks[key]
-				if (hookFn) {
-					return [
-						{
-							plugin,
-							hookFn,
-							context: {
-								getPluginData: this.#buildGetPluginDataFunc(plugin, blockPluginData),
-							},
-						},
-					]
-				} else {
-					return []
-				}
-			})
-		}
-
-		const runHooks = (key: keyof Omit<ExpressiveCodePluginHooks, 'postprocessRenderedLine' | 'postprocessRenderedBlock'>) => {
-			getHooks(key).forEach(({ hookFn, context }) => {
-				hookFn({ codeBlock, ...context })
+		const runHooks = (key: keyof ExpressiveCodePluginHooks_BeforeRendering) => {
+			this.#getHooks(key).forEach(({ hookFn, plugin }) => {
+				hookFn({ codeBlock, ...this.#getBlockLevelApi(plugin, scopedPluginData) })
 			})
 		}
 
@@ -84,38 +116,48 @@ export class ExpressiveCode {
 				lineAst: renderLineToAst(line),
 			}
 			// Allow plugins to modify or even completely replace the AST
-			getHooks('postprocessRenderedLine').forEach(({ hookFn, context }) => {
-				hookFn({ codeBlock, ...context, line, lineIndex, renderData })
+			this.#getHooks('postprocessRenderedLine').forEach(({ hookFn, plugin }) => {
+				hookFn({ codeBlock, line, lineIndex, renderData, ...this.#getBlockLevelApi(plugin, scopedPluginData) })
 			})
 			return renderData.lineAst
 		})
 
 		// Combine rendered lines into a block AST
-		const blockAst = buildCodeBlockFromRenderedAstLines(renderedAstLines)
-		getHooks('postprocessRenderedBlock').forEach(({ hookFn, context }) => {
-			hookFn({ codeBlock, ...context, renderData: { blockAst } })
+		const blockAst = buildCodeBlockAstFromRenderedLines(renderedAstLines)
+		this.#getHooks('postprocessRenderedBlock').forEach(({ hookFn, plugin }) => {
+			hookFn({ codeBlock, renderData: { blockAst }, ...this.#getBlockLevelApi(plugin, scopedPluginData) })
 		})
 
-		// - runHooks('postprocessRenderedBlockGroup')
-		// - Return processing result in a format that allows access to the AST
-
-		return {
-			codeBlock,
-			blockAst,
-		}
+		return blockAst
 	}
 
-	#buildGetPluginDataFunc(plugin: ExpressiveCodePlugin, blockPluginData: PluginDataMap) {
-		const getPluginData = <Type extends object = object>(scope: PluginDataScope, initialValue: Type) => {
-			const map = scope === 'global' ? this.#globalPluginData : blockPluginData
-			let data = map.get(plugin) as Type
-			if (data === undefined) {
-				data = initialValue
-				map.set(plugin, data)
-			}
-			return data
+	/**
+	 * Returns an array of hooks that were registered by plugins for the given hook type.
+	 *
+	 * Each hook is returned as an object containing the plugin that registered it,
+	 * the hook function itself, and a context object that contains functions that should
+	 * be available to the plugin when the hook is called.
+	 */
+	#getHooks<HookType extends keyof ExpressiveCodePluginHooks>(key: HookType) {
+		return this.#config.plugins.flatMap((plugin) => {
+			const hookFn = plugin.hooks[key]
+			if (!hookFn) return []
+			return [{ hookFn, plugin }]
+		})
+	}
+
+	#getBlockLevelApi(plugin: ExpressiveCodePlugin, scopedPluginData: ScopedPluginData) {
+		return {
+			getPluginData: <Type extends object = object>(scope: PluginDataScope, initialValue: Type) => {
+				const map = scopedPluginData[scope]
+				let data = map.get(plugin) as Type
+				if (data === undefined) {
+					data = initialValue
+					map.set(plugin, data)
+				}
+				return data
+			},
 		}
-		return getPluginData
 	}
 
 	readonly #config: ExpressiveCodeConfig
@@ -124,7 +166,13 @@ export class ExpressiveCode {
 
 export type PluginDataMap = WeakMap<ExpressiveCodePlugin, object>
 
-export type ExpressiveCodeProcessingState = {
+export interface ScopedPluginData {
+	global: PluginDataMap
+	group: PluginDataMap
+	block: PluginDataMap
+}
+
+export interface ExpressiveCodeProcessingState {
 	canEditCode: boolean
 	canEditMetadata: boolean
 	canEditAnnotations: boolean

@@ -145,8 +145,12 @@ export function renderLineToAst(line: ExpressiveCodeLine) {
 	return lineNode
 }
 
-export function buildCodeBlockFromRenderedAstLines(renderedAstLines: Element[]) {
-	return h('pre.expressive-code', h('code', renderedAstLines))
+export function buildCodeBlockAstFromRenderedLines(renderedLines: Element[]) {
+	return h('pre.expressive-code', h('code', renderedLines))
+}
+
+export function buildGroupRootAstFromRenderedBlocks(renderedBlocks: Element[]) {
+	return h(null, renderedBlocks)
 }
 
 function validateAnnotationRenderOutput(nodes: Parent[], expectedLength: number) {

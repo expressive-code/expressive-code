@@ -213,7 +213,9 @@ function expectCodeResult({
 	const ec = new ExpressiveCode({
 		plugins: [plugin],
 	})
-	const { codeBlock } = ec.processCode({ code: code.trim(), language, meta })
+	const { groupContents } = ec.process({ code: code.trim(), language, meta })
+	expect(groupContents).toHaveLength(1)
+	const codeBlock = groupContents[0].codeBlock
 
 	const actual = {
 		extractedFileName: pluginData?.title,

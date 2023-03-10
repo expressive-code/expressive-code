@@ -2,7 +2,7 @@ import { ExpressiveCodeProcessingState, validateExpressiveCodeProcessingState } 
 import { isNumber, isString, newTypeError } from '../internal/type-checks'
 import { ExpressiveCodeLine } from './line'
 
-type ExpressiveCodeBlockOptions = {
+export type ExpressiveCodeBlockOptions = {
 	code: string
 	language: string
 	meta: string

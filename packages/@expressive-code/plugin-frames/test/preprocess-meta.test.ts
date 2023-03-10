@@ -33,7 +33,9 @@ function getMetaResult(input: string) {
 		language: 'md',
 		meta: input,
 	}
-	const { codeBlock } = ec.processCode(data)
+	const { groupContents } = ec.process(data)
+	expect(groupContents).toHaveLength(1)
+	const codeBlock = groupContents[0].codeBlock
 
 	return {
 		meta: codeBlock.meta,

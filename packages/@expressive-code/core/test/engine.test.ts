@@ -89,9 +89,9 @@ describe('ExpressiveCode', () => {
 					}
 
 					// Reuse the same plugin instance for processing three subsequent blocks
-					ec.processCode(input)
-					ec.processCode(input)
-					ec.processCode(input)
+					ec.process(input)
+					ec.process(input)
+					ec.process(input)
 				})
 				test('Is not shared between plugins', () => {
 					const pluginOne: ExpressiveCodePlugin = {
@@ -154,11 +154,11 @@ describe('ExpressiveCode', () => {
 					}
 
 					// Reuse the same plugin instance for processing three subsequent blocks
-					ec.processCode(input)
+					ec.process(input)
 					expectedProcessedBlocks++
-					ec.processCode(input)
+					ec.process(input)
 					expectedProcessedBlocks++
-					ec.processCode(input)
+					ec.process(input)
 				})
 				test('Is not shared between plugins', () => {
 					const pluginOne: ExpressiveCodePlugin = {
@@ -267,10 +267,11 @@ function getMultiPluginTestResult({ plugins }: { plugins: ExpressiveCodePlugin[]
 		meta: 'test',
 	}
 
-	const result = ec.processCode(input)
+	const result = ec.process(input)
+	expect(result.groupContents).toHaveLength(1)
 
 	return {
-		...result,
+		...result.groupContents[0],
 		input,
 	}
 }
