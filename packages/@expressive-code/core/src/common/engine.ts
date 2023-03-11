@@ -109,26 +109,31 @@ export class ExpressiveCode {
 		state.canEditMetadata = false
 		state.canEditAnnotations = false
 
-		// Render annotations and run rendering hooks
+		// Render lines to AST and run rendering hooks
 		const lines = codeBlock.getLines()
 		const renderedAstLines = lines.map((line, lineIndex) => {
-			const renderData = {
+			// Render the current line to an AST and wrap it in an object that can be passed
+			// through all hooks, allowing plugins to edit or completely replace the AST
+			const lineRenderData = {
 				lineAst: renderLineToAst(line),
 			}
 			// Allow plugins to modify or even completely replace the AST
 			this.#getHooks('postprocessRenderedLine').forEach(({ hookFn, plugin }) => {
-				hookFn({ codeBlock, line, lineIndex, renderData, ...this.#getBlockLevelApi(plugin, scopedPluginData) })
+				hookFn({ codeBlock, line, lineIndex, renderData: lineRenderData, ...this.#getBlockLevelApi(plugin, scopedPluginData) })
 			})
-			return renderData.lineAst
+			return lineRenderData.lineAst
 		})
 
-		// Combine rendered lines into a block AST
-		const blockAst = buildCodeBlockAstFromRenderedLines(renderedAstLines)
+		// Combine rendered lines into a block AST and wrap it in an object that can be passed
+		// through all hooks, allowing plugins to edit or completely replace the AST
+		const blockRenderData = {
+			blockAst: buildCodeBlockAstFromRenderedLines(renderedAstLines),
+		}
 		this.#getHooks('postprocessRenderedBlock').forEach(({ hookFn, plugin }) => {
-			hookFn({ codeBlock, renderData: { blockAst }, ...this.#getBlockLevelApi(plugin, scopedPluginData) })
+			hookFn({ codeBlock, renderData: blockRenderData, ...this.#getBlockLevelApi(plugin, scopedPluginData) })
 		})
 
-		return blockAst
+		return blockRenderData.blockAst
 	}
 
 	/**

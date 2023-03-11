@@ -11,7 +11,7 @@ export type ExpressiveCodeBlockOptions = {
 export class ExpressiveCodeBlock {
 	constructor(options: ExpressiveCodeBlockOptions) {
 		const { code, language, meta } = options
-		if (!isString(code) || !isString(language) || !isString(meta)) throw newTypeError('ExpressiveCodeBlockOptions', options)
+		if (!isString(code) || !isString(language) || !isString(meta)) throw newTypeError('object of type ExpressiveCodeBlockOptions', options)
 		this.#lines = []
 		this.#language = language
 		this.#meta = meta
