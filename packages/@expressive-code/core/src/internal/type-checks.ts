@@ -16,12 +16,16 @@ export function isFunction<Type>(input: Type) {
 	return typeof input === 'function'
 }
 
+function isHastNode(node: { type: string }) {
+	return node && node.type && typeof node.type === 'string'
+}
+
 export function isHastElement(node: Element) {
-	return node && node.type && typeof node.type === 'string' && node.type === 'element'
+	return isHastNode(node) && node.type === 'element'
 }
 
 export function isHastParent(node: Parent) {
-	return node && node.type && typeof node.type === 'string' && (node.type === 'element' || node.type === 'root')
+	return isHastNode(node) && (node.type === 'element' || node.type === 'root')
 }
 
 export function newTypeError(expectedTypeName: string, actualValue: unknown) {

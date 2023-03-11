@@ -149,7 +149,7 @@ export function buildCodeBlockAstFromRenderedLines(renderedLines: Element[]) {
 	return h('pre.expressive-code', h('code', renderedLines))
 }
 
-export function buildGroupRootAstFromRenderedBlocks(renderedBlocks: Element[]) {
+export function buildGroupAstFromRenderedBlocks(renderedBlocks: Element[]): Parent {
 	return h(null, renderedBlocks)
 }
 

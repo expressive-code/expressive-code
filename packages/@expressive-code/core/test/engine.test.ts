@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'vitest'
+import { Element } from 'hast-util-to-html/lib/types'
 import { sanitize } from 'hast-util-sanitize'
 import { ExpressiveCode, ExpressiveCodeProcessingState } from '../src/common/engine'
 import { ExpressiveCodeHook, ExpressiveCodePlugin, ExpressiveCodePluginHookName, ExpressiveCodePluginHooks } from '../src/common/plugin'
@@ -231,7 +232,7 @@ describe('ExpressiveCode', () => {
 						hooks: {
 							postprocessRenderedBlock: ({ renderData }) => {
 								totalHookCalls++
-								// Replace block with a version wrapped in a div
+								// Replace block with a div
 								renderData.blockAst = h('div', { test: totalHookCalls }, 'I am completely different now!')
 							},
 						},
@@ -305,6 +306,126 @@ describe('ExpressiveCode', () => {
 					expect(totalHookCalls).toEqual(3)
 					const html = toHtml(sanitize(blockAst, { attributes: { '*': ['test', 'edited'], a: ['href'] } }))
 					expect(html).toEqual('<div test="2" edited="3"><pre test="1"><code><div>Example code...</div><div>...with two lines!</div></code></pre></div>')
+				})
+			})
+			describe('postprocessRenderedBlockGroup', () => {
+				test('Can edit group AST', () => {
+					let totalHookCalls = 0
+					const { groupAst } = getMultiHookTestResult({
+						hooks: {
+							postprocessRenderedBlockGroup: ({ renderData }) => {
+								totalHookCalls++
+								// Wrap first child block in a figure
+								renderData.groupAst.children[0] = h('figure', {}, renderData.groupAst.children[0])
+							},
+						},
+					})
+					expect(totalHookCalls).toEqual(1)
+					const html = toHtml(sanitize(groupAst, { attributes: { '*': ['test'] } }))
+					expect(html).toEqual('<figure><pre><code><div>Example code...</div><div>...with two lines!</div></code></pre></figure>')
+				})
+				test('Cannot replace individual block AST objects', () => {
+					expect(() => {
+						getMultiHookTestResult({
+							hooks: {
+								postprocessRenderedBlockGroup: ({ groupContents }) => {
+									// Try to replace first AST in group contents
+									groupContents[0].renderData.blockAst = h('div', 'This does not work')
+								},
+							},
+						})
+					}).toThrow()
+				})
+				test('Can completely replace group AST', () => {
+					let totalHookCalls = 0
+					const { groupAst } = getMultiHookTestResult({
+						hooks: {
+							postprocessRenderedBlockGroup: ({ renderData }) => {
+								totalHookCalls++
+								// Replace group with a version wrapped in a details element
+								renderData.groupAst = h('details', { test: totalHookCalls }, renderData.groupAst)
+							},
+						},
+					})
+					expect(totalHookCalls).toEqual(1)
+					const html = toHtml(sanitize(groupAst, { attributes: { '*': ['test'] } }))
+					expect(html).toEqual('<details test="1"><pre><code><div>Example code...</div><div>...with two lines!</div></code></pre></details>')
+				})
+				test('Throws on invalid replacement ASTs', () => {
+					const invalidAsts: unknown[] = [
+						// Non-object values
+						...nonObjectValues,
+						// Empty object
+						{},
+						// Objects that are not valid hast elements
+						{ type: null },
+						{ type: 'invalid' },
+						{ type: 'doctype' },
+						{ type: 'comment' },
+						{ type: 'text' },
+						// Types "element" and "root" are hast Parents, so they are allowed here
+					]
+					invalidAsts.forEach((invalidAst) => {
+						expect(() => {
+							getMultiHookTestResult({
+								hooks: {
+									postprocessRenderedBlockGroup: ({ renderData }) => {
+										// @ts-expect-error Intentionally setting an invalid AST
+										renderData.groupAst = invalidAst
+									},
+								},
+							})
+						}, `Did not throw when hook replaced groupAst with ${JSON.stringify(invalidAst)}`).toThrow()
+					})
+				})
+				test('Subsequent hooks see group edits/replacements', () => {
+					let totalHookCalls = 0
+					const { groupAst } = getMultiPluginTestResult({
+						plugins: [
+							{
+								name: 'EditGroupPlugin',
+								hooks: {
+									postprocessRenderedBlockGroup: ({ renderData }) => {
+										totalHookCalls++
+										// Wrap first child block in a figure
+										renderData.groupAst.children[0] = h('figure', { test: totalHookCalls }, renderData.groupAst.children[0])
+									},
+								},
+							},
+							{
+								name: 'WrapGroupPlugin',
+								hooks: {
+									postprocessRenderedBlockGroup: ({ renderData }) => {
+										totalHookCalls++
+										// Replace group with a version wrapped in root > details
+										renderData.groupAst = h(null, h('details', { test: totalHookCalls }, renderData.groupAst))
+									},
+								},
+							},
+							{
+								name: 'EditWrappedGroupPlugin',
+								hooks: {
+									postprocessRenderedBlockGroup: ({ renderData }) => {
+										totalHookCalls++
+										// Set edited property on details element
+										const details = renderData.groupAst.children[0] as Element
+										details.properties!.edited = totalHookCalls
+									},
+								},
+							},
+						],
+					})
+					expect(totalHookCalls).toEqual(3)
+					const html = toHtml(sanitize(groupAst, { attributes: { '*': ['test', 'edited'], a: ['href'] } }))
+					expect(html).toEqual(
+						[
+							'<details test="2" edited="3">',
+							'<figure test="1">',
+							'<pre><code><div>Example code...</div><div>...with two lines!</div></code></pre>',
+							'</figure>',
+							'</details>',
+						].join('')
+					)
 				})
 			})
 		})
@@ -533,6 +654,7 @@ function getMultiPluginTestResult({ plugins }: { plugins: ExpressiveCodePlugin[]
 	expect(result.groupContents).toHaveLength(1)
 
 	return {
+		groupAst: result.renderedAst,
 		...result.groupContents[0],
 		input,
 	}

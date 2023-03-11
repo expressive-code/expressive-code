@@ -1,7 +1,7 @@
 import { ExpressiveCodeBlock, ExpressiveCodeBlockOptions } from './block'
 import { isBoolean, isHastElement, isHastParent, newTypeError } from '../internal/type-checks'
 import { ExpressiveCodePlugin, ExpressiveCodePluginHooks, ExpressiveCodePluginHooks_BeforeRendering, PluginDataScope } from './plugin'
-import { buildCodeBlockAstFromRenderedLines, buildGroupRootAstFromRenderedBlocks, renderLineToAst } from '../internal/rendering'
+import { buildCodeBlockAstFromRenderedLines, buildGroupAstFromRenderedBlocks, renderLineToAst } from '../internal/rendering'
 
 export interface ExpressiveCodeConfig {
 	/**
@@ -55,22 +55,32 @@ export class ExpressiveCode {
 		})
 
 		// Combine rendered blocks into a group AST
-		const groupRootAst = buildGroupRootAstFromRenderedBlocks(renderedBlocks.map((renderedBlock) => renderedBlock.blockAst))
+		const groupRenderData = {
+			groupAst: buildGroupAstFromRenderedBlocks(renderedBlocks.map((renderedBlock) => renderedBlock.blockAst)),
+		}
 		this.#getHooks('postprocessRenderedBlockGroup').forEach(({ hookFn, plugin }) => {
 			hookFn({
 				groupContents: renderedBlocks.map(({ codeBlock, scopedPluginData, blockAst }) => ({
 					codeBlock,
-					renderData: {
-						blockAst,
-					},
+					// At this point, we don't want plugins to be able to replace the
+					// individual block AST objects because they are referenced as children
+					// inside the group AST, so we freeze the object
+					renderData: Object.freeze({ blockAst }),
 					...this.#getBlockLevelApi(plugin, scopedPluginData),
 				})),
-				renderData: { groupRootAst },
+				renderData: groupRenderData,
 			})
+			// The hook may have replaced the group AST though, so ensure it's still valid
+			if (!isHastParent(groupRenderData.groupAst)) {
+				throw new Error(
+					`Plugin ${plugin.name} set groupAst to an invalid value in its postprocessRenderedBlockGroup hook. ` +
+						`Expected a valid hast Root, but got ${JSON.stringify(groupRenderData.groupAst)} instead.`
+				)
+			}
 		})
 
 		return {
-			renderedAst: groupRootAst,
+			renderedAst: groupRenderData.groupAst,
 			groupContents: renderedBlocks.map(({ codeBlock, blockAst }) => ({
 				codeBlock,
 				blockAst,

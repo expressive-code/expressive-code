@@ -1,4 +1,4 @@
-import { Element, Root } from 'hast-util-to-html/lib/types'
+import { Element, Parent } from 'hast-util-to-html/lib/types'
 import { ExpressiveCodeBlock } from './block'
 import { ExpressiveCodeLine } from './line'
 
@@ -53,7 +53,7 @@ export interface PostprocessRenderedBlockContext extends ExpressiveCodeHookConte
 export interface PostprocessRenderedBlockGroupContext {
 	groupContents: PostprocessRenderedBlockContext[]
 	renderData: {
-		groupRootAst: Root
+		groupAst: Parent
 	}
 }
 
