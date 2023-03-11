@@ -26,7 +26,7 @@ describe('ExpressiveCode', () => {
 						const ec = new ExpressiveCode({ plugins: [] })
 						// @ts-expect-error Intentionally passing an invalid value
 						ec.process(invalidValue)
-					}).toThrow()
+					}, `Did not throw on invalid input ${JSON.stringify(invalidValue)}`).toThrow()
 				})
 			})
 			test('Accepts a single ExpressiveCodeBlock instance', () => {
@@ -133,6 +133,35 @@ describe('ExpressiveCode', () => {
 					const html = toHtml(sanitize(blockAst, { attributes: { '*': ['test'] } }))
 					expect(html).toEqual('<pre><code><div test="1">Replaced line</div><div test="2">Replaced line</div></code></pre>')
 				})
+				test('Throws on invalid replacement ASTs', () => {
+					const invalidAsts: unknown[] = [
+						// Non-object values
+						...nonObjectValues,
+						// Empty object
+						{},
+						// Objects that are not valid hast Elements
+						{ type: null },
+						{ type: 'invalid' },
+						{ type: 'doctype' },
+						{ type: 'comment' },
+						{ type: 'text' },
+						// This is a valid hast Parent, but not an Element,
+						// so it's not allowed at the line level
+						{ type: 'root' },
+					]
+					invalidAsts.forEach((invalidAst) => {
+						expect(() => {
+							getMultiHookTestResult({
+								hooks: {
+									postprocessRenderedLine: ({ renderData }) => {
+										// @ts-expect-error Intentionally setting an invalid AST
+										renderData.lineAst = invalidAst
+									},
+								},
+							})
+						}, `Did not throw when hook replaced lineAst with ${JSON.stringify(invalidAst)}`).toThrow()
+					})
+				})
 				test('Subsequent hooks see line edits/replacements', () => {
 					let totalHookCalls = 0
 					const { blockAst } = getMultiPluginTestResult({
@@ -210,6 +239,33 @@ describe('ExpressiveCode', () => {
 					expect(totalHookCalls).toEqual(1)
 					const html = toHtml(sanitize(blockAst, { attributes: { '*': ['test'] } }))
 					expect(html).toEqual('<div test="1">I am completely different now!</div>')
+				})
+				test('Throws on invalid replacement ASTs', () => {
+					const invalidAsts: unknown[] = [
+						// Non-object values
+						...nonObjectValues,
+						// Empty object
+						{},
+						// Objects that are not valid hast elements
+						{ type: null },
+						{ type: 'invalid' },
+						{ type: 'doctype' },
+						{ type: 'comment' },
+						{ type: 'text' },
+						// Note that "root" is a valid hast Parent, so it's allowed here
+					]
+					invalidAsts.forEach((invalidAst) => {
+						expect(() => {
+							getMultiHookTestResult({
+								hooks: {
+									postprocessRenderedBlock: ({ renderData }) => {
+										// @ts-expect-error Intentionally setting an invalid AST
+										renderData.blockAst = invalidAst
+									},
+								},
+							})
+						}, `Did not throw when hook replaced blockAst with ${JSON.stringify(invalidAst)}`).toThrow()
+					})
 				})
 				test('Subsequent hooks see block edits/replacements', () => {
 					let totalHookCalls = 0

@@ -1,5 +1,5 @@
 import { ExpressiveCodeBlock, ExpressiveCodeBlockOptions } from './block'
-import { isBoolean, newTypeError } from '../internal/type-checks'
+import { isBoolean, isHastElement, isHastParent, newTypeError } from '../internal/type-checks'
 import { ExpressiveCodePlugin, ExpressiveCodePluginHooks, ExpressiveCodePluginHooks_BeforeRendering, PluginDataScope } from './plugin'
 import { buildCodeBlockAstFromRenderedLines, buildGroupRootAstFromRenderedBlocks, renderLineToAst } from '../internal/rendering'
 
@@ -120,6 +120,12 @@ export class ExpressiveCode {
 			// Allow plugins to modify or even completely replace the AST
 			this.#getHooks('postprocessRenderedLine').forEach(({ hookFn, plugin }) => {
 				hookFn({ codeBlock, line, lineIndex, renderData: lineRenderData, ...this.#getBlockLevelApi(plugin, scopedPluginData) })
+				if (!isHastElement(lineRenderData.lineAst)) {
+					throw new Error(
+						`Plugin ${plugin.name} set lineAst to an invalid value in its postprocessRenderedLine hook. ` +
+							`Expected a valid hast Element, but got ${JSON.stringify(lineRenderData.lineAst)} instead.`
+					)
+				}
 			})
 			return lineRenderData.lineAst
 		})
@@ -131,6 +137,12 @@ export class ExpressiveCode {
 		}
 		this.#getHooks('postprocessRenderedBlock').forEach(({ hookFn, plugin }) => {
 			hookFn({ codeBlock, renderData: blockRenderData, ...this.#getBlockLevelApi(plugin, scopedPluginData) })
+			if (!isHastParent(blockRenderData.blockAst)) {
+				throw new Error(
+					`Plugin ${plugin.name} set blockAst to an invalid value in its postprocessRenderedBlock hook. ` +
+						`Expected a valid hast Parent, but got ${JSON.stringify(blockRenderData.blockAst)} instead.`
+				)
+			}
 		})
 
 		return blockRenderData.blockAst
