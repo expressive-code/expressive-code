@@ -7,7 +7,7 @@ export interface ExpressiveCodePlugin {
 	hooks: ExpressiveCodePluginHooks
 }
 
-export type PluginDataScope = 'block' /*| 'document' */ | 'global'
+export type PluginDataScope = 'block' | 'group' /*| 'document' */ | 'global'
 export type GetPluginDataFunc = <Type extends object = object>(
 	/**
 	 * Limits the lifetime of the returned data object to the `block`

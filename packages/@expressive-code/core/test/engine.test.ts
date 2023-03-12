@@ -1,12 +1,12 @@
 import { describe, expect, test } from 'vitest'
 import { Element } from 'hast-util-to-html/lib/types'
 import { sanitize } from 'hast-util-sanitize'
+import { toHtml } from 'hast-util-to-html'
+import { h } from 'hastscript'
 import { ExpressiveCode, ExpressiveCodeProcessingState } from '../src/common/engine'
 import { ExpressiveCodeHook, ExpressiveCodePlugin, ExpressiveCodePluginHookName, ExpressiveCodePluginHooks } from '../src/common/plugin'
 import { expectToWorkOrThrow, getWrapperRenderer, nonArrayValues, nonObjectValues, testRender } from './utils'
-import { toHtml } from 'hast-util-to-html'
-import { h } from 'hastscript'
-import { ExpressiveCodeBlock } from '../src/common/block'
+import { ExpressiveCodeBlock, ExpressiveCodeBlockOptions } from '../src/common/block'
 
 describe('ExpressiveCode', () => {
 	describe('process()', () => {
@@ -309,20 +309,47 @@ describe('ExpressiveCode', () => {
 				})
 			})
 			describe('postprocessRenderedBlockGroup', () => {
-				test('Can edit group AST', () => {
+				test('Can edit group AST when rendering a single block', () => {
 					let totalHookCalls = 0
 					const { groupAst } = getMultiHookTestResult({
 						hooks: {
 							postprocessRenderedBlockGroup: ({ renderData }) => {
 								totalHookCalls++
 								// Wrap first child block in a figure
-								renderData.groupAst.children[0] = h('figure', {}, renderData.groupAst.children[0])
+								renderData.groupAst.children[0] = h('figure', renderData.groupAst.children[0])
 							},
 						},
 					})
 					expect(totalHookCalls).toEqual(1)
 					const html = toHtml(sanitize(groupAst, { attributes: { '*': ['test'] } }))
 					expect(html).toEqual('<figure><pre><code><div>Example code...</div><div>...with two lines!</div></code></pre></figure>')
+				})
+				test('Can edit group AST when rendering multiple blocks', () => {
+					let totalHookCalls = 0
+					const { groupAst } = getMultiHookTestResult({
+						input: [defaultBlockOptions, { ...defaultBlockOptions, code: 'Just one line here!' }],
+						hooks: {
+							postprocessRenderedBlockGroup: ({ renderData }) => {
+								totalHookCalls++
+								// Wrap each child in a figure
+								renderData.groupAst.children.forEach((child, childIndex) => {
+									renderData.groupAst.children[childIndex] = h('figure', child)
+								})
+							},
+						},
+					})
+					expect(totalHookCalls).toEqual(1)
+					const html = toHtml(sanitize(groupAst, { attributes: { '*': ['test'] } }))
+					expect(html).toEqual(
+						[
+							'<figure>',
+							'<pre><code><div>Example code...</div><div>...with two lines!</div></code></pre>',
+							'</figure>',
+							'<figure>',
+							'<pre><code><div>Just one line here!</div></code></pre>',
+							'</figure>',
+						].join('')
+					)
 				})
 				test('Cannot replace individual block AST objects', () => {
 					expect(() => {
@@ -500,6 +527,105 @@ describe('ExpressiveCode', () => {
 					})
 				})
 			})
+			describe('Group-scoped plugin data', () => {
+				test('Is shared between hooks while processing the same block', () => {
+					getMultiHookTestResult({
+						hooks: {
+							preprocessMetadata: ({ getPluginData }) => {
+								const groupData = getPluginData('group', { justInitialized: true })
+								groupData.justInitialized = false
+							},
+							annotateCode: ({ getPluginData }) => {
+								const groupData = getPluginData('group', { justInitialized: true })
+								expect(groupData.justInitialized).toEqual(false)
+							},
+						},
+					})
+				})
+				test('Is shared between blocks while processing the same group (= group scope)', () => {
+					let expectedProcessedBlocks = 0
+					const testPlugin: ExpressiveCodePlugin = {
+						name: 'TestPlugin',
+						hooks: {
+							preprocessMetadata: ({ getPluginData }) => {
+								const groupData = getPluginData('group', { processedBlocks: 0 })
+								expect(groupData.processedBlocks).toEqual(expectedProcessedBlocks)
+								groupData.processedBlocks++
+								expectedProcessedBlocks++
+							},
+						},
+					}
+					const ec = new ExpressiveCode({
+						plugins: [testPlugin],
+					})
+					const input = {
+						code: 'Example code',
+						language: 'md',
+						meta: 'test',
+					}
+
+					// Use the same input to create a group of 3 blocks, process them,
+					// and expect the plugin to have access to the same group-scoped data
+					ec.process([input, input, input])
+					expect(expectedProcessedBlocks).toEqual(3)
+				})
+				test('Is not shared between blocks in different groups', () => {
+					let expectedProcessedBlocks = 0
+					const testPlugin: ExpressiveCodePlugin = {
+						name: 'TestPlugin',
+						hooks: {
+							preprocessMetadata: ({ getPluginData }) => {
+								const groupData = getPluginData('group', { processedBlocks: 0 })
+								expect(groupData.processedBlocks).toEqual(expectedProcessedBlocks)
+								groupData.processedBlocks++
+								expectedProcessedBlocks++
+							},
+						},
+					}
+					const ec = new ExpressiveCode({
+						plugins: [testPlugin],
+					})
+					const input = {
+						code: 'Example code',
+						language: 'md',
+						meta: 'test',
+					}
+
+					// Use the same input to create a group of 2 blocks, process them,
+					// and expect the plugin to have access to the same group-scoped data
+					// (just like in the previous test)
+					ec.process([input, input])
+					expect(expectedProcessedBlocks).toEqual(2)
+					// However, now that processing has finished and we process a new group,
+					// expect the group data to be empty again
+					expectedProcessedBlocks = 0
+					ec.process(input)
+					expect(expectedProcessedBlocks).toEqual(1)
+				})
+				test('Is not shared between plugins, even inside the same group', () => {
+					const pluginOne: ExpressiveCodePlugin = {
+						name: 'PluginOne',
+						hooks: {
+							preprocessMetadata: ({ getPluginData }) => {
+								const groupData = getPluginData('group', { justInitialized: true })
+								groupData.justInitialized = false
+							},
+						},
+					}
+					const pluginTwo: ExpressiveCodePlugin = {
+						name: 'PluginTwo',
+						hooks: {
+							annotateCode: ({ getPluginData }) => {
+								const groupData = getPluginData('group', { justInitialized: true })
+								expect(groupData.justInitialized).toEqual(true)
+							},
+						},
+					}
+					getMultiPluginTestResult({
+						plugins: [pluginOne, pluginTwo],
+					})
+				})
+			})
 			describe('Global plugin data', () => {
 				test('Is shared between hooks while processing the same block', () => {
 					getMultiHookTestResult({
@@ -600,7 +726,7 @@ function testEditingProperty(hookName: ExpressiveCodePluginHookName, propertyNam
 	const { codeBlock, input } = getHookTestResult(hookName, ({ codeBlock }) => {
 		codeBlock[propertyName] = `wrapped(${codeBlock[propertyName]})`
 	})
-	expect(codeBlock[propertyName]).toEqual(`wrapped(${input[propertyName]})`)
+	expect(codeBlock[propertyName]).toEqual(`wrapped(${input[0][propertyName]})`)
 }
 
 function testAddingAnnotation(hookName: ExpressiveCodePluginHookName) {
@@ -618,7 +744,7 @@ function testEditingCode(hookName: ExpressiveCodePluginHookName) {
 	const { codeBlock, input } = getHookTestResult(hookName, ({ codeBlock }) => {
 		codeBlock.insertLine(0, 'Prepended line')
 	})
-	expect(codeBlock.code).toEqual('Prepended line\n' + input.code)
+	expect(codeBlock.code).toEqual('Prepended line\n' + input[0].code)
 }
 
 function getHookTestResult(hookName: ExpressiveCodePluginHookName, hookFunc: ExpressiveCodeHook) {
@@ -629,7 +755,7 @@ function getHookTestResult(hookName: ExpressiveCodePluginHookName, hookFunc: Exp
 	})
 }
 
-function getMultiHookTestResult({ hooks }: { hooks: ExpressiveCodePluginHooks }) {
+function getMultiHookTestResult({ hooks, input }: { hooks: ExpressiveCodePluginHooks; input?: ExpressiveCodeBlockOptions[] }) {
 	return getMultiPluginTestResult({
 		plugins: [
 			{
@@ -637,21 +763,23 @@ function getMultiHookTestResult({ hooks }: { hooks: ExpressiveCodePluginHooks })
 				hooks,
 			},
 		],
+		input,
 	})
 }
 
-function getMultiPluginTestResult({ plugins }: { plugins: ExpressiveCodePlugin[] }) {
+const defaultBlockOptions = {
+	code: ['Example code...', '...with two lines!'].join('\n'),
+	language: 'md',
+	meta: 'test',
+}
+
+function getMultiPluginTestResult({ plugins, input = [defaultBlockOptions] }: { plugins: ExpressiveCodePlugin[]; input?: ExpressiveCodeBlockOptions[] }) {
 	const ec = new ExpressiveCode({
 		plugins,
 	})
-	const input = {
-		code: ['Example code...', '...with two lines!'].join('\n'),
-		language: 'md',
-		meta: 'test',
-	}
 
 	const result = ec.process(input)
-	expect(result.groupContents).toHaveLength(1)
+	expect(result.groupContents).toHaveLength(input.length)
 
 	return {
 		groupAst: result.renderedAst,
