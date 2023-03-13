@@ -1,4 +1,5 @@
 import { ExpressiveCodePlugin, replaceDelimitedValues } from '@expressive-code/core'
+import { h } from 'hastscript'
 
 export interface FramesPluginOptions {
 	/**
@@ -58,6 +59,38 @@ export function frames({ extractFileNameFromCode = true }: FramesPluginOptions =
 					}
 				}
 			},
+			postprocessRenderedBlock: ({ codeBlock, renderData, getPluginData }) => {
+				// Retrieve information about the current block
+				const titleText = getPluginData<FramesPluginData>('block', {}).title
+				const isTerminal = isTerminalLanguage(codeBlock.language)
+
+				// If a title was given, render it as a visible span
+				const visibleTitle = titleText ? [h('span', { className: 'title' }, titleText)] : []
+
+				// Otherwise, render a screen reader-only title for terminals
+				// to clarify that the code block is a terminal window
+				const fallbackTerminalWindowTitle = 'Terminal window' // TODO: i18n
+				const screenReaderTitle = !titleText && isTerminal ? [h('span', { className: 'sr-only' }, fallbackTerminalWindowTitle)] : []
+
+				// Wrap the code block in a figure element with helpful classes for styling
+				renderData.blockAst = h(
+					'figure',
+					{
+						className: [
+							'code-snippet',
+							// If the code block is a terminal, add the `is-terminal` class
+							...(isTerminal ? ['is-terminal'] : []),
+							// If the code block has a title, add the `has-title` class
+							...(titleText ? ['has-title'] : []),
+						],
+					},
+					[
+						h('figcaption', { className: 'header' }, [...visibleTitle, ...screenReaderTitle]),
+						// Render the original code block
+						renderData.blockAst,
+					]
+				)
+			},
 		},
 	}
 }
@@ -67,6 +100,10 @@ const LanguageGroups = {
 	data: ['env', 'json', 'yaml', 'yml'],
 	styles: ['css', 'less', 'sass', 'scss', 'styl', 'stylus'],
 	textContent: ['markdown', 'md', 'mdx'],
+}
+
+function isTerminalLanguage(language: string) {
+	return ['shellscript', 'shell', 'bash', 'sh', 'zsh'].includes(language)
 }
 
 const FileNameCommentRegExp = new RegExp(

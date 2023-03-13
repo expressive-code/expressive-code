@@ -9,5 +9,6 @@ export default defineConfig({
 			const snapshotFileName = `${testFileName}${testFileName.includes('.html.test') ? '.html' : extension}`
 			return join(snapshotDir, snapshotFileName)
 		},
+		outputTruncateLength: 1000,
 	},
 })
