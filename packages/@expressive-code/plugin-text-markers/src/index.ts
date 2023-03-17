@@ -1,4 +1,4 @@
-import { ExpressiveCodePlugin, replaceDelimitedValues } from '@expressive-code/core'
+import { ExpressiveCodePlugin, AttachedPluginData, replaceDelimitedValues } from '@expressive-code/core'
 import { h } from 'hastscript'
 import rangeParser from 'parse-numeric-range'
 
@@ -12,12 +12,14 @@ export interface TextMarkerPluginData {
 	regExpTerms: { markerType: MarkerType; regExp: RegExp }[]
 }
 
+export const textMarkersPluginData = new AttachedPluginData<TextMarkerPluginData>(() => ({ plaintextTerms: [], regExpTerms: [] }))
+
 export function textMarkers(): ExpressiveCodePlugin {
 	return {
 		name: 'TextMarkers',
 		hooks: {
-			preprocessMetadata: ({ codeBlock, getPluginData }) => {
-				const blockData = getPluginData<TextMarkerPluginData>('block', { plaintextTerms: [], regExpTerms: [] })
+			preprocessMetadata: ({ codeBlock }) => {
+				const blockData = textMarkersPluginData.getOrCreateFor(codeBlock)
 
 				codeBlock.meta = replaceDelimitedValues(
 					codeBlock.meta,

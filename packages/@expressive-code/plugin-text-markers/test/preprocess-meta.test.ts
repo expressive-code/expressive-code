@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { ExpressiveCode } from '@expressive-code/core'
-import { MarkerType, markerTypeFromString, TextMarkerPluginData, textMarkers } from '../src'
+import { MarkerType, markerTypeFromString, textMarkers, textMarkersPluginData } from '../src'
 
 const astroCodeSnippet = `
 ---
@@ -51,25 +51,10 @@ const expectMetaResult = (input: string, partialExpectedResult: ExpectedTextMark
 		...rest,
 	}
 
-	// Create text markers plugin
-	const plugin = textMarkers()
-
-	// Wrap its metadata preprocessing hook into a test function that captures internal plugin data
-	const originalPreprocessMetadata = plugin.hooks.preprocessMetadata
-	let pluginData: TextMarkerPluginData | undefined
-	plugin.hooks.preprocessMetadata = (context) => {
-		if (!originalPreprocessMetadata) return
-		originalPreprocessMetadata(context)
-		pluginData = context.getPluginData<TextMarkerPluginData>('block', {
-			plaintextTerms: [],
-			regExpTerms: [],
-		})
-	}
-
-	// Create an Expressive Code instance with our wrapped text marker plugin
+	// Create an Expressive Code instance with our plugin
 	// and use it to process the test code
 	const ec = new ExpressiveCode({
-		plugins: [plugin],
+		plugins: [textMarkers()],
 	})
 	const data = {
 		code: astroCodeSnippet,
@@ -79,9 +64,6 @@ const expectMetaResult = (input: string, partialExpectedResult: ExpectedTextMark
 	const { groupContents } = ec.process(data)
 	expect(groupContents).toHaveLength(1)
 	const codeBlock = groupContents[0].codeBlock
-
-	// Expect our wrapper function to have extracted the internal plugin data
-	expect(pluginData).toBeDefined()
 
 	// Collect all applied full-line text marker annotations in the form expected by the test cases
 	const lineMarkings: { markerType: MarkerType; lines: number[] }[] = []
@@ -100,6 +82,7 @@ const expectMetaResult = (input: string, partialExpectedResult: ExpectedTextMark
 	})
 
 	// Build actual data using all collected information
+	const pluginData = textMarkersPluginData.getOrCreateFor(codeBlock)
 	const actual: ExpectedTextMarkerResults = {
 		meta: codeBlock.meta,
 		annotations: {

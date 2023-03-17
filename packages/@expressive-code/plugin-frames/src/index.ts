@@ -1,3 +1,4 @@
+import { AttachedPluginData } from '@expressive-code/core'
 import { ExpressiveCodePlugin, replaceDelimitedValues } from '@expressive-code/core'
 import { h } from 'hastscript'
 
@@ -14,12 +15,14 @@ export interface FramesPluginData {
 	title?: string
 }
 
+export const framesPluginData = new AttachedPluginData<FramesPluginData>(() => ({}))
+
 export function frames({ extractFileNameFromCode = true }: FramesPluginOptions = {}): ExpressiveCodePlugin {
 	return {
 		name: 'Frames',
 		hooks: {
-			preprocessMetadata: ({ codeBlock, getPluginData }) => {
-				const blockData = getPluginData<FramesPluginData>('block', {})
+			preprocessMetadata: ({ codeBlock }) => {
+				const blockData = framesPluginData.getOrCreateFor(codeBlock)
 
 				codeBlock.meta = replaceDelimitedValues(codeBlock.meta, ({ fullMatch, key, value }) => {
 					// Handle "title" and "@title" keys in meta string
@@ -32,11 +35,11 @@ export function frames({ extractFileNameFromCode = true }: FramesPluginOptions =
 					return fullMatch
 				})
 			},
-			preprocessCode: ({ codeBlock, getPluginData }) => {
+			preprocessCode: ({ codeBlock }) => {
 				// Skip processing if the given options do not allow file name extraction from code
 				if (!extractFileNameFromCode) return
 
-				const blockData = getPluginData<FramesPluginData>('block', {})
+				const blockData = framesPluginData.getOrCreateFor(codeBlock)
 
 				// If we already extracted a title from the meta information,
 				// do not attempt to find a title inside the code
@@ -59,9 +62,9 @@ export function frames({ extractFileNameFromCode = true }: FramesPluginOptions =
 					}
 				}
 			},
-			postprocessRenderedBlock: ({ codeBlock, renderData, getPluginData }) => {
+			postprocessRenderedBlock: ({ codeBlock, renderData }) => {
 				// Retrieve information about the current block
-				const titleText = getPluginData<FramesPluginData>('block', {}).title
+				const titleText = framesPluginData.getOrCreateFor(codeBlock).title
 				const isTerminal = isTerminalLanguage(codeBlock.language)
 
 				// If a title was given, render it as a visible span

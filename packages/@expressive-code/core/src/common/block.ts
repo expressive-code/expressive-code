@@ -115,3 +115,5 @@ export class ExpressiveCodeBlock {
 		return lineInstances
 	}
 }
+
+export type ExpressiveCodeBlockGroup = readonly ExpressiveCodeBlock[]

@@ -1,5 +1,5 @@
 import { Element, Parent } from 'hast-util-to-html/lib/types'
-import { ExpressiveCodeBlock } from './block'
+import { ExpressiveCodeBlock, ExpressiveCodeBlockGroup } from './block'
 import { ExpressiveCodeLine } from './line'
 
 export interface ExpressiveCodePlugin {
@@ -7,33 +7,9 @@ export interface ExpressiveCodePlugin {
 	hooks: ExpressiveCodePluginHooks
 }
 
-export type PluginDataScope = 'block' | 'group' /*| 'document' */ | 'global'
-export type GetPluginDataFunc = <Type extends object = object>(
-	/**
-	 * Limits the lifetime of the returned data object to the `block`
-	 * currently being processed. Afterwards, a new object will be returned.
-	 *
-	 * To keep reusing the same data object during the full lifetime of the plugin instance,
-	 * use the `global` scope.
-	 *
-	 * Plugins can use all available scopes at the same time to store different kinds of data.
-	 */
-	scope: PluginDataScope,
-	/**
-	 * If no plugin-specific data exists for the given scope yet,
-	 * it will be initialized to this value.
-	 */
-	initialValue: Type
-) => Type
-
 export interface ExpressiveCodeHookContext {
 	codeBlock: ExpressiveCodeBlock
-	/**
-	 * Retrieves a reference to plugin-specific custom data.
-	 *
-	 * Plugins can use this function to persist data between hook calls.
-	 */
-	getPluginData: GetPluginDataFunc
+	group: ExpressiveCodeBlockGroup
 }
 
 export interface PostprocessRenderedLineContext extends ExpressiveCodeHookContext {
@@ -154,3 +130,27 @@ export interface ExpressiveCodePluginHooks_Rendering {
 export interface ExpressiveCodePluginHooks extends ExpressiveCodePluginHooks_BeforeRendering, ExpressiveCodePluginHooks_Rendering {}
 
 export type ExpressiveCodePluginHookName = keyof ExpressiveCodePluginHooks
+
+export type PluginDataTarget = ExpressiveCodeBlock | ExpressiveCodeBlockGroup
+
+export class AttachedPluginData<PluginDataType> {
+	private readonly dataStorage = new WeakMap<object, PluginDataType>()
+	private readonly getInitialValueFn: () => PluginDataType
+
+	constructor(getInitialValueFn: () => PluginDataType) {
+		this.getInitialValueFn = getInitialValueFn
+	}
+
+	public getOrCreateFor(target: PluginDataTarget): PluginDataType {
+		let data = this.dataStorage.get(target)
+		if (data === undefined) {
+			data = this.getInitialValueFn()
+			this.dataStorage.set(target, data)
+		}
+		return data
+	}
+
+	public setFor(target: PluginDataTarget, data: PluginDataType) {
+		this.dataStorage.set(target, data)
+	}
+}

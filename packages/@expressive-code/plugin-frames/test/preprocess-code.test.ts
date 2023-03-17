@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { ExpressiveCode } from '@expressive-code/core'
-import { frames, FramesPluginData, FramesPluginOptions } from '../src'
+import { frames, framesPluginData, FramesPluginOptions } from '../src'
 
 describe('Extracts file name comments from the first code lines', () => {
 	test('JS comments without prefix', () => {
@@ -196,26 +196,17 @@ function expectCodeResult({
 		code: string
 	}
 }) {
-	// Create frames plugin
-	const plugin = frames(options)
-
-	// Wrap its code preprocessing hook into a test function that captures internal plugin data
-	const originalPreprocessMetadata = plugin.hooks.preprocessMetadata
-	let pluginData: FramesPluginData | undefined
-	plugin.hooks.preprocessMetadata = (context) => {
-		if (!originalPreprocessMetadata) return
-		originalPreprocessMetadata(context)
-		pluginData = context.getPluginData<FramesPluginData>('block', {})
-	}
-
-	// Create an Expressive Code instance with our wrapped plugin
+	// Create an Expressive Code instance with our plugin
 	// and use it to process the test code
 	const ec = new ExpressiveCode({
-		plugins: [plugin],
+		plugins: [frames(options)],
 	})
 	const { groupContents } = ec.process({ code: code.trim(), language, meta })
 	expect(groupContents).toHaveLength(1)
 	const codeBlock = groupContents[0].codeBlock
+
+	// Get the plugin data attached to the code block
+	const pluginData = framesPluginData.getOrCreateFor(codeBlock)
 
 	const actual = {
 		extractedFileName: pluginData?.title,

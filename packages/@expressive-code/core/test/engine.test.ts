@@ -4,7 +4,7 @@ import { sanitize } from 'hast-util-sanitize'
 import { toHtml } from 'hast-util-to-html'
 import { h } from 'hastscript'
 import { ExpressiveCode, ExpressiveCodeProcessingState } from '../src/common/engine'
-import { ExpressiveCodeHook, ExpressiveCodePlugin, ExpressiveCodePluginHookName, ExpressiveCodePluginHooks } from '../src/common/plugin'
+import { ExpressiveCodeHook, ExpressiveCodePlugin, ExpressiveCodePluginHookName, ExpressiveCodePluginHooks, AttachedPluginData } from '../src/common/plugin'
 import { expectToWorkOrThrow, getWrapperRenderer, nonArrayValues, nonObjectValues, testRender } from './utils'
 import { ExpressiveCodeBlock, ExpressiveCodeBlockOptions } from '../src/common/block'
 
@@ -456,244 +456,6 @@ describe('ExpressiveCode', () => {
 				})
 			})
 		})
-		describe('Provides getPluginData() hook context function to plugins', () => {
-			describe('Block-scoped plugin data', () => {
-				test('Is shared between hooks while processing the same block', () => {
-					getMultiHookTestResult({
-						hooks: {
-							preprocessMetadata: ({ getPluginData }) => {
-								const blockData = getPluginData('block', { justInitialized: true })
-								blockData.justInitialized = false
-							},
-							annotateCode: ({ getPluginData }) => {
-								const blockData = getPluginData('block', { justInitialized: true })
-								expect(blockData.justInitialized).toEqual(false)
-							},
-						},
-					})
-				})
-				test('Is not shared between different blocks (= block scope)', () => {
-					const testPlugin: ExpressiveCodePlugin = {
-						name: 'TestPlugin',
-						hooks: {
-							preprocessMetadata: ({ getPluginData }) => {
-								const blockData = getPluginData('block', { counter: 0 })
-								// No matter how many blocks were already processed before,
-								// blockData should always have restarted from 0 here
-								expect(blockData.counter).toEqual(0)
-								blockData.counter++
-							},
-							annotateCode: ({ getPluginData }) => {
-								const blockData = getPluginData('block', { counter: 0 })
-								expect(blockData.counter).toEqual(1)
-							},
-						},
-					}
-					const ec = new ExpressiveCode({
-						plugins: [testPlugin],
-					})
-					const input = {
-						code: 'Example code',
-						language: 'md',
-						meta: 'test',
-					}
-
-					// Reuse the same plugin instance for processing three subsequent blocks
-					ec.process(input)
-					ec.process(input)
-					ec.process(input)
-				})
-				test('Is not shared between plugins', () => {
-					const pluginOne: ExpressiveCodePlugin = {
-						name: 'PluginOne',
-						hooks: {
-							preprocessMetadata: ({ getPluginData }) => {
-								const blockData = getPluginData('block', { justInitialized: true })
-								blockData.justInitialized = false
-							},
-						},
-					}
-					const pluginTwo: ExpressiveCodePlugin = {
-						name: 'PluginTwo',
-						hooks: {
-							annotateCode: ({ getPluginData }) => {
-								const blockData = getPluginData('block', { justInitialized: true })
-								expect(blockData.justInitialized).toEqual(true)
-							},
-						},
-					}
-					getMultiPluginTestResult({
-						plugins: [pluginOne, pluginTwo],
-					})
-				})
-			})
-			describe('Group-scoped plugin data', () => {
-				test('Is shared between hooks while processing the same block', () => {
-					getMultiHookTestResult({
-						hooks: {
-							preprocessMetadata: ({ getPluginData }) => {
-								const groupData = getPluginData('group', { justInitialized: true })
-								groupData.justInitialized = false
-							},
-							annotateCode: ({ getPluginData }) => {
-								const groupData = getPluginData('group', { justInitialized: true })
-								expect(groupData.justInitialized).toEqual(false)
-							},
-						},
-					})
-				})
-				test('Is shared between blocks while processing the same group (= group scope)', () => {
-					let expectedProcessedBlocks = 0
-					const testPlugin: ExpressiveCodePlugin = {
-						name: 'TestPlugin',
-						hooks: {
-							preprocessMetadata: ({ getPluginData }) => {
-								const groupData = getPluginData('group', { processedBlocks: 0 })
-								expect(groupData.processedBlocks).toEqual(expectedProcessedBlocks)
-								groupData.processedBlocks++
-								expectedProcessedBlocks++
-							},
-						},
-					}
-					const ec = new ExpressiveCode({
-						plugins: [testPlugin],
-					})
-					const input = {
-						code: 'Example code',
-						language: 'md',
-						meta: 'test',
-					}
-
-					// Use the same input to create a group of 3 blocks, process them,
-					// and expect the plugin to have access to the same group-scoped data
-					ec.process([input, input, input])
-					expect(expectedProcessedBlocks).toEqual(3)
-				})
-				test('Is not shared between blocks in different groups', () => {
-					let expectedProcessedBlocks = 0
-					const testPlugin: ExpressiveCodePlugin = {
-						name: 'TestPlugin',
-						hooks: {
-							preprocessMetadata: ({ getPluginData }) => {
-								const groupData = getPluginData('group', { processedBlocks: 0 })
-								expect(groupData.processedBlocks).toEqual(expectedProcessedBlocks)
-								groupData.processedBlocks++
-								expectedProcessedBlocks++
-							},
-						},
-					}
-					const ec = new ExpressiveCode({
-						plugins: [testPlugin],
-					})
-					const input = {
-						code: 'Example code',
-						language: 'md',
-						meta: 'test',
-					}
-
-					// Use the same input to create a group of 2 blocks, process them,
-					// and expect the plugin to have access to the same group-scoped data
-					// (just like in the previous test)
-					ec.process([input, input])
-					expect(expectedProcessedBlocks).toEqual(2)
-					// However, now that processing has finished and we process a new group,
-					// expect the group data to be empty again
-					expectedProcessedBlocks = 0
-					ec.process(input)
-					expect(expectedProcessedBlocks).toEqual(1)
-				})
-				test('Is not shared between plugins, even inside the same group', () => {
-					const pluginOne: ExpressiveCodePlugin = {
-						name: 'PluginOne',
-						hooks: {
-							preprocessMetadata: ({ getPluginData }) => {
-								const groupData = getPluginData('group', { justInitialized: true })
-								groupData.justInitialized = false
-							},
-						},
-					}
-					const pluginTwo: ExpressiveCodePlugin = {
-						name: 'PluginTwo',
-						hooks: {
-							annotateCode: ({ getPluginData }) => {
-								const groupData = getPluginData('group', { justInitialized: true })
-								expect(groupData.justInitialized).toEqual(true)
-							},
-						},
-					}
-					getMultiPluginTestResult({
-						plugins: [pluginOne, pluginTwo],
-					})
-				})
-			})
-			describe('Global plugin data', () => {
-				test('Is shared between hooks while processing the same block', () => {
-					getMultiHookTestResult({
-						hooks: {
-							preprocessMetadata: ({ getPluginData }) => {
-								const blockData = getPluginData('global', { justInitialized: true })
-								blockData.justInitialized = false
-							},
-							annotateCode: ({ getPluginData }) => {
-								const blockData = getPluginData('global', { justInitialized: true })
-								expect(blockData.justInitialized).toEqual(false)
-							},
-						},
-					})
-				})
-				test('Is shared between different blocks (= global scope)', () => {
-					let expectedProcessedBlocks = 0
-					const testPlugin: ExpressiveCodePlugin = {
-						name: 'TestPlugin',
-						hooks: {
-							preprocessMetadata: ({ getPluginData }) => {
-								const globalData = getPluginData('global', { processedBlocks: 0 })
-								expect(globalData.processedBlocks).toEqual(expectedProcessedBlocks)
-								globalData.processedBlocks++
-							},
-						},
-					}
-					const ec = new ExpressiveCode({
-						plugins: [testPlugin],
-					})
-					const input = {
-						code: 'Example code',
-						language: 'md',
-						meta: 'test',
-					}
-
-					// Reuse the same plugin instance for processing three subsequent blocks
-					ec.process(input)
-					expectedProcessedBlocks++
-					ec.process(input)
-					expectedProcessedBlocks++
-					ec.process(input)
-				})
-				test('Is not shared between plugins', () => {
-					const pluginOne: ExpressiveCodePlugin = {
-						name: 'PluginOne',
-						hooks: {
-							preprocessMetadata: ({ getPluginData }) => {
-								const blockData = getPluginData('global', { justInitialized: true })
-								blockData.justInitialized = false
-							},
-						},
-					}
-					const pluginTwo: ExpressiveCodePlugin = {
-						name: 'PluginTwo',
-						hooks: {
-							annotateCode: ({ getPluginData }) => {
-								const blockData = getPluginData('global', { justInitialized: true })
-								expect(blockData.justInitialized).toEqual(true)
-							},
-						},
-					}
-					getMultiPluginTestResult({
-						plugins: [pluginOne, pluginTwo],
-					})
-				})
-			})
-		})
 		describe('Returns the rendered code block AST', () => {
 			test('Plain code block', () => {
 				const { blockAst } = getMultiPluginTestResult({ plugins: [] })
@@ -717,6 +479,201 @@ describe('ExpressiveCode', () => {
 				})
 				const html = toHtml(sanitize(blockAst, {}))
 				expect(html).toEqual('<pre><code><div>Example code...</div><div>...with <del>two </del>lines!</div></code></pre>')
+			})
+		})
+	})
+})
+
+describe('PluginDataStorage', () => {
+	describe('Data attached to code blocks', () => {
+		test('Can be initialized from outside before processing', () => {
+			const testPluginData = new AttachedPluginData(() => ({ justInitialized: true }))
+			const testBlock = new ExpressiveCodeBlock(defaultBlockOptions)
+			testPluginData.setFor(testBlock, { justInitialized: false })
+			getMultiHookTestResult({
+				input: [testBlock],
+				hooks: {
+					preprocessMetadata: ({ codeBlock }) => {
+						const blockData = testPluginData.getOrCreateFor(codeBlock)
+						expect(blockData.justInitialized).toEqual(false)
+					},
+				},
+			})
+		})
+		test('Is shared between hooks while processing the same block', () => {
+			const testPluginData = new AttachedPluginData(() => ({ justInitialized: true }))
+			getMultiHookTestResult({
+				hooks: {
+					preprocessMetadata: ({ codeBlock }) => {
+						const blockData = testPluginData.getOrCreateFor(codeBlock)
+						blockData.justInitialized = false
+					},
+					annotateCode: ({ codeBlock }) => {
+						const blockData = testPluginData.getOrCreateFor(codeBlock)
+						expect(blockData.justInitialized).toEqual(false)
+					},
+				},
+			})
+		})
+		test('Is not shared between different blocks (= block scope)', () => {
+			const testPluginData = new AttachedPluginData(() => ({ counter: 0 }))
+			const testPlugin: ExpressiveCodePlugin = {
+				name: 'TestPlugin',
+				hooks: {
+					preprocessMetadata: ({ codeBlock }) => {
+						const blockData = testPluginData.getOrCreateFor(codeBlock)
+						// No matter how many blocks were already processed before,
+						// blockData should always have restarted from 0 here
+						expect(blockData.counter).toEqual(0)
+						blockData.counter++
+					},
+					annotateCode: ({ codeBlock }) => {
+						const blockData = testPluginData.getOrCreateFor(codeBlock)
+						expect(blockData.counter).toEqual(1)
+					},
+				},
+			}
+			const ec = new ExpressiveCode({
+				plugins: [testPlugin],
+			})
+			const input = {
+				code: 'Example code',
+				language: 'md',
+				meta: 'test',
+			}
+
+			// Reuse the same plugin instance for processing three subsequent blocks
+			ec.process(input)
+			ec.process(input)
+			ec.process(input)
+		})
+		test('Is not shared between plugins', () => {
+			const testPluginOneData = new AttachedPluginData(() => ({ justInitialized: true }))
+			const testPluginTwoData = new AttachedPluginData(() => ({ justInitialized: true }))
+			const pluginOne: ExpressiveCodePlugin = {
+				name: 'PluginOne',
+				hooks: {
+					preprocessMetadata: ({ codeBlock }) => {
+						const blockData = testPluginOneData.getOrCreateFor(codeBlock)
+						blockData.justInitialized = false
+					},
+				},
+			}
+			const pluginTwo: ExpressiveCodePlugin = {
+				name: 'PluginTwo',
+				hooks: {
+					annotateCode: ({ codeBlock }) => {
+						const blockData = testPluginTwoData.getOrCreateFor(codeBlock)
+						expect(blockData.justInitialized).toEqual(true)
+					},
+				},
+			}
+			getMultiPluginTestResult({
+				plugins: [pluginOne, pluginTwo],
+			})
+		})
+	})
+	describe('Data attached to groups of code blocks', () => {
+		test('Is shared between hooks while processing the same block', () => {
+			const testPluginData = new AttachedPluginData(() => ({ justInitialized: true }))
+			getMultiHookTestResult({
+				hooks: {
+					preprocessMetadata: ({ group }) => {
+						const groupData = testPluginData.getOrCreateFor(group)
+						groupData.justInitialized = false
+					},
+					annotateCode: ({ group }) => {
+						const groupData = testPluginData.getOrCreateFor(group)
+						expect(groupData.justInitialized).toEqual(false)
+					},
+				},
+			})
+		})
+		test('Is shared between blocks while processing the same group (= group scope)', () => {
+			const testPluginData = new AttachedPluginData(() => ({ processedBlocks: 0 }))
+			let expectedProcessedBlocks = 0
+			const testPlugin: ExpressiveCodePlugin = {
+				name: 'TestPlugin',
+				hooks: {
+					preprocessMetadata: ({ group }) => {
+						const groupData = testPluginData.getOrCreateFor(group)
+						expect(groupData.processedBlocks).toEqual(expectedProcessedBlocks)
+						groupData.processedBlocks++
+						expectedProcessedBlocks++
+					},
+				},
+			}
+			const ec = new ExpressiveCode({
+				plugins: [testPlugin],
+			})
+			const input = {
+				code: 'Example code',
+				language: 'md',
+				meta: 'test',
+			}
+
+			// Use the same input to create a group of 3 blocks, process them,
+			// and expect the plugin to have access to the same group-scoped data
+			ec.process([input, input, input])
+			expect(expectedProcessedBlocks).toEqual(3)
+		})
+		test('Is not shared between blocks in different groups', () => {
+			const testPluginData = new AttachedPluginData(() => ({ processedBlocks: 0 }))
+			let expectedProcessedBlocks = 0
+			const testPlugin: ExpressiveCodePlugin = {
+				name: 'TestPlugin',
+				hooks: {
+					preprocessMetadata: ({ group }) => {
+						const groupData = testPluginData.getOrCreateFor(group)
+						expect(groupData.processedBlocks).toEqual(expectedProcessedBlocks)
+						groupData.processedBlocks++
+						expectedProcessedBlocks++
+					},
+				},
+			}
+			const ec = new ExpressiveCode({
+				plugins: [testPlugin],
+			})
+			const input = {
+				code: 'Example code',
+				language: 'md',
+				meta: 'test',
+			}
+
+			// Use the same input to create a group of 2 blocks, process them,
+			// and expect the plugin to have access to the same group-scoped data
+			// (just like in the previous test)
+			ec.process([input, input])
+			expect(expectedProcessedBlocks).toEqual(2)
+			// However, now that processing has finished and we process a new group,
+			// expect the group data to be empty again
+			expectedProcessedBlocks = 0
+			ec.process(input)
+			expect(expectedProcessedBlocks).toEqual(1)
+		})
+		test('Is not shared between plugins, even inside the same group', () => {
+			const testPluginOneData = new AttachedPluginData(() => ({ justInitialized: true }))
+			const pluginOne: ExpressiveCodePlugin = {
+				name: 'PluginOne',
+				hooks: {
+					preprocessMetadata: ({ group }) => {
+						const groupData = testPluginOneData.getOrCreateFor(group)
+						groupData.justInitialized = false
+					},
+				},
+			}
+			const testPluginTwoData = new AttachedPluginData(() => ({ justInitialized: true }))
+			const pluginTwo: ExpressiveCodePlugin = {
+				name: 'PluginTwo',
+				hooks: {
+					annotateCode: ({ group }) => {
+						const groupData = testPluginTwoData.getOrCreateFor(group)
+						expect(groupData.justInitialized).toEqual(true)
+					},
+				},
+			}
+			getMultiPluginTestResult({
+				plugins: [pluginOne, pluginTwo],
 			})
 		})
 	})
