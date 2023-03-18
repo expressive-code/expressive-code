@@ -1,4 +1,4 @@
-import { ExpressiveCodeBlock, ExpressiveCodeBlockOptions } from './block'
+import { ExpressiveCodeBlock, ExpressiveCodeBlockGroup, ExpressiveCodeBlockOptions } from './block'
 import { isBoolean, isHastElement, isHastParent, newTypeError } from '../internal/type-checks'
 import { ExpressiveCodePlugin, ExpressiveCodePluginHooks, ExpressiveCodePluginHooks_BeforeRendering } from './plugin'
 import { buildCodeBlockAstFromRenderedLines, buildGroupAstFromRenderedBlocks, renderLineToAst } from '../internal/rendering'
@@ -15,12 +15,26 @@ export interface ExpressiveCodeConfig {
 
 export type ExpressiveCodeProcessingInput = ExpressiveCodeBlock | ExpressiveCodeBlockOptions | (ExpressiveCodeBlock | ExpressiveCodeBlockOptions)[]
 
+export interface ExpressiveCodeProcessingOptions {
+	/**
+	 * An optional handler function that can initialize plugin data for the
+	 * code block group before processing starts.
+	 *
+	 * Plugins can provide access to their data by exporting a const
+	 * set to a `new AttachedPluginData(...)` instance (e.g. `myPluginData`).
+	 *
+	 * You can then import the const and set `onInitGroup` to a function that
+	 * calls `myPluginData.setFor(group, { ...data... })`.
+	 */
+	onInitGroup?: (group: ExpressiveCodeBlockGroup) => void
+}
+
 export class ExpressiveCode {
 	constructor(config: ExpressiveCodeConfig) {
 		this.#config = config
 	}
 
-	process(input: ExpressiveCodeProcessingInput) {
+	process(input: ExpressiveCodeProcessingInput, options?: ExpressiveCodeProcessingOptions) {
 		// Ensure that the input is an array
 		const inputArray = Array.isArray(input) ? input : [input]
 
@@ -34,6 +48,9 @@ export class ExpressiveCode {
 			}
 		})
 		Object.freeze(group)
+
+		// Allow the caller to initialize group data after the group has been created
+		options?.onInitGroup?.(group)
 
 		// Render all blocks
 		const renderedBlocks = group.map((codeBlock) => {
@@ -79,7 +96,7 @@ export class ExpressiveCode {
 		}
 	}
 
-	#processSingleBlock(codeBlock: ExpressiveCodeBlock, group: readonly ExpressiveCodeBlock[]) {
+	#processSingleBlock(codeBlock: ExpressiveCodeBlock, group: ExpressiveCodeBlockGroup) {
 		const state: ExpressiveCodeProcessingState = {
 			canEditAnnotations: true,
 			canEditCode: true,

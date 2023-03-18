@@ -486,18 +486,39 @@ describe('ExpressiveCode', () => {
 
 describe('PluginDataStorage', () => {
 	describe('Data attached to code blocks', () => {
-		test('Can be initialized from outside before processing', () => {
-			const testPluginData = new AttachedPluginData(() => ({ justInitialized: true }))
-			const testBlock = new ExpressiveCodeBlock(defaultBlockOptions)
-			testPluginData.setFor(testBlock, { justInitialized: false })
-			getMultiHookTestResult({
-				input: [testBlock],
-				hooks: {
-					preprocessMetadata: ({ codeBlock }) => {
-						const blockData = testPluginData.getOrCreateFor(codeBlock)
-						expect(blockData.justInitialized).toEqual(false)
+		describe('Can be initialized from outside before processing', () => {
+			test('By using an onInitBlock handler function', () => {
+				const testPluginData = new AttachedPluginData(() => ({ justInitialized: true }))
+				getMultiHookTestResult({
+					input: [
+						{
+							...defaultBlockOptions,
+							onInitBlock: (block) => {
+								testPluginData.setFor(block, { justInitialized: false })
+							},
+						},
+					],
+					hooks: {
+						preprocessMetadata: ({ codeBlock }) => {
+							const blockData = testPluginData.getOrCreateFor(codeBlock)
+							expect(blockData.justInitialized).toEqual(false)
+						},
 					},
-				},
+				})
+			})
+			test('By manually creating an ExpressiveCodeBlock instance', () => {
+				const testPluginData = new AttachedPluginData(() => ({ justInitialized: true }))
+				const testBlock = new ExpressiveCodeBlock(defaultBlockOptions)
+				testPluginData.setFor(testBlock, { justInitialized: false })
+				getMultiHookTestResult({
+					input: [testBlock],
+					hooks: {
+						preprocessMetadata: ({ codeBlock }) => {
+							const blockData = testPluginData.getOrCreateFor(codeBlock)
+							expect(blockData.justInitialized).toEqual(false)
+						},
+					},
+				})
 			})
 		})
 		test('Is shared between hooks while processing the same block', () => {
@@ -574,6 +595,42 @@ describe('PluginDataStorage', () => {
 		})
 	})
 	describe('Data attached to groups of code blocks', () => {
+		describe('Can be initialized from outside before processing', () => {
+			test('By using an onInitGroup handler function', () => {
+				const testPluginData = new AttachedPluginData(() => ({ processedBlocksPlusTen: 0 }))
+				// Start with 10 instead of 0 to check if the onInitGroup function was called
+				let expectedProcessedBlocksPlusTen = 10
+				const testPlugin: ExpressiveCodePlugin = {
+					name: 'TestPlugin',
+					hooks: {
+						preprocessMetadata: ({ group }) => {
+							const groupData = testPluginData.getOrCreateFor(group)
+							expect(groupData.processedBlocksPlusTen).toEqual(expectedProcessedBlocksPlusTen)
+							groupData.processedBlocksPlusTen++
+							expectedProcessedBlocksPlusTen++
+						},
+					},
+				}
+				const ec = new ExpressiveCode({
+					plugins: [testPlugin],
+				})
+				const input = {
+					code: 'Example code',
+					language: 'md',
+					meta: 'test',
+				}
+
+				// Use the same input to create a group of 3 blocks, process them,
+				// and expect the plugin to have access to the same group-scoped data
+				ec.process([input, input, input], {
+					onInitGroup: (group) => {
+						// Initialize the group data to start at 10
+						testPluginData.setFor(group, { processedBlocksPlusTen: 10 })
+					},
+				})
+				expect(expectedProcessedBlocksPlusTen).toEqual(13)
+			})
+		})
 		test('Is shared between hooks while processing the same block', () => {
 			const testPluginData = new AttachedPluginData(() => ({ justInitialized: true }))
 			getMultiHookTestResult({

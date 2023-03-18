@@ -2,20 +2,34 @@ import { ExpressiveCodeProcessingState, validateExpressiveCodeProcessingState } 
 import { isNumber, isString, newTypeError } from '../internal/type-checks'
 import { ExpressiveCodeLine } from './line'
 
-export type ExpressiveCodeBlockOptions = {
+export interface ExpressiveCodeBlockOptions {
 	code: string
 	language: string
 	meta: string
+	/**
+	 * An optional handler function that can initialize plugin data for the
+	 * code block before processing starts.
+	 *
+	 * Plugins can provide access to their data by exporting a const
+	 * set to a `new AttachedPluginData(...)` instance (e.g. `myPluginData`).
+	 *
+	 * You can then import the const and set `onInitBlock` to a function that
+	 * calls `myPluginData.setFor(block, { ...data... })`.
+	 */
+	onInitBlock?: (block: ExpressiveCodeBlock) => void
 }
 
 export class ExpressiveCodeBlock {
 	constructor(options: ExpressiveCodeBlockOptions) {
-		const { code, language, meta } = options
+		const { code, language, meta, onInitBlock } = options
 		if (!isString(code) || !isString(language) || !isString(meta)) throw newTypeError('object of type ExpressiveCodeBlockOptions', options)
 		this.#lines = []
 		this.#language = language
 		this.#meta = meta
 		if (code.length) this.insertLines(0, code.split(/\r?\n/))
+
+		// Allow the caller to initialize block data after the block has been created
+		onInitBlock?.(this)
 	}
 
 	readonly #lines: ExpressiveCodeLine[]
