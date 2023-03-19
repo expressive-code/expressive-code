@@ -197,13 +197,13 @@ function expectCodeResult({
 	}
 }) {
 	// Create an Expressive Code instance with our plugin
-	// and use it to process the test code
+	// and use it to render the test code
 	const ec = new ExpressiveCode({
 		plugins: [frames(options)],
 	})
-	const { groupContents } = ec.process({ code: code.trim(), language, meta })
-	expect(groupContents).toHaveLength(1)
-	const codeBlock = groupContents[0].codeBlock
+	const { renderedGroupContents } = ec.render({ code: code.trim(), language, meta })
+	expect(renderedGroupContents).toHaveLength(1)
+	const codeBlock = renderedGroupContents[0].codeBlock
 
 	// Get the plugin data attached to the code block
 	const pluginData = framesPluginData.getOrCreateFor(codeBlock)

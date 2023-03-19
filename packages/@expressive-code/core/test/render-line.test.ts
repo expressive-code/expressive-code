@@ -3,7 +3,7 @@ import { Element, Parent, Properties } from 'hast-util-to-html/lib/types'
 import { toHtml } from 'hast-util-to-html'
 import { h } from 'hastscript'
 import { ExpressiveCodeLine } from '../src/common/line'
-import { renderLineToAst, splitLineAtAnnotationBoundaries } from '../src/internal/rendering'
+import { renderLineToAst, splitLineAtAnnotationBoundaries } from '../src/internal/render-line'
 import { annotateMatchingTextParts, getAnnotatedTextParts, nonArrayValues, nonObjectValues, testRender } from './utils'
 
 describe('splitLineAtAnnotationBoundaries()', () => {
@@ -30,21 +30,21 @@ describe('splitLineAtAnnotationBoundaries()', () => {
 	describe('Single annotation', () => {
 		test('Line starting with an annotation', () => {
 			const line = new ExpressiveCodeLine(testText)
-			annotateMatchingTextParts(line, ['Nothing'])
+			annotateMatchingTextParts({ line, partsToAnnotate: ['Nothing'] })
 			const actual = splitLineAtAnnotationBoundaries(line)
 			expect(actual.textParts).toMatchObject(['Nothing', ' to see here!'])
 			expectPartsToMatchAnnotationText(line, actual)
 		})
 		test('Line ending with an annotation', () => {
 			const line = new ExpressiveCodeLine(testText)
-			annotateMatchingTextParts(line, ['here!'])
+			annotateMatchingTextParts({ line, partsToAnnotate: ['here!'] })
 			const actual = splitLineAtAnnotationBoundaries(line)
 			expect(actual.textParts).toMatchObject(['Nothing to see ', 'here!'])
 			expectPartsToMatchAnnotationText(line, actual)
 		})
 		test('Annotation covering the entire text', () => {
 			const line = new ExpressiveCodeLine(testText)
-			annotateMatchingTextParts(line, [testText])
+			annotateMatchingTextParts({ line, partsToAnnotate: [testText] })
 			const actual = splitLineAtAnnotationBoundaries(line)
 			expect(actual.textParts).toMatchObject([testText])
 			expectPartsToMatchAnnotationText(line, actual)
@@ -54,14 +54,14 @@ describe('splitLineAtAnnotationBoundaries()', () => {
 	describe('Multiple non-intersecting annotations', () => {
 		test('Line starting and ending with an annotation', () => {
 			const line = new ExpressiveCodeLine(testText)
-			annotateMatchingTextParts(line, ['Nothing ', ' here!'])
+			annotateMatchingTextParts({ line, partsToAnnotate: ['Nothing ', ' here!'] })
 			const actual = splitLineAtAnnotationBoundaries(line)
 			expect(actual.textParts).toMatchObject(['Nothing ', 'to see', ' here!'])
 			expectPartsToMatchAnnotationText(line, actual)
 		})
 		test('Annotations touching at their boundaries', () => {
 			const line = new ExpressiveCodeLine(testText)
-			annotateMatchingTextParts(line, ['to ', 'see here'])
+			annotateMatchingTextParts({ line, partsToAnnotate: ['to ', 'see here'] })
 			const actual = splitLineAtAnnotationBoundaries(line)
 			expect(actual.textParts).toMatchObject(['Nothing ', 'to ', 'see here', '!'])
 			expectPartsToMatchAnnotationText(line, actual)
@@ -71,28 +71,28 @@ describe('splitLineAtAnnotationBoundaries()', () => {
 	describe('Intersecting annotations', () => {
 		test('Two annotations with matching boundaries', () => {
 			const line = new ExpressiveCodeLine(testText)
-			annotateMatchingTextParts(line, ['see', 'see'])
+			annotateMatchingTextParts({ line, partsToAnnotate: ['see', 'see'] })
 			const actual = splitLineAtAnnotationBoundaries(line)
 			expect(actual.textParts).toMatchObject(['Nothing to ', 'see', ' here!'])
 			expectPartsToMatchAnnotationText(line, actual)
 		})
 		test('Two annotations where the second is fully contained in the first', () => {
 			const line = new ExpressiveCodeLine(testText)
-			annotateMatchingTextParts(line, ['to see here', 'see'])
+			annotateMatchingTextParts({ line, partsToAnnotate: ['to see here', 'see'] })
 			const actual = splitLineAtAnnotationBoundaries(line)
 			expect(actual.textParts).toMatchObject(['Nothing ', 'to ', 'see', ' here', '!'])
 			expectPartsToMatchAnnotationText(line, actual)
 		})
 		test('Two annotations where the first is fully contained in the second', () => {
 			const line = new ExpressiveCodeLine(testText)
-			annotateMatchingTextParts(line, ['see', 'to see here'])
+			annotateMatchingTextParts({ line, partsToAnnotate: ['see', 'to see here'] })
 			const actual = splitLineAtAnnotationBoundaries(line)
 			expect(actual.textParts).toMatchObject(['Nothing ', 'to ', 'see', ' here', '!'])
 			expectPartsToMatchAnnotationText(line, actual)
 		})
 		test('Two partially intersecting annotations', () => {
 			const line = new ExpressiveCodeLine(testText)
-			annotateMatchingTextParts(line, ['to see', 'see here'])
+			annotateMatchingTextParts({ line, partsToAnnotate: ['to see', 'see here'] })
 			const actual = splitLineAtAnnotationBoundaries(line)
 			expect(actual.textParts).toMatchObject(['Nothing ', 'to ', 'see', ' here', '!'])
 			expectPartsToMatchAnnotationText(line, actual)
@@ -101,21 +101,23 @@ describe('splitLineAtAnnotationBoundaries()', () => {
 
 	test('Everything combined', () => {
 		const line = new ExpressiveCodeLine(testText)
-		annotateMatchingTextParts(line, [
-			// Touching at boundaries
-			'to ',
-			'see here',
-			// Fully contained
-			'to see here',
-			'see',
-			// Full line
-			testText,
-			// Partially intersecting
-			'to see',
-			'see here',
-			// Matching boundaries (by repeating a part already added before)
-			'see',
-		])
+		annotateMatchingTextParts({
+			line,
+			partsToAnnotate: [
+				'to ',
+				'see here',
+				// Fully contained
+				'to see here',
+				'see',
+				// Full line
+				testText,
+				// Partially intersecting
+				'to see',
+				'see here',
+				// Matching boundaries (by repeating a part already added before)
+				'see',
+			],
+		})
 		const actual = splitLineAtAnnotationBoundaries(line)
 		expect(actual.textParts).toMatchObject(['Nothing ', 'to ', 'see', ' here', '!'])
 		expectPartsToMatchAnnotationText(line, actual)
@@ -177,12 +179,12 @@ describe('renderLineToAst()', () => {
 	describe('Simple inline annotations', () => {
 		test('Line starting with an annotation', () => {
 			const line = new ExpressiveCodeLine(testText)
-			annotateMatchingTextParts(line, ['Wow'])
+			annotateMatchingTextParts({ line, partsToAnnotate: ['Wow'] })
 			expect(renderLineToHtml(line)).toEqual('<div><0>Wow</0>, I am rendered!</div>')
 		})
 		test('Line ending with an annotation', () => {
 			const line = new ExpressiveCodeLine(testText)
-			annotateMatchingTextParts(line, ['rendered!'])
+			annotateMatchingTextParts({ line, partsToAnnotate: ['rendered!'] })
 			expect(renderLineToHtml(line)).toEqual('<div>Wow, I am <0>rendered!</0></div>')
 		})
 	})
@@ -228,7 +230,7 @@ describe('renderLineToAst()', () => {
 				return nodesToTransform
 			},
 		})
-		annotateMatchingTextParts(line, ['rendered', 'I am rendered!'])
+		annotateMatchingTextParts({ line, partsToAnnotate: ['rendered', 'I am rendered!'] })
 		line.addAnnotation({
 			name: 'mark',
 			render: ({ nodesToTransform }) => {
@@ -242,7 +244,7 @@ describe('renderLineToAst()', () => {
 	describe('Multiple non-intersecting annotations', () => {
 		test('Line starting and ending with an annotation', () => {
 			const line = new ExpressiveCodeLine(testText)
-			annotateMatchingTextParts(line, ['Wow', 'rendered!'])
+			annotateMatchingTextParts({ line, partsToAnnotate: ['Wow', 'rendered!'] })
 			expect(renderLineToHtml(line)).toEqual('<div><0>Wow</0>, I am <1>rendered!</1></div>')
 		})
 	})
@@ -250,27 +252,27 @@ describe('renderLineToAst()', () => {
 	describe('Intersecting annotations', () => {
 		test('Two annotations with matching boundaries', () => {
 			const line = new ExpressiveCodeLine(testText)
-			annotateMatchingTextParts(line, ['rendered', 'rendered'])
+			annotateMatchingTextParts({ line, partsToAnnotate: ['rendered', 'rendered'] })
 			expect(renderLineToHtml(line)).toEqual('<div>Wow, I am <1><0>rendered</0></1>!</div>')
 		})
 		test('Two annotations where the second is fully contained in the first', () => {
 			const line = new ExpressiveCodeLine(testText)
-			annotateMatchingTextParts(line, ['I am rendered', 'am'])
+			annotateMatchingTextParts({ line, partsToAnnotate: ['I am rendered', 'am'] })
 			expect(renderLineToHtml(line)).toEqual('<div>Wow, <0>I </0><1><0>am</0></1><0> rendered</0>!</div>')
 		})
 		test('Two annotations where the first is fully contained in the second', () => {
 			const line = new ExpressiveCodeLine(testText)
-			annotateMatchingTextParts(line, ['am', 'I am rendered'])
+			annotateMatchingTextParts({ line, partsToAnnotate: ['am', 'I am rendered'] })
 			expect(renderLineToHtml(line)).toEqual('<div>Wow, <1>I <0>am</0> rendered</1>!</div>')
 		})
 		test('Two partially intersecting annotations', () => {
 			const line = new ExpressiveCodeLine(testText)
-			annotateMatchingTextParts(line, ['Wow, I am', 'I am rendered!'])
+			annotateMatchingTextParts({ line, partsToAnnotate: ['Wow, I am', 'I am rendered!'] })
 			expect(renderLineToHtml(line)).toEqual('<div><0>Wow, </0><1><0>I am</0> rendered!</1></div>')
 		})
 		test('Three annotations where part indices must move after merging', () => {
 			const line = new ExpressiveCodeLine(testText)
-			annotateMatchingTextParts(line, ['am', 'I am rendered', '!'])
+			annotateMatchingTextParts({ line, partsToAnnotate: ['am', 'I am rendered', '!'] })
 			expect(renderLineToHtml(line)).toEqual('<div>Wow, <1>I <0>am</0> rendered</1><2>!</2></div>')
 		})
 	})
@@ -278,14 +280,14 @@ describe('renderLineToAst()', () => {
 	describe('Respects render phases', () => {
 		test('Annotation #0 with phase "latest" is rendered after #1 with "normal"', () => {
 			const line = new ExpressiveCodeLine(testText)
-			annotateMatchingTextParts(line, ['I am rendered'], 'latest')
-			annotateMatchingTextParts(line, ['am'])
+			annotateMatchingTextParts({ line, partsToAnnotate: ['I am rendered'], renderPhase: 'latest' })
+			annotateMatchingTextParts({ line, partsToAnnotate: ['am'] })
 			expect(renderLineToHtml(line)).toEqual('<div>Wow, <0>I <1>am</1> rendered</0>!</div>')
 		})
 		test('Annotation #0 with phase "normal" is rendered after #1 with "earlier"', () => {
 			const line = new ExpressiveCodeLine(testText)
-			annotateMatchingTextParts(line, ['I am rendered'])
-			annotateMatchingTextParts(line, ['am'], 'earlier')
+			annotateMatchingTextParts({ line, partsToAnnotate: ['I am rendered'] })
+			annotateMatchingTextParts({ line, partsToAnnotate: ['am'], renderPhase: 'earlier' })
 			expect(renderLineToHtml(line)).toEqual('<div>Wow, <0>I <1>am</1> rendered</0>!</div>')
 		})
 	})

@@ -1,4 +1,4 @@
-import { Parent, Element } from 'hast-util-to-html/lib/types'
+import { Parent } from 'hast-util-to-html/lib/types'
 import { h } from 'hastscript'
 import { ExpressiveCodeLine } from '../common/line'
 import { annotationSortFn, ExpressiveCodeAnnotation } from '../common/annotation'
@@ -143,14 +143,6 @@ export function renderLineToAst(line: ExpressiveCodeLine) {
 	})
 
 	return lineNode
-}
-
-export function buildCodeBlockAstFromRenderedLines(renderedLines: Element[]) {
-	return h('pre.expressive-code', h('code', renderedLines))
-}
-
-export function buildGroupAstFromRenderedBlocks(renderedBlocks: Element[]): Parent {
-	return h(null, renderedBlocks)
 }
 
 function validateAnnotationRenderOutput(nodes: Parent[], expectedLength: number) {

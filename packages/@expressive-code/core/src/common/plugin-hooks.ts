@@ -1,0 +1,165 @@
+import { Element, Parent } from 'hast-util-to-html/lib/types'
+import { GroupContents, RenderedGroupContents } from '../internal/render-group'
+import { ExpressiveCodeBlock } from './block'
+import { ExpressiveCodeLine } from './line'
+import { ExpressiveCodePlugin } from './plugin'
+
+export interface ExpressiveCodeHookContext {
+	codeBlock: ExpressiveCodeBlock
+	groupContents: GroupContents
+	/**
+	 * Adds CSS styles to the document that contains the rendered code.
+	 *
+	 * The engine's `process` function returns all added styles in a string array along with
+	 * the rendered group and block ASTs. The calling code must take care of actually adding
+	 * these styles to the page. For example, it could insert them into a `<style>` element
+	 * before the rendered code block.
+	 *
+	 * **Note for integration authors:** If you are rendering multiple code block groups on the
+	 * same HTML page, you should deduplicate the returned styles at the page level.
+	 * Expressive Code deduplicates styles added to the same group before returning them,
+	 * but is not aware which styles are already present on the page.
+	 *
+	 * **Note for plugin authors:** It is recommended to add styles on demand when they are
+	 * actually used by a code block, instead of adding the same styles to every block by default.
+	 * If your plugin supports multiple different annotations or styles, consider splitting your
+	 * CSS into multiple sets of styles and only add the ones that are actually needed by a block.
+	 */
+	addStyles: (css: string) => void
+}
+
+export interface PostprocessRenderedLineContext extends ExpressiveCodeHookContext {
+	line: ExpressiveCodeLine
+	lineIndex: number
+	renderData: {
+		lineAst: Element
+	}
+}
+
+export interface PostprocessRenderedBlockContext extends ExpressiveCodeHookContext {
+	renderData: {
+		blockAst: Element
+	}
+}
+
+export interface PostprocessRenderedBlockGroupContext {
+	renderedGroupContents: RenderedGroupContents
+	styles: Set<string>
+	addStyles: (css: string) => void
+	renderData: {
+		groupAst: Parent
+	}
+}
+
+export type ExpressiveCodeHook<ContextType = ExpressiveCodeHookContext> = (context: ContextType) => void
+
+export interface ExpressiveCodePluginHooks_BeforeRendering {
+	/**
+	 * Allows preprocessing the meta string and the language before any plugins can
+	 * modify the code.
+	 *
+	 * Plugins are expected to use this hook to remove any of their syntax from the meta string.
+	 * Removed information can either be stored internally or used to create annotations.
+	 *
+	 * As the code still matches the plaintext in the containing Markdown/MDX document at this
+	 * point, this hook can be used to apply annotations by line numbers.
+	 */
+	preprocessMetadata?: ExpressiveCodeHook
+
+	/**
+	 * Allows preprocessing the code before any language-specific hooks are run.
+	 *
+	 * Plugins are expected to use this hook to remove any of their syntax that could disturb
+	 * annotation plugins like syntax highlighters. Removed information can either be stored
+	 * internally or used to create annotations.
+	 *
+	 * Plugins can also use this hook to insert new code, e.g. to add type information for
+	 * syntax highlighters, or to provide functionality to include external files into the
+	 * code block.
+	 */
+	preprocessCode?: ExpressiveCodeHook
+
+	/**
+	 * Allows analyzing the preprocessed code and collecting language-specific syntax annotations.
+	 *
+	 * This hook is used by syntax highlighting plugins to run the code through `Shiki` or
+	 * `Shiki-Twoslash` and to create annotations from their highlighted tokens.
+	 *
+	 * These annotations are then available to the following hooks and will be used during
+	 * rendering.
+	 */
+	performSyntaxAnalysis?: ExpressiveCodeHook
+
+	/**
+	 * Allows postprocessing the code plaintext after collecting syntax annotations.
+	 *
+	 * Plugins are expected to use this hook to remove any parts from the code
+	 * that should not be contained in the output. For example, if a plugin added declarations
+	 * or type information during the `preprocessCode` hook to provide information to the
+	 * syntax highlighter, the declarations could now be removed again.
+	 *
+	 * After this hook has finished processing, the plaintext of all code lines becomes read-only.
+	 */
+	postprocessAnalyzedCode?: ExpressiveCodeHook
+
+	/**
+	 * Allows annotating the final code plaintext.
+	 *
+	 * As the code is read-only at this point, plugins can use this hook to create annotations
+	 * on lines or inline ranges matching a specific search term.
+	 */
+	annotateCode?: ExpressiveCodeHook
+
+	/**
+	 * Allows applying final changes to annotations before rendering.
+	 *
+	 * After this hook has finished processing, all annotations become read-only.
+	 */
+	postprocessAnnotations?: ExpressiveCodeHook
+}
+
+export interface ExpressiveCodePluginHooks_Rendering {
+	/**
+	 * Allows editing the AST of a single line of code after all annotations were rendered.
+	 */
+	postprocessRenderedLine?: ExpressiveCodeHook<PostprocessRenderedLineContext>
+
+	/**
+	 * Allows editing the AST of the entire code block after all annotations were rendered
+	 * and all lines were postprocessed.
+	 */
+	postprocessRenderedBlock?: ExpressiveCodeHook<PostprocessRenderedBlockContext>
+
+	/**
+	 * Allows editing the ASTs of all code blocks that were rendered as part of the same group,
+	 * as well as the AST of the group root element that contains all group blocks.
+	 *
+	 * Groups are defined by the calling code. For example, a Remark plugin using Expressive Code
+	 * to render code blocks could provide authors with a way to group related code blocks together.
+	 *
+	 * This hook is used by the frames plugin to display multiple code blocks as editor file tabs.
+	 *
+	 * Note: Even if a code block is not part of any group, this hook will still be called.
+	 * Standalone code blocks are treated like a group containing only a single block.
+	 */
+	postprocessRenderedBlockGroup?: ExpressiveCodeHook<PostprocessRenderedBlockGroupContext>
+}
+
+export interface ExpressiveCodePluginHooks extends ExpressiveCodePluginHooks_BeforeRendering, ExpressiveCodePluginHooks_Rendering {}
+
+export type ExpressiveCodePluginHookName = keyof ExpressiveCodePluginHooks
+
+/**
+ * Returns an array of hooks that were registered by plugins for the given hook type.
+ *
+ * Each hook is returned as an object containing the plugin that registered it,
+ * the hook function itself, and a context object that contains functions that should
+ * be available to the plugin when the hook is called.
+ */
+export function getHooks<HookType extends keyof ExpressiveCodePluginHooks>(key: HookType, plugins: ExpressiveCodePlugin[]) {
+	return plugins.flatMap((plugin) => {
+		const hookFn = plugin.hooks[key]
+		if (!hookFn) return []
+		return [{ hookFn, plugin }]
+	})
+}

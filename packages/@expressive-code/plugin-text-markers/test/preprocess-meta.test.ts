@@ -52,7 +52,7 @@ const expectMetaResult = (input: string, partialExpectedResult: ExpectedTextMark
 	}
 
 	// Create an Expressive Code instance with our plugin
-	// and use it to process the test code
+	// and use it to render the test code
 	const ec = new ExpressiveCode({
 		plugins: [textMarkers()],
 	})
@@ -61,9 +61,9 @@ const expectMetaResult = (input: string, partialExpectedResult: ExpectedTextMark
 		language: 'astro',
 		meta: input,
 	}
-	const { groupContents } = ec.process(data)
-	expect(groupContents).toHaveLength(1)
-	const codeBlock = groupContents[0].codeBlock
+	const { renderedGroupContents } = ec.render(data)
+	expect(renderedGroupContents).toHaveLength(1)
+	const codeBlock = renderedGroupContents[0].codeBlock
 
 	// Collect all applied full-line text marker annotations in the form expected by the test cases
 	const lineMarkings: { markerType: MarkerType; lines: number[] }[] = []

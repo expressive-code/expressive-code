@@ -409,7 +409,7 @@ function getAnnotatedTextPartsAfterEdit(partsToAnnotate: string[]) {
 	const line = new ExpressiveCodeLine('one-two-three-four-five-six-seven-eight-nine-ten')
 
 	// Create annotations for all the given parts
-	annotateMatchingTextParts(line, partsToAnnotate)
+	annotateMatchingTextParts({ line, partsToAnnotate })
 
 	// Check that the parts were annotated correctly
 	expect(getAnnotatedTextParts(line)).toMatchObject(partsToAnnotate)

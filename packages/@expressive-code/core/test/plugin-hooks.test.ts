@@ -1,0 +1,424 @@
+import { describe, expect, test } from 'vitest'
+import { Element } from 'hast-util-to-html/lib/types'
+import { sanitize } from 'hast-util-sanitize'
+import { toHtml } from 'hast-util-to-html'
+import { h } from 'hastscript'
+import { defaultBlockOptions, expectToWorkOrThrow, getHookTestResult, getMultiHookTestResult, getMultiPluginTestResult, nonObjectValues, testRender } from './utils'
+import { ExpressiveCodePluginHookName } from '../src/common/plugin-hooks'
+import { ExpressiveCodeProcessingState } from '../src/internal/render-block'
+
+describe('Block-level hooks are called with the correct processing state', () => {
+	const baseState: ExpressiveCodeProcessingState = {
+		canEditMetadata: true,
+		canEditCode: true,
+		canEditAnnotations: true,
+	}
+	const readonlyState: ExpressiveCodeProcessingState = {
+		canEditMetadata: false,
+		canEditCode: false,
+		canEditAnnotations: false,
+	}
+	const testCases: [ExpressiveCodePluginHookName, number, ExpressiveCodeProcessingState][] = [
+		['preprocessMetadata', 1, { ...baseState, canEditCode: false }],
+		['preprocessCode', 1, baseState],
+		['performSyntaxAnalysis', 1, baseState],
+		['postprocessAnalyzedCode', 1, baseState],
+		['annotateCode', 1, { ...baseState, canEditCode: false }],
+		['postprocessAnnotations', 1, { ...baseState, canEditCode: false }],
+		['postprocessRenderedLine', 2, { ...readonlyState }],
+		['postprocessRenderedBlock', 1, { ...readonlyState }],
+	]
+	test.each(testCases)('%s', (hookName, expectedCallCount, state) => {
+		// Ensure that the code block's state property contains the expected data
+		let actualCallCount = 0
+		getHookTestResult(hookName, ({ codeBlock }) => {
+			expect(codeBlock.state).toEqual(state)
+			actualCallCount++
+		})
+
+		// Expect the hook to have been called the expected number of times
+		expect(actualCallCount).toEqual(expectedCallCount)
+
+		// Perform edits of all properties to ensure they work or throw as expected
+		expectToWorkOrThrow(state.canEditMetadata, () => testEditingProperty(hookName, 'meta'))
+		expectToWorkOrThrow(state.canEditMetadata, () => testEditingProperty(hookName, 'language'))
+		expectToWorkOrThrow(state.canEditAnnotations, () => testAddingAnnotation(hookName))
+		expectToWorkOrThrow(state.canEditCode, () => testEditingCode(hookName))
+	})
+})
+
+describe('Rendering hooks allow post-processing ASTs', () => {
+	describe('postprocessRenderedLine', () => {
+		test('Can edit line AST', () => {
+			let totalHookCalls = 0
+			const { renderedBlockAst } = getMultiHookTestResult({
+				hooks: {
+					postprocessRenderedLine: ({ renderData }) => {
+						totalHookCalls++
+						if (!renderData.lineAst.properties) renderData.lineAst.properties = {}
+						renderData.lineAst.properties.test = totalHookCalls
+					},
+				},
+			})
+			expect(totalHookCalls).toEqual(2)
+			const html = toHtml(sanitize(renderedBlockAst, { attributes: { '*': ['test'] } }))
+			expect(html).toEqual('<pre><code><div test="1">Example code...</div><div test="2">...with two lines!</div></code></pre>')
+		})
+		test('Can completely replace line AST', () => {
+			let totalHookCalls = 0
+			const { renderedBlockAst } = getMultiHookTestResult({
+				hooks: {
+					postprocessRenderedLine: ({ renderData }) => {
+						totalHookCalls++
+						renderData.lineAst = h('div', { test: totalHookCalls }, 'Replaced line')
+					},
+				},
+			})
+			expect(totalHookCalls).toEqual(2)
+			const html = toHtml(sanitize(renderedBlockAst, { attributes: { '*': ['test'] } }))
+			expect(html).toEqual('<pre><code><div test="1">Replaced line</div><div test="2">Replaced line</div></code></pre>')
+		})
+		test('Throws on invalid replacement ASTs', () => {
+			const invalidAsts: unknown[] = [
+				// Non-object values
+				...nonObjectValues,
+				// Empty object
+				{},
+				// Objects that are not valid hast Elements
+				{ type: null },
+				{ type: 'invalid' },
+				{ type: 'doctype' },
+				{ type: 'comment' },
+				{ type: 'text' },
+				// This is a valid hast Parent, but not an Element,
+				// so it's not allowed at the line level
+				{ type: 'root' },
+			]
+			invalidAsts.forEach((invalidAst) => {
+				expect(() => {
+					getMultiHookTestResult({
+						hooks: {
+							postprocessRenderedLine: ({ renderData }) => {
+								// @ts-expect-error Intentionally setting an invalid AST
+								renderData.lineAst = invalidAst
+							},
+						},
+					})
+				}, `Did not throw when hook replaced lineAst with ${JSON.stringify(invalidAst)}`).toThrow()
+			})
+		})
+		test('Subsequent hooks see line edits/replacements', () => {
+			let totalHookCalls = 0
+			const { renderedBlockAst } = getMultiPluginTestResult({
+				plugins: [
+					{
+						name: 'EditLinePlugin',
+						hooks: {
+							postprocessRenderedLine: ({ renderData }) => {
+								totalHookCalls++
+								if (!renderData.lineAst.properties) renderData.lineAst.properties = {}
+								renderData.lineAst.properties.test = totalHookCalls
+							},
+						},
+					},
+					{
+						name: 'WrapLinePlugin',
+						hooks: {
+							postprocessRenderedLine: ({ renderData }) => {
+								totalHookCalls++
+								renderData.lineAst = h('a', { href: `#${totalHookCalls}` }, renderData.lineAst)
+							},
+						},
+					},
+					{
+						name: 'EditWrappedLinePlugin',
+						hooks: {
+							postprocessRenderedLine: ({ renderData }) => {
+								totalHookCalls++
+								if (!renderData.lineAst.properties) renderData.lineAst.properties = {}
+								renderData.lineAst.properties.edited = totalHookCalls
+							},
+						},
+					},
+				],
+			})
+			expect(totalHookCalls).toEqual(6)
+			const html = toHtml(sanitize(renderedBlockAst, { attributes: { '*': ['test', 'edited'], a: ['href'] } }))
+			expect(html).toEqual(
+				[
+					`<pre><code>`,
+					`<a href="#2" edited="3"><div test="1">Example code...</div></a>`,
+					`<a href="#5" edited="6"><div test="4">...with two lines!</div></a>`,
+					`</code></pre>`,
+				].join('')
+			)
+		})
+	})
+	describe('postprocessRenderedBlock', () => {
+		test('Can edit block AST', () => {
+			let totalHookCalls = 0
+			const { renderedBlockAst } = getMultiHookTestResult({
+				hooks: {
+					postprocessRenderedBlock: ({ renderData }) => {
+						totalHookCalls++
+						if (!renderData.blockAst.properties) renderData.blockAst.properties = {}
+						renderData.blockAst.properties.test = totalHookCalls
+					},
+				},
+			})
+			expect(totalHookCalls).toEqual(1)
+			const html = toHtml(sanitize(renderedBlockAst, { attributes: { '*': ['test'] } }))
+			expect(html).toEqual('<pre test="1"><code><div>Example code...</div><div>...with two lines!</div></code></pre>')
+		})
+		test('Can completely replace block AST', () => {
+			let totalHookCalls = 0
+			const { renderedBlockAst } = getMultiHookTestResult({
+				hooks: {
+					postprocessRenderedBlock: ({ renderData }) => {
+						totalHookCalls++
+						// Replace block with a div
+						renderData.blockAst = h('div', { test: totalHookCalls }, 'I am completely different now!')
+					},
+				},
+			})
+			expect(totalHookCalls).toEqual(1)
+			const html = toHtml(sanitize(renderedBlockAst, { attributes: { '*': ['test'] } }))
+			expect(html).toEqual('<div test="1">I am completely different now!</div>')
+		})
+		test('Throws on invalid replacement ASTs', () => {
+			const invalidAsts: unknown[] = [
+				// Non-object values
+				...nonObjectValues,
+				// Empty object
+				{},
+				// Objects that are not valid hast elements
+				{ type: null },
+				{ type: 'invalid' },
+				{ type: 'doctype' },
+				{ type: 'comment' },
+				{ type: 'text' },
+				// Note that "root" is a valid hast Parent, so it's allowed here
+			]
+			invalidAsts.forEach((invalidAst) => {
+				expect(() => {
+					getMultiHookTestResult({
+						hooks: {
+							postprocessRenderedBlock: ({ renderData }) => {
+								// @ts-expect-error Intentionally setting an invalid AST
+								renderData.blockAst = invalidAst
+							},
+						},
+					})
+				}, `Did not throw when hook replaced blockAst with ${JSON.stringify(invalidAst)}`).toThrow()
+			})
+		})
+		test('Subsequent hooks see block edits/replacements', () => {
+			let totalHookCalls = 0
+			const { renderedBlockAst } = getMultiPluginTestResult({
+				plugins: [
+					{
+						name: 'EditBlockPlugin',
+						hooks: {
+							postprocessRenderedBlock: ({ renderData }) => {
+								totalHookCalls++
+								if (!renderData.blockAst.properties) renderData.blockAst.properties = {}
+								renderData.blockAst.properties.test = totalHookCalls
+							},
+						},
+					},
+					{
+						name: 'WrapBlockPlugin',
+						hooks: {
+							postprocessRenderedBlock: ({ renderData }) => {
+								totalHookCalls++
+								renderData.blockAst = h('div', { test: totalHookCalls }, renderData.blockAst)
+							},
+						},
+					},
+					{
+						name: 'EditWrappedBlockPlugin',
+						hooks: {
+							postprocessRenderedBlock: ({ renderData }) => {
+								totalHookCalls++
+								if (!renderData.blockAst.properties) renderData.blockAst.properties = {}
+								renderData.blockAst.properties.edited = totalHookCalls
+							},
+						},
+					},
+				],
+			})
+			expect(totalHookCalls).toEqual(3)
+			const html = toHtml(sanitize(renderedBlockAst, { attributes: { '*': ['test', 'edited'], a: ['href'] } }))
+			expect(html).toEqual('<div test="2" edited="3"><pre test="1"><code><div>Example code...</div><div>...with two lines!</div></code></pre></div>')
+		})
+	})
+	describe('postprocessRenderedBlockGroup', () => {
+		test('Can edit group AST when rendering a single block', () => {
+			let totalHookCalls = 0
+			const { renderedGroupAst } = getMultiHookTestResult({
+				hooks: {
+					postprocessRenderedBlockGroup: ({ renderData }) => {
+						totalHookCalls++
+						// Wrap first child block in a figure
+						renderData.groupAst.children[0] = h('figure', renderData.groupAst.children[0])
+					},
+				},
+			})
+			expect(totalHookCalls).toEqual(1)
+			const html = toHtml(sanitize(renderedGroupAst, { attributes: { '*': ['test'] } }))
+			expect(html).toEqual('<figure><pre><code><div>Example code...</div><div>...with two lines!</div></code></pre></figure>')
+		})
+		test('Can edit group AST when rendering multiple blocks', () => {
+			let totalHookCalls = 0
+			const { renderedGroupAst } = getMultiHookTestResult({
+				input: [defaultBlockOptions, { ...defaultBlockOptions, code: 'Just one line here!' }],
+				hooks: {
+					postprocessRenderedBlockGroup: ({ renderData }) => {
+						totalHookCalls++
+						// Wrap each child in a figure
+						renderData.groupAst.children.forEach((child, childIndex) => {
+							renderData.groupAst.children[childIndex] = h('figure', child)
+						})
+					},
+				},
+			})
+			expect(totalHookCalls).toEqual(1)
+			const html = toHtml(sanitize(renderedGroupAst, { attributes: { '*': ['test'] } }))
+			expect(html).toEqual(
+				[
+					'<figure>',
+					'<pre><code><div>Example code...</div><div>...with two lines!</div></code></pre>',
+					'</figure>',
+					'<figure>',
+					'<pre><code><div>Just one line here!</div></code></pre>',
+					'</figure>',
+				].join('')
+			)
+		})
+		test('Cannot replace individual block AST objects', () => {
+			expect(() => {
+				getMultiHookTestResult({
+					hooks: {
+						postprocessRenderedBlockGroup: ({ renderedGroupContents }) => {
+							// @ts-expect-error Try to modify readonly array
+							// eslint-disable-next-line @typescript-eslint/no-unsafe-call
+							renderedGroupContents.splice(0, 1, h('div', 'This does not work'))
+						},
+					},
+				})
+			}).toThrow()
+		})
+		test('Can completely replace group AST', () => {
+			let totalHookCalls = 0
+			const { renderedGroupAst } = getMultiHookTestResult({
+				hooks: {
+					postprocessRenderedBlockGroup: ({ renderData }) => {
+						totalHookCalls++
+						// Replace group with a version wrapped in a details element
+						renderData.groupAst = h('details', { test: totalHookCalls }, renderData.groupAst)
+					},
+				},
+			})
+			expect(totalHookCalls).toEqual(1)
+			const html = toHtml(sanitize(renderedGroupAst, { attributes: { '*': ['test'] } }))
+			expect(html).toEqual('<details test="1"><pre><code><div>Example code...</div><div>...with two lines!</div></code></pre></details>')
+		})
+		test('Throws on invalid replacement ASTs', () => {
+			const invalidAsts: unknown[] = [
+				// Non-object values
+				...nonObjectValues,
+				// Empty object
+				{},
+				// Objects that are not valid hast elements
+				{ type: null },
+				{ type: 'invalid' },
+				{ type: 'doctype' },
+				{ type: 'comment' },
+				{ type: 'text' },
+				// Types "element" and "root" are hast Parents, so they are allowed here
+			]
+			invalidAsts.forEach((invalidAst) => {
+				expect(() => {
+					getMultiHookTestResult({
+						hooks: {
+							postprocessRenderedBlockGroup: ({ renderData }) => {
+								// @ts-expect-error Intentionally setting an invalid AST
+								renderData.groupAst = invalidAst
+							},
+						},
+					})
+				}, `Did not throw when hook replaced groupAst with ${JSON.stringify(invalidAst)}`).toThrow()
+			})
+		})
+		test('Subsequent hooks see group edits/replacements', () => {
+			let totalHookCalls = 0
+			const { renderedGroupAst } = getMultiPluginTestResult({
+				plugins: [
+					{
+						name: 'EditGroupPlugin',
+						hooks: {
+							postprocessRenderedBlockGroup: ({ renderData }) => {
+								totalHookCalls++
+								// Wrap first child block in a figure
+								renderData.groupAst.children[0] = h('figure', { test: totalHookCalls }, renderData.groupAst.children[0])
+							},
+						},
+					},
+					{
+						name: 'WrapGroupPlugin',
+						hooks: {
+							postprocessRenderedBlockGroup: ({ renderData }) => {
+								totalHookCalls++
+								// Replace group with a version wrapped in root > details
+								renderData.groupAst = h(null, h('details', { test: totalHookCalls }, renderData.groupAst))
+							},
+						},
+					},
+					{
+						name: 'EditWrappedGroupPlugin',
+						hooks: {
+							postprocessRenderedBlockGroup: ({ renderData }) => {
+								totalHookCalls++
+								// Set edited property on details element
+								const details = renderData.groupAst.children[0] as Element
+								details.properties!.edited = totalHookCalls
+							},
+						},
+					},
+				],
+			})
+			expect(totalHookCalls).toEqual(3)
+			const html = toHtml(sanitize(renderedGroupAst, { attributes: { '*': ['test', 'edited'], a: ['href'] } }))
+			expect(html).toEqual(
+				['<details test="2" edited="3">', '<figure test="1">', '<pre><code><div>Example code...</div><div>...with two lines!</div></code></pre>', '</figure>', '</details>'].join(
+					''
+				)
+			)
+		})
+	})
+})
+
+function testEditingProperty(hookName: ExpressiveCodePluginHookName, propertyName: 'meta' | 'language') {
+	const { codeBlock, input } = getHookTestResult(hookName, ({ codeBlock }) => {
+		codeBlock[propertyName] = `wrapped(${codeBlock[propertyName]})`
+	})
+	expect(codeBlock[propertyName]).toEqual(`wrapped(${input[0][propertyName]})`)
+}
+
+function testAddingAnnotation(hookName: ExpressiveCodePluginHookName) {
+	const testAnnotation = {
+		name: 'del',
+		render: testRender,
+	}
+	const { codeBlock } = getHookTestResult(hookName, ({ codeBlock }) => {
+		codeBlock.getLine(0)?.addAnnotation(testAnnotation)
+	})
+	expect(codeBlock.getLine(0)?.getAnnotations()).toMatchObject([testAnnotation])
+}
+
+function testEditingCode(hookName: ExpressiveCodePluginHookName) {
+	const { codeBlock, input } = getHookTestResult(hookName, ({ codeBlock }) => {
+		codeBlock.insertLine(0, 'Prepended line')
+	})
+	expect(codeBlock.code).toEqual('Prepended line\n' + input[0].code)
+}

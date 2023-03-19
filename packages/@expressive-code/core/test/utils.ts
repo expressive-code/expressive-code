@@ -2,6 +2,10 @@ import { expect } from 'vitest'
 import { h } from 'hastscript'
 import { AnnotationRenderOptions, AnnotationRenderPhase, ExpressiveCodeAnnotation } from '../src/common/annotation'
 import { ExpressiveCodeLine } from '../src/common/line'
+import { ExpressiveCodeBlockOptions } from '../src/common/block'
+import { ExpressiveCode } from '../src/common/engine'
+import { ExpressiveCodePlugin } from '../src/common/plugin'
+import { ExpressiveCodePluginHookName, ExpressiveCodeHook, ExpressiveCodePluginHooks } from '../src/common/plugin-hooks'
 
 const nothings = [undefined, null, NaN]
 const booleans = [true, false]
@@ -18,7 +22,17 @@ export function expectToWorkOrThrow(shouldWork: boolean, testFunc: () => void) {
 	return expect(testFunc).toThrow()
 }
 
-export function annotateMatchingTextParts(line: ExpressiveCodeLine, partsToAnnotate: string[], renderPhase?: AnnotationRenderPhase) {
+export function annotateMatchingTextParts({
+	line,
+	partsToAnnotate,
+	renderPhase,
+	selector,
+}: {
+	line: ExpressiveCodeLine
+	partsToAnnotate: string[]
+	renderPhase?: AnnotationRenderPhase
+	selector?: string
+}) {
 	// Create annotations for all the given parts
 	partsToAnnotate.forEach((partToAnnotate) => {
 		// For testing purposes, we only annotate the first match per part
@@ -27,8 +41,8 @@ export function annotateMatchingTextParts(line: ExpressiveCodeLine, partsToAnnot
 		const columnEnd = columnStart + partToAnnotate.length
 		const newAnnotationIndex = line.getAnnotations().length
 		line.addAnnotation({
-			name: 'del',
-			render: getWrapperRenderer(`${newAnnotationIndex}`),
+			name: selector || 'del',
+			render: getWrapperRenderer(`${selector || newAnnotationIndex}`),
 			...(renderPhase ? { renderPhase } : {}),
 			inlineRange: {
 				columnStart,
@@ -61,3 +75,45 @@ export function getWrapperRenderer(selector = 'span') {
 }
 
 export const testRender = getWrapperRenderer()
+
+export function getHookTestResult(hookName: ExpressiveCodePluginHookName, hookFunc: ExpressiveCodeHook) {
+	return getMultiHookTestResult({
+		hooks: {
+			[hookName]: hookFunc,
+		},
+	})
+}
+
+export function getMultiHookTestResult({ hooks, input }: { hooks: ExpressiveCodePluginHooks; input?: ExpressiveCodeBlockOptions[] }) {
+	return getMultiPluginTestResult({
+		plugins: [
+			{
+				name: 'TestPlugin',
+				hooks,
+			},
+		],
+		input,
+	})
+}
+
+export const defaultBlockOptions = {
+	code: ['Example code...', '...with two lines!'].join('\n'),
+	language: 'md',
+	meta: 'test',
+}
+
+export function getMultiPluginTestResult({ plugins, input = [defaultBlockOptions] }: { plugins: ExpressiveCodePlugin[]; input?: ExpressiveCodeBlockOptions[] }) {
+	const ec = new ExpressiveCode({
+		plugins,
+	})
+
+	const { renderedGroupAst, renderedGroupContents, styles } = ec.render(input)
+	expect(renderedGroupContents).toHaveLength(input.length)
+
+	return {
+		renderedGroupAst,
+		styles,
+		...renderedGroupContents[0],
+		input,
+	}
+}

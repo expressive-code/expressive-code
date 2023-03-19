@@ -1,4 +1,4 @@
-import { ExpressiveCodeProcessingState, validateExpressiveCodeProcessingState } from './engine'
+import { ExpressiveCodeProcessingState, validateExpressiveCodeProcessingState } from '../internal/render-block'
 import { isNumber, isString, newTypeError } from '../internal/type-checks'
 import { ExpressiveCodeLine } from './line'
 
@@ -129,5 +129,3 @@ export class ExpressiveCodeBlock {
 		return lineInstances
 	}
 }
-
-export type ExpressiveCodeBlockGroup = readonly ExpressiveCodeBlock[]
