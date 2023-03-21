@@ -28,6 +28,6 @@ export function isHastParent(node: Parent) {
 	return isHastNode(node) && (node.type === 'element' || node.type === 'root')
 }
 
-export function newTypeError(expectedTypeName: string, actualValue: unknown) {
-	return new Error(`Expected a valid ${expectedTypeName}, but got ${JSON.stringify(actualValue)}`)
+export function newTypeError(expectedTypeDescription: string, actualValue: unknown, fieldName?: string) {
+	return new Error(`${fieldName ? `Invalid ${fieldName} value: ` : ''}Expected a valid ${expectedTypeDescription}, but got ${JSON.stringify(actualValue)}`)
 }

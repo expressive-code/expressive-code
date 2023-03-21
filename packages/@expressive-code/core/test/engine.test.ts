@@ -4,6 +4,7 @@ import { toHtml } from 'hast-util-to-html'
 import { annotateMatchingTextParts, getHookTestResult, getMultiHookTestResult, getMultiPluginTestResult, getWrapperRenderer, nonArrayValues, nonObjectValues } from './utils'
 import { ExpressiveCode } from '../src/common/engine'
 import { ExpressiveCodeBlock } from '../src/common/block'
+import { groupWrapperScope } from '../src/internal/css'
 
 describe('ExpressiveCode', () => {
 	describe('render()', () => {
@@ -92,7 +93,8 @@ describe('ExpressiveCode', () => {
 					annotateMatchingTextParts({ line: codeBlock.getLine(1)!, partsToAnnotate: ['two '], selector: 'del' })
 					addStyles('del { color: red; }')
 				})
-				expect(styles).toEqual(new Set(['del { color: red; }']))
+				// Expect the returned style to be scoped
+				expect(styles).toEqual(new Set([`${groupWrapperScope} del { color: red; }`]))
 			})
 			test('Single hook, duplicate styles', () => {
 				const { styles } = getHookTestResult('annotateCode', ({ codeBlock, addStyles }) => {
@@ -101,7 +103,13 @@ describe('ExpressiveCode', () => {
 					addStyles('ins { color: green; }')
 					addStyles('del { color: red; }')
 				})
-				expect(styles).toEqual(new Set(['del { color: red; }', 'ins { color: green; }']))
+				expect(styles).toEqual(
+					new Set([
+						// Expect deduplicated and scoped styles
+						`${groupWrapperScope} del { color: red; }`,
+						`${groupWrapperScope} ins { color: green; }`,
+					])
+				)
 			})
 			test('Multiple hooks, duplicate styles', () => {
 				const { styles } = getMultiHookTestResult({
@@ -119,7 +127,29 @@ describe('ExpressiveCode', () => {
 						},
 					},
 				})
-				expect(styles).toEqual(new Set(['del { color: red; }', 'ins { color: green; }', 'a { color: blue; }']))
+				expect(styles).toEqual(
+					new Set([
+						// Expect deduplicated and scoped styles
+						`${groupWrapperScope} del { color: red; }`,
+						`${groupWrapperScope} ins { color: green; }`,
+						`${groupWrapperScope} a { color: blue; }`,
+					])
+				)
+			})
+			test('Allows global CSS by targeting :root, html and body', () => {
+				const { styles } = getHookTestResult('annotateCode', ({ codeBlock, addStyles }) => {
+					annotateMatchingTextParts({ line: codeBlock.getLine(1)!, partsToAnnotate: ['two '], selector: 'del' })
+					addStyles(':root, html, body { --ec-del-text: red; }')
+					addStyles('del { color: var(--ec-del-text); }')
+				})
+				expect(styles).toEqual(
+					new Set([
+						// Expect some selectors not to be scoped
+						':root, html, body { --ec-del-text: red; }',
+						// Expect the non-root style to be scoped
+						`${groupWrapperScope} del { color: var(--ec-del-text); }`,
+					])
+				)
 			})
 		})
 	})

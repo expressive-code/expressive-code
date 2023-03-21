@@ -2,7 +2,8 @@ import { Element } from 'hast-util-to-html/lib/types'
 import { h } from 'hastscript'
 import { ExpressiveCodeBlock } from '../common/block'
 import { ExpressiveCodePlugin } from '../common/plugin'
-import { ExpressiveCodePluginHooks_BeforeRendering, getHooks } from '../common/plugin-hooks'
+import { ExpressiveCodePluginHooks_BeforeRendering, runHooks } from '../common/plugin-hooks'
+import { processStyles } from './css'
 import { GroupContents } from './render-group'
 import { renderLineToAst } from './render-line'
 import { isBoolean, isHastElement, isHastParent, newTypeError } from './type-checks'
@@ -20,29 +21,31 @@ export function renderBlock({ codeBlock, groupContents, plugins }: { codeBlock: 
 	const baseContext = {
 		codeBlock,
 		groupContents,
-		addStyles: (css: string) => blockStyles.add(css),
+		addStyles: (css: string) => blockStyles.add(processStyles(css)),
 	}
 
-	const runHooks = (key: keyof ExpressiveCodePluginHooks_BeforeRendering) => {
-		getHooks(key, plugins).forEach(({ hookFn }) => {
-			hookFn({ ...baseContext })
+	const runBeforeRenderingHooks = (key: keyof ExpressiveCodePluginHooks_BeforeRendering) => {
+		runHooks(key, plugins, ({ hookFn }) => {
+			hookFn({
+				...baseContext,
+			})
 		})
 	}
 
 	// Run hooks for preprocessing metadata and code
 	state.canEditCode = false
-	runHooks('preprocessMetadata')
+	runBeforeRenderingHooks('preprocessMetadata')
 	state.canEditCode = true
-	runHooks('preprocessCode')
+	runBeforeRenderingHooks('preprocessCode')
 
 	// Run hooks for processing & finalizing the code
-	runHooks('performSyntaxAnalysis')
-	runHooks('postprocessAnalyzedCode')
+	runBeforeRenderingHooks('performSyntaxAnalysis')
+	runBeforeRenderingHooks('postprocessAnalyzedCode')
 	state.canEditCode = false
 
 	// Run hooks for annotating the code
-	runHooks('annotateCode')
-	runHooks('postprocessAnnotations')
+	runBeforeRenderingHooks('annotateCode')
+	runBeforeRenderingHooks('postprocessAnnotations')
 	state.canEditMetadata = false
 	state.canEditAnnotations = false
 
@@ -55,13 +58,15 @@ export function renderBlock({ codeBlock, groupContents, plugins }: { codeBlock: 
 			lineAst: renderLineToAst(line),
 		}
 		// Allow plugins to modify or even completely replace the AST
-		getHooks('postprocessRenderedLine', plugins).forEach(({ hookFn, plugin }) => {
-			hookFn({ ...baseContext, line, lineIndex, renderData: lineRenderData })
+		runHooks('postprocessRenderedLine', plugins, ({ hookFn }) => {
+			hookFn({
+				...baseContext,
+				line,
+				lineIndex,
+				renderData: lineRenderData,
+			})
 			if (!isHastElement(lineRenderData.lineAst)) {
-				throw new Error(
-					`Plugin ${plugin.name} set lineAst to an invalid value in its postprocessRenderedLine hook. ` +
-						`Expected a valid hast Element, but got ${JSON.stringify(lineRenderData.lineAst)} instead.`
-				)
+				throw newTypeError('hast Element', lineRenderData.lineAst, 'lineAst')
 			}
 		})
 		return lineRenderData.lineAst
@@ -72,13 +77,13 @@ export function renderBlock({ codeBlock, groupContents, plugins }: { codeBlock: 
 	const blockRenderData = {
 		blockAst: buildCodeBlockAstFromRenderedLines(renderedAstLines),
 	}
-	getHooks('postprocessRenderedBlock', plugins).forEach(({ hookFn, plugin }) => {
-		hookFn({ ...baseContext, renderData: blockRenderData })
+	runHooks('postprocessRenderedBlock', plugins, ({ hookFn }) => {
+		hookFn({
+			...baseContext,
+			renderData: blockRenderData,
+		})
 		if (!isHastParent(blockRenderData.blockAst)) {
-			throw new Error(
-				`Plugin ${plugin.name} set blockAst to an invalid value in its postprocessRenderedBlock hook. ` +
-					`Expected a valid hast Parent, but got ${JSON.stringify(blockRenderData.blockAst)} instead.`
-			)
+			throw newTypeError('hast Parent', blockRenderData.blockAst, 'blockAst')
 		}
 	})
 
@@ -89,7 +94,7 @@ export function renderBlock({ codeBlock, groupContents, plugins }: { codeBlock: 
 }
 
 function buildCodeBlockAstFromRenderedLines(renderedLines: Element[]) {
-	return h('pre.expressive-code', h('code', renderedLines))
+	return h('pre', h('code', renderedLines))
 }
 
 export interface ExpressiveCodeProcessingState {

@@ -150,16 +150,30 @@ export interface ExpressiveCodePluginHooks extends ExpressiveCodePluginHooks_Bef
 export type ExpressiveCodePluginHookName = keyof ExpressiveCodePluginHooks
 
 /**
- * Returns an array of hooks that were registered by plugins for the given hook type.
+ * Runs the given `runner` function for every hook that was registered by plugins
+ * for the given hook type.
  *
- * Each hook is returned as an object containing the plugin that registered it,
- * the hook function itself, and a context object that contains functions that should
- * be available to the plugin when the hook is called.
+ * The runner function is called with an object containing the hook name, the hook function
+ * registered by the plugin, and the plugin that registered it.
+ *
+ * Errors occuring in the runner function are caught and rethrown with information about the
+ * plugin and hook that caused the error.
  */
-export function getHooks<HookType extends keyof ExpressiveCodePluginHooks>(key: HookType, plugins: ExpressiveCodePlugin[]) {
-	return plugins.flatMap((plugin) => {
+export function runHooks<HookType extends keyof ExpressiveCodePluginHooks>(
+	key: HookType,
+	plugins: ExpressiveCodePlugin[],
+	runner: (hook: { hookName: HookType; hookFn: NonNullable<ExpressiveCodePluginHooks[HookType]>; plugin: ExpressiveCodePlugin }) => void
+) {
+	plugins.forEach((plugin) => {
 		const hookFn = plugin.hooks[key]
-		if (!hookFn) return []
-		return [{ hookFn, plugin }]
+		if (!hookFn) return
+
+		try {
+			runner({ hookName: key, hookFn, plugin })
+		} catch (error) {
+			/* c8 ignore next */
+			const msg = error instanceof Error ? error.message : (error as string)
+			throw new Error(`Plugin "${plugin.name}" caused an error in its "${key}" hook. Error message: ${msg}`)
+		}
 	})
 }

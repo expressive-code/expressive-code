@@ -2,9 +2,10 @@ import { Parent, Element } from 'hast-util-to-html/lib/types'
 import { h } from 'hastscript'
 import { ExpressiveCodeBlock, ExpressiveCodeBlockOptions } from '../common/block'
 import { ExpressiveCodePlugin } from '../common/plugin'
-import { getHooks } from '../common/plugin-hooks'
+import { runHooks } from '../common/plugin-hooks'
+import { groupWrapperClass, groupWrapperElement, processStyles } from './css'
 import { renderBlock } from './render-block'
-import { isHastParent } from './type-checks'
+import { isHastParent, newTypeError } from './type-checks'
 
 export type RenderInput = ExpressiveCodeBlock | ExpressiveCodeBlockOptions | (ExpressiveCodeBlock | ExpressiveCodeBlockOptions)[]
 
@@ -64,31 +65,35 @@ export function renderGroup({ input, options, plugins }: { input: RenderInput; o
 
 	// Combine rendered blocks into a group AST
 	const groupRenderData = {
-		groupAst: buildGroupAstFromRenderedBlocks(renderedGroupContents.map(({ renderedBlockAst }) => renderedBlockAst)),
+		groupAst: h(
+			null,
+			renderedGroupContents.map(({ renderedBlockAst }) => renderedBlockAst)
+		),
 	}
-	getHooks('postprocessRenderedBlockGroup', plugins).forEach(({ hookFn, plugin }) => {
+	runHooks('postprocessRenderedBlockGroup', plugins, ({ hookFn }) => {
 		hookFn({
 			renderedGroupContents,
 			styles,
-			addStyles: (css) => styles.add(css),
+			addStyles: (css) => styles.add(processStyles(css)),
 			renderData: groupRenderData,
 		})
 		// The hook may have replaced the group AST though, so ensure it's still valid
 		if (!isHastParent(groupRenderData.groupAst)) {
-			throw new Error(
-				`Plugin ${plugin.name} set groupAst to an invalid value in its postprocessRenderedBlockGroup hook. ` +
-					`Expected a valid hast Root, but got ${JSON.stringify(groupRenderData.groupAst)} instead.`
-			)
+			throw newTypeError('hast Parent', groupRenderData.groupAst, 'groupAst')
 		}
 	})
 
 	return {
-		renderedGroupAst: groupRenderData.groupAst,
+		renderedGroupAst: addWrapperAroundGroupAst(groupRenderData.groupAst),
 		renderedGroupContents,
 		styles,
 	}
 }
 
-function buildGroupAstFromRenderedBlocks(renderedBlocks: Element[]): Parent {
-	return h(null, renderedBlocks)
+/**
+ * Wraps the group AST in an Expressive Code wrapper element with a class,
+ * allowing us to scope CSS styles that are added by plugins.
+ */
+function addWrapperAroundGroupAst(groupAst: Parent): Parent {
+	return h(groupWrapperElement + groupWrapperClass, groupAst)
 }

@@ -6,6 +6,7 @@ import { h } from 'hastscript'
 import { defaultBlockOptions, expectToWorkOrThrow, getHookTestResult, getMultiHookTestResult, getMultiPluginTestResult, nonObjectValues, testRender } from './utils'
 import { ExpressiveCodePluginHookName } from '../src/common/plugin-hooks'
 import { ExpressiveCodeProcessingState } from '../src/internal/render-block'
+import { groupWrapperElement } from '../src/internal/css'
 
 describe('Block-level hooks are called with the correct processing state', () => {
 	const baseState: ExpressiveCodeProcessingState = {
@@ -266,7 +267,17 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 			})
 			expect(totalHookCalls).toEqual(1)
 			const html = toHtml(sanitize(renderedGroupAst, { attributes: { '*': ['test'] } }))
-			expect(html).toEqual('<figure><pre><code><div>Example code...</div><div>...with two lines!</div></code></pre></figure>')
+			expect(html).toEqual(
+				[
+					// Start of group wrapper
+					`<${groupWrapperElement}>`,
+					'<figure>',
+					'<pre><code><div>Example code...</div><div>...with two lines!</div></code></pre>',
+					'</figure>',
+					// End of group wrapper
+					`</${groupWrapperElement}>`,
+				].join('')
+			)
 		})
 		test('Can edit group AST when rendering multiple blocks', () => {
 			let totalHookCalls = 0
@@ -286,12 +297,18 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 			const html = toHtml(sanitize(renderedGroupAst, { attributes: { '*': ['test'] } }))
 			expect(html).toEqual(
 				[
+					// Start of group wrapper
+					`<${groupWrapperElement}>`,
+					// Wrapper added by hook around first child
 					'<figure>',
 					'<pre><code><div>Example code...</div><div>...with two lines!</div></code></pre>',
 					'</figure>',
+					// Wrapper added by hook around second child
 					'<figure>',
 					'<pre><code><div>Just one line here!</div></code></pre>',
 					'</figure>',
+					// End of group wrapper
+					`</${groupWrapperElement}>`,
 				].join('')
 			)
 		})
@@ -321,7 +338,20 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 			})
 			expect(totalHookCalls).toEqual(1)
 			const html = toHtml(sanitize(renderedGroupAst, { attributes: { '*': ['test'] } }))
-			expect(html).toEqual('<details test="1"><pre><code><div>Example code...</div><div>...with two lines!</div></code></pre></details>')
+			expect(html).toEqual(
+				[
+					// Start of group wrapper (should be untouchable by plugins)
+					`<${groupWrapperElement}>`,
+					// Wrapper added by hook
+					'<details test="1">',
+					// Regular code block HTML
+					'<pre><code><div>Example code...</div><div>...with two lines!</div></code></pre>',
+					// End of wrapper added by hook
+					'</details>',
+					// End of group wrapper
+					`</${groupWrapperElement}>`,
+				].join('')
+			)
 		})
 		test('Throws on invalid replacement ASTs', () => {
 			const invalidAsts: unknown[] = [
@@ -390,9 +420,22 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 			expect(totalHookCalls).toEqual(3)
 			const html = toHtml(sanitize(renderedGroupAst, { attributes: { '*': ['test', 'edited'], a: ['href'] } }))
 			expect(html).toEqual(
-				['<details test="2" edited="3">', '<figure test="1">', '<pre><code><div>Example code...</div><div>...with two lines!</div></code></pre>', '</figure>', '</details>'].join(
-					''
-				)
+				[
+					// Start of group wrapper (should be untouchable by plugins)
+					`<${groupWrapperElement}>`,
+					// Wrapper added by second hook
+					'<details test="2" edited="3">',
+					// Figure added by first hook
+					'<figure test="1">',
+					// Regular code block HTML
+					'<pre><code><div>Example code...</div><div>...with two lines!</div></code></pre>',
+					// End of figure added by first hook
+					'</figure>',
+					// End of wrapper added by second hook
+					'</details>',
+					// End of group wrapper
+					`</${groupWrapperElement}>`,
+				].join('')
 			)
 		})
 	})
