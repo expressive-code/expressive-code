@@ -1,0 +1,8 @@
+{
+  "$schema": "vscode://schemas/color-theme",
+  "name": "empty-dark",
+  "type": "dark",
+  "tokenColors": [],
+  "semanticTokenColors": {},
+  "colors": {}
+}
