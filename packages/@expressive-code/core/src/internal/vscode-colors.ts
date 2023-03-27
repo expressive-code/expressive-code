@@ -343,12 +343,16 @@ export function resolveVSCodeWorkbenchColors(colors: { [key: string]: string }, 
 		const decimal = Math.pow(10, decimalPoints)
 		return Math.round(number * decimal) / decimal
 	}
+	function minMaxRounded(number: number, min = 0, max = 1, decimalPoints = 3) {
+		return Math.max(min, Math.min(max, roundFloat(number, decimalPoints)))
+	}
 	function multiplyAlpha(color: TinyColor, factor: number) {
-		return color.setAlpha(Math.max(0, Math.min(1, roundFloat(color.getAlpha() * factor, 3))))
+		return color.setAlpha(minMaxRounded(color.getAlpha() * factor))
 	}
 	function lighten(color: TinyColor, amount: number) {
 		const hsl = color.toHsl()
-		return new TinyColor({ ...hsl, l: Math.max(0, Math.min(1, roundFloat(hsl.l + hsl.l * amount, 3))) })
+		const l = minMaxRounded(hsl.l)
+		return new TinyColor({ ...hsl, l: minMaxRounded(l + l * amount) })
 	}
 	function darken(color: TinyColor, amount: number) {
 		return lighten(color, -amount)
@@ -358,6 +362,7 @@ export function resolveVSCodeWorkbenchColors(colors: { [key: string]: string }, 
 		if (unresolvedColor.length === 3) {
 			const [type, colorKey, amount] = unresolvedColor
 			const hexColor = resolveColor(colorKey)
+			/* c8 ignore next */
 			if (hexColor === null) return null
 
 			const color = new TinyColor(hexColor)
@@ -374,24 +379,24 @@ export function resolveVSCodeWorkbenchColors(colors: { [key: string]: string }, 
 			const [, colorKey, backgroundKey, factor, transparency] = unresolvedColor
 
 			const hexFrom = resolveColor(colorKey)
+			/* c8 ignore next */
 			if (hexFrom === null) return null
 			const from = new TinyColor(hexFrom)
 
 			const hexBackground = resolveColor(backgroundKey)
-			if (hexBackground === null) {
-				return multiplyAlpha(from, factor * transparency).toHexShortString()
-			}
+			/* c8 ignore next */
+			if (hexBackground === null) return multiplyAlpha(from, factor * transparency).toHexShortString()
 			const background = new TinyColor(hexBackground)
 
 			const fromLum = from.getLuminance()
 			const bgLum = background.getLuminance()
+			/* c8 ignore next */
+			let combinedFactor = factor ? factor : 0.5
 			if (fromLum < bgLum) {
-				let combinedFactor = factor ? factor : 0.5
 				combinedFactor *= (bgLum - fromLum) / bgLum
 				const lightened = lighten(from, combinedFactor)
 				return multiplyAlpha(lightened, transparency).toHexShortString()
 			} else {
-				let combinedFactor = factor ? factor : 0.5
 				combinedFactor *= (fromLum - bgLum) / fromLum
 				const darkened = darken(from, combinedFactor)
 				return multiplyAlpha(darkened, transparency).toHexShortString()
@@ -405,7 +410,8 @@ export function resolveVSCodeWorkbenchColors(colors: { [key: string]: string }, 
 		const alreadyResolvedColor = colorsResolved.get(unresolvedColor)
 		if (alreadyResolvedColor !== undefined) return alreadyResolvedColor
 
-		if (colorsStartedResolving.has(unresolvedColor)) throw new Error(`Circular reference in VS Code theme color value ${JSON.stringify(unresolvedColor)}`)
+		/* c8 ignore next */
+		if (colorsStartedResolving.has(unresolvedColor)) throw new Error('Circular reference in default colors.')
 		colorsStartedResolving.add(unresolvedColor)
 
 		let resolved: string | null | undefined
@@ -414,8 +420,7 @@ export function resolveVSCodeWorkbenchColors(colors: { [key: string]: string }, 
 				resolved = unresolvedColor.toLowerCase()
 			} else {
 				const referencedColor = workbenchColors[unresolvedColor]
-				if (referencedColor === undefined) throw new Error(`VS Code theme references a color ${unresolvedColor} that is undefined`)
-				resolved = resolveColor(referencedColor)
+				if (referencedColor !== undefined) resolved = resolveColor(referencedColor)
 			}
 		} else if (Array.isArray(unresolvedColor)) {
 			if (unresolvedColor.length === 2) {
@@ -425,7 +430,7 @@ export function resolveVSCodeWorkbenchColors(colors: { [key: string]: string }, 
 			}
 		}
 
-		if (resolved === undefined) throw new Error(`Invalid VS Code theme color value ${JSON.stringify(unresolvedColor)}`)
+		if (resolved === undefined) throw new Error(`Invalid color value ${JSON.stringify(unresolvedColor)}, expected a hex color.`)
 		colorsResolved.set(unresolvedColor, resolved)
 
 		return resolved
@@ -434,7 +439,13 @@ export function resolveVSCodeWorkbenchColors(colors: { [key: string]: string }, 
 	// Go through all workbench colors and resolve their values to a plain color
 	const keys = Object.keys(workbenchColors)
 	keys.forEach((key) => {
-		workbenchColors[key] = resolveColor(workbenchColors[key])
+		try {
+			workbenchColors[key] = resolveColor(workbenchColors[key])
+		} catch (error) {
+			/* c8 ignore next */
+			const msg = error instanceof Error ? error.message : (error as string)
+			throw new Error(`Failed to resolve theme color for key ${key}: ${msg}`)
+		}
 	})
 
 	return workbenchColors as ReturnType<typeof resolveVSCodeWorkbenchColors>

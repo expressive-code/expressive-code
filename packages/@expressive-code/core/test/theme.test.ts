@@ -37,6 +37,34 @@ describe('ExpressiveCodeTheme', () => {
 		expect(theme.colors['button.border']).toBeNull()
 	})
 
+	test('Can load empty-light.json', () => {
+		const theme = loadTheme('empty-light.json')
+		expect(theme).toBeInstanceOf(ExpressiveCodeTheme)
+		expect(theme.name).toBe('empty-light')
+
+		// Expect the correct default colors to be set
+		expect(theme.colors['editor.background']).toBe('#ffffff')
+		expect(theme.colors['editor.foreground']).toBe('#333333')
+
+		// Expect color lookups to have the correct values
+		// (this is a multi-level lookup in light themes, too)
+		expect(theme.colors['menu.foreground']).toBe('#616161')
+
+		// Expect colors with "transparent" transform to have the correct values
+		expect(theme.colors['editorInlayHint.background']).toBe('#c4c4c499')
+
+		// Expect colors with "darken" transform to have the correct values
+		expect(theme.colors['toolbar.activeBackground']).toBe('#a6a6a650')
+
+		// Expect colors with "lessProminent" transform to have the correct values
+		expect(theme.colors['editor.selectionHighlightBackground']).toBe('#dbedff99')
+
+		// Expect `null` colors to remain `null`
+		expect(theme.colors['contrastBorder']).toBeNull()
+		// ...also if they are referenced by other colors
+		expect(theme.colors['button.border']).toBeNull()
+	})
+
 	test('Can load dark-plus.json', () => {
 		const theme = loadTheme('dark-plus.json')
 		expect(theme).toBeInstanceOf(ExpressiveCodeTheme)
@@ -57,6 +85,15 @@ describe('ExpressiveCodeTheme', () => {
 
 		// Expect colors with "lessProminent" transform to have the correct values
 		expect(theme.colors['editor.selectionHighlightBackground']).toBe('#add6ff26')
+	})
+
+	describe('Throws on invalid themes', () => {
+		test('Empty color value', () => {
+			expect(() => loadTheme('invalid-1.json')).toThrow()
+		})
+		test('Invalid color value', () => {
+			expect(() => loadTheme('invalid-2.json')).toThrow()
+		})
 	})
 })
 

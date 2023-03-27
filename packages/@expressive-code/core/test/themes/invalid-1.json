@@ -1,0 +1,10 @@
+{
+  "$schema": "vscode://schemas/color-theme",
+  "name": "invalid-theme",
+  "type": "dark",
+  "tokenColors": [],
+  "semanticTokenColors": {},
+  "colors": {
+    "editor.background": ""
+  }
+}
