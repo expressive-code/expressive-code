@@ -1,0 +1,8 @@
+{
+  "$schema": "vscode://schemas/color-theme",
+  "name": "css-theme",
+  "type": "css",
+  "tokenColors": [],
+  "semanticTokenColors": {},
+  "colors": {}
+}
