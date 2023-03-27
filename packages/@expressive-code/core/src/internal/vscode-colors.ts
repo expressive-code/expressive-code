@@ -152,6 +152,9 @@ export type VSCodeDefaultColorKey =
 	| 'editor.snippetTabstopHighlightBackground'
 	| 'editor.snippetFinalTabstopHighlightBorder'
 
+const defaultEditorBackgroundColors: [string, string] = ['#1e1e1e', '#ffffff']
+const defaultEditorForegroundColors: [string, string] = ['#bbbbbb', '#333333']
+
 const defaultWorkbenchColors: { [key in VSCodeDefaultColorKey]: VSCodeDefaultColorsByType } = {
 	// Base colors
 	focusBorder: ['#007fd4', '#0090f1'],
@@ -175,8 +178,8 @@ const defaultWorkbenchColors: { [key in VSCodeDefaultColorKey]: VSCodeDefaultCol
 	'textSeparator.foreground': ['#ffffff2e', '#0000002e'],
 
 	// Editor colors
-	'editor.background': ['#1e1e1e', '#ffffff'],
-	'editor.foreground': ['#bbbbbb', '#333333'],
+	'editor.background': defaultEditorBackgroundColors,
+	'editor.foreground': defaultEditorForegroundColors,
 	'editorLineNumber.foreground': ['#858585', '#237893'],
 	'editorLineNumber.activeForeground': 'editorActiveLineNumber.foreground',
 	'editorActiveLineNumber.foreground': ['#c6c6c6', '#0b216f'],
@@ -327,7 +330,7 @@ export type VSCodeThemeType = 'dark' | 'light'
 
 export type VSCodeWorkbenchColors = { [key in VSCodeDefaultColorKey]: string } & { [key: string]: string }
 
-export function resolveVSCodeWorkbenchColors(colors: { [key: string]: string }, themeType: VSCodeThemeType): VSCodeWorkbenchColors {
+export function resolveVSCodeWorkbenchColors(colors: { [key: string]: string } | undefined, themeType: VSCodeThemeType): VSCodeWorkbenchColors {
 	const typeIndex = themeType === 'dark' ? 0 : 1
 
 	// Start with all default workbench colors and selectively override them with the given colors
@@ -449,4 +452,18 @@ export function resolveVSCodeWorkbenchColors(colors: { [key: string]: string }, 
 	})
 
 	return workbenchColors as ReturnType<typeof resolveVSCodeWorkbenchColors>
+}
+
+/**
+ * Shiki themes often do not contain a `type` property which is used in proper VS Code themes
+ * to indicate a dark or light theme. In such cases, we need to guess the theme type from
+ * the theme colors.
+ *
+ * The guessing logic is: If `editor.background` is darker than `editor.foreground`,
+ * we assume the theme is a dark theme.
+ */
+export function guessThemeTypeFromEditorColors(colors: { [key: string]: string } | undefined) {
+	const background = new TinyColor(colors?.['editor.background'] || defaultEditorBackgroundColors[0])
+	const foreground = new TinyColor(colors?.['editor.foreground'] || defaultEditorForegroundColors[0])
+	return background.getLuminance() < foreground.getLuminance() ? 'dark' : 'light'
 }
