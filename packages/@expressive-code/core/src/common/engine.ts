@@ -1,5 +1,7 @@
+import githubDark from 'shiki/themes/github-dark.json'
 import { ExpressiveCodePlugin } from './plugin'
 import { renderGroup, RenderInput, RenderOptions } from '../internal/render-group'
+import { ExpressiveCodeTheme } from './theme'
 
 export interface ExpressiveCodeConfig {
 	/**
@@ -9,16 +11,24 @@ export interface ExpressiveCodeConfig {
 	 * function as an object containing your desired property values.
 	 */
 	plugins: ExpressiveCodePlugin[]
+	/**
+	 * The theme that should be used when rendering.
+	 *
+	 * Defaults to the `github-dark` theme bundled with Shiki.
+	 */
+	theme?: ExpressiveCodeTheme
 }
 
 export class ExpressiveCode {
 	constructor(config: ExpressiveCodeConfig) {
-		this.#config = config
+		this.plugins = config.plugins
+		this.theme = config.theme || new ExpressiveCodeTheme(githubDark)
 	}
 
 	render(input: RenderInput, options?: RenderOptions) {
-		return renderGroup({ input, options, plugins: this.#config.plugins })
+		return renderGroup({ input, options, theme: this.theme, plugins: this.plugins })
 	}
 
-	readonly #config: ExpressiveCodeConfig
+	readonly theme: ExpressiveCodeTheme
+	readonly plugins: readonly ExpressiveCodePlugin[]
 }

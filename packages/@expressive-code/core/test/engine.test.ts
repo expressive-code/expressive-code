@@ -1,10 +1,12 @@
 import { describe, expect, test } from 'vitest'
 import { sanitize } from 'hast-util-sanitize'
 import { toHtml } from 'hast-util-to-html'
+import githubDark from 'shiki/themes/github-dark.json'
 import { annotateMatchingTextParts, getHookTestResult, getMultiHookTestResult, getMultiPluginTestResult, getWrapperRenderer, nonArrayValues, nonObjectValues } from './utils'
 import { ExpressiveCode } from '../src/common/engine'
 import { ExpressiveCodeBlock } from '../src/common/block'
 import { groupWrapperScope } from '../src/internal/css'
+import { ExpressiveCodeTheme } from '../src/common/theme'
 
 describe('ExpressiveCode', () => {
 	describe('render()', () => {
@@ -85,6 +87,19 @@ describe('ExpressiveCode', () => {
 				})
 				const html = toHtml(sanitize(renderedBlockAst, {}))
 				expect(html).toEqual('<pre><code><div>Example code...</div><div>...with <del>two </del>lines!</div></code></pre>')
+			})
+		})
+		describe('Allows plugin hooks to access theme colors', () => {
+			test('Default theme (github-dark)', () => {
+				let extractedTheme: ExpressiveCodeTheme | undefined
+				getHookTestResult('annotateCode', ({ theme }) => {
+					extractedTheme = { ...theme }
+				})
+				if (!extractedTheme) throw new Error('Expected theme to be defined')
+
+				expect(extractedTheme.name).toEqual('github-dark')
+				expect(extractedTheme.colors['editor.foreground']).toEqual(githubDark.colors['editor.foreground'].toLowerCase())
+				expect(extractedTheme.colors['editor.background']).toEqual(githubDark.colors['editor.background'].toLowerCase())
 			})
 		})
 		describe('Returns all CSS styles added by plugins', () => {

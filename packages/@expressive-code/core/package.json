@@ -29,14 +29,15 @@
     "@types/html-escaper": "^3.0.0",
     "hast-util-sanitize": "^4.1.0",
     "html-escaper": "^3.0.3",
-    "htmlparser2": "^8.0.2"
+    "htmlparser2": "^8.0.2",
+    "shiki": "^0.14.1",
+    "strip-json-comments": "^5.0.0"
   },
   "dependencies": {
     "@ctrl/tinycolor": "^3.6.0",
     "hast-util-to-html": "^8.0.4",
     "hastscript": "^7.2.0",
     "postcss": "^8.4.21",
-    "postcss-prefixwrap": "^1.39.0",
-    "shiki": "^0.14.1"
+    "postcss-prefixwrap": "^1.39.0"
   }
 }

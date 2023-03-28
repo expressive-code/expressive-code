@@ -1,27 +1,27 @@
 import { describe, expect, test } from 'vitest'
 import fs from 'fs'
 import path from 'path'
-import type { IShikiTheme } from 'shiki'
+import { loadTheme as shikiLoadTheme } from 'shiki'
 import dracula from 'shiki/themes/dracula.json'
 import githubLight from 'shiki/themes/github-light.json'
-import { ExpressiveCodeTheme, loadTheme, loadThemeFromObject } from '../src/common/theme'
+import { ExpressiveCodeTheme } from '../src/common/theme'
 
 describe('ExpressiveCodeTheme', () => {
 	describe('Throws on invalid themes', () => {
 		test('Empty color value', () => {
-			expect(() => loadThemeFromJsonObject('invalid-1.json')).toThrow()
+			expect(() => loadThemeFromJsonFile('invalid-1.json')).toThrow()
 		})
 		test('Invalid color value', () => {
-			expect(() => loadThemeFromJsonObject('invalid-2.json')).toThrow()
+			expect(() => loadThemeFromJsonFile('invalid-2.json')).toThrow()
 		})
 		test('Unsupported CSS theme', () => {
-			expect(() => loadThemeFromJsonObject('css.json')).toThrow()
+			expect(() => loadThemeFromJsonFile('css.json')).toThrow()
 		})
 	})
 
 	describe('Can load local themes', () => {
 		test('empty-dark.json', () => {
-			const theme = loadThemeFromJsonObject('empty-dark.json')
+			const theme = loadThemeFromJsonFile('empty-dark.json')
 			expect(theme.name).toBe('empty-dark')
 
 			// Expect the correct default colors to be set
@@ -52,8 +52,7 @@ describe('ExpressiveCodeTheme', () => {
 			expect(theme.colors['button.border']).toBeNull()
 		})
 		test('empty.json', () => {
-			const theme = loadThemeFromJsonObject('empty.json')
-			expect(theme.name).toBe('empty')
+			const theme = loadThemeFromJsonFile('empty.json')
 
 			// Expect the guessed theme type to be correct (defaults to dark if no colors are set)
 			expect(theme.type).toBe('dark')
@@ -63,7 +62,7 @@ describe('ExpressiveCodeTheme', () => {
 			expect(theme.colors['editor.foreground']).toBe('#bbbbbb')
 		})
 		test('empty-light.json', () => {
-			const theme = loadThemeFromJsonObject('empty-light.json')
+			const theme = loadThemeFromJsonFile('empty-light.json')
 			expect(theme.name).toBe('empty-light')
 
 			// Expect the correct default colors to be set
@@ -88,23 +87,8 @@ describe('ExpressiveCodeTheme', () => {
 			// ...also if they are referenced by other colors
 			expect(theme.colors['button.border']).toBeNull()
 		})
-		describe('dark-plus.json', () => {
-			test('loaded by passing an object to loadThemeFromObject()', () => {
-				const theme = loadThemeFromJsonObject('dark-plus.json')
-				expectDarkPlus(theme)
-			})
-			test('loaded by passing an object to loadTheme()', async () => {
-				const jsonTheme = fs.readFileSync(path.join(__dirname, 'themes', 'dark-plus.json'), 'utf8')
-				const themeObject = JSON.parse(jsonTheme) as IShikiTheme
-				const theme = await loadTheme(themeObject)
-				expectDarkPlus(theme)
-			})
-			test('loaded by passing a path to loadTheme()', async () => {
-				const theme = await loadTheme(path.join(__dirname, 'themes', 'dark-plus.json'))
-				expectDarkPlus(theme)
-			})
-		})
-		function expectDarkPlus(theme: ExpressiveCodeTheme) {
+		test('dark-plus.json', () => {
+			const theme = loadThemeFromJsonFile('dark-plus.json')
 			expect(theme.name).toBe('Dark+ (default dark)')
 
 			// Expect the correct default colors to be set
@@ -122,12 +106,12 @@ describe('ExpressiveCodeTheme', () => {
 
 			// Expect colors with "lessProminent" transform to have the correct values
 			expect(theme.colors['editor.selectionHighlightBackground']).toBe('#add6ff26')
-		}
+		})
 	})
 
 	describe('Can load themes from NPM package imports', () => {
 		test('dracula', () => {
-			const theme = loadThemeFromObject(dracula)
+			const theme = new ExpressiveCodeTheme(dracula)
 
 			// Expect the guessed theme type to be correct (it's not contained in most Shiki themes)
 			expect(theme.type).toBe('dark')
@@ -138,7 +122,7 @@ describe('ExpressiveCodeTheme', () => {
 			expect(theme.colors['tab.activeBorderTop']).toBe(dracula.colors?.['tab.activeBorderTop'].toLowerCase())
 		})
 		test('github-light', () => {
-			const theme = loadThemeFromObject(githubLight)
+			const theme = new ExpressiveCodeTheme(githubLight)
 
 			// Expect the guessed theme type to be correct (it's not contained in most Shiki themes)
 			expect(theme.type).toBe('light')
@@ -150,9 +134,9 @@ describe('ExpressiveCodeTheme', () => {
 		})
 	})
 
-	describe('Can load themes bundled with Shiki by name', () => {
+	describe('Can import themes loaded by Shiki', () => {
 		test('dracula', async () => {
-			const theme = await loadTheme('dracula')
+			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('themes/dracula.json'))
 
 			// Expect the guessed theme type to be correct (it's not contained in most Shiki themes)
 			expect(theme.type).toBe('dark')
@@ -165,8 +149,7 @@ describe('ExpressiveCodeTheme', () => {
 	})
 })
 
-function loadThemeFromJsonObject(fileName: string) {
-	const jsonTheme = fs.readFileSync(path.join(__dirname, 'themes', fileName), 'utf8')
-	const themeObject = JSON.parse(jsonTheme) as Partial<IShikiTheme>
-	return loadThemeFromObject(themeObject)
+function loadThemeFromJsonFile(fileName: string) {
+	const jsonString = fs.readFileSync(path.join(__dirname, 'themes', fileName), 'utf8')
+	return ExpressiveCodeTheme.fromJSONString(jsonString)
 }

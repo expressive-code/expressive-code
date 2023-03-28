@@ -3,12 +3,23 @@ import { h } from 'hastscript'
 import { ExpressiveCodeBlock } from '../common/block'
 import { ExpressiveCodePlugin } from '../common/plugin'
 import { ExpressiveCodePluginHooks_BeforeRendering, runHooks } from '../common/plugin-hooks'
+import { ExpressiveCodeTheme } from '../common/theme'
 import { processStyles } from './css'
 import { GroupContents } from './render-group'
 import { renderLineToAst } from './render-line'
 import { isBoolean, isHastElement, isHastParent, newTypeError } from './type-checks'
 
-export function renderBlock({ codeBlock, groupContents, plugins }: { codeBlock: ExpressiveCodeBlock; groupContents: GroupContents; plugins: ExpressiveCodePlugin[] }) {
+export function renderBlock({
+	codeBlock,
+	groupContents,
+	theme,
+	plugins,
+}: {
+	codeBlock: ExpressiveCodeBlock
+	groupContents: GroupContents
+	theme: ExpressiveCodeTheme
+	plugins: readonly ExpressiveCodePlugin[]
+}) {
 	const state: ExpressiveCodeProcessingState = {
 		canEditAnnotations: true,
 		canEditCode: true,
@@ -21,6 +32,7 @@ export function renderBlock({ codeBlock, groupContents, plugins }: { codeBlock: 
 	const baseContext = {
 		codeBlock,
 		groupContents,
+		theme,
 		addStyles: (css: string) => blockStyles.add(processStyles(css)),
 	}
 

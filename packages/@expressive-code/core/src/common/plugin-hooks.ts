@@ -3,10 +3,12 @@ import { GroupContents, RenderedGroupContents } from '../internal/render-group'
 import { ExpressiveCodeBlock } from './block'
 import { ExpressiveCodeLine } from './line'
 import { ExpressiveCodePlugin } from './plugin'
+import { ExpressiveCodeTheme } from './theme'
 
 export interface ExpressiveCodeHookContext {
 	codeBlock: ExpressiveCodeBlock
 	groupContents: GroupContents
+	theme: ExpressiveCodeTheme
 	/**
 	 * Adds CSS styles to the document that contains the rendered code.
 	 *
@@ -161,7 +163,7 @@ export type ExpressiveCodePluginHookName = keyof ExpressiveCodePluginHooks
  */
 export function runHooks<HookType extends keyof ExpressiveCodePluginHooks>(
 	key: HookType,
-	plugins: ExpressiveCodePlugin[],
+	plugins: readonly ExpressiveCodePlugin[],
 	runner: (hook: { hookName: HookType; hookFn: NonNullable<ExpressiveCodePluginHooks[HookType]>; plugin: ExpressiveCodePlugin }) => void
 ) {
 	plugins.forEach((plugin) => {

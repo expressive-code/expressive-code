@@ -3,6 +3,7 @@ import { h } from 'hastscript'
 import { ExpressiveCodeBlock, ExpressiveCodeBlockOptions } from '../common/block'
 import { ExpressiveCodePlugin } from '../common/plugin'
 import { runHooks } from '../common/plugin-hooks'
+import { ExpressiveCodeTheme } from '../common/theme'
 import { groupWrapperClass, groupWrapperElement, processStyles } from './css'
 import { renderBlock } from './render-block'
 import { isHastParent, newTypeError } from './type-checks'
@@ -27,7 +28,17 @@ export type GroupContents = readonly { codeBlock: ExpressiveCodeBlock }[]
 
 export type RenderedGroupContents = readonly { codeBlock: ExpressiveCodeBlock; renderedBlockAst: Element }[]
 
-export function renderGroup({ input, options, plugins }: { input: RenderInput; options?: RenderOptions; plugins: ExpressiveCodePlugin[] }) {
+export function renderGroup({
+	input,
+	options,
+	theme,
+	plugins,
+}: {
+	input: RenderInput
+	options?: RenderOptions
+	theme: ExpressiveCodeTheme
+	plugins: readonly ExpressiveCodePlugin[]
+}) {
 	// Ensure that the input is an array
 	const inputArray = Array.isArray(input) ? input : [input]
 
@@ -53,6 +64,7 @@ export function renderGroup({ input, options, plugins }: { input: RenderInput; o
 		const { renderedBlockAst, blockStyles } = renderBlock({
 			codeBlock: groupContent.codeBlock,
 			groupContents,
+			theme,
 			plugins,
 		})
 
