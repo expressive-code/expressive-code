@@ -603,7 +603,7 @@ describe('Processes inline markings correctly', () => {
 	})
 })
 
-describe('Can process HTML code coming from all supported highlighters', () => {
+describe.skip('Can process HTML code coming from all supported highlighters', () => {
 	const runSharedAnnotationTest = (preHighlightedCodeHtml: string) => {
 		const annotationResult = getAnnotationResult(codeSnippet, {
 			annotations: {

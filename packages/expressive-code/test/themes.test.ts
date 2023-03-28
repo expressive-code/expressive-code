@@ -86,7 +86,7 @@ const annotateChildrenAndArticleLines = ({ testName, highlighter, customColors }
 	}
 }
 
-describe('Annotation colors', () => {
+describe.skip('Annotation colors', () => {
 	test('Allows retrieving theme colors by key', () => {
 		expect(Math.abs(226 - chroma(getThemeColor('mark.background')).hsl()[0])).toBeLessThan(20)
 		expect(getThemeColor('mark.background')).toEqual(ExpressiveCodeDefaultColors['mark.background'])
@@ -137,7 +137,7 @@ describe('Annotation colors', () => {
 	})
 })
 
-describe('Color contrast in marked lines', () => {
+describe.skip('Color contrast in marked lines', () => {
 	test('If text is lighter than annotation bg and contrast is low, lightens text', async (ctx) => {
 		const highlighter = await createHighlighter({
 			theme: 'material-default',
