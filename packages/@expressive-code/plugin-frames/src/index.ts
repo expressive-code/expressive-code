@@ -1,6 +1,12 @@
 import { AttachedPluginData } from '@expressive-code/core'
+import { ExpressiveCodeTheme } from '@expressive-code/core'
 import { ExpressiveCodePlugin, replaceDelimitedValues } from '@expressive-code/core'
 import { h } from 'hastscript'
+
+export interface FramesStyleSettings {
+	paddingBlock: string
+	paddingInline: string
+}
 
 export interface FramesPluginOptions {
 	/**
@@ -9,6 +15,7 @@ export interface FramesPluginOptions {
 	 * from the first 4 lines of the code.
 	 */
 	extractFileNameFromCode?: boolean
+	styleSettings?: Partial<FramesStyleSettings>
 }
 
 export interface FramesPluginData {
@@ -17,7 +24,14 @@ export interface FramesPluginData {
 
 export const framesPluginData = new AttachedPluginData<FramesPluginData>(() => ({}))
 
-export function frames({ extractFileNameFromCode = true }: FramesPluginOptions = {}): ExpressiveCodePlugin {
+export function frames(options: FramesPluginOptions = {}): ExpressiveCodePlugin {
+	// Apply default settings
+	const extractFileNameFromCode = options.extractFileNameFromCode ?? true
+	const styleSettings: FramesStyleSettings = {
+		paddingBlock: '1rem',
+		paddingInline: '2rem',
+		...options.styleSettings,
+	}
 	return {
 		name: 'Frames',
 		hooks: {
@@ -62,7 +76,7 @@ export function frames({ extractFileNameFromCode = true }: FramesPluginOptions =
 					}
 				}
 			},
-			postprocessRenderedBlock: ({ codeBlock, renderData, addStyles }) => {
+			postprocessRenderedBlock: ({ codeBlock, renderData, addStyles, theme }) => {
 				// Retrieve information about the current block
 				const titleText = framesPluginData.getOrCreateFor(codeBlock).title
 				const isTerminal = isTerminalLanguage(codeBlock.language)
@@ -74,11 +88,24 @@ export function frames({ extractFileNameFromCode = true }: FramesPluginOptions =
 				// to clarify that the code block is a terminal window
 				const fallbackTerminalWindowTitle = 'Terminal window' // TODO: i18n
 				const screenReaderTitle = !titleText && isTerminal ? [h('span', { className: 'sr-only' }, fallbackTerminalWindowTitle)] : []
+				if (!titleText && isTerminal) {
+					addStyles(`
+						.sr-only {
+							position: absolute;
+							width: 1px;
+							height: 1px;
+							padding: 0;
+							margin: -1px;
+							overflow: hidden;
+							clip: rect(0, 0, 0, 0);
+							white-space: nowrap;
+							border-width: 0;							
+						}
+					`)
+				}
 
-				addStyles(`.frame {
-					display: block;
-					position: relative;
-				}`)
+				// Add CSS styles for the frame
+				addStyles(getFramesStyles(theme, styleSettings))
 
 				// Wrap the code block in a figure element with helpful classes for styling
 				renderData.blockAst = h(
@@ -163,4 +190,93 @@ function getFileNameFromComment(line: string, lang: string) {
 	if (languageGroup && fileExt && !languageGroup.includes(fileExt)) return
 
 	return extractedFileName
+}
+
+function getFramesStyles({ colors }: ExpressiveCodeTheme, styleSettings: FramesStyleSettings) {
+	const styles = `
+		.frame {
+			--glow-border: 1px solid var(--theme-glow-highlight);
+			filter: drop-shadow(0 0 0.3rem var(--theme-glow-diffuse));
+
+			.header,
+			pre {
+				border: var(--glow-border);
+				border-radius: 0.3rem;
+				line-height: 1.65;
+			}
+
+			.header {
+				display: none;
+				border-bottom: none;
+				padding: 0.25rem 1rem 0.25rem 1rem;
+				line-height: 1.65;
+				z-index: 1;
+				position: relative;
+				top: 1px;
+				background-color: ${colors['editorGroupHeader.tabsBackground']};
+				color: ${colors['tab.activeForeground']};
+				font-size: 0.9rem;
+				font-weight: 500;
+				letter-spacing: 0.025ch;
+				border-bottom-left-radius: 0;
+				border-bottom-right-radius: 0;
+			}
+
+			pre {
+				margin: 0;
+				padding: ${styleSettings.paddingBlock} 0;
+				color: ${colors['editor.foreground']};
+				background-color: ${colors['editor.background']} !important;
+
+				&:focus-visible {
+					outline: 3px solid var(--theme-accent);
+					outline-offset: -3px;
+				}
+			}
+
+			&.has-title {
+				& .header {
+					display: inline-block;
+				}
+
+				& pre {
+					border-top-left-radius: 0;
+				}
+			}
+
+			&.is-terminal {
+				--theme-glow-highlight: rgba(255, 255, 255, 0.2);
+				--theme-glow-diffuse: rgba(0, 0, 0, 0.4);
+
+				& .header {
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					padding-bottom: 0.175rem;
+					min-height: 1.75rem;
+					position: relative;
+
+					&::before {
+						content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 16' preserveAspectRatio='xMidYMid meet' fill='rgba(255, 255, 255, 0.15)'%3E%3Ccircle cx='8' cy='8' r='8'/%3E%3Ccircle cx='30' cy='8' r='8'/%3E%3Ccircle cx='52' cy='8' r='8'/%3E%3C/svg%3E");
+						position: absolute;
+						left: 1rem;
+						width: 2.1rem;
+						line-height: 0;
+					}
+				}
+
+				& pre {
+					border-top-left-radius: 0;
+					border-top-right-radius: 0;
+				}
+			}
+
+			::selection {
+				color: white;
+				background-color: var(--theme-code-selection-bg);
+			}
+		}
+	`
+
+	return styles
 }

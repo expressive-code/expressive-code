@@ -81,6 +81,21 @@ export type VSCodeDefaultColorKey =
 	| 'editorInlayHint.typeBackground'
 	| 'editorInlayHint.parameterForeground'
 	| 'editorInlayHint.parameterBackground'
+	// Editor groups & panes
+	| 'editorPane.background'
+	| 'editorGroup.emptyBackground'
+	| 'editorGroup.focusedEmptyBorder'
+	| 'editorGroupHeader.tabsBackground'
+	| 'editorGroupHeader.tabsBorder'
+	| 'editorGroupHeader.noTabsBackground'
+	| 'editorGroupHeader.border'
+	| 'editorGroup.border'
+	| 'editorGroup.dropBackground'
+	| 'editorGroup.dropIntoPromptForeground'
+	| 'editorGroup.dropIntoPromptBackground'
+	| 'editorGroup.dropIntoPromptBorder'
+	| 'sideBySideEditor.horizontalBorder'
+	| 'sideBySideEditor.verticalBorder'
 	// Scrollbars
 	| 'scrollbar.shadow'
 	| 'scrollbarSlider.background'
@@ -104,6 +119,35 @@ export type VSCodeDefaultColorKey =
 	// Toolbars
 	| 'toolbar.hoverBackground'
 	| 'toolbar.activeBackground'
+	// Tab background
+	| 'tab.activeBackground'
+	| 'tab.unfocusedActiveBackground'
+	| 'tab.inactiveBackground'
+	| 'tab.unfocusedInactiveBackground'
+	// Tab foreground
+	| 'tab.activeForeground'
+	| 'tab.inactiveForeground'
+	| 'tab.unfocusedActiveForeground'
+	| 'tab.unfocusedInactiveForeground'
+	// Tab hover foreground/background
+	| 'tab.hoverBackground'
+	| 'tab.unfocusedHoverBackground'
+	| 'tab.hoverForeground'
+	| 'tab.unfocusedHoverForeground'
+	// Tab border
+	| 'tab.border'
+	| 'tab.lastPinnedBorder'
+	| 'tab.activeBorder'
+	| 'tab.unfocusedActiveBorder'
+	| 'tab.activeBorderTop'
+	| 'tab.unfocusedActiveBorderTop'
+	| 'tab.hoverBorder'
+	| 'tab.unfocusedHoverBorder'
+	// Tab modified border
+	| 'tab.activeModifiedBorder'
+	| 'tab.inactiveModifiedBorder'
+	| 'tab.unfocusedActiveModifiedBorder'
+	| 'tab.unfocusedInactiveModifiedBorder'
 	// Badges (small information labels, for example, search results count)
 	| 'badge.background'
 	| 'badge.foreground'
@@ -123,6 +167,8 @@ export type VSCodeDefaultColorKey =
 	// Lists
 	| 'list.activeSelectionBackground'
 	| 'list.activeSelectionForeground'
+	// Trees
+	| 'tree.indentGuidesStroke'
 	// Input fields
 	| 'input.background'
 	| 'input.foreground'
@@ -229,6 +275,22 @@ const defaultWorkbenchColors: { [key in VSCodeDefaultColorKey]: VSCodeDefaultCol
 	'editorInlayHint.parameterBackground': 'editorInlayHint.background',
 	'editorInlayHint.parameterForeground': 'editorInlayHint.foreground',
 
+	// Editor groups & panes
+	'editorPane.background': ['editor.background', 'editor.background'],
+	'editorGroup.emptyBackground': [null, null],
+	'editorGroup.focusedEmptyBorder': [null, null],
+	'editorGroupHeader.tabsBackground': ['#252526', '#f3f3f3'],
+	'editorGroupHeader.tabsBorder': [null, null],
+	'editorGroupHeader.noTabsBackground': ['editor.background', 'editor.background'],
+	'editorGroupHeader.border': [null, null],
+	'editorGroup.border': ['#444444', '#e7e7e7'],
+	'editorGroup.dropBackground': ['#53595d80', '#2677cb2d'],
+	'editorGroup.dropIntoPromptForeground': ['editorWidget.foreground', 'editorWidget.foreground'],
+	'editorGroup.dropIntoPromptBackground': ['editorWidget.background', 'editorWidget.background'],
+	'editorGroup.dropIntoPromptBorder': [null, null],
+	'sideBySideEditor.horizontalBorder': ['editorGroup.border', 'editorGroup.border'],
+	'sideBySideEditor.verticalBorder': ['editorGroup.border', 'editorGroup.border'],
+
 	// Scrollbars
 	'scrollbar.shadow': ['#000000', '#dddddd'],
 	'scrollbarSlider.background': ['#79797966', '#64646466'],
@@ -261,6 +323,73 @@ const defaultWorkbenchColors: { [key in VSCodeDefaultColorKey]: VSCodeDefaultCol
 		['darken', 'toolbar.hoverBackground', 0.1],
 	],
 
+	// Tab background
+	'tab.activeBackground': ['editor.background', 'editor.background'],
+	'tab.unfocusedActiveBackground': ['tab.activeBackground', 'tab.activeBackground'],
+	'tab.inactiveBackground': ['#2d2d2d', '#ececec'],
+	'tab.unfocusedInactiveBackground': ['tab.inactiveBackground', 'tab.inactiveBackground'],
+
+	// Tab foreground
+	'tab.activeForeground': ['#ffffff', '#333333'],
+	'tab.inactiveForeground': [
+		['transparent', 'tab.activeForeground', 0.5],
+		['transparent', 'tab.activeForeground', 0.7],
+	],
+	'tab.unfocusedActiveForeground': [
+		['transparent', 'tab.activeForeground', 0.5],
+		['transparent', 'tab.activeForeground', 0.7],
+	],
+	'tab.unfocusedInactiveForeground': [
+		['transparent', 'tab.inactiveForeground', 0.5],
+		['transparent', 'tab.inactiveForeground', 0.5],
+	],
+
+	// Tab hover foreground/background
+	'tab.hoverBackground': [null, null],
+	'tab.unfocusedHoverBackground': [
+		['transparent', 'tab.hoverBackground', 0.5],
+		['transparent', 'tab.hoverBackground', 0.7],
+	],
+	'tab.hoverForeground': [null, null],
+	'tab.unfocusedHoverForeground': [
+		['transparent', 'tab.hoverForeground', 0.5],
+		['transparent', 'tab.hoverForeground', 0.5],
+	],
+
+	// Tab borders
+	'tab.border': ['#252526', '#f3f3f3'],
+	'tab.lastPinnedBorder': ['tree.indentGuidesStroke', 'tree.indentGuidesStroke'],
+	'tab.activeBorder': [null, null],
+	'tab.unfocusedActiveBorder': [
+		['transparent', 'tab.activeBorder', 0.5],
+		['transparent', 'tab.activeBorder', 0.7],
+	],
+	'tab.activeBorderTop': [null, null],
+	'tab.unfocusedActiveBorderTop': [
+		['transparent', 'tab.activeBorderTop', 0.5],
+		['transparent', 'tab.activeBorderTop', 0.7],
+	],
+	'tab.hoverBorder': [null, null],
+	'tab.unfocusedHoverBorder': [
+		['transparent', 'tab.hoverBorder', 0.5],
+		['transparent', 'tab.hoverBorder', 0.7],
+	],
+
+	// Tab modified border
+	'tab.activeModifiedBorder': ['#3399cc', '#33aaee'],
+	'tab.inactiveModifiedBorder': [
+		['transparent', 'tab.activeModifiedBorder', 0.5],
+		['transparent', 'tab.activeModifiedBorder', 0.5],
+	],
+	'tab.unfocusedActiveModifiedBorder': [
+		['transparent', 'tab.activeModifiedBorder', 0.5],
+		['transparent', 'tab.activeModifiedBorder', 0.7],
+	],
+	'tab.unfocusedInactiveModifiedBorder': [
+		['transparent', 'tab.inactiveModifiedBorder', 0.5],
+		['transparent', 'tab.inactiveModifiedBorder', 0.5],
+	],
+
 	// Badges (small information labels, for example, search results count)
 	'badge.background': ['#4d4d4d', '#c4c4c4'],
 	'badge.foreground': ['#ffffff', '#333333'],
@@ -289,6 +418,9 @@ const defaultWorkbenchColors: { [key in VSCodeDefaultColorKey]: VSCodeDefaultCol
 	// Lists
 	'list.activeSelectionBackground': ['#04395e', '#0060c0'],
 	'list.activeSelectionForeground': '#ffffff',
+
+	// Trees
+	'tree.indentGuidesStroke': ['#585858', '#a9a9a9'],
 
 	// Input fields
 	'input.background': ['#3c3c3c', '#ffffff'],

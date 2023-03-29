@@ -24,29 +24,17 @@ describe('Renders frames around the code', () => {
 			testName,
 		})
 
-		// const html = toHtml(renderedGroupAst)
-		// expect(html).toEqual(
-		// 	[
-		// 		`<div class="expressive-code">`,
-		// 		`<figure class="frame">`,
-		// 		`<figcaption class="header"></figcaption>`,
-		// 		`<pre><code><div>import { defineConfig } from 'example/config'</div></code></pre>`,
-		// 		`</figure>`,
-		// 		`</div>`,
-		// 	].join('')
-		// )
-
 		validateBlockAst({
 			renderedGroupAst,
 			figureSelector: '.frame:not(.has-title):not(.is-terminal)',
 			srTitlePresent: false,
 		})
 	})
-	test('Single JS block with title', async () => {
+	test('Single JS block with title', async ({ meta: { name: testName } }) => {
 		const ec = new ExpressiveCode({
 			plugins: [frames()],
 		})
-		const { renderedGroupAst } = await ec.render({
+		const { renderedGroupAst, styles } = await ec.render({
 			code: `
 // test.config.mjs
 
@@ -56,6 +44,12 @@ import { defineConfig } from 'example/config'
 			meta: '',
 		})
 
+		outputHtmlSnapshot({
+			renderedGroupAst,
+			styles,
+			testName,
+		})
+
 		validateBlockAst({
 			renderedGroupAst,
 			figureSelector: '.frame.has-title:not(.is-terminal)',
@@ -63,14 +57,20 @@ import { defineConfig } from 'example/config'
 			srTitlePresent: false,
 		})
 	})
-	test('Single terminal block without title', async () => {
+	test('Single terminal block without title', async ({ meta: { name: testName } }) => {
 		const ec = new ExpressiveCode({
 			plugins: [frames()],
 		})
-		const { renderedGroupAst } = await ec.render({
+		const { renderedGroupAst, styles } = await ec.render({
 			code: 'pnpm i expressive-code',
 			language: 'shell',
 			meta: '',
+		})
+
+		outputHtmlSnapshot({
+			renderedGroupAst,
+			styles,
+			testName,
 		})
 
 		validateBlockAst({
@@ -79,14 +79,20 @@ import { defineConfig } from 'example/config'
 			srTitlePresent: true,
 		})
 	})
-	test('Single terminal block with title', async () => {
+	test('Single terminal block with title', async ({ meta: { name: testName } }) => {
 		const ec = new ExpressiveCode({
 			plugins: [frames()],
 		})
-		const { renderedGroupAst } = await ec.render({
+		const { renderedGroupAst, styles } = await ec.render({
 			code: 'pnpm i expressive-code',
 			language: 'shell',
 			meta: 'title="Installing Expressive Code"',
+		})
+
+		outputHtmlSnapshot({
+			renderedGroupAst,
+			styles,
+			testName,
 		})
 
 		validateBlockAst({
@@ -148,7 +154,7 @@ function outputHtmlSnapshot({ renderedGroupAst, styles, testName }: { renderedGr
 </head>
 <body>
   <style>
-    ${[...styles].join('\n')}
+    ${[...styles].join('')}
   </style>
 
   <h2>${testName}</h2>
