@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'vitest'
-import { mkdirSync, writeFileSync } from 'fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { join, dirname } from 'path'
 import { Parent } from 'hast-util-to-html/lib/types'
-import { ExpressiveCode } from '@expressive-code/core'
+import { ExpressiveCode, ExpressiveCodeTheme } from '@expressive-code/core'
 import { matches, select, selectAll } from 'hast-util-select'
 import { toHtml } from 'hast-util-to-html'
 import { frames } from '../src'
@@ -54,6 +54,52 @@ import { defineConfig } from 'example/config'
 			renderedGroupAst,
 			figureSelector: '.frame.has-title:not(.is-terminal)',
 			title: 'test.config.mjs',
+			srTitlePresent: false,
+		})
+	})
+	test('Single JS block with title (Synthwave theme)', async ({ meta: { name: testName } }) => {
+		const ec = new ExpressiveCode({
+			plugins: [frames()],
+			theme: ExpressiveCodeTheme.fromJSONString(readFileSync(join(__dirname, 'themes', 'synthwave-color-theme.json'), 'utf8')),
+		})
+		const { renderedGroupAst, styles } = await ec.render({
+			code: `
+// src/pages/[id].json.js
+import type { APIRoute } from 'astro';
+
+const usernames = ["Sarah", "Chris", "Dan"]
+
+export const get: APIRoute = ({ params, request }) => {
+  const id = params.id;
+  return {
+    body: JSON.stringify({
+      name: usernames[id]
+    })
+  }
+};
+
+export function getStaticPaths () {
+  return [ 
+    { params: { id: "0"} },
+    { params: { id: "1"} },
+    { params: { id: "2"} },
+  ]
+}
+			`.trim(),
+			language: 'js',
+			meta: '',
+		})
+
+		outputHtmlSnapshot({
+			renderedGroupAst,
+			styles,
+			testName,
+		})
+
+		validateBlockAst({
+			renderedGroupAst,
+			figureSelector: '.frame.has-title:not(.is-terminal)',
+			title: 'src/pages/[id].json.js',
 			srTitlePresent: false,
 		})
 	})
@@ -139,7 +185,19 @@ function validateBlockAst({
 	expect(select('figure > figcaption + pre', renderedGroupAst)).toBeTruthy()
 }
 
-function outputHtmlSnapshot({ renderedGroupAst, styles, testName }: { renderedGroupAst: Parent; styles: Set<string>; testName: string }) {
+function outputHtmlSnapshot({
+	renderedGroupAst,
+	styles,
+	testName,
+	foreground = '#fff',
+	background = '#000',
+}: {
+	renderedGroupAst: Parent
+	styles: Set<string>
+	testName: string
+	foreground?: string
+	background?: string
+}) {
 	const snapshotBasePath = join(__dirname, '__html_snapshots__')
 	const snapshotFileName = `${testName.replace(/[<>:"/\\|?*.]/g, '').toLowerCase()}.html`
 	const snapshotFilePath = join(snapshotBasePath, '__actual__', snapshotFileName)
@@ -152,7 +210,7 @@ function outputHtmlSnapshot({ renderedGroupAst, styles, testName }: { renderedGr
   <meta charset="utf-8">
   <title>${testName}</title>
 </head>
-<body>
+<body style="color:${foreground};background:${background}">
   <style>
     ${[...styles].join('')}
   </style>

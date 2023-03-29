@@ -6,6 +6,8 @@ import { h } from 'hastscript'
 export interface FramesStyleSettings {
 	paddingBlock: string
 	paddingInline: string
+	editorFontFamily: string
+	editorFontSize: string
 }
 
 export interface FramesPluginOptions {
@@ -30,6 +32,23 @@ export function frames(options: FramesPluginOptions = {}): ExpressiveCodePlugin 
 	const styleSettings: FramesStyleSettings = {
 		paddingBlock: '1rem',
 		paddingInline: '2rem',
+		editorFontFamily: [
+			`'IBM Plex Mono'`,
+			`Consolas`,
+			`'Andale Mono WT'`,
+			`'Andale Mono'`,
+			`'Lucida Console'`,
+			`'Lucida Sans Typewriter'`,
+			`'DejaVu Sans Mono'`,
+			`'Bitstream Vera Sans Mono'`,
+			`'Liberation Mono'`,
+			`'Nimbus Mono L'`,
+			`Monaco`,
+			`'Courier New'`,
+			`Courier`,
+			`monospace`,
+		].join(','),
+		editorFontSize: '0.85em',
 		...options.styleSettings,
 	}
 	return {
@@ -195,7 +214,8 @@ function getFileNameFromComment(line: string, lang: string) {
 function getFramesStyles({ colors }: ExpressiveCodeTheme, styleSettings: FramesStyleSettings) {
 	const styles = `
 		.frame {
-			--glow-border: 1px solid var(--theme-glow-highlight);
+			--glow-border: 1px solid ${colors['editorGroup.border']};
+			--theme-glow-diffuse: ${colors['widget.shadow']};
 			filter: drop-shadow(0 0 0.3rem var(--theme-glow-diffuse));
 
 			.header,
@@ -232,11 +252,37 @@ function getFramesStyles({ colors }: ExpressiveCodeTheme, styleSettings: FramesS
 					outline: 3px solid var(--theme-accent);
 					outline-offset: -3px;
 				}
+
+				& > code {
+					all: unset;
+					display: inline-block;
+					min-width: 100%;
+					font-family: ${styleSettings.editorFontFamily};
+					font-size: ${styleSettings.editorFontSize};
+					--padding-inline: 1.25rem;
+
+					/* This was initially .line */
+					& > div {
+						--accent-margin: 0rem;
+						min-width: calc(100% - var(--accent-margin));
+						padding-inline-start: var(--padding-inline);
+						padding-inline-end: calc(2 * var(--padding-inline));
+					}
+				}
 			}
 
 			&.has-title {
 				& .header {
 					display: inline-block;
+					background-color: ${colors['tab.activeBackground']};
+				}
+
+				&:not(.is-terminal) {
+					/* Active editor tab */
+					& .header {
+						color: ${colors['tab.activeForeground']};
+						border-bottom: 0.125rem solid ${colors['tab.activeBorder']};
+					}
 				}
 
 				& pre {
@@ -272,8 +318,7 @@ function getFramesStyles({ colors }: ExpressiveCodeTheme, styleSettings: FramesS
 			}
 
 			::selection {
-				color: white;
-				background-color: var(--theme-code-selection-bg);
+				background-color: ${colors['editor.selectionBackground']};
 			}
 		}
 	`
