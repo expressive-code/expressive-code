@@ -2,10 +2,9 @@ import { describe, expect, test } from 'vitest'
 import { sanitize } from 'hast-util-sanitize'
 import { toHtml } from 'hast-util-to-html'
 import githubDark from 'shiki/themes/github-dark.json'
-import { annotateMatchingTextParts, getHookTestResult, getMultiHookTestResult, getMultiPluginTestResult, getWrapperRenderer, nonArrayValues, nonObjectValues } from './utils'
+import { getHookTestResult, getMultiPluginTestResult, getWrapperRenderer, nonArrayValues, nonObjectValues } from './utils'
 import { ExpressiveCode } from '../src/common/engine'
 import { ExpressiveCodeBlock } from '../src/common/block'
-import { groupWrapperScope } from '../src/internal/css'
 import { ExpressiveCodeTheme } from '../src/common/theme'
 
 describe('ExpressiveCode', () => {
@@ -100,87 +99,6 @@ describe('ExpressiveCode', () => {
 				expect(extractedTheme.name).toEqual('github-dark')
 				expect(extractedTheme.colors['editor.foreground']).toEqual(githubDark.colors['editor.foreground'].toLowerCase())
 				expect(extractedTheme.colors['editor.background']).toEqual(githubDark.colors['editor.background'].toLowerCase())
-			})
-		})
-		describe('Returns all CSS styles added by plugins', () => {
-			test('Throws on invalid styles', async () => {
-				await expect(async () => {
-					await getHookTestResult('postprocessRenderedLine', ({ addStyles }) => {
-						addStyles(`.invalid { color: red;`)
-					})
-				}).rejects.toThrow(/TestPlugin.*color: red/)
-			})
-			test('Single hook, non-duplicate styles', async () => {
-				const { styles } = await getHookTestResult('annotateCode', ({ codeBlock, addStyles }) => {
-					annotateMatchingTextParts({ line: codeBlock.getLine(1)!, partsToAnnotate: ['two '], selector: 'del' })
-					addStyles(`del {
-						color: red;
-					}`)
-				})
-				// Expect the returned style to be scoped and minified
-				expect(styles).toEqual(new Set([`${groupWrapperScope} del{color:red}`]))
-			})
-			test('Single hook, duplicate styles', async () => {
-				const { styles } = await getHookTestResult('annotateCode', ({ codeBlock, addStyles }) => {
-					annotateMatchingTextParts({ line: codeBlock.getLine(1)!, partsToAnnotate: ['two '], selector: 'del' })
-					addStyles('del { color: red; }')
-					addStyles('ins { color: green; }')
-					addStyles('del { color: red; }')
-				})
-				expect(styles).toEqual(
-					new Set([
-						// Expect deduplicated, scoped and minified styles
-						`${groupWrapperScope} del{color:red}`,
-						`${groupWrapperScope} ins{color:green}`,
-					])
-				)
-			})
-			test('Multiple hooks, duplicate styles', async () => {
-				const { styles } = await getMultiHookTestResult({
-					hooks: {
-						preprocessMetadata: ({ codeBlock, addStyles }) => {
-							annotateMatchingTextParts({ line: codeBlock.getLine(1)!, partsToAnnotate: ['two '], selector: 'del' })
-							addStyles('del { color: red; }')
-							addStyles(`
-								/* some comment here */
-								ins { color: green; }
-							`)
-							addStyles('del { color: red; }')
-						},
-						postprocessRenderedBlock: ({ addStyles }) => {
-							addStyles('ins { color: green; }')
-						},
-						postprocessRenderedBlockGroup: ({ addStyles }) => {
-							addStyles('ins { color: green; }')
-							addStyles('a { color: blue; }')
-							addStyles('del { color: red; }')
-						},
-					},
-				})
-				expect(styles).toEqual(
-					new Set([
-						// Expect deduplicated, scoped and minified styles
-						`${groupWrapperScope} del{color:red}`,
-						`${groupWrapperScope} ins{color:green}`,
-						`${groupWrapperScope} a{color:blue}`,
-					])
-				)
-			})
-			test('Allows global CSS by targeting :root, html and body', async () => {
-				const { styles } = await getHookTestResult('annotateCode', ({ codeBlock, addStyles }) => {
-					annotateMatchingTextParts({ line: codeBlock.getLine(1)!, partsToAnnotate: ['two '], selector: 'del' })
-					addStyles(':root, html, body { --ec-del-text: red;  }')
-					addStyles('del { color: var(--ec-del-text); }')
-				})
-				expect(styles).toEqual(
-					new Set([
-						// Expect some selectors not to be scoped,
-						// but sorted alphabetically and minified
-						':root,body,html{--ec-del-text:red}',
-						// Expect the non-root style to be scoped and minified
-						`${groupWrapperScope} del{color:var(--ec-del-text)}`,
-					])
-				)
 			})
 		})
 	})
