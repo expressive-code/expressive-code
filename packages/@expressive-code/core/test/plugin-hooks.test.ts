@@ -29,10 +29,10 @@ describe('Block-level hooks are called with the correct processing state', () =>
 		['postprocessRenderedLine', 2, { ...readonlyState }],
 		['postprocessRenderedBlock', 1, { ...readonlyState }],
 	]
-	test.each(testCases)('%s', (hookName, expectedCallCount, state) => {
+	test.each(testCases)('%s', async (hookName, expectedCallCount, state) => {
 		// Ensure that the code block's state property contains the expected data
 		let actualCallCount = 0
-		getHookTestResult(hookName, ({ codeBlock }) => {
+		await getHookTestResult(hookName, ({ codeBlock }) => {
 			expect(codeBlock.state).toEqual(state)
 			actualCallCount++
 		})
@@ -41,18 +41,18 @@ describe('Block-level hooks are called with the correct processing state', () =>
 		expect(actualCallCount).toEqual(expectedCallCount)
 
 		// Perform edits of all properties to ensure they work or throw as expected
-		expectToWorkOrThrow(state.canEditMetadata, () => testEditingProperty(hookName, 'meta'))
-		expectToWorkOrThrow(state.canEditMetadata, () => testEditingProperty(hookName, 'language'))
-		expectToWorkOrThrow(state.canEditAnnotations, () => testAddingAnnotation(hookName))
-		expectToWorkOrThrow(state.canEditCode, () => testEditingCode(hookName))
+		await expectToWorkOrThrow(state.canEditMetadata, () => testEditingProperty(hookName, 'meta'))
+		await expectToWorkOrThrow(state.canEditMetadata, () => testEditingProperty(hookName, 'language'))
+		await expectToWorkOrThrow(state.canEditAnnotations, () => testAddingAnnotation(hookName))
+		await expectToWorkOrThrow(state.canEditCode, () => testEditingCode(hookName))
 	})
 })
 
 describe('Rendering hooks allow post-processing ASTs', () => {
 	describe('postprocessRenderedLine', () => {
-		test('Can edit line AST', () => {
+		test('Can edit line AST', async () => {
 			let totalHookCalls = 0
-			const { renderedBlockAst } = getMultiHookTestResult({
+			const { renderedBlockAst } = await getMultiHookTestResult({
 				hooks: {
 					postprocessRenderedLine: ({ renderData }) => {
 						totalHookCalls++
@@ -65,9 +65,9 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 			const html = toHtml(sanitize(renderedBlockAst, { attributes: { '*': ['test'] } }))
 			expect(html).toEqual('<pre><code><div test="1">Example code...</div><div test="2">...with two lines!</div></code></pre>')
 		})
-		test('Can completely replace line AST', () => {
+		test('Can completely replace line AST', async () => {
 			let totalHookCalls = 0
-			const { renderedBlockAst } = getMultiHookTestResult({
+			const { renderedBlockAst } = await getMultiHookTestResult({
 				hooks: {
 					postprocessRenderedLine: ({ renderData }) => {
 						totalHookCalls++
@@ -79,7 +79,7 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 			const html = toHtml(sanitize(renderedBlockAst, { attributes: { '*': ['test'] } }))
 			expect(html).toEqual('<pre><code><div test="1">Replaced line</div><div test="2">Replaced line</div></code></pre>')
 		})
-		test('Throws on invalid replacement ASTs', () => {
+		test('Throws on invalid replacement ASTs', async () => {
 			const invalidAsts: unknown[] = [
 				// Non-object values
 				...nonObjectValues,
@@ -95,8 +95,8 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 				// so it's not allowed at the line level
 				{ type: 'root' },
 			]
-			invalidAsts.forEach((invalidAst) => {
-				expect(() => {
+			for (const invalidAst of invalidAsts) {
+				await expect(
 					getMultiHookTestResult({
 						hooks: {
 							postprocessRenderedLine: ({ renderData }) => {
@@ -104,13 +104,14 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 								renderData.lineAst = invalidAst
 							},
 						},
-					})
-				}, `Did not throw when hook replaced lineAst with ${JSON.stringify(invalidAst)}`).toThrow()
-			})
+					}),
+					`Did not throw when hook replaced lineAst with ${JSON.stringify(invalidAst)}`
+				).rejects.toThrow()
+			}
 		})
-		test('Subsequent hooks see line edits/replacements', () => {
+		test('Subsequent hooks see line edits/replacements', async () => {
 			let totalHookCalls = 0
-			const { renderedBlockAst } = getMultiPluginTestResult({
+			const { renderedBlockAst } = await getMultiPluginTestResult({
 				plugins: [
 					{
 						name: 'EditLinePlugin',
@@ -156,9 +157,9 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 		})
 	})
 	describe('postprocessRenderedBlock', () => {
-		test('Can edit block AST', () => {
+		test('Can edit block AST', async () => {
 			let totalHookCalls = 0
-			const { renderedBlockAst } = getMultiHookTestResult({
+			const { renderedBlockAst } = await getMultiHookTestResult({
 				hooks: {
 					postprocessRenderedBlock: ({ renderData }) => {
 						totalHookCalls++
@@ -171,9 +172,9 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 			const html = toHtml(sanitize(renderedBlockAst, { attributes: { '*': ['test'] } }))
 			expect(html).toEqual('<pre test="1"><code><div>Example code...</div><div>...with two lines!</div></code></pre>')
 		})
-		test('Can completely replace block AST', () => {
+		test('Can completely replace block AST', async () => {
 			let totalHookCalls = 0
-			const { renderedBlockAst } = getMultiHookTestResult({
+			const { renderedBlockAst } = await getMultiHookTestResult({
 				hooks: {
 					postprocessRenderedBlock: ({ renderData }) => {
 						totalHookCalls++
@@ -186,7 +187,7 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 			const html = toHtml(sanitize(renderedBlockAst, { attributes: { '*': ['test'] } }))
 			expect(html).toEqual('<div test="1">I am completely different now!</div>')
 		})
-		test('Throws on invalid replacement ASTs', () => {
+		test('Throws on invalid replacement ASTs', async () => {
 			const invalidAsts: unknown[] = [
 				// Non-object values
 				...nonObjectValues,
@@ -200,8 +201,8 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 				{ type: 'text' },
 				// Note that "root" is a valid hast Parent, so it's allowed here
 			]
-			invalidAsts.forEach((invalidAst) => {
-				expect(() => {
+			for (const invalidAst of invalidAsts) {
+				await expect(
 					getMultiHookTestResult({
 						hooks: {
 							postprocessRenderedBlock: ({ renderData }) => {
@@ -209,13 +210,14 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 								renderData.blockAst = invalidAst
 							},
 						},
-					})
-				}, `Did not throw when hook replaced blockAst with ${JSON.stringify(invalidAst)}`).toThrow()
-			})
+					}),
+					`Did not throw when hook replaced blockAst with ${JSON.stringify(invalidAst)}`
+				).rejects.toThrow()
+			}
 		})
-		test('Subsequent hooks see block edits/replacements', () => {
+		test('Subsequent hooks see block edits/replacements', async () => {
 			let totalHookCalls = 0
-			const { renderedBlockAst } = getMultiPluginTestResult({
+			const { renderedBlockAst } = await getMultiPluginTestResult({
 				plugins: [
 					{
 						name: 'EditBlockPlugin',
@@ -254,9 +256,9 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 		})
 	})
 	describe('postprocessRenderedBlockGroup', () => {
-		test('Can edit group AST when rendering a single block', () => {
+		test('Can edit group AST when rendering a single block', async () => {
 			let totalHookCalls = 0
-			const { renderedGroupAst } = getMultiHookTestResult({
+			const { renderedGroupAst } = await getMultiHookTestResult({
 				hooks: {
 					postprocessRenderedBlockGroup: ({ renderData }) => {
 						totalHookCalls++
@@ -279,9 +281,9 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 				].join('')
 			)
 		})
-		test('Can edit group AST when rendering multiple blocks', () => {
+		test('Can edit group AST when rendering multiple blocks', async () => {
 			let totalHookCalls = 0
-			const { renderedGroupAst } = getMultiHookTestResult({
+			const { renderedGroupAst } = await getMultiHookTestResult({
 				input: [defaultBlockOptions, { ...defaultBlockOptions, code: 'Just one line here!' }],
 				hooks: {
 					postprocessRenderedBlockGroup: ({ renderData }) => {
@@ -312,8 +314,8 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 				].join('')
 			)
 		})
-		test('Cannot replace individual block AST objects', () => {
-			expect(() => {
+		test('Cannot replace individual block AST objects', async () => {
+			await expect(
 				getMultiHookTestResult({
 					hooks: {
 						postprocessRenderedBlockGroup: ({ renderedGroupContents }) => {
@@ -323,11 +325,11 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 						},
 					},
 				})
-			}).toThrow()
+			).rejects.toThrow()
 		})
-		test('Can completely replace group AST', () => {
+		test('Can completely replace group AST', async () => {
 			let totalHookCalls = 0
-			const { renderedGroupAst } = getMultiHookTestResult({
+			const { renderedGroupAst } = await getMultiHookTestResult({
 				hooks: {
 					postprocessRenderedBlockGroup: ({ renderData }) => {
 						totalHookCalls++
@@ -353,7 +355,7 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 				].join('')
 			)
 		})
-		test('Throws on invalid replacement ASTs', () => {
+		test('Throws on invalid replacement ASTs', async () => {
 			const invalidAsts: unknown[] = [
 				// Non-object values
 				...nonObjectValues,
@@ -367,8 +369,8 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 				{ type: 'text' },
 				// Types "element" and "root" are hast Parents, so they are allowed here
 			]
-			invalidAsts.forEach((invalidAst) => {
-				expect(() => {
+			for (const invalidAst of invalidAsts) {
+				await expect(
 					getMultiHookTestResult({
 						hooks: {
 							postprocessRenderedBlockGroup: ({ renderData }) => {
@@ -376,13 +378,14 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 								renderData.groupAst = invalidAst
 							},
 						},
-					})
-				}, `Did not throw when hook replaced groupAst with ${JSON.stringify(invalidAst)}`).toThrow()
-			})
+					}),
+					`Did not throw when hook replaced groupAst with ${JSON.stringify(invalidAst)}`
+				).rejects.toThrow()
+			}
 		})
-		test('Subsequent hooks see group edits/replacements', () => {
+		test('Subsequent hooks see group edits/replacements', async () => {
 			let totalHookCalls = 0
-			const { renderedGroupAst } = getMultiPluginTestResult({
+			const { renderedGroupAst } = await getMultiPluginTestResult({
 				plugins: [
 					{
 						name: 'EditGroupPlugin',
@@ -441,26 +444,26 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 	})
 })
 
-function testEditingProperty(hookName: ExpressiveCodePluginHookName, propertyName: 'meta' | 'language') {
-	const { codeBlock, input } = getHookTestResult(hookName, ({ codeBlock }) => {
+async function testEditingProperty(hookName: ExpressiveCodePluginHookName, propertyName: 'meta' | 'language') {
+	const { codeBlock, input } = await getHookTestResult(hookName, ({ codeBlock }) => {
 		codeBlock[propertyName] = `wrapped(${codeBlock[propertyName]})`
 	})
 	expect(codeBlock[propertyName]).toEqual(`wrapped(${input[0][propertyName]})`)
 }
 
-function testAddingAnnotation(hookName: ExpressiveCodePluginHookName) {
+async function testAddingAnnotation(hookName: ExpressiveCodePluginHookName) {
 	const testAnnotation = {
 		name: 'del',
 		render: testRender,
 	}
-	const { codeBlock } = getHookTestResult(hookName, ({ codeBlock }) => {
+	const { codeBlock } = await getHookTestResult(hookName, ({ codeBlock }) => {
 		codeBlock.getLine(0)?.addAnnotation(testAnnotation)
 	})
 	expect(codeBlock.getLine(0)?.getAnnotations()).toMatchObject([testAnnotation])
 }
 
-function testEditingCode(hookName: ExpressiveCodePluginHookName) {
-	const { codeBlock, input } = getHookTestResult(hookName, ({ codeBlock }) => {
+async function testEditingCode(hookName: ExpressiveCodePluginHookName) {
+	const { codeBlock, input } = await getHookTestResult(hookName, ({ codeBlock }) => {
 		codeBlock.insertLine(0, 'Prepended line')
 	})
 	expect(codeBlock.code).toEqual('Prepended line\n' + input[0].code)

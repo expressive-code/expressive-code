@@ -4,7 +4,7 @@ import { ExpressiveCodeBlock } from '../common/block'
 import { ExpressiveCodePlugin } from '../common/plugin'
 import { ExpressiveCodePluginHooks_BeforeRendering, runHooks } from '../common/plugin-hooks'
 import { ExpressiveCodeTheme } from '../common/theme'
-import { processStyles } from './css'
+import { PluginStyles } from './css'
 import { GroupContents } from './render-group'
 import { renderLineToAst } from './render-line'
 import { isBoolean, isHastElement, isHastParent, newTypeError } from './type-checks'
@@ -27,19 +27,19 @@ export function renderBlock({
 	}
 	codeBlock.state = state
 
-	const blockStyles = new Set<string>()
+	const blockStyles: PluginStyles[] = []
 
 	const baseContext = {
 		codeBlock,
 		groupContents,
 		theme,
-		addStyles: (css: string) => blockStyles.add(processStyles(css)),
 	}
 
 	const runBeforeRenderingHooks = (key: keyof ExpressiveCodePluginHooks_BeforeRendering) => {
-		runHooks(key, plugins, ({ hookFn }) => {
+		runHooks(key, plugins, ({ hookFn, plugin }) => {
 			hookFn({
 				...baseContext,
+				addStyles: (styles: string) => blockStyles.push({ pluginName: plugin.name, styles }),
 			})
 		})
 	}
@@ -70,9 +70,10 @@ export function renderBlock({
 			lineAst: renderLineToAst(line),
 		}
 		// Allow plugins to modify or even completely replace the AST
-		runHooks('postprocessRenderedLine', plugins, ({ hookFn }) => {
+		runHooks('postprocessRenderedLine', plugins, ({ hookFn, plugin }) => {
 			hookFn({
 				...baseContext,
+				addStyles: (styles: string) => blockStyles.push({ pluginName: plugin.name, styles }),
 				line,
 				lineIndex,
 				renderData: lineRenderData,
@@ -89,9 +90,10 @@ export function renderBlock({
 	const blockRenderData = {
 		blockAst: buildCodeBlockAstFromRenderedLines(renderedAstLines),
 	}
-	runHooks('postprocessRenderedBlock', plugins, ({ hookFn }) => {
+	runHooks('postprocessRenderedBlock', plugins, ({ hookFn, plugin }) => {
 		hookFn({
 			...baseContext,
+			addStyles: (styles: string) => blockStyles.push({ pluginName: plugin.name, styles }),
 			renderData: blockRenderData,
 		})
 		if (!isHastParent(blockRenderData.blockAst)) {

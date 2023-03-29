@@ -1,4 +1,5 @@
 import { Element, Parent } from 'hast-util-to-html/lib/types'
+import { PluginStyles } from '../internal/css'
 import { GroupContents, RenderedGroupContents } from '../internal/render-group'
 import { ExpressiveCodeBlock } from './block'
 import { ExpressiveCodeLine } from './line'
@@ -46,7 +47,7 @@ export interface PostprocessRenderedBlockContext extends ExpressiveCodeHookConte
 
 export interface PostprocessRenderedBlockGroupContext {
 	renderedGroupContents: RenderedGroupContents
-	styles: Set<string>
+	pluginStyles: PluginStyles[]
 	addStyles: (css: string) => void
 	renderData: {
 		groupAst: Parent

@@ -25,8 +25,8 @@ export class ExpressiveCode {
 		this.theme = config.theme || new ExpressiveCodeTheme(githubDark)
 	}
 
-	render(input: RenderInput, options?: RenderOptions) {
-		return renderGroup({ input, options, theme: this.theme, plugins: this.plugins })
+	async render(input: RenderInput, options?: RenderOptions) {
+		return await renderGroup({ input, options, theme: this.theme, plugins: this.plugins })
 	}
 
 	readonly theme: ExpressiveCodeTheme

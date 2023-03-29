@@ -38,6 +38,9 @@
     "hast-util-to-html": "^8.0.4",
     "hastscript": "^7.2.0",
     "postcss": "^8.4.21",
+    "postcss-discard-comments": "^6.0.0",
+    "postcss-minify-selectors": "^6.0.0",
+    "postcss-normalize-whitespace": "^6.0.0",
     "postcss-prefixwrap": "^1.39.0"
   }
 }

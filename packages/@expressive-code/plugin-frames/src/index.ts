@@ -62,7 +62,7 @@ export function frames({ extractFileNameFromCode = true }: FramesPluginOptions =
 					}
 				}
 			},
-			postprocessRenderedBlock: ({ codeBlock, renderData }) => {
+			postprocessRenderedBlock: ({ codeBlock, renderData, addStyles }) => {
 				// Retrieve information about the current block
 				const titleText = framesPluginData.getOrCreateFor(codeBlock).title
 				const isTerminal = isTerminalLanguage(codeBlock.language)
@@ -75,12 +75,17 @@ export function frames({ extractFileNameFromCode = true }: FramesPluginOptions =
 				const fallbackTerminalWindowTitle = 'Terminal window' // TODO: i18n
 				const screenReaderTitle = !titleText && isTerminal ? [h('span', { className: 'sr-only' }, fallbackTerminalWindowTitle)] : []
 
+				addStyles(`.frame {
+					display: block;
+					position: relative;
+				}`)
+
 				// Wrap the code block in a figure element with helpful classes for styling
 				renderData.blockAst = h(
 					'figure',
 					{
 						className: [
-							'code-snippet',
+							'frame',
 							// If the code block is a terminal, add the `is-terminal` class
 							...(isTerminal ? ['is-terminal'] : []),
 							// If the code block has a title, add the `has-title` class

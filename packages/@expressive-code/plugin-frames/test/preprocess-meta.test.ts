@@ -3,23 +3,23 @@ import { ExpressiveCode } from '@expressive-code/core'
 import { frames } from '../src'
 
 describe('Extracts known attributes from meta string', () => {
-	test('`title` attribute', () => {
-		const singleQuoted = getMetaResult("something title='Hello world' 'else'")
+	test('`title` attribute', async () => {
+		const singleQuoted = await getMetaResult("something title='Hello world' 'else'")
 		expect(singleQuoted.meta).toEqual("something 'else'")
 
-		const doubleQuoted = getMetaResult('twoslash title="Hello world"')
+		const doubleQuoted = await getMetaResult('twoslash title="Hello world"')
 		expect(doubleQuoted.meta).toEqual('twoslash')
 	})
-	test('`@title` attribute', () => {
-		const singleQuoted = getMetaResult("something @title='Hello world' 'else'")
+	test('`@title` attribute', async () => {
+		const singleQuoted = await getMetaResult("something @title='Hello world' 'else'")
 		expect(singleQuoted.meta).toEqual("something 'else'")
 
-		const doubleQuoted = getMetaResult('twoslash @title="Hello world"')
+		const doubleQuoted = await getMetaResult('twoslash @title="Hello world"')
 		expect(doubleQuoted.meta).toEqual('twoslash')
 	})
 })
 
-function getMetaResult(input: string) {
+async function getMetaResult(input: string) {
 	// Create frames plugin
 	const plugin = frames()
 
@@ -33,7 +33,7 @@ function getMetaResult(input: string) {
 		language: 'md',
 		meta: input,
 	}
-	const { renderedGroupContents } = ec.render(data)
+	const { renderedGroupContents } = await ec.render(data)
 	expect(renderedGroupContents).toHaveLength(1)
 	const codeBlock = renderedGroupContents[0].codeBlock
 

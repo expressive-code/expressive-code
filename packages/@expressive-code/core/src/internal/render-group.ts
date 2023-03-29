@@ -4,7 +4,7 @@ import { ExpressiveCodeBlock, ExpressiveCodeBlockOptions } from '../common/block
 import { ExpressiveCodePlugin } from '../common/plugin'
 import { runHooks } from '../common/plugin-hooks'
 import { ExpressiveCodeTheme } from '../common/theme'
-import { groupWrapperClass, groupWrapperElement, processStyles } from './css'
+import { groupWrapperClass, groupWrapperElement, PluginStyles, processPluginStyles } from './css'
 import { renderBlock } from './render-block'
 import { isHastParent, newTypeError } from './type-checks'
 
@@ -28,7 +28,7 @@ export type GroupContents = readonly { codeBlock: ExpressiveCodeBlock }[]
 
 export type RenderedGroupContents = readonly { codeBlock: ExpressiveCodeBlock; renderedBlockAst: Element }[]
 
-export function renderGroup({
+export async function renderGroup({
 	input,
 	options,
 	theme,
@@ -58,8 +58,8 @@ export function renderGroup({
 
 	// Render all blocks
 	const renderedGroupContents = groupContents as RenderedGroupContents
-	const styles = new Set<string>()
-	renderedGroupContents.forEach((groupContent) => {
+	const pluginStyles: PluginStyles[] = []
+	for (const groupContent of renderedGroupContents) {
 		// Render the current block
 		const { renderedBlockAst, blockStyles } = renderBlock({
 			codeBlock: groupContent.codeBlock,
@@ -71,9 +71,9 @@ export function renderGroup({
 		// Store the rendered AST on the group content object
 		groupContent.renderedBlockAst = renderedBlockAst
 
-		// Merge the returned block styles into the group styles set
-		blockStyles.forEach((css) => styles.add(css))
-	})
+		// Add the returned block styles to the group styles
+		pluginStyles.push(...blockStyles)
+	}
 
 	// Combine rendered blocks into a group AST
 	const groupRenderData = {
@@ -82,11 +82,12 @@ export function renderGroup({
 			renderedGroupContents.map(({ renderedBlockAst }) => renderedBlockAst)
 		),
 	}
-	runHooks('postprocessRenderedBlockGroup', plugins, ({ hookFn }) => {
+
+	runHooks('postprocessRenderedBlockGroup', plugins, ({ hookFn, plugin }) => {
 		hookFn({
 			renderedGroupContents,
-			styles,
-			addStyles: (css) => styles.add(processStyles(css)),
+			pluginStyles: pluginStyles,
+			addStyles: (styles: string) => pluginStyles.push({ pluginName: plugin.name, styles }),
 			renderData: groupRenderData,
 		})
 		// The hook may have replaced the group AST though, so ensure it's still valid
@@ -98,7 +99,7 @@ export function renderGroup({
 	return {
 		renderedGroupAst: addWrapperAroundGroupAst(groupRenderData.groupAst),
 		renderedGroupContents,
-		styles,
+		styles: await processPluginStyles(pluginStyles),
 	}
 }
 

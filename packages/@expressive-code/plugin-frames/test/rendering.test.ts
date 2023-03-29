@@ -1,31 +1,52 @@
 import { describe, expect, test } from 'vitest'
+import { mkdirSync, writeFileSync } from 'fs'
+import { join, dirname } from 'path'
 import { Parent } from 'hast-util-to-html/lib/types'
 import { ExpressiveCode } from '@expressive-code/core'
 import { matches, select, selectAll } from 'hast-util-select'
+import { toHtml } from 'hast-util-to-html'
 import { frames } from '../src'
 
 describe('Renders frames around the code', () => {
-	test('Single JS block without title', () => {
+	test('Single JS block without title', async ({ meta: { name: testName } }) => {
 		const ec = new ExpressiveCode({
 			plugins: [frames()],
 		})
-		const { renderedGroupAst } = ec.render({
+		const { renderedGroupAst, styles } = await ec.render({
 			code: `import { defineConfig } from 'example/config'`,
 			language: 'js',
 			meta: '',
 		})
 
+		outputHtmlSnapshot({
+			renderedGroupAst,
+			styles,
+			testName,
+		})
+
+		// const html = toHtml(renderedGroupAst)
+		// expect(html).toEqual(
+		// 	[
+		// 		`<div class="expressive-code">`,
+		// 		`<figure class="frame">`,
+		// 		`<figcaption class="header"></figcaption>`,
+		// 		`<pre><code><div>import { defineConfig } from 'example/config'</div></code></pre>`,
+		// 		`</figure>`,
+		// 		`</div>`,
+		// 	].join('')
+		// )
+
 		validateBlockAst({
 			renderedGroupAst,
-			figureSelector: '.code-snippet:not(.has-title):not(.is-terminal)',
+			figureSelector: '.frame:not(.has-title):not(.is-terminal)',
 			srTitlePresent: false,
 		})
 	})
-	test('Single JS block with title', () => {
+	test('Single JS block with title', async () => {
 		const ec = new ExpressiveCode({
 			plugins: [frames()],
 		})
-		const { renderedGroupAst } = ec.render({
+		const { renderedGroupAst } = await ec.render({
 			code: `
 // test.config.mjs
 
@@ -37,16 +58,16 @@ import { defineConfig } from 'example/config'
 
 		validateBlockAst({
 			renderedGroupAst,
-			figureSelector: '.code-snippet.has-title:not(.is-terminal)',
+			figureSelector: '.frame.has-title:not(.is-terminal)',
 			title: 'test.config.mjs',
 			srTitlePresent: false,
 		})
 	})
-	test('Single terminal block without title', () => {
+	test('Single terminal block without title', async () => {
 		const ec = new ExpressiveCode({
 			plugins: [frames()],
 		})
-		const { renderedGroupAst } = ec.render({
+		const { renderedGroupAst } = await ec.render({
 			code: 'pnpm i expressive-code',
 			language: 'shell',
 			meta: '',
@@ -54,15 +75,15 @@ import { defineConfig } from 'example/config'
 
 		validateBlockAst({
 			renderedGroupAst,
-			figureSelector: '.code-snippet.is-terminal:not(.has-title)',
+			figureSelector: '.frame.is-terminal:not(.has-title)',
 			srTitlePresent: true,
 		})
 	})
-	test('Single terminal block with title', () => {
+	test('Single terminal block with title', async () => {
 		const ec = new ExpressiveCode({
 			plugins: [frames()],
 		})
-		const { renderedGroupAst } = ec.render({
+		const { renderedGroupAst } = await ec.render({
 			code: 'pnpm i expressive-code',
 			language: 'shell',
 			meta: 'title="Installing Expressive Code"',
@@ -70,7 +91,7 @@ import { defineConfig } from 'example/config'
 
 		validateBlockAst({
 			renderedGroupAst,
-			figureSelector: '.code-snippet.has-title.is-terminal',
+			figureSelector: '.frame.has-title.is-terminal',
 			title: 'Installing Expressive Code',
 			srTitlePresent: false,
 		})
@@ -110,4 +131,32 @@ function validateBlockAst({
 
 	// Expect the figcaption to be followed by a pre element
 	expect(select('figure > figcaption + pre', renderedGroupAst)).toBeTruthy()
+}
+
+function outputHtmlSnapshot({ renderedGroupAst, styles, testName }: { renderedGroupAst: Parent; styles: Set<string>; testName: string }) {
+	const snapshotBasePath = join(__dirname, '__html_snapshots__')
+	const snapshotFileName = `${testName.replace(/[<>:"/\\|?*.]/g, '').toLowerCase()}.html`
+	const snapshotFilePath = join(snapshotBasePath, '__actual__', snapshotFileName)
+
+	// Write the snapshot to an HTML file for easy inspection of failed tests
+	const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${testName}</title>
+</head>
+<body>
+  <style>
+    ${[...styles].join('\n')}
+  </style>
+
+  <h2>${testName}</h2>
+  ${toHtml(renderedGroupAst)}
+</body>
+</html>
+	`
+
+	mkdirSync(dirname(snapshotFilePath), { recursive: true })
+	writeFileSync(snapshotFilePath, html, 'utf8')
 }

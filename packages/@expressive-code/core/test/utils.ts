@@ -17,9 +17,9 @@ export const nonNumberValues = [...nothings, ...booleans, ...strings, {}, []]
 export const nonArrayValues = [...nothings, ...booleans, ...numbers, ...strings, {}]
 export const nonObjectValues = [...nothings, ...booleans, ...numbers, ...strings, []]
 
-export function expectToWorkOrThrow(shouldWork: boolean, testFunc: () => void) {
-	if (shouldWork) return expect(testFunc).not.toThrow()
-	return expect(testFunc).toThrow()
+export async function expectToWorkOrThrow(shouldWork: boolean, testFunc: () => Promise<void>) {
+	if (shouldWork) return await expect(testFunc()).resolves.not.toThrow()
+	return await expect(testFunc()).rejects.toThrow()
 }
 
 export function annotateMatchingTextParts({
@@ -76,16 +76,16 @@ export function getWrapperRenderer(selector = 'span') {
 
 export const testRender = getWrapperRenderer()
 
-export function getHookTestResult(hookName: ExpressiveCodePluginHookName, hookFunc: ExpressiveCodeHook) {
-	return getMultiHookTestResult({
+export async function getHookTestResult(hookName: ExpressiveCodePluginHookName, hookFunc: ExpressiveCodeHook) {
+	return await getMultiHookTestResult({
 		hooks: {
 			[hookName]: hookFunc,
 		},
 	})
 }
 
-export function getMultiHookTestResult({ hooks, input }: { hooks: ExpressiveCodePluginHooks; input?: ExpressiveCodeBlockOptions[] }) {
-	return getMultiPluginTestResult({
+export async function getMultiHookTestResult({ hooks, input }: { hooks: ExpressiveCodePluginHooks; input?: ExpressiveCodeBlockOptions[] }) {
+	return await getMultiPluginTestResult({
 		plugins: [
 			{
 				name: 'TestPlugin',
@@ -102,12 +102,12 @@ export const defaultBlockOptions = {
 	meta: 'test',
 }
 
-export function getMultiPluginTestResult({ plugins, input = [defaultBlockOptions] }: { plugins: ExpressiveCodePlugin[]; input?: ExpressiveCodeBlockOptions[] }) {
+export async function getMultiPluginTestResult({ plugins, input = [defaultBlockOptions] }: { plugins: ExpressiveCodePlugin[]; input?: ExpressiveCodeBlockOptions[] }) {
 	const ec = new ExpressiveCode({
 		plugins,
 	})
 
-	const { renderedGroupAst, renderedGroupContents, styles } = ec.render(input)
+	const { renderedGroupAst, renderedGroupContents, styles } = await ec.render(input)
 	expect(renderedGroupContents).toHaveLength(input.length)
 
 	return {

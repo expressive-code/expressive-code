@@ -3,8 +3,8 @@ import { ExpressiveCode } from '@expressive-code/core'
 import { frames, framesPluginData, FramesPluginOptions } from '../src'
 
 describe('Extracts file name comments from the first code lines', () => {
-	test('JS comments without prefix', () => {
-		expectCodeResult({
+	test('JS comments without prefix', async () => {
+		await expectCodeResult({
 			code: `
 // test.config.mjs
 import { defineConfig } from 'example/config'
@@ -17,8 +17,8 @@ import { defineConfig } from 'example/config'
 		})
 	})
 
-	test('JS comments with prefix followed by a colon', () => {
-		expectCodeResult({
+	test('JS comments with prefix followed by a colon', async () => {
+		await expectCodeResult({
 			code: `
 // Example file: test.config.ts
 import { defineConfig } from 'example/config'
@@ -31,8 +31,8 @@ import { defineConfig } from 'example/config'
 		})
 	})
 
-	test('HTML comments', () => {
-		expectCodeResult({
+	test('HTML comments', async () => {
+		await expectCodeResult({
 			code: `
 <!-- Example: src/pages/stars.htm -->
 <img src="/assets/stars.png" alt="A starry night sky.">
@@ -45,8 +45,8 @@ import { defineConfig } from 'example/config'
 		})
 	})
 
-	test('YAML comments', () => {
-		expectCodeResult({
+	test('YAML comments', async () => {
+		await expectCodeResult({
 			code: `
 ---
 # src/pages/post/blog-post.md
@@ -75,8 +75,8 @@ No page will be built for this post.`,
 		})
 	})
 
-	test('Removes line of whitespace afterwards', () => {
-		expectCodeResult({
+	test('Removes line of whitespace afterwards', async () => {
+		await expectCodeResult({
 			code: `
 // test.config.mjs
 
@@ -92,7 +92,7 @@ import { defineConfig } from 'example/config'
 })
 
 describe('Leaves comments unlikely to be file names untouched', () => {
-	test('Comments after line 4', () => {
+	test('Comments after line 4', async () => {
 		const code = `
 Line 1
 Line 2
@@ -102,7 +102,7 @@ Line 4
 
 import { defineConfig } from 'example/config'
 		`
-		expectCodeResult({
+		await expectCodeResult({
 			code,
 			language: 'js',
 			expected: {
@@ -112,12 +112,12 @@ import { defineConfig } from 'example/config'
 		})
 	})
 
-	test('Links ending with a file name', () => {
+	test('Links ending with a file name', async () => {
 		const code = `
 // You can access the file like this:
 // https://example.com/test.js
 		`
-		expectCodeResult({
+		await expectCodeResult({
 			code,
 			language: 'js',
 			expected: {
@@ -127,7 +127,7 @@ import { defineConfig } from 'example/config'
 		})
 	})
 
-	test('File extensions not matching the language', () => {
+	test('File extensions not matching the language', async () => {
 		const code = `
 <head>
   <!-- Local: /public/styles/global.css -->
@@ -136,7 +136,7 @@ import { defineConfig } from 'example/config'
   <link rel="stylesheet" href="https://example.com/test.css" />
 </head>
 		`
-		expectCodeResult({
+		await expectCodeResult({
 			code,
 			language: 'jsx',
 			expected: {
@@ -148,12 +148,12 @@ import { defineConfig } from 'example/config'
 })
 
 describe('Does not extract file names from comments when disabled or not needed', () => {
-	test('When disabled in plugin configuration', () => {
+	test('When disabled in plugin configuration', async () => {
 		const code = `
 // test.config.mjs
 import { defineConfig } from 'example/config'
 		`
-		expectCodeResult({
+		await expectCodeResult({
 			code,
 			language: 'js',
 			options: { extractFileNameFromCode: false },
@@ -163,12 +163,12 @@ import { defineConfig } from 'example/config'
 			},
 		})
 	})
-	test('When `title` attribute was found in meta string', () => {
+	test('When `title` attribute was found in meta string', async () => {
 		const code = `
 // test.config.mjs
 import { defineConfig } from 'example/config'
 		`
-		expectCodeResult({
+		await expectCodeResult({
 			code,
 			language: 'js',
 			meta: 'title="something.js"',
@@ -180,7 +180,7 @@ import { defineConfig } from 'example/config'
 	})
 })
 
-function expectCodeResult({
+async function expectCodeResult({
 	code,
 	language,
 	meta = '',
@@ -201,7 +201,7 @@ function expectCodeResult({
 	const ec = new ExpressiveCode({
 		plugins: [frames(options)],
 	})
-	const { renderedGroupContents } = ec.render({ code: code.trim(), language, meta })
+	const { renderedGroupContents } = await ec.render({ code: code.trim(), language, meta })
 	expect(renderedGroupContents).toHaveLength(1)
 	const codeBlock = renderedGroupContents[0].codeBlock
 
