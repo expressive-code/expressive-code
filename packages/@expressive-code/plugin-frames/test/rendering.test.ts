@@ -30,77 +30,35 @@ describe('Renders frames around the code', () => {
 			srTitlePresent: false,
 		})
 	})
-	test('Single JS block with title', async ({ meta: { name: testName } }) => {
-		const ec = new ExpressiveCode({
-			plugins: [frames()],
-		})
-		const { renderedGroupAst, styles } = await ec.render({
-			code: `
+	const themeNames = [undefined, 'ayu-green-dark-bordered', 'shades-of-purple', 'synthwave-color-theme', 'vim-dark-medium']
+	themeNames.forEach((themeName) => {
+		test(`Single JS block with title (${themeName || 'default theme'})`, async ({ meta: { name: testName } }) => {
+			const ec = new ExpressiveCode({
+				plugins: [frames()],
+				theme: themeName ? ExpressiveCodeTheme.fromJSONString(readFileSync(join(__dirname, 'themes', `${themeName}.json`), 'utf8')) : undefined,
+			})
+			const { renderedGroupAst, styles } = await ec.render({
+				code: `
 // test.config.mjs
 
 import { defineConfig } from 'example/config'
 			`.trim(),
-			language: 'js',
-			meta: '',
-		})
+				language: 'js',
+				meta: '',
+			})
 
-		outputHtmlSnapshot({
-			renderedGroupAst,
-			styles,
-			testName,
-		})
+			outputHtmlSnapshot({
+				renderedGroupAst,
+				styles,
+				testName,
+			})
 
-		validateBlockAst({
-			renderedGroupAst,
-			figureSelector: '.frame.has-title:not(.is-terminal)',
-			title: 'test.config.mjs',
-			srTitlePresent: false,
-		})
-	})
-	test('Single JS block with title (Synthwave theme)', async ({ meta: { name: testName } }) => {
-		const ec = new ExpressiveCode({
-			plugins: [frames()],
-			theme: ExpressiveCodeTheme.fromJSONString(readFileSync(join(__dirname, 'themes', 'synthwave-color-theme.json'), 'utf8')),
-		})
-		const { renderedGroupAst, styles } = await ec.render({
-			code: `
-// src/pages/[id].json.js
-import type { APIRoute } from 'astro';
-
-const usernames = ["Sarah", "Chris", "Dan"]
-
-export const get: APIRoute = ({ params, request }) => {
-  const id = params.id;
-  return {
-    body: JSON.stringify({
-      name: usernames[id]
-    })
-  }
-};
-
-export function getStaticPaths () {
-  return [ 
-    { params: { id: "0"} },
-    { params: { id: "1"} },
-    { params: { id: "2"} },
-  ]
-}
-			`.trim(),
-			language: 'js',
-			meta: '',
-		})
-
-		outputHtmlSnapshot({
-			renderedGroupAst,
-			styles,
-			testName,
-		})
-
-		validateBlockAst({
-			renderedGroupAst,
-			figureSelector: '.frame.has-title:not(.is-terminal)',
-			title: 'src/pages/[id].json.js',
-			srTitlePresent: false,
+			validateBlockAst({
+				renderedGroupAst,
+				figureSelector: '.frame.has-title:not(.is-terminal)',
+				title: 'test.config.mjs',
+				srTitlePresent: false,
+			})
 		})
 	})
 	test('Single terminal block without title', async ({ meta: { name: testName } }) => {
@@ -126,8 +84,10 @@ export function getStaticPaths () {
 		})
 	})
 	test('Single terminal block with title', async ({ meta: { name: testName } }) => {
+		// const themeName = 'vim-dark-medium'
 		const ec = new ExpressiveCode({
 			plugins: [frames()],
+			// theme: ExpressiveCodeTheme.fromJSONString(readFileSync(join(__dirname, 'themes', `${themeName}.json`), 'utf8')),
 		})
 		const { renderedGroupAst, styles } = await ec.render({
 			code: 'pnpm i expressive-code',

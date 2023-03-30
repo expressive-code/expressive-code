@@ -1,4 +1,5 @@
 import { TinyColor } from '@ctrl/tinycolor'
+import { multiplyAlpha, lighten, darken } from '../helpers/color-transforms'
 
 export type VSCodeDefaultColorTransform =
 	| ['transparent', VSCodeDefaultColorKey, number]
@@ -101,6 +102,14 @@ export type VSCodeDefaultColorKey =
 	| 'scrollbarSlider.background'
 	| 'scrollbarSlider.hoverBackground'
 	| 'scrollbarSlider.activeBackground'
+	// Panels
+	| 'panel.background'
+	| 'panel.border'
+	| 'panelTitle.activeBorder'
+	| 'panelTitle.activeForeground'
+	| 'panelTitle.inactiveForeground'
+	| 'panelSectionHeader.background'
+	| 'terminal.background'
 	// Widgets
 	| 'widget.shadow'
 	| 'editorWidget.background'
@@ -116,6 +125,12 @@ export type VSCodeDefaultColorKey =
 	| 'editorHoverWidget.foreground'
 	| 'editorHoverWidget.border'
 	| 'editorHoverWidget.statusBarBackground'
+	// Title bar
+	| 'titleBar.activeBackground'
+	| 'titleBar.activeForeground'
+	| 'titleBar.inactiveBackground'
+	| 'titleBar.inactiveForeground'
+	| 'titleBar.border'
 	// Toolbars
 	| 'toolbar.hoverBackground'
 	| 'toolbar.activeBackground'
@@ -277,17 +292,17 @@ const defaultWorkbenchColors: { [key in VSCodeDefaultColorKey]: VSCodeDefaultCol
 
 	// Editor groups & panes
 	'editorPane.background': ['editor.background', 'editor.background'],
-	'editorGroup.emptyBackground': [null, null],
-	'editorGroup.focusedEmptyBorder': [null, null],
+	'editorGroup.emptyBackground': null,
+	'editorGroup.focusedEmptyBorder': null,
 	'editorGroupHeader.tabsBackground': ['#252526', '#f3f3f3'],
-	'editorGroupHeader.tabsBorder': [null, null],
+	'editorGroupHeader.tabsBorder': null,
 	'editorGroupHeader.noTabsBackground': ['editor.background', 'editor.background'],
-	'editorGroupHeader.border': [null, null],
+	'editorGroupHeader.border': null,
 	'editorGroup.border': ['#444444', '#e7e7e7'],
 	'editorGroup.dropBackground': ['#53595d80', '#2677cb2d'],
 	'editorGroup.dropIntoPromptForeground': ['editorWidget.foreground', 'editorWidget.foreground'],
 	'editorGroup.dropIntoPromptBackground': ['editorWidget.background', 'editorWidget.background'],
-	'editorGroup.dropIntoPromptBorder': [null, null],
+	'editorGroup.dropIntoPromptBorder': null,
 	'sideBySideEditor.horizontalBorder': ['editorGroup.border', 'editorGroup.border'],
 	'sideBySideEditor.verticalBorder': ['editorGroup.border', 'editorGroup.border'],
 
@@ -296,6 +311,18 @@ const defaultWorkbenchColors: { [key in VSCodeDefaultColorKey]: VSCodeDefaultCol
 	'scrollbarSlider.background': ['#79797966', '#64646466'],
 	'scrollbarSlider.hoverBackground': ['#646464b2', '#646464b2'],
 	'scrollbarSlider.activeBackground': ['#bfbfbf66', '#00000099'],
+
+	// Panels
+	'panel.background': 'editor.background',
+	'panel.border': '#80808059',
+	'panelTitle.activeBorder': 'panelTitle.activeForeground',
+	'panelTitle.activeForeground': ['#e7e7e7', '#424242'],
+	'panelTitle.inactiveForeground': [
+		['transparent', 'panelTitle.activeForeground', 0.6],
+		['transparent', 'panelTitle.activeForeground', 0.75],
+	],
+	'panelSectionHeader.background': '#80808051',
+	'terminal.background': 'panel.background',
 
 	// Widgets
 	'widget.shadow': ['#0000005b', '#00000028'],
@@ -315,6 +342,13 @@ const defaultWorkbenchColors: { [key in VSCodeDefaultColorKey]: VSCodeDefaultCol
 		['lighten', 'editorHoverWidget.background', 0.2],
 		['darken', 'editorHoverWidget.background', 0.05],
 	],
+
+	// Title bar
+	'titleBar.activeBackground': ['#3c3c3c', '#dddddd'],
+	'titleBar.activeForeground': ['#cccccc', '#333333'],
+	'titleBar.inactiveBackground': ['transparent', 'titleBar.activeBackground', 0.6],
+	'titleBar.inactiveForeground': ['transparent', 'titleBar.activeForeground', 0.6],
+	'titleBar.border': null,
 
 	// Toolbars
 	'toolbar.hoverBackground': ['#5a5d5e50', '#b8b8b850'],
@@ -345,12 +379,12 @@ const defaultWorkbenchColors: { [key in VSCodeDefaultColorKey]: VSCodeDefaultCol
 	],
 
 	// Tab hover foreground/background
-	'tab.hoverBackground': [null, null],
+	'tab.hoverBackground': null,
 	'tab.unfocusedHoverBackground': [
 		['transparent', 'tab.hoverBackground', 0.5],
 		['transparent', 'tab.hoverBackground', 0.7],
 	],
-	'tab.hoverForeground': [null, null],
+	'tab.hoverForeground': null,
 	'tab.unfocusedHoverForeground': [
 		['transparent', 'tab.hoverForeground', 0.5],
 		['transparent', 'tab.hoverForeground', 0.5],
@@ -359,17 +393,17 @@ const defaultWorkbenchColors: { [key in VSCodeDefaultColorKey]: VSCodeDefaultCol
 	// Tab borders
 	'tab.border': ['#252526', '#f3f3f3'],
 	'tab.lastPinnedBorder': ['tree.indentGuidesStroke', 'tree.indentGuidesStroke'],
-	'tab.activeBorder': [null, null],
+	'tab.activeBorder': null,
 	'tab.unfocusedActiveBorder': [
 		['transparent', 'tab.activeBorder', 0.5],
 		['transparent', 'tab.activeBorder', 0.7],
 	],
-	'tab.activeBorderTop': [null, null],
+	'tab.activeBorderTop': null,
 	'tab.unfocusedActiveBorderTop': [
 		['transparent', 'tab.activeBorderTop', 0.5],
 		['transparent', 'tab.activeBorderTop', 0.7],
 	],
-	'tab.hoverBorder': [null, null],
+	'tab.hoverBorder': null,
 	'tab.unfocusedHoverBorder': [
 		['transparent', 'tab.hoverBorder', 0.5],
 		['transparent', 'tab.hoverBorder', 0.7],
@@ -474,25 +508,6 @@ export function resolveVSCodeWorkbenchColors(colors: { [key: string]: string } |
 	const colorsStartedResolving = new Set<VSCodeDefaultColorsByType | string>()
 	const colorsResolved = new Map<VSCodeDefaultColorsByType | string, string | null>()
 
-	function roundFloat(number: number, decimalPoints: number): number {
-		const decimal = Math.pow(10, decimalPoints)
-		return Math.round(number * decimal) / decimal
-	}
-	function minMaxRounded(number: number, min = 0, max = 1, decimalPoints = 3) {
-		return Math.max(min, Math.min(max, roundFloat(number, decimalPoints)))
-	}
-	function multiplyAlpha(color: TinyColor, factor: number) {
-		return color.setAlpha(minMaxRounded(color.getAlpha() * factor))
-	}
-	function lighten(color: TinyColor, amount: number) {
-		const hsl = color.toHsl()
-		const l = minMaxRounded(hsl.l)
-		return new TinyColor({ ...hsl, l: minMaxRounded(l + l * amount) })
-	}
-	function darken(color: TinyColor, amount: number) {
-		return lighten(color, -amount)
-	}
-
 	function applyColorTransform(unresolvedColor: VSCodeDefaultColorTransform): string | null | undefined {
 		if (unresolvedColor.length === 3) {
 			const [type, colorKey, amount] = unresolvedColor
@@ -500,13 +515,12 @@ export function resolveVSCodeWorkbenchColors(colors: { [key: string]: string } |
 			/* c8 ignore next */
 			if (hexColor === null) return null
 
-			const color = new TinyColor(hexColor)
 			if (type === 'transparent') {
-				return multiplyAlpha(color, amount).toHexShortString()
+				return multiplyAlpha(hexColor, amount)
 			} else if (type === 'lighten') {
-				return lighten(color, amount).toHexShortString()
+				return lighten(hexColor, amount)
 			} else if (type === 'darken') {
-				return darken(color, amount).toHexShortString()
+				return darken(hexColor, amount)
 			}
 		}
 
@@ -520,7 +534,7 @@ export function resolveVSCodeWorkbenchColors(colors: { [key: string]: string } |
 
 			const hexBackground = resolveColor(backgroundKey)
 			/* c8 ignore next */
-			if (hexBackground === null) return multiplyAlpha(from, factor * transparency).toHexShortString()
+			if (hexBackground === null) return multiplyAlpha(from, factor * transparency)
 			const background = new TinyColor(hexBackground)
 
 			const fromLum = from.getLuminance()
@@ -530,11 +544,11 @@ export function resolveVSCodeWorkbenchColors(colors: { [key: string]: string } |
 			if (fromLum < bgLum) {
 				combinedFactor *= (bgLum - fromLum) / bgLum
 				const lightened = lighten(from, combinedFactor)
-				return multiplyAlpha(lightened, transparency).toHexShortString()
+				return multiplyAlpha(lightened, transparency)
 			} else {
 				combinedFactor *= (fromLum - bgLum) / fromLum
 				const darkened = darken(from, combinedFactor)
-				return multiplyAlpha(darkened, transparency).toHexShortString()
+				return multiplyAlpha(darkened, transparency)
 			}
 		}
 	}
