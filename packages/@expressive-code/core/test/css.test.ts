@@ -127,6 +127,16 @@ describe('Processes CSS styles added by plugins', () => {
 			})
 			expect(styles).toEqual(new Set([`${groupWrapperScope} .some-class ins,${groupWrapperScope} .some-class mark{color:yellow}`]))
 		})
+		test('Targeting the group wrapper', async () => {
+			const { styles } = await getHookTestResult('annotateCode', ({ addStyles }) => {
+				addStyles(`
+					& {
+						color: blue
+					}
+				`)
+			})
+			expect(styles).toEqual(new Set([`${groupWrapperScope}{color:blue}`]))
+		})
 		test('Compound selectors', async () => {
 			const { styles } = await getHookTestResult('annotateCode', ({ addStyles }) => {
 				addStyles(`

@@ -7,6 +7,14 @@ export const groupWrapperClass = '.expressive-code'
 export const groupWrapperScope = groupWrapperElement + groupWrapperClass
 
 const preprocessor = postcss([
+	// Allow targeting the group wrapper by using the `&` selector at the top level
+	(root: Root) => {
+		root.walkRules((rule) => {
+			if (rule.selector === '&') {
+				rule.selector = groupWrapperScope
+			}
+		})
+	},
 	// Parse SASS-like nested selectors
 	postcssNested(),
 ])
