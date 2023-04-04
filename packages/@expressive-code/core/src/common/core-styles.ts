@@ -25,7 +25,7 @@ export const coreStyleSettings = new StyleSettings({
 	codeFontWeight: '400',
 	codeLineHeight: '1.65',
 	codePaddingBlock: '1rem',
-	codePaddingInline: '1.25rem',
+	codePaddingInline: '1.35rem',
 	codeBackground: ({ theme }) => theme.colors['editor.background'],
 	codeForeground: ({ theme }) => theme.colors['editor.foreground'],
 	uiFontFamily: ['system-ui', `-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, `Helvetica`, `Arial`, `sans-serif`, `'Apple Color Emoji'`, `'Segoe UI Emoji'`].join(','),
@@ -33,7 +33,7 @@ export const coreStyleSettings = new StyleSettings({
 	uiFontWeight: '400',
 	uiLineHeight: '1.65',
 	uiPaddingBlock: '0.25rem',
-	uiPaddingInline: '1.25rem',
+	uiPaddingInline: '1rem',
 })
 
 export type ResolvedCoreStyles = ResolvedStyleSettings<keyof typeof coreStyleSettings.defaultSettings>

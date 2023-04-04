@@ -32,10 +32,6 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 				--header-border-radius: calc(${coreStyles.borderRadius} + ${coreStyles.borderWidth});
 				border-radius: var(--header-border-radius) var(--header-border-radius) 0 0;
 
-				font-family: ${coreStyles.uiFontFamily};
-				font-size: 0.9rem;
-				letter-spacing: 0.025ch;
-
 				::selection {
 					background-color: ${colors['menu.selectionBackground']};
 				}
@@ -86,7 +82,9 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 					padding-bottom: 0.175rem;
 					min-height: 1.75rem;
 					position: relative;
+
 					font-weight: 500;
+					letter-spacing: 0.025ch;
 
 					color: ${colors['titleBar.activeForeground']};
 					background-color: ${colors['titleBar.activeBackground']};
@@ -103,7 +101,7 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 					&::before {
 						content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 16' preserveAspectRatio='xMidYMid meet' fill='rgba(255, 255, 255, 0.15)'%3E%3Ccircle cx='8' cy='8' r='8'/%3E%3Ccircle cx='30' cy='8' r='8'/%3E%3Ccircle cx='52' cy='8' r='8'/%3E%3C/svg%3E");
 						position: absolute;
-						left: 1rem;
+						left: ${coreStyles.uiPaddingInline};
 						width: 2.1rem;
 						line-height: 0;
 					}
