@@ -1,17 +1,24 @@
 import postcss, { Root } from 'postcss'
 import postcssNested from 'postcss-nested'
-import postcssPrefixWrap from 'postcss-prefixwrap'
+import { escapeRegExp } from './escaping'
 
 export const groupWrapperElement = 'div'
 export const groupWrapperClass = '.expressive-code'
 export const groupWrapperScope = groupWrapperElement + groupWrapperClass
 
+const regExpScopedTopLevel = new RegExp(`^${escapeRegExp(groupWrapperScope)} .*(:root|html|body)`, 'g')
+
 const preprocessor = postcss([
-	// Allow targeting the group wrapper by using the `&` selector at the top level
+	// Prevent top-level selectors that are already scoped from being scoped twice
 	(root: Root) => {
 		root.walkRules((rule) => {
-			if (rule.selector === '&') {
-				rule.selector = groupWrapperScope
+			if (rule.parent?.parent === root) {
+				rule.selectors = rule.selectors.map((selector) => {
+					if (selector.indexOf(groupWrapperScope) === 0) {
+						return selector.slice(groupWrapperScope.length).trim() || '&'
+					}
+					return selector
+				})
 			}
 		})
 	},
@@ -19,12 +26,12 @@ const preprocessor = postcss([
 	postcssNested(),
 ])
 const processor = postcss([
-	// Scope CSS selectors added by plugins
-	postcssPrefixWrap(groupWrapperScope, {
-		// Ignore selectors that target the root element, html or body,
-		// and avoid duplicating the wrapper class
-		ignoredSelectors: [':root', 'html', 'body', groupWrapperScope],
-	}),
+	// Prevent selectors targeting top-level elements from being scoped
+	(root: Root) => {
+		root.walkRules((rule) => {
+			rule.selectors = rule.selectors.map((selector) => selector.replace(regExpScopedTopLevel, '$1'))
+		})
+	},
 	// Apply some simple minifications
 	(root: Root) => {
 		// Remove whitespace after the last rule
@@ -42,6 +49,7 @@ const processor = postcss([
 			rule.raws.semicolon = false
 			rule.walkDecls((decl) => {
 				decl.raws.before = decl.raws.before?.trim() || ''
+				/* c8 ignore next */
 				decl.raws.between = decl.raws.between?.trim() || ':'
 				if (decl.raws.value !== undefined) {
 					decl.raws.value.raw = decl.raws.value.raw.trim()
@@ -72,7 +80,7 @@ export async function processPluginStyles(pluginStyles: PluginStyles[]): Promise
 		if (seenStyles.has(styles)) continue
 		seenStyles.add(styles)
 		try {
-			const preprocessedStyles = (await preprocessor.process(styles, { from: undefined })).css
+			const preprocessedStyles = (await preprocessor.process(`${groupWrapperScope}{${styles}}`, { from: undefined })).css
 			const processedStyles = (await processor.process(preprocessedStyles, { from: undefined })).css
 			result.add(processedStyles)
 		} catch (error) {

@@ -2,25 +2,15 @@ import { describe, expect, test } from 'vitest'
 import { mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { join, dirname } from 'path'
 import { Parent } from 'hast-util-to-html/lib/types'
-import { ExpressiveCode, ExpressiveCodeTheme } from '@expressive-code/core'
+import { ExpressiveCode, ExpressiveCodeConfig, ExpressiveCodeTheme } from '@expressive-code/core'
 import { matches, select, selectAll } from 'hast-util-select'
 import { toHtml } from 'hast-util-to-html'
-import { frames } from '../src'
+import { FramesPluginOptions, frames } from '../src'
 
 describe('Renders frames around the code', () => {
 	test('Single JS block without title', async ({ meta: { name: testName } }) => {
-		const ec = new ExpressiveCode({
-			plugins: [frames()],
-		})
-		const { renderedGroupAst, styles } = await ec.render({
+		const { renderedGroupAst } = await renderAndOutputHtmlSnapshot({
 			code: `import { defineConfig } from 'example/config'`,
-			language: 'js',
-			meta: '',
-		})
-
-		outputHtmlSnapshot({
-			renderedGroupAst,
-			styles,
 			testName,
 		})
 
@@ -33,24 +23,14 @@ describe('Renders frames around the code', () => {
 	const themeNames = [undefined, 'ayu-green-dark-bordered', 'shades-of-purple', 'synthwave-color-theme', 'vim-dark-medium']
 	themeNames.forEach((themeName) => {
 		test(`Single JS block with title (${themeName || 'default theme'})`, async ({ meta: { name: testName } }) => {
-			const ec = new ExpressiveCode({
-				plugins: [frames()],
-				theme: themeName ? ExpressiveCodeTheme.fromJSONString(readFileSync(join(__dirname, 'themes', `${themeName}.json`), 'utf8')) : undefined,
-			})
-			const { renderedGroupAst, styles } = await ec.render({
+			const { renderedGroupAst } = await renderAndOutputHtmlSnapshot({
 				code: `
 // test.config.mjs
 
 import { defineConfig } from 'example/config'
-			`.trim(),
-				language: 'js',
-				meta: '',
-			})
-
-			outputHtmlSnapshot({
-				renderedGroupAst,
-				styles,
+				`.trim(),
 				testName,
+				theme: themeName ? ExpressiveCodeTheme.fromJSONString(readFileSync(join(__dirname, 'themes', `${themeName}.json`), 'utf8')) : undefined,
 			})
 
 			validateBlockAst({
@@ -62,18 +42,9 @@ import { defineConfig } from 'example/config'
 		})
 	})
 	test('Single terminal block without title', async ({ meta: { name: testName } }) => {
-		const ec = new ExpressiveCode({
-			plugins: [frames()],
-		})
-		const { renderedGroupAst, styles } = await ec.render({
+		const { renderedGroupAst } = await renderAndOutputHtmlSnapshot({
 			code: 'pnpm i expressive-code',
 			language: 'shell',
-			meta: '',
-		})
-
-		outputHtmlSnapshot({
-			renderedGroupAst,
-			styles,
 			testName,
 		})
 
@@ -84,20 +55,10 @@ import { defineConfig } from 'example/config'
 		})
 	})
 	test('Single terminal block with title', async ({ meta: { name: testName } }) => {
-		// const themeName = 'vim-dark-medium'
-		const ec = new ExpressiveCode({
-			plugins: [frames()],
-			// theme: ExpressiveCodeTheme.fromJSONString(readFileSync(join(__dirname, 'themes', `${themeName}.json`), 'utf8')),
-		})
-		const { renderedGroupAst, styles } = await ec.render({
+		const { renderedGroupAst } = await renderAndOutputHtmlSnapshot({
 			code: 'pnpm i expressive-code',
 			language: 'shell',
 			meta: 'title="Installing Expressive Code"',
-		})
-
-		outputHtmlSnapshot({
-			renderedGroupAst,
-			styles,
 			testName,
 		})
 
@@ -145,15 +106,58 @@ function validateBlockAst({
 	expect(select('figure > figcaption + pre', renderedGroupAst)).toBeTruthy()
 }
 
+async function renderAndOutputHtmlSnapshot({
+	code,
+	language = 'js',
+	meta = '',
+	testName,
+	theme,
+	engineOptions,
+	framesPluginOptions,
+}: {
+	code: string
+	language?: string
+	meta?: string
+	testName: string
+	theme?: ExpressiveCodeTheme
+	engineOptions?: Partial<ExpressiveCodeConfig>
+	framesPluginOptions?: FramesPluginOptions
+}) {
+	const ec = new ExpressiveCode({
+		plugins: [frames(framesPluginOptions)],
+		theme,
+		...engineOptions,
+	})
+	const baseStyles = await ec.getBaseStyles()
+	const { renderedGroupAst, styles } = await ec.render({
+		code,
+		language,
+		meta,
+	})
+
+	outputHtmlSnapshot({
+		renderedGroupAst,
+		baseStyles,
+		styles,
+		testName,
+	})
+
+	return {
+		renderedGroupAst,
+	}
+}
+
 function outputHtmlSnapshot({
 	renderedGroupAst,
 	styles,
+	baseStyles,
 	testName,
 	foreground = '#fff',
 	background = '#000',
 }: {
 	renderedGroupAst: Parent
 	styles: Set<string>
+	baseStyles: string
 	testName: string
 	foreground?: string
 	background?: string
@@ -169,6 +173,7 @@ function outputHtmlSnapshot({
 <head>
   <meta charset="utf-8">
   <title>${testName}</title>
+  <style>${baseStyles}</style>
 </head>
 <body style="color:${foreground};background:${background}">
   <style>

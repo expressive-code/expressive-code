@@ -13,7 +13,11 @@ export interface ExpressiveCodeHookContext {
 	/**
 	 * Adds CSS styles to the document that contains the rendered code.
 	 *
-	 * The engine's `process` function returns all added styles in a string array along with
+	 * All styles are scoped to Expressive Code by default, so they will not affect
+	 * the rest of the page. SASS-like nesting is supported. If you want to add global styles,
+	 * you can use the `@at-root` rule or target `:root`, `html` or `body` in your selectors.
+	 *
+	 * The engine's `render` function returns all added styles in a string array along with
 	 * the rendered group and block ASTs. The calling code must take care of actually adding
 	 * these styles to the page. For example, it could insert them into a `<style>` element
 	 * before the rendered code block.
@@ -23,10 +27,9 @@ export interface ExpressiveCodeHookContext {
 	 * Expressive Code deduplicates styles added to the same group before returning them,
 	 * but is not aware which styles are already present on the page.
 	 *
-	 * **Note for plugin authors:** It is recommended to add styles on demand when they are
-	 * actually used by a code block, instead of adding the same styles to every block by default.
-	 * If your plugin supports multiple different annotations or styles, consider splitting your
-	 * CSS into multiple sets of styles and only add the ones that are actually needed by a block.
+	 * **Note for plugin authors:** If you are adding the same styles to every block,
+	 * consider using the `baseStyles` property of the plugin instead. This allows integrations
+	 * to optionally extract these styles into a separate CSS file.
 	 */
 	addStyles: (css: string) => void
 }

@@ -11,6 +11,13 @@ describe('Processes CSS styles added by plugins', () => {
 		}).rejects.toThrow(/TestPlugin.*color: red/)
 	})
 	describe('Scopes styles to prevent leaking out', () => {
+		test('Adds a scope to top-level rules', async () => {
+			const { styles } = await getHookTestResult('annotateCode', ({ addStyles }) => {
+				addStyles(`color: red`)
+			})
+			// Expect the returned style to be scoped and minified
+			expect(styles).toEqual(new Set([`${groupWrapperScope}{color:red}`]))
+		})
 		test('Adds a scope to unscoped styles', async () => {
 			const { styles } = await getHookTestResult('annotateCode', ({ addStyles }) => {
 				addStyles(`del{color:red}`)
@@ -25,7 +32,7 @@ describe('Processes CSS styles added by plugins', () => {
 			// Expect the returned style to be scoped and minified
 			expect(styles).toEqual(new Set([`${groupWrapperScope} del{color:red}`]))
 		})
-		test('Allows unscoped CSS by targeting :root, html and body', async () => {
+		test('Allows unscoped CSS by targeting :root, html or body', async () => {
 			const { styles } = await getHookTestResult('annotateCode', ({ codeBlock, addStyles }) => {
 				annotateMatchingTextParts({ line: codeBlock.getLine(1)!, partsToAnnotate: ['two '], selector: 'del' })
 				addStyles(':root,body,html{--ec-del-text:red}')
@@ -167,33 +174,54 @@ describe('Processes CSS styles added by plugins', () => {
 			})
 			expect(styles).toEqual(new Set([`${groupWrapperScope} ins{color:red}`]))
 		})
-		test('Allows selectors to remain unscoped by targeting html or body', async () => {
+		test('Allows selectors to remain unscoped by nesting in :root, html or body', async () => {
 			const { styles } = await getHookTestResult('annotateCode', ({ addStyles }) => {
 				addStyles(`
-					mark {
-						body &, html & { color: blue }
-					}
-					body {
+					:root,
+					body,
+					html {
 						ins { color: green }
 					}
 				`)
 			})
-			expect(styles).toEqual(new Set([`body mark,html mark{color:blue}body ins{color:green}`]))
+			expect(styles).toEqual(new Set([`:root ins,body ins,html ins{color:green}`]))
+		})
+		test('Allows selectors to break out of nesting chain using @at-root', async () => {
+			const { styles } = await getHookTestResult('annotateCode', ({ addStyles }) => {
+				addStyles(`
+					@at-root {
+						mark {
+							body &, html & { color: blue }
+						}
+					}
+				`)
+			})
+			expect(styles).toEqual(new Set([`body mark,html mark{color:blue}`]))
 		})
 	})
 	describe(`Doesn't break nested CSS features`, () => {
 		test('@media', async () => {
 			const { styles } = await getHookTestResult('annotateCode', ({ addStyles }) => {
 				addStyles(`
-					@media (min-width:50em) {
-						:root {
-							--min-spacing-inline: calc(0.5vw-1.5rem);
-							color:blue;
+					code {
+						@media (min-width:50em) {
+							:root {
+								--min-spacing-inline: calc(0.5vw-1.5rem);
+								color:blue;
+							}
+							body, html {
+								color: green;
+							}
+							.test {
+								color: red
+							}
 						}
 					}
 				`)
 			})
-			expect(styles).toEqual(new Set([`@media (min-width:50em){:root{--min-spacing-inline:calc(0.5vw-1.5rem);color:blue}}`]))
+			expect(styles).toEqual(
+				new Set([`@media (min-width:50em){:root{--min-spacing-inline:calc(0.5vw-1.5rem);color:blue}body,html{color:green}${groupWrapperScope} code .test{color:red}}`])
+			)
 		})
 		test('@supports', async () => {
 			const { styles } = await getHookTestResult('annotateCode', ({ addStyles }) => {
@@ -202,10 +230,13 @@ describe('Processes CSS styles added by plugins', () => {
 						:root {
 							--cur-viewport-height: 100dvh;
 						}
+						del {
+							color: purple;
+						}
 					}
 				`)
 			})
-			expect(styles).toEqual(new Set([`@supports (height:100dvh){:root{--cur-viewport-height:100dvh}}`]))
+			expect(styles).toEqual(new Set([`@supports (height:100dvh){:root{--cur-viewport-height:100dvh}${groupWrapperScope} del{color:purple}}`]))
 		})
 		test('@keyframes', async () => {
 			const { styles } = await getHookTestResult('annotateCode', ({ addStyles }) => {

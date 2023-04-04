@@ -1,14 +1,7 @@
-import { AttachedPluginData, ExpressiveCodePlugin, ExpressiveCodeTheme, multiplyAlpha, replaceDelimitedValues } from '@expressive-code/core'
+import { AttachedPluginData, ExpressiveCodePlugin, replaceDelimitedValues } from '@expressive-code/core'
 import { h } from 'hastscript'
-
-export interface FramesStyleSettings {
-	paddingBlock: string
-	paddingInline: string
-	headerFontFamily: string
-	editorFontFamily: string
-	editorFontSize: string
-	tabBarBackgroundOpacity: number
-}
+import { framesStyleSettings, getFramesBaseStyles } from './styles'
+import { getFileNameFromComment, isTerminalLanguage } from './utils'
 
 export interface FramesPluginOptions {
 	/**
@@ -17,44 +10,15 @@ export interface FramesPluginOptions {
 	 * from the first 4 lines of the code.
 	 */
 	extractFileNameFromCode?: boolean
-	styleSettings?: Partial<FramesStyleSettings>
+	styleOverrides?: Partial<typeof framesStyleSettings.defaultSettings>
 }
-
-export interface FramesPluginData {
-	title?: string
-}
-
-export const framesPluginData = new AttachedPluginData<FramesPluginData>(() => ({}))
 
 export function frames(options: FramesPluginOptions = {}): ExpressiveCodePlugin {
 	// Apply default settings
 	const extractFileNameFromCode = options.extractFileNameFromCode ?? true
-	const styleSettings: FramesStyleSettings = {
-		paddingBlock: '1rem',
-		paddingInline: '2rem',
-		headerFontFamily: ['system-ui', `-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, `Helvetica`, `Arial`, `sans-serif`, `'Apple Color Emoji'`, `'Segoe UI Emoji'`].join(','),
-		editorFontFamily: [
-			`'IBM Plex Mono'`,
-			`Consolas`,
-			`'Andale Mono WT'`,
-			`'Andale Mono'`,
-			`'Lucida Console'`,
-			`'Lucida Sans Typewriter'`,
-			`'DejaVu Sans Mono'`,
-			`'Bitstream Vera Sans Mono'`,
-			`'Liberation Mono'`,
-			`'Nimbus Mono L'`,
-			`Monaco`,
-			`'Courier New'`,
-			`Courier`,
-			`monospace`,
-		].join(','),
-		editorFontSize: '0.85em',
-		tabBarBackgroundOpacity: 0.5,
-		...options.styleSettings,
-	}
 	return {
 		name: 'Frames',
+		baseStyles: ({ theme, coreStyles }) => getFramesBaseStyles(theme, coreStyles, options.styleOverrides || {}),
 		hooks: {
 			preprocessMetadata: ({ codeBlock }) => {
 				const blockData = framesPluginData.getOrCreateFor(codeBlock)
@@ -97,7 +61,7 @@ export function frames(options: FramesPluginOptions = {}): ExpressiveCodePlugin 
 					}
 				}
 			},
-			postprocessRenderedBlock: ({ codeBlock, renderData, addStyles, theme }) => {
+			postprocessRenderedBlock: ({ codeBlock, renderData }) => {
 				// Retrieve information about the current block
 				const titleText = framesPluginData.getOrCreateFor(codeBlock).title
 				const isTerminal = isTerminalLanguage(codeBlock.language)
@@ -109,24 +73,6 @@ export function frames(options: FramesPluginOptions = {}): ExpressiveCodePlugin 
 				// to clarify that the code block is a terminal window
 				const fallbackTerminalWindowTitle = 'Terminal window' // TODO: i18n
 				const screenReaderTitle = !titleText && isTerminal ? [h('span', { className: 'sr-only' }, fallbackTerminalWindowTitle)] : []
-				if (!titleText && isTerminal) {
-					addStyles(`
-						.sr-only {
-							position: absolute;
-							width: 1px;
-							height: 1px;
-							padding: 0;
-							margin: -1px;
-							overflow: hidden;
-							clip: rect(0, 0, 0, 0);
-							white-space: nowrap;
-							border-width: 0;							
-						}
-					`)
-				}
-
-				// Add CSS styles for the frame
-				addStyles(getFramesStyles(theme, styleSettings))
 
 				// Wrap the code block in a figure element with helpful classes for styling
 				renderData.blockAst = h(
@@ -151,198 +97,8 @@ export function frames(options: FramesPluginOptions = {}): ExpressiveCodePlugin 
 	}
 }
 
-const LanguageGroups = {
-	code: ['astro', 'cjs', 'htm', 'html', 'js', 'jsx', 'mjs', 'svelte', 'ts', 'tsx', 'vue'],
-	data: ['env', 'json', 'yaml', 'yml'],
-	styles: ['css', 'less', 'sass', 'scss', 'styl', 'stylus'],
-	textContent: ['markdown', 'md', 'mdx'],
+export interface FramesPluginData {
+	title?: string
 }
 
-function isTerminalLanguage(language: string) {
-	return ['shellscript', 'shell', 'bash', 'sh', 'zsh'].includes(language)
-}
-
-const FileNameCommentRegExp = new RegExp(
-	[
-		// Start of line
-		`^`,
-		// Optional whitespace
-		`\\s*`,
-		// Mandatory comment start (`//`, `#` or `<!--`)
-		`(?://|#|<!--)`,
-		// Optional whitespace
-		`\\s*`,
-		// Optional sequence of characters, followed by a Japanese colon or a regular colon (`:`),
-		// but not by `://`. Matches strings like `File name:`, but not `https://example.com/test.md`.
-		`(?:(.*?)(?:\\uff1a|:(?!//)))?`,
-		// Optional whitespace
-		`\\s*`,
-		// Optional sequence of characters allowed in file paths
-		`([\\w./[\\]\\\\-]*`,
-		// Mandatory dot and supported file extension
-		`\\.(?:${Object.values(LanguageGroups).flat().sort().join('|')}))`,
-		// Optional whitespace
-		`\\s*`,
-		// Optional HTML comment end (`-->`)
-		`(?:-->)?`,
-		// Optional whitespace
-		`\\s*`,
-		// End of line
-		`$`,
-	].join('')
-)
-
-/**
- * Checks if the given source code line is a comment that contains a file name
- * for the code snippet.
- *
- * If the syntax highlighting language is contained in our known language groups,
- * only allows file names with extensions that belong to the same language group.
- */
-function getFileNameFromComment(line: string, lang: string) {
-	const matches = FileNameCommentRegExp.exec(line)
-	const extractedFileName = matches?.[2]
-	if (!extractedFileName) return
-
-	// Ignore the extracted file name if its extension does not belong to the same language group
-	// (e.g. JS code containing a CSS file name in a comment)
-	const languageGroup = Object.values(LanguageGroups).find((group) => group.includes(lang))
-	const fileExt = extractedFileName.match(/\.([^.]+)$/)?.[1]
-	if (languageGroup && fileExt && !languageGroup.includes(fileExt)) return
-
-	return extractedFileName
-}
-
-function getFramesStyles({ colors }: ExpressiveCodeTheme, styleSettings: FramesStyleSettings) {
-	const styles = `
-		.frame {
-			--glow-border: 1px solid ${colors['editorGroup.border']};
-			--border-radius: 0.3rem;
-
-			.header,
-			pre {
-				border: var(--glow-border);
-				border-radius: var(--border-radius);
-				line-height: 1.65;
-			}
-
-			.header {
-				display: none;
-				border-bottom: none;
-				line-height: 1.65;
-				z-index: 1;
-				position: relative;
-				top: 1px;
-				background-color: ${colors['editorGroupHeader.tabsBackground']};
-				color: ${colors['tab.activeForeground']};
-				font-family: ${styleSettings.headerFontFamily};
-				font-size: 0.9rem;
-				letter-spacing: 0.025ch;
-				border-bottom-left-radius: 0;
-				border-bottom-right-radius: 0;
-			}
-
-			pre {
-				margin: 0;
-				padding: ${styleSettings.paddingBlock} 0;
-				color: ${colors['editor.foreground']};
-				background-color: ${colors['editor.background']};
-
-				&:focus-visible {
-					outline: 3px solid var(--theme-accent);
-					outline-offset: -3px;
-				}
-
-				& > code {
-					all: unset;
-					display: inline-block;
-					min-width: 100%;
-					font-family: ${styleSettings.editorFontFamily};
-					font-size: ${styleSettings.editorFontSize};
-					--padding-inline: 1.25rem;
-
-					/* This was initially .line */
-					& > div {
-						--accent-margin: 0rem;
-						min-width: calc(100% - var(--accent-margin));
-						padding-inline-start: var(--padding-inline);
-						padding-inline-end: calc(2 * var(--padding-inline));
-					}
-				}
-			}
-
-			&.has-title {
-				&:not(.is-terminal) {
-					/* Active editor tab */
-					& .title {
-						color: ${colors['tab.activeForeground']};
-						background-color: ${colors['tab.activeBackground']};
-						padding: 0.25rem 1rem;
-						border-top-left-radius: var(--border-radius);
-						border-top-right-radius: var(--border-radius);
-						border-right: 1px solid ${colors['tab.border'] || 'transparent'};
-						border-top: 2px solid ${colors['tab.activeBorderTop'] || colors['tab.border']};
-						border-bottom: 2px solid ${colors['tab.activeBorder']};
-					}
-					& .header {
-						/* Group header with space for tabs */
-						display: flex;
-						background-color: ${multiplyAlpha(colors['editorGroupHeader.tabsBackground'], styleSettings.tabBarBackgroundOpacity)};
-						&::after {
-							flex-grow: 1;
-							content: '';
-							border-bottom: 2px solid ${colors['editorGroupHeader.tabsBorder'] || 'transparent'};
-						}
-					}
-				}
-
-				& pre {
-					border-top-left-radius: 0;
-					border-top-right-radius: 0;
-				}
-			}
-
-			&.is-terminal {
-				& .header {
-					display: flex;
-					align-items: center;
-					justify-content: center;
-					padding-bottom: 0.175rem;
-					min-height: 1.75rem;
-					position: relative;
-					font-weight: 500;
-					color: ${colors['titleBar.activeForeground']};
-					background-color: ${colors['titleBar.activeBackground']};
-					border-bottom: 2px solid ${colors['titleBar.border'] || colors['editorGroupHeader.tabsBorder'] || 'transparent'};
-
-					/*
-					color: ${colors['panelTitle.activeForeground']};
-					& .title {
-						border-bottom: 2px solid ${colors['panelTitle.activeBorder'] || 'transparent'};
-					}
-					*/
-
-					&::before {
-						content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 16' preserveAspectRatio='xMidYMid meet' fill='rgba(255, 255, 255, 0.15)'%3E%3Ccircle cx='8' cy='8' r='8'/%3E%3Ccircle cx='30' cy='8' r='8'/%3E%3Ccircle cx='52' cy='8' r='8'/%3E%3C/svg%3E");
-						position: absolute;
-						left: 1rem;
-						width: 2.1rem;
-						line-height: 0;
-					}
-				}
-
-				& pre {
-					border-top-left-radius: 0;
-					border-top-right-radius: 0;
-					background-color: ${colors['terminal.background']};
-				}
-			}
-
-			::selection {
-				background-color: ${colors['editor.selectionBackground']};
-			}
-		}
-	`
-
-	return styles
-}
+export const framesPluginData = new AttachedPluginData<FramesPluginData>(() => ({}))

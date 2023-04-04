@@ -47,7 +47,6 @@ importers:
       htmlparser2: ^8.0.2
       postcss: ^8.4.21
       postcss-nested: ^6.0.1
-      postcss-prefixwrap: ^1.39.0
       shiki: ^0.14.1
       strip-json-comments: ^5.0.0
     dependencies:
@@ -56,7 +55,6 @@ importers:
       hastscript: 7.2.0
       postcss: 8.4.21
       postcss-nested: 6.0.1_postcss@8.4.21
-      postcss-prefixwrap: 1.39.0_postcss@8.4.21
     devDependencies:
       '@types/html-escaper': 3.0.0
       hast-util-sanitize: 4.1.0
@@ -2208,14 +2206,6 @@ packages:
     dependencies:
       postcss: 8.4.21
       postcss-selector-parser: 6.0.11
-    dev: false
-
-  /postcss-prefixwrap/1.39.0_postcss@8.4.21:
-    resolution: {integrity: sha512-UyOpjS54xO352xMQ2D6zFpyaJA5wpWRL99q1a7aW0O9+xyCrq/RtTa6eUmKD7rk7lV4A2n/UzJvI75ANVkMx2A==}
-    peerDependencies:
-      postcss: '*'
-    dependencies:
-      postcss: 8.4.21
     dev: false
 
   /postcss-selector-parser/6.0.11:
