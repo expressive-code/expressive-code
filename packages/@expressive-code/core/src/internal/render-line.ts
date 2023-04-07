@@ -2,6 +2,7 @@ import { Parent } from 'hast-util-to-html/lib/types'
 import { h } from 'hastscript'
 import { ExpressiveCodeLine } from '../common/line'
 import { annotationSortFn, ExpressiveCodeAnnotation } from '../common/annotation'
+import { codeLineClass } from '../common/core-styles'
 
 export function splitLineAtAnnotationBoundaries(line: ExpressiveCodeLine) {
 	const textParts: string[] = []
@@ -132,7 +133,7 @@ export function renderLineToAst(line: ExpressiveCodeLine) {
 	})
 
 	// Now create a line node that contains all rendered part nodes
-	let lineNode: Parent = h('div', partNodes)
+	let lineNode: Parent = h(`div.${codeLineClass}`, partNodes)
 
 	// Render line-level annotations
 	annotations.forEach((annotation) => {

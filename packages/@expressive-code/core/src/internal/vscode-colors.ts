@@ -69,7 +69,9 @@ export type VSCodeDefaultColorKey =
 	| 'editorLightBulbAutoFix.foreground'
 	// Editor diffs
 	| 'diffEditor.insertedTextBackground'
+	| 'diffEditor.insertedTextBorder'
 	| 'diffEditor.removedTextBackground'
+	| 'diffEditor.removedTextBorder'
 	| 'diffEditor.insertedLineBackground'
 	| 'diffEditor.removedLineBackground'
 	// Editor sticky scroll
@@ -271,7 +273,9 @@ const defaultWorkbenchColors: { [key in VSCodeDefaultColorKey]: VSCodeDefaultCol
 
 	// Editor diffs
 	'diffEditor.insertedTextBackground': ['#9ccc2c33', '#9ccc2c40'],
+	'diffEditor.insertedTextBorder': null,
 	'diffEditor.removedTextBackground': ['#ff000033', '#ff000033'],
+	'diffEditor.removedTextBorder': null,
 	'diffEditor.insertedLineBackground': ['#9bb95533', '#9bb95533'],
 	'diffEditor.removedLineBackground': ['#ff000033', '#ff000033'],
 

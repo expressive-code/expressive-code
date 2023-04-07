@@ -1,6 +1,6 @@
-import { ExpressiveCodePlugin, AttachedPluginData, replaceDelimitedValues } from '@expressive-code/core'
-import { h } from 'hastscript'
+import { ExpressiveCodePlugin, AttachedPluginData, replaceDelimitedValues, addClass } from '@expressive-code/core'
 import rangeParser from 'parse-numeric-range'
+import { getTextMarkersBaseStyles } from './styles'
 
 export type MarkerType = 'mark' | 'ins' | 'del'
 
@@ -17,6 +17,7 @@ export const textMarkersPluginData = new AttachedPluginData<TextMarkerPluginData
 export function textMarkers(): ExpressiveCodePlugin {
 	return {
 		name: 'TextMarkers',
+		baseStyles: ({ theme, coreStyles }) => getTextMarkersBaseStyles(theme, coreStyles, {}),
 		hooks: {
 			preprocessMetadata: ({ codeBlock }) => {
 				const blockData = textMarkersPluginData.getOrCreateFor(codeBlock)
@@ -39,7 +40,8 @@ export function textMarkers(): ExpressiveCodePlugin {
 									name: markerType,
 									render: ({ nodesToTransform }) => {
 										return nodesToTransform.map((node) => {
-											return h(markerType.toString(), [node])
+											addClass(node, markerType)
+											return node
 										})
 									},
 								})

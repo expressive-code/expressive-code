@@ -20,7 +20,7 @@ describe('Renders frames around the code', () => {
 			srTitlePresent: false,
 		})
 	})
-	const themeNames = [undefined, 'ayu-green-dark-bordered', 'shades-of-purple', 'synthwave-color-theme', 'vim-dark-medium']
+	const themeNames = [undefined, 'ayu-green-dark-bordered', 'empty-light', 'shades-of-purple', 'synthwave-color-theme', 'vim-dark-medium']
 	themeNames.forEach((themeName) => {
 		test(`Single JS block with title (${themeName || 'default theme'})`, async ({ meta: { name: testName } }) => {
 			const { renderedGroupAst } = await renderAndOutputHtmlSnapshot({

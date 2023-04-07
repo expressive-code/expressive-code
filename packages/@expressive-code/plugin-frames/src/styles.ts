@@ -3,7 +3,10 @@ import { StyleSettings, multiplyAlpha, ExpressiveCodeTheme, ResolvedCoreStyles }
 export const framesStyleSettings = new StyleSettings({
 	editorActiveTabBackground: ({ theme }) => theme.colors['tab.activeBackground'],
 	editorActiveTabForeground: ({ theme }) => theme.colors['tab.activeForeground'],
+	editorActiveTabBorderTop: ({ theme }) => theme.colors['tab.activeBorderTop'] || theme.colors['tab.border'],
+	editorActiveTabBorderBottom: ({ theme }) => theme.colors['tab.activeBorder'],
 	editorTabBorderRadius: ({ coreStyles }) => coreStyles.borderRadius,
+	editorTabBorderRight: ({ theme }) => theme.colors['tab.border'] || 'transparent',
 	editorTabBarBackground: ({ theme }) => multiplyAlpha(theme.colors['editorGroupHeader.tabsBackground'], 0.5),
 	editorTabBarBorderBottom: ({ theme, coreStyles }) => `${coreStyles.borderWidth} solid ${theme.colors['editorGroupHeader.tabsBorder'] || 'transparent'}`,
 	editorBackground: ({ coreStyles }) => coreStyles.codeBackground,
@@ -31,10 +34,6 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 				border-bottom: none;
 				--header-border-radius: calc(${coreStyles.borderRadius} + ${coreStyles.borderWidth});
 				border-radius: var(--header-border-radius) var(--header-border-radius) 0 0;
-
-				::selection {
-					background-color: ${colors['menu.selectionBackground']};
-				}
 			}
 
 			/* Styles to apply if we have a title bar or tab bar */
@@ -51,13 +50,14 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 			&.has-title:not(.is-terminal) {
 				/* Active editor tab */
 				& .title {
+					position: relative;
 					color: ${framesStyles.editorActiveTabForeground};
 					background-color: ${framesStyles.editorActiveTabBackground};
 					padding: ${coreStyles.uiPaddingBlock} ${coreStyles.uiPaddingInline};
 					border-radius: ${framesStyles.editorTabBorderRadius} ${framesStyles.editorTabBorderRadius} 0 0;
-					border-top: ${coreStyles.borderWidth} solid ${colors['tab.activeBorderTop'] || colors['tab.border']};
-					border-bottom: ${coreStyles.borderWidth} solid ${colors['tab.activeBorder']};
-					border-right: 1px solid ${colors['tab.border'] || 'transparent'};
+					border-top: ${coreStyles.borderWidth} solid ${framesStyles.editorActiveTabBorderTop};
+					border-bottom: ${coreStyles.borderWidth} solid ${framesStyles.editorActiveTabBorderBottom};
+					box-shadow: 1px 0 0 ${framesStyles.editorTabBorderRight};
 				}
 
 				/* Tab bar background */
