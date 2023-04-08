@@ -12,7 +12,8 @@
   },
   "workspaces": [
     "packages/@expressive-code/*",
-    "packages/*"
+    "packages/*",
+    "internal/*"
   ],
   "devDependencies": {
     "@types/prettier": "^2.7.2",

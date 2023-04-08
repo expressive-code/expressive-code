@@ -1,0 +1,21 @@
+{
+  "name": "@internal/test-utils",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Internal test tools for Expressive Code packages",
+  "keywords": [],
+  "author": "Tibor Schiemann",
+  "license": "MIT",
+  "type": "module",
+  "main": "./src/index.ts",
+  "module": "./src/index.ts",
+  "dependencies": {
+    "@expressive-code/core": "workspace:^0.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.15.11",
+    "hast-util-select": "^5.0.5",
+    "hast-util-to-html": "^8.0.4",
+    "typescript": "^5.0.2"
+  }
+}

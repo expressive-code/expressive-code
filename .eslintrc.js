@@ -10,7 +10,7 @@ module.exports = {
     ecmaVersion: 'latest',
     sourceType: 'module',
     tsconfigRootDir: __dirname,
-    project: ['./tsconfig.base.json', './packages/*/tsconfig.json'],
+    project: ['./tsconfig.base.json', './packages/@expressive-code/*/tsconfig.json', './packages/*/tsconfig.json', './internal/*/tsconfig.json'],
   },
   rules: {
     'prettier/prettier': 'warn',
@@ -21,8 +21,7 @@ module.exports = {
     'no-unused-vars': [
       'warn',
       {
-        varsIgnorePattern: '^(home)$',
-        argsIgnorePattern: '^(_.*?|e|newValue|params)$',
+        argsIgnorePattern: '^(_.*?|e)$',
       },
     ],
     'no-unused-private-class-members': 'warn',
