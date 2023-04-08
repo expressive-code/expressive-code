@@ -5,15 +5,9 @@ import { ExpressiveCodeTheme } from './theme'
 import { PluginStyles, processPluginStyles } from '../internal/css'
 import { coreStyleSettings, getCoreBaseStyles } from './core-styles'
 import { UnresolvedCoreStyleSettings } from '../helpers/style-settings'
+import { getStableObjectHash } from '../helpers/objects'
 
 export interface ExpressiveCodeConfig {
-	/**
-	 * To add a plugin, import its initialization function and call it inside this array.
-	 *
-	 * If the plugin has any configuration options, you can pass them to the initialization
-	 * function as an object containing your desired property values.
-	 */
-	plugins: ExpressiveCodePlugin[]
 	/**
 	 * The color theme that should be used when rendering.
 	 *
@@ -32,23 +26,41 @@ export interface ExpressiveCodeConfig {
 	 * to replace any core style with a CSS variable reference, e.g. `var(--your-css-var)`.
 	 */
 	styleOverrides?: Partial<UnresolvedCoreStyleSettings<keyof typeof coreStyleSettings.defaultSettings>>
+	/**
+	 * To add a plugin, import its initialization function and call it inside this array.
+	 *
+	 * If the plugin has any configuration options, you can pass them to the initialization
+	 * function as an object containing your desired property values.
+	 */
+	plugins?: ExpressiveCodePlugin[]
 }
 
 export class ExpressiveCode {
 	constructor(config: ExpressiveCodeConfig) {
-		this.plugins = config.plugins
 		this.theme = config.theme || new ExpressiveCodeTheme(githubDark)
 		this.styleOverrides = {
 			...config.styleOverrides,
 		}
+		this.plugins = config.plugins || []
+
+		// Generate a unique class name for the wrapper element based on the config
+		const configHash = getStableObjectHash(
+			{
+				theme: this.theme,
+				styleOverrides: this.styleOverrides,
+				plugins: this.plugins,
+			},
+			{ includeFunctionContents: true }
+		)
+		this.configClassName = `ec-${configHash}`
 	}
 
 	async render(input: RenderInput, options?: RenderOptions) {
-		return await renderGroup({ input, options, theme: this.theme, plugins: this.plugins })
+		return await renderGroup({ input, options, theme: this.theme, plugins: this.plugins, configClassName: this.configClassName })
 	}
 
 	async getBaseStyles(): Promise<string> {
-		const collectedStyles: PluginStyles[] = []
+		const pluginStyles: PluginStyles[] = []
 		// Resolve core styles
 		const coreStyles = coreStyleSettings.resolve({
 			theme: this.theme,
@@ -61,7 +73,7 @@ export class ExpressiveCode {
 			coreStyles: null,
 		})
 		// Generate core base styles using the resolved core styles
-		collectedStyles.push({
+		pluginStyles.push({
 			pluginName: 'core',
 			styles: getCoreBaseStyles({
 				theme: this.theme,
@@ -71,17 +83,33 @@ export class ExpressiveCode {
 		// Add plugin base styles
 		this.plugins.forEach((plugin) => {
 			if (!plugin.baseStyles) return
-			collectedStyles.push({
+			pluginStyles.push({
 				pluginName: plugin.name,
 				styles: typeof plugin.baseStyles === 'function' ? plugin.baseStyles({ theme: this.theme, coreStyles }) : plugin.baseStyles,
 			})
 		})
 		// Process styles (scoping, minifying, etc.)
-		const processedStyles = await processPluginStyles(collectedStyles)
+		const processedStyles = await processPluginStyles({ pluginStyles, configClassName: this.configClassName })
 		return [...processedStyles].join('')
 	}
 
 	readonly theme: ExpressiveCodeTheme
-	readonly plugins: readonly ExpressiveCodePlugin[]
 	readonly styleOverrides: Partial<typeof coreStyleSettings.defaultSettings>
+	readonly plugins: readonly ExpressiveCodePlugin[]
+	/**
+	 * This class name is used by Expressive Code when rendering its wrapper element
+	 * around all code block groups.
+	 *
+	 * Its format is `ec-<hash>`, where `<hash>` is calculated based on the config options
+	 * that were passed to the class constructor. This allows you to render multiple code blocks
+	 * with different configurations on the same page without having to worry about CSS conflicts.
+	 *
+	 * Non-global CSS styles returned by the `getBaseStyles` and `render` methods
+	 * are scoped automatically using this class name.
+	 *
+	 * **Note to website authors:** The default class `expressive-code` is also added to all
+	 * wrapper elements, providing you with a way to target all code blocks in CSS
+	 * regardless of the config options.
+	 */
+	readonly configClassName: string
 }

@@ -3,19 +3,21 @@ import postcssNested from 'postcss-nested'
 import { escapeRegExp } from './escaping'
 
 export const groupWrapperElement = 'div'
-export const groupWrapperClass = '.expressive-code'
-export const groupWrapperScope = groupWrapperElement + groupWrapperClass
+export const groupWrapperClassName = 'expressive-code'
 
-const regExpScopedTopLevel = new RegExp(`^${escapeRegExp(groupWrapperScope)} .*(:root|html|body)`, 'g')
+// Support attaching processing data to root nodes
+const processingData = new WeakMap<Root, { configClassName: string }>()
+const getScopeSelector = (root: Root): string => `.${processingData.get(root)?.configClassName || groupWrapperClassName}`
 
 const preprocessor = postcss([
 	// Prevent top-level selectors that are already scoped from being scoped twice
 	(root: Root) => {
+		const scopeSelector = getScopeSelector(root)
 		root.walkRules((rule) => {
 			if (rule.parent?.parent === root) {
 				rule.selectors = rule.selectors.map((selector) => {
-					if (selector.indexOf(groupWrapperScope) === 0) {
-						return selector.slice(groupWrapperScope.length).trim() || '&'
+					if (selector.indexOf(scopeSelector) === 0) {
+						return selector.slice(scopeSelector.length).trim() || '&'
 					}
 					return selector
 				})
@@ -26,8 +28,10 @@ const preprocessor = postcss([
 	postcssNested(),
 ])
 const processor = postcss([
-	// Prevent selectors targeting top-level elements from being scoped
+	// Prevent selectors targeting the wrapper class name or top-level elements from being scoped
 	(root: Root) => {
+		const scopeSelector = getScopeSelector(root)
+		const regExpScopedTopLevel = new RegExp(`^${escapeRegExp(scopeSelector)} .*(${escapeRegExp(`.${groupWrapperClassName}`)}|:root|html|body)`, 'g')
 		root.walkRules((rule) => {
 			rule.selectors = rule.selectors.map((selector) => selector.replace(regExpScopedTopLevel, '$1'))
 		})
@@ -73,21 +77,35 @@ export type PluginStyles = { pluginName: string; styles: string }
  * - Ensures that all selectors are scoped, unless they target the root element, html or body.
  * - Minifies the CSS.
  */
-export async function processPluginStyles(pluginStyles: PluginStyles[]): Promise<Set<string>> {
+export async function processPluginStyles({ pluginStyles, configClassName }: { pluginStyles: PluginStyles[]; configClassName: string }): Promise<Set<string>> {
 	const result = new Set<string>()
 	const seenStyles = new Set<string>()
+	const postCssOptions = { from: undefined }
+
 	for (const { pluginName, styles } of pluginStyles) {
+		// Prevent duplicate styles from being processed
 		if (seenStyles.has(styles)) continue
 		seenStyles.add(styles)
+
 		try {
-			const preprocessedStyles = (await preprocessor.process(`${groupWrapperScope}{${styles}}`, { from: undefined })).css
-			const processedStyles = (await processor.process(preprocessedStyles, { from: undefined })).css
-			result.add(processedStyles)
+			// Parse the styles and attach processing data to the root node for use by plugins
+			const root = postcss.parse(`.${configClassName}{${styles}}`, postCssOptions)
+			processingData.set(root, { configClassName })
+
+			// Preprocess the parsed root node
+			const preprocessedStyles = await preprocessor.process(root, postCssOptions)
+
+			// Process the preprocessed result (the root node is still the same)
+			const processedStyles = await processor.process(preprocessedStyles, postCssOptions)
+
+			// Add the processed styles to the result
+			result.add(processedStyles.css)
 		} catch (error) {
 			/* c8 ignore next */
 			const msg = error instanceof Error ? error.message : (error as string)
 			throw new Error(`Plugin "${pluginName}" added CSS styles that could not be processed (error=${JSON.stringify(msg)}). Styles="${styles}"`)
 		}
 	}
+
 	return result
 }

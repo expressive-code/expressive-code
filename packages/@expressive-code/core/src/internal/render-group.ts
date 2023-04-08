@@ -4,7 +4,7 @@ import { ExpressiveCodeBlock, ExpressiveCodeBlockOptions } from '../common/block
 import { ExpressiveCodePlugin } from '../common/plugin'
 import { runHooks } from '../common/plugin-hooks'
 import { ExpressiveCodeTheme } from '../common/theme'
-import { groupWrapperClass, groupWrapperElement, PluginStyles, processPluginStyles } from './css'
+import { groupWrapperClassName, groupWrapperElement, PluginStyles, processPluginStyles } from './css'
 import { renderBlock } from './render-block'
 import { isHastParent, newTypeError } from './type-checks'
 
@@ -33,11 +33,13 @@ export async function renderGroup({
 	options,
 	theme,
 	plugins,
+	configClassName,
 }: {
 	input: RenderInput
 	options?: RenderOptions
 	theme: ExpressiveCodeTheme
 	plugins: readonly ExpressiveCodePlugin[]
+	configClassName: string
 }) {
 	// Ensure that the input is an array
 	const inputArray = Array.isArray(input) ? input : [input]
@@ -97,9 +99,9 @@ export async function renderGroup({
 	})
 
 	return {
-		renderedGroupAst: addWrapperAroundGroupAst(groupRenderData.groupAst),
+		renderedGroupAst: addWrapperAroundGroupAst({ groupAst: groupRenderData.groupAst, configClassName }),
 		renderedGroupContents,
-		styles: await processPluginStyles(pluginStyles),
+		styles: await processPluginStyles({ pluginStyles, configClassName }),
 	}
 }
 
@@ -107,6 +109,6 @@ export async function renderGroup({
  * Wraps the group AST in an Expressive Code wrapper element with a class,
  * allowing us to scope CSS styles that are added by plugins.
  */
-function addWrapperAroundGroupAst(groupAst: Parent): Parent {
-	return h(groupWrapperElement + groupWrapperClass, groupAst)
+function addWrapperAroundGroupAst({ groupAst, configClassName }: { groupAst: Parent; configClassName: string }): Parent {
+	return h(`${groupWrapperElement}.${groupWrapperClassName}.${configClassName}`, groupAst)
 }

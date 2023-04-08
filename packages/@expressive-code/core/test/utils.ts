@@ -115,5 +115,6 @@ export async function getMultiPluginTestResult({ plugins, input = [defaultBlockO
 		styles,
 		...renderedGroupContents[0],
 		input,
+		configClassName: ec.configClassName,
 	}
 }

@@ -40,6 +40,7 @@ importers:
     specifiers:
       '@ctrl/tinycolor': ^3.6.0
       '@types/html-escaper': ^3.0.0
+      djb2a: ^2.0.0
       hast-util-sanitize: ^4.1.0
       hast-util-to-html: ^8.0.4
       hastscript: ^7.2.0
@@ -57,6 +58,7 @@ importers:
       postcss-nested: 6.0.1_postcss@8.4.21
     devDependencies:
       '@types/html-escaper': 3.0.0
+      djb2a: 2.0.0
       hast-util-sanitize: 4.1.0
       html-escaper: 3.0.3
       htmlparser2: 8.0.2
@@ -1061,6 +1063,11 @@ packages:
   /direction/2.0.1:
     resolution: {integrity: sha512-9S6m9Sukh1cZNknO1CWAr2QAWsbKLafQiyM5gZ7VgXHeuaoUwffKN4q6NC4A/Mf9iiPlOXQEKW/Mv/mh9/3YFA==}
     hasBin: true
+    dev: true
+
+  /djb2a/2.0.0:
+    resolution: {integrity: sha512-mSkCTNSJRGjNUADzWx1ubTGxJh2IVY9uoc/WGozUIu0mgBUEvIyBn9uTs9jqFBbJxQthJMF3uDx0cnpdlAUo4Q==}
+    engines: {node: '>=12'}
     dev: true
 
   /doctrine/3.0.0:
