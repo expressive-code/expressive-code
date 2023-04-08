@@ -1,6 +1,6 @@
 {
 	"$schema": "vscode://schemas/color-theme",
-	"type": "Shades of Purple",
+	"name": "Shades of Purple",
 	"colors": {
 		"activityBar.activeBackground": "#222244",
 		"activityBar.activeBorder": "#6943ff62",

@@ -10,6 +10,7 @@ export const framesStyleSettings = new StyleSettings({
 	editorTabBarBackground: ({ theme }) => multiplyAlpha(theme.colors['editorGroupHeader.tabsBackground'], 0.5),
 	editorTabBarBorderBottom: ({ theme, coreStyles }) => `${coreStyles.borderWidth} solid ${theme.colors['editorGroupHeader.tabsBorder'] || 'transparent'}`,
 	editorBackground: ({ coreStyles }) => coreStyles.codeBackground,
+	terminalTitlebarDotsForeground: ({ theme }) => (theme.type === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'),
 	terminalTitlebarBackground: ({ theme }) => theme.colors['titleBar.activeBackground'],
 	terminalBackground: ({ theme }) => theme.colors['terminal.background'],
 })
@@ -21,6 +22,11 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 		coreStyles,
 		styleOverrides,
 	})
+
+	const dotsSvg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 16' preserveAspectRatio='xMidYMid meet' fill='${framesStyles.terminalTitlebarDotsForeground}'><circle cx='8' cy='8' r='8'/><circle cx='30' cy='8' r='8'/><circle cx='52' cy='8' r='8'/></svg>`
+	const escapedDotsSvg = dotsSvg.replace(/</g, '%3C').replace(/>/g, '%3E')
+	const terminalTitlebarDots = `url("data:image/svg+xml,${escapedDotsSvg}")`
+
 	const styles = `
 		.frame {
 			all: unset;
@@ -88,7 +94,6 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 
 					color: ${colors['titleBar.activeForeground']};
 					background-color: ${colors['titleBar.activeBackground']};
-					border-bottom: ${coreStyles.borderWidth} solid ${colors['titleBar.border'] || colors['editorGroupHeader.tabsBorder'] || 'transparent'};
 
 					/*
 					color: ${colors['panelTitle.activeForeground']};
@@ -99,11 +104,18 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 
 					/* Display three dots at the left side of the header */
 					&::before {
-						content: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 16' preserveAspectRatio='xMidYMid meet' fill='rgba(255, 255, 255, 0.15)'%3E%3Ccircle cx='8' cy='8' r='8'/%3E%3Ccircle cx='30' cy='8' r='8'/%3E%3Ccircle cx='52' cy='8' r='8'/%3E%3C/svg%3E");
+						content: ${terminalTitlebarDots};
 						position: absolute;
 						left: ${coreStyles.uiPaddingInline};
 						width: 2.1rem;
 						line-height: 0;
+					}
+					/* Display a border below the header */
+					&::after {
+						content: '';
+						position: absolute;
+						inset: 0;
+						border-bottom: ${coreStyles.borderWidth} solid ${colors['titleBar.border'] || colors['editorGroupHeader.tabsBorder'] || 'transparent'};
 					}
 				}
 

@@ -1,6 +1,6 @@
 {
 	"$schema": "vscode://schemas/color-theme",
-	"type": "Ayu Green Dark Bordered",
+	"name": "Ayu Green Dark Bordered",
 	"colors": {
 		"activityBar.activeBorder": "#24ffb6b3",
 		"activityBar.background": "#242936",

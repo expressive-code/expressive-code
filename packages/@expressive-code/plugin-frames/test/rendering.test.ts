@@ -8,65 +8,76 @@ import { toHtml } from 'hast-util-to-html'
 import { FramesPluginOptions, frames } from '../src'
 
 describe('Renders frames around the code', () => {
+	const themeNames = [undefined, 'ayu-green-dark-bordered', 'empty-light', 'shades-of-purple', 'synthwave-color-theme', 'vim-dark-medium']
+	const themes = themeNames.map((themeName) => {
+		if (!themeName) return undefined
+		const themeContents = readFileSync(join(__dirname, 'themes', `${themeName}.json`), 'utf8')
+		return ExpressiveCodeTheme.fromJSONString(themeContents)
+	})
+
 	test('Single JS block without title', async ({ meta: { name: testName } }) => {
-		const { renderedGroupAst } = await renderAndOutputHtmlSnapshot({
+		await renderAndOutputHtmlSnapshot({
 			code: `import { defineConfig } from 'example/config'`,
 			testName,
-		})
-
-		validateBlockAst({
-			renderedGroupAst,
-			figureSelector: '.frame:not(.has-title):not(.is-terminal)',
-			srTitlePresent: false,
+			themes,
+			blockValidationFn: ({ renderedGroupAst }) => {
+				validateBlockAst({
+					renderedGroupAst,
+					figureSelector: '.frame:not(.has-title):not(.is-terminal)',
+					srTitlePresent: false,
+				})
+			},
 		})
 	})
-	const themeNames = [undefined, 'ayu-green-dark-bordered', 'empty-light', 'shades-of-purple', 'synthwave-color-theme', 'vim-dark-medium']
-	themeNames.forEach((themeName) => {
-		test(`Single JS block with title (${themeName || 'default theme'})`, async ({ meta: { name: testName } }) => {
-			const { renderedGroupAst } = await renderAndOutputHtmlSnapshot({
-				code: `
+	test('Single JS block with title', async ({ meta: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			code: `
 // test.config.mjs
 
 import { defineConfig } from 'example/config'
-				`.trim(),
-				testName,
-				theme: themeName ? ExpressiveCodeTheme.fromJSONString(readFileSync(join(__dirname, 'themes', `${themeName}.json`), 'utf8')) : undefined,
-			})
-
-			validateBlockAst({
-				renderedGroupAst,
-				figureSelector: '.frame.has-title:not(.is-terminal)',
-				title: 'test.config.mjs',
-				srTitlePresent: false,
-			})
+			`.trim(),
+			testName,
+			themes,
+			blockValidationFn: ({ renderedGroupAst }) => {
+				validateBlockAst({
+					renderedGroupAst,
+					figureSelector: '.frame.has-title:not(.is-terminal)',
+					title: 'test.config.mjs',
+					srTitlePresent: false,
+				})
+			},
 		})
 	})
 	test('Single terminal block without title', async ({ meta: { name: testName } }) => {
-		const { renderedGroupAst } = await renderAndOutputHtmlSnapshot({
+		await renderAndOutputHtmlSnapshot({
 			code: 'pnpm i expressive-code',
 			language: 'shell',
 			testName,
-		})
-
-		validateBlockAst({
-			renderedGroupAst,
-			figureSelector: '.frame.is-terminal:not(.has-title)',
-			srTitlePresent: true,
+			themes,
+			blockValidationFn: ({ renderedGroupAst }) => {
+				validateBlockAst({
+					renderedGroupAst,
+					figureSelector: '.frame.is-terminal:not(.has-title)',
+					srTitlePresent: true,
+				})
+			},
 		})
 	})
 	test('Single terminal block with title', async ({ meta: { name: testName } }) => {
-		const { renderedGroupAst } = await renderAndOutputHtmlSnapshot({
+		await renderAndOutputHtmlSnapshot({
 			code: 'pnpm i expressive-code',
 			language: 'shell',
 			meta: 'title="Installing Expressive Code"',
 			testName,
-		})
-
-		validateBlockAst({
-			renderedGroupAst,
-			figureSelector: '.frame.has-title.is-terminal',
-			title: 'Installing Expressive Code',
-			srTitlePresent: false,
+			themes,
+			blockValidationFn: ({ renderedGroupAst }) => {
+				validateBlockAst({
+					renderedGroupAst,
+					figureSelector: '.frame.has-title.is-terminal',
+					title: 'Installing Expressive Code',
+					srTitlePresent: false,
+				})
+			},
 		})
 	})
 })
@@ -111,7 +122,8 @@ async function renderAndOutputHtmlSnapshot({
 	language = 'js',
 	meta = '',
 	testName,
-	theme,
+	themes = [undefined],
+	blockValidationFn,
 	engineOptions,
 	framesPluginOptions,
 }: {
@@ -119,52 +131,82 @@ async function renderAndOutputHtmlSnapshot({
 	language?: string
 	meta?: string
 	testName: string
-	theme?: ExpressiveCodeTheme
+	themes?: (ExpressiveCodeTheme | undefined)[]
+	blockValidationFn?: ({ renderedGroupAst }: { renderedGroupAst: Parent }) => void
 	engineOptions?: Partial<ExpressiveCodeConfig>
 	framesPluginOptions?: FramesPluginOptions
 }) {
-	const ec = new ExpressiveCode({
-		plugins: [frames(framesPluginOptions)],
-		theme,
-		...engineOptions,
-	})
-	const baseStyles = await ec.getBaseStyles()
-	const { renderedGroupAst, styles } = await ec.render({
-		code,
-		language,
-		meta,
-	})
+	const renderResults = await Promise.all(
+		themes.map(async (theme) => {
+			const ec = new ExpressiveCode({
+				plugins: [frames(framesPluginOptions)],
+				theme,
+				...engineOptions,
+			})
+			const baseStyles = await ec.getBaseStyles()
+			const { renderedGroupAst, styles } = await ec.render({
+				code,
+				language,
+				meta,
+			})
+
+			return {
+				renderedGroupAst,
+				baseStyles,
+				styles,
+				theme: ec.theme,
+				foreground: ec.theme.type === 'dark' ? '#fff' : '#000',
+				background: ec.theme.type === 'dark' ? '#000' : '#fff',
+			}
+		})
+	)
 
 	outputHtmlSnapshot({
-		renderedGroupAst,
-		baseStyles,
-		styles,
 		testName,
+		renderResults,
 	})
 
-	return {
-		renderedGroupAst,
+	if (blockValidationFn) {
+		renderResults.forEach(({ renderedGroupAst }) => {
+			blockValidationFn({ renderedGroupAst })
+		})
 	}
 }
 
 function outputHtmlSnapshot({
-	renderedGroupAst,
-	styles,
-	baseStyles,
 	testName,
-	foreground = '#fff',
-	background = '#000',
+	renderResults,
 }: {
-	renderedGroupAst: Parent
-	styles: Set<string>
-	baseStyles: string
 	testName: string
-	foreground?: string
-	background?: string
+	renderResults: {
+		renderedGroupAst: Parent
+		styles: Set<string>
+		baseStyles: string
+		theme: ExpressiveCodeTheme
+		foreground: string
+		background: string
+	}[]
 }) {
 	const snapshotBasePath = join(__dirname, '__html_snapshots__')
 	const snapshotFileName = `${testName.replace(/[<>:"/\\|?*.]/g, '').toLowerCase()}.html`
 	const snapshotFilePath = join(snapshotBasePath, '__actual__', snapshotFileName)
+
+	const baseStyles = new Set<string>()
+	renderResults.forEach((renderResult) => {
+		if (renderResult.baseStyles) {
+			baseStyles.add(renderResult.baseStyles)
+		}
+	})
+
+	const renderedBlocks = renderResults.map(({ styles, renderedGroupAst, theme, foreground, background }) => {
+		const blockStyles = [...styles].join('')
+		return `
+	<section style="color:${foreground};background:${background}">
+		<h2>Theme: ${theme.name}</h2>
+		${blockStyles ? `<style>${blockStyles}</style>\n\t\t` : ''}${toHtml(renderedGroupAst)}
+	</section>
+		`
+	})
 
 	// Write the snapshot to an HTML file for easy inspection of failed tests
 	const html = `
@@ -173,15 +215,18 @@ function outputHtmlSnapshot({
 <head>
   <meta charset="utf-8">
   <title>${testName}</title>
-  <style>${baseStyles}</style>
-</head>
-<body style="color:${foreground};background:${background}">
   <style>
-    ${[...styles].join('')}
+    body { margin: 0; background: #000; color: #fff; font-family: sans-serif }
+    body > header { padding: 0.5rem 1rem; background: hsl(230 40% 20%); border-bottom: 1px solid hsl(230 40% 35%) }
+	body > section { padding: 1.25rem 1rem }
+    h1 { font-size: 1.5rem; padding: 0 }
+    h2 { text-align: center; font-size: 0.8rem; padding: 0; margin: 0 0 1rem 0; opacity: 0.6 }
   </style>
-
-  <h2>${testName}</h2>
-  ${toHtml(renderedGroupAst)}
+  <style>${[...baseStyles].join('')}</style>
+</head>
+<body>
+  <header><h1>Test: ${testName}</h1></header>
+  ${[...renderedBlocks].join('\n')}
 </body>
 </html>
 	`
