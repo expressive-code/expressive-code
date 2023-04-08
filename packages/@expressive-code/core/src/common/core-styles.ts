@@ -5,7 +5,7 @@ export const coreStyleSettings = new StyleSettings({
 	// Outer container
 	borderRadius: '0.3rem',
 	borderWidth: '2px',
-	borderColor: ({ theme }) => theme.colors['editorGroup.border'],
+	borderColor: ({ theme }) => theme.colors['titleBar.border'] || theme.colors['editorGroupHeader.tabsBorder'] || theme.colors['editorHoverWidget.border'] || 'transparent',
 	// Code editor content
 	codeFontFamily: [
 		`'IBM Plex Mono'`,
@@ -39,6 +39,7 @@ export const coreStyleSettings = new StyleSettings({
 	uiPaddingBlock: '0.25rem',
 	uiPaddingInline: '1rem',
 	uiSelectionBackground: ({ theme }) => theme.colors['menu.selectionBackground'],
+	uiSelectionForeground: ({ theme }) => theme.colors['menu.selectionForeground'],
 	// Special colors
 	focusBorder: ({ theme }) => theme.colors['focusBorder'],
 })
@@ -54,7 +55,8 @@ export function getCoreBaseStyles({ coreStyles }: { theme: ExpressiveCodeTheme; 
 		line-height: ${coreStyles.uiLineHeight};
 
 		::selection {
-			background-color: ${coreStyles.uiSelectionBackground};
+			background: ${coreStyles.uiSelectionBackground};
+			color: ${coreStyles.uiSelectionForeground};
 		}
 
 		pre {
@@ -84,7 +86,7 @@ export function getCoreBaseStyles({ coreStyles }: { theme: ExpressiveCodeTheme; 
 			}
 
 			::selection {
-				background-color: ${coreStyles.codeSelectionBackground};
+				background: ${coreStyles.codeSelectionBackground};
 			}
 		}
 

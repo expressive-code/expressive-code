@@ -1,4 +1,4 @@
-import { StyleSettings, multiplyAlpha, ExpressiveCodeTheme, ResolvedCoreStyles } from '@expressive-code/core'
+import { StyleSettings, multiplyAlpha, ExpressiveCodeTheme, ResolvedCoreStyles, onBackground, toRgbaString } from '@expressive-code/core'
 
 export const framesStyleSettings = new StyleSettings({
 	editorActiveTabBackground: ({ theme }) => theme.colors['tab.activeBackground'],
@@ -10,20 +10,28 @@ export const framesStyleSettings = new StyleSettings({
 	editorTabBarBackground: ({ theme }) => multiplyAlpha(theme.colors['editorGroupHeader.tabsBackground'], 0.5),
 	editorTabBarBorderBottom: ({ theme, coreStyles }) => `${coreStyles.borderWidth} solid ${theme.colors['editorGroupHeader.tabsBorder'] || 'transparent'}`,
 	editorBackground: ({ coreStyles }) => coreStyles.codeBackground,
-	terminalTitlebarDotsForeground: ({ theme }) => (theme.type === 'dark' ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.15)'),
+	terminalTitlebarDotsForeground: ({ theme }) => (theme.type === 'dark' ? '#ffffff26' : '#00000026'),
 	terminalTitlebarBackground: ({ theme }) => theme.colors['titleBar.activeBackground'],
+	terminalTitlebarForeground: ({ theme }) => theme.colors['titleBar.activeForeground'],
+	terminalTitlebarBorderBottom: ({ coreStyles }) => `${coreStyles.borderWidth} solid ${onBackground(coreStyles.borderColor, '#000')}`,
 	terminalBackground: ({ theme }) => theme.colors['terminal.background'],
 })
 
 export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: ResolvedCoreStyles, styleOverrides: Partial<typeof framesStyleSettings.defaultSettings>) {
-	const { colors } = theme
 	const framesStyles = framesStyleSettings.resolve({
 		theme,
 		coreStyles,
 		styleOverrides,
 	})
 
-	const dotsSvg = `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 16' preserveAspectRatio='xMidYMid meet' fill='${framesStyles.terminalTitlebarDotsForeground}'><circle cx='8' cy='8' r='8'/><circle cx='30' cy='8' r='8'/><circle cx='52' cy='8' r='8'/></svg>`
+	const dotsColor = toRgbaString(framesStyles.terminalTitlebarDotsForeground)
+	const dotsSvg = [
+		`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 16' preserveAspectRatio='xMidYMid meet' fill='${dotsColor}'>`,
+		`<circle cx='8' cy='8' r='8'/>`,
+		`<circle cx='30' cy='8' r='8'/>`,
+		`<circle cx='52' cy='8' r='8'/>`,
+		`</svg>`,
+	].join('')
 	const escapedDotsSvg = dotsSvg.replace(/</g, '%3C').replace(/>/g, '%3E')
 	const terminalTitlebarDots = `url("data:image/svg+xml,${escapedDotsSvg}")`
 
@@ -58,7 +66,8 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 				& .title {
 					position: relative;
 					color: ${framesStyles.editorActiveTabForeground};
-					background-color: ${framesStyles.editorActiveTabBackground};
+					background: ${framesStyles.editorActiveTabBackground};
+					background-clip: padding-box;
 					padding: ${coreStyles.uiPaddingBlock} ${coreStyles.uiPaddingInline};
 					border-radius: ${framesStyles.editorTabBorderRadius} ${framesStyles.editorTabBorderRadius} 0 0;
 					border-top: ${coreStyles.borderWidth} solid ${framesStyles.editorActiveTabBorderTop};
@@ -69,7 +78,8 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 				/* Tab bar background */
 				& .header {
 					display: flex;
-					background-color: ${framesStyles.editorTabBarBackground};
+					background: ${framesStyles.editorTabBarBackground};
+					background-clip: padding-box;
 					&::after {
 						flex-grow: 1;
 						content: '';
@@ -92,15 +102,9 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 					font-weight: 500;
 					letter-spacing: 0.025ch;
 
-					color: ${colors['titleBar.activeForeground']};
-					background-color: ${colors['titleBar.activeBackground']};
-
-					/*
-					color: ${colors['panelTitle.activeForeground']};
-					& .title {
-						border-bottom: ${coreStyles.borderWidth} solid ${colors['panelTitle.activeBorder'] || 'transparent'};
-					}
-					*/
+					color: ${framesStyles.terminalTitlebarForeground};
+					background: ${framesStyles.terminalTitlebarBackground};
+					background-clip: padding-box;
 
 					/* Display three dots at the left side of the header */
 					&::before {
@@ -115,13 +119,14 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 						content: '';
 						position: absolute;
 						inset: 0;
-						border-bottom: ${coreStyles.borderWidth} solid ${colors['titleBar.border'] || colors['editorGroupHeader.tabsBorder'] || 'transparent'};
+						border-bottom: ${framesStyles.terminalTitlebarBorderBottom};
 					}
 				}
 
 				/* Terminal content */
 				& pre {
-					background-color: ${framesStyles.terminalBackground};
+					background: ${framesStyles.terminalBackground};
+					background-clip: padding-box;
 				}
 			}
 		}

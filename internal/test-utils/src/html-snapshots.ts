@@ -5,29 +5,30 @@ import { ExpressiveCode, ExpressiveCodeConfig, ExpressiveCodeTheme } from '@expr
 import { toHtml } from 'hast-util-to-html'
 import { ExpressiveCodePlugin } from '@expressive-code/core'
 
-export async function renderAndOutputHtmlSnapshot({
-	testName,
-	testBaseDir,
-	code,
-	language = 'js',
-	meta = '',
-	themes = [undefined],
-	plugins,
-	engineOptions,
-	blockValidationFn,
-}: {
-	testName: string
-	testBaseDir: string
+export type TestFixture = {
+	fixtureName: string
 	code: string
 	language?: string
 	meta?: string
-	themes?: (ExpressiveCodeTheme | undefined)[]
+	theme?: ExpressiveCodeTheme
 	plugins: ExpressiveCodePlugin[]
 	engineOptions?: Partial<ExpressiveCodeConfig>
 	blockValidationFn?: ({ renderedGroupAst }: { renderedGroupAst: Parent }) => void
-}) {
+}
+
+export function buildThemeFixtures(themes: (ExpressiveCodeTheme | undefined)[], fixtureContents: Omit<TestFixture, 'fixtureName' | 'theme'>) {
+	return themes.map(
+		(theme): TestFixture => ({
+			fixtureName: `Theme: ${theme?.name ?? 'Default'}`,
+			theme,
+			...fixtureContents,
+		})
+	)
+}
+
+export async function renderAndOutputHtmlSnapshot({ testName, testBaseDir, fixtures }: { testName: string; testBaseDir: string; fixtures: TestFixture[] }) {
 	const renderResults = await Promise.all(
-		themes.map(async (theme) => {
+		fixtures.map(async ({ code, language = 'js', meta = '', theme, plugins, engineOptions, blockValidationFn }) => {
 			const ec = new ExpressiveCode({
 				plugins,
 				theme,
@@ -47,6 +48,7 @@ export async function renderAndOutputHtmlSnapshot({
 				theme: ec.theme,
 				foreground: ec.theme.type === 'dark' ? '#fff' : '#000',
 				background: ec.theme.type === 'dark' ? '#000' : '#fff',
+				blockValidationFn,
 			}
 		})
 	)
@@ -57,11 +59,10 @@ export async function renderAndOutputHtmlSnapshot({
 		renderResults,
 	})
 
-	if (blockValidationFn) {
-		renderResults.forEach(({ renderedGroupAst }) => {
-			blockValidationFn({ renderedGroupAst })
-		})
-	}
+	renderResults.forEach(({ renderedGroupAst, blockValidationFn }) => {
+		if (!blockValidationFn) return
+		blockValidationFn({ renderedGroupAst })
+	})
 }
 
 export function outputHtmlSnapshot({

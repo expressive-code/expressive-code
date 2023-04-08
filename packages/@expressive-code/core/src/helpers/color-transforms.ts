@@ -46,11 +46,25 @@ export function mix(input: ColorInput, mixinInput: ColorInput, amount: number) {
 	const mixinColor = new TinyColor(mixinInput)
 	// TinyColor's mix() method expects a value between 0 and 100
 	const mixAmount = minMaxRounded(amount * 100, 0, 100)
-	return color.mix(mixinColor, mixAmount).toHexString()
+	return toCssColor(color.mix(mixinColor, mixAmount))
+}
+
+/**
+ * Computes how the first color would look on top of the second color.
+ */
+export function onBackground(input: ColorInput, background: ColorInput) {
+	const color = new TinyColor(input)
+	const backgroundColor = new TinyColor(background)
+	return toCssColor(color.onBackground(backgroundColor))
 }
 
 function toCssColor(color: TinyColor) {
 	return color.toHexShortString()
+}
+
+export function toRgbaString(input: ColorInput) {
+	const color = new TinyColor(input)
+	return color.toRgbString().toLowerCase()
 }
 
 function roundFloat(number: number, decimalPoints: number): number {
