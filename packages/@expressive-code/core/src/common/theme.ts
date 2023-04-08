@@ -19,10 +19,14 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 	 * and pass the result to this constructor.
 	 */
 	constructor(theme: Partial<ExpressiveCodeTheme> | Partial<IShikiTheme>) {
-		if (theme.type === 'css') throw new Error('Theme type "css" is not supported.')
+		let themeType = theme.type
+		if (themeType === 'css') throw new Error('Theme type "css" is not supported.')
+		if (themeType !== 'dark' && themeType !== 'light') {
+			themeType = guessThemeTypeFromEditorColors(theme.colors)
+		}
 
 		this.name = theme.name || ''
-		this.type = theme.type || guessThemeTypeFromEditorColors(theme.colors)
+		this.type = themeType
 		this.colors = resolveVSCodeWorkbenchColors(theme.colors, this.type)
 		this.fg = theme.fg || this.colors['editor.foreground']
 		this.bg = theme.bg || this.colors['editor.background']
