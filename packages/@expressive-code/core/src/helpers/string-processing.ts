@@ -76,10 +76,13 @@ export function replaceDelimitedValues(
 			],
 			// Value start delimiter
 			escapeRegExp(valueStartDelimiter),
-			// Value string (captured, can be an empty string)
-			`(.*?)`,
+			// Value string (captured, can be an empty string),
+			// consisting of any of the following parts:
+			// - any character that is not a backslash
+			// - a backslash followed by any character
+			`((?:[^\\\\]|\\\\.)*?)`,
 			// Value end delimiter that is not escaped by a preceding `\`
-			`(?<!\\\\)${escapeRegExp(valueEndDelimiter)}`,
+			`${escapeRegExp(valueEndDelimiter)}`,
 			// Whitespace or end of string
 			`(?=\\s|$)`,
 		]
@@ -101,7 +104,14 @@ export function replaceDelimitedValues(
 			const delimiterPairIdx = Math.floor(firstCaptureGroupIndex / 2)
 			const { valueStartDelimiter, valueEndDelimiter } = valueDelimiterPairs[delimiterPairIdx]
 			// Also retrieve the actual matched key and value
-			const [key, value] = keyValuePairs.slice(delimiterPairIdx * 2, delimiterPairIdx * 2 + 2)
+			const [key, escapedValue] = keyValuePairs.slice(delimiterPairIdx * 2, delimiterPairIdx * 2 + 2)
+			// Unescape value by removing any backslash that escapes any of the following:
+			// - another backslash (e.g. `\\` becomes `\`)
+			// - the value end delimiter (e.g. `\"` becomes `"`)
+			// Any other backslashes are kept because users may not know
+			// that they need to be escaped in the first place.
+			const escapedBackslashOrValueEndDelimiter = new RegExp(`\\\\(\\\\|${escapeRegExp(valueEndDelimiter)})`, 'g')
+			const value = escapedValue.replace(escapedBackslashOrValueEndDelimiter, '$1')
 			// Call the replacer function with the match details
 			return replacer({ fullMatch, key, value, valueStartDelimiter, valueEndDelimiter })
 		}

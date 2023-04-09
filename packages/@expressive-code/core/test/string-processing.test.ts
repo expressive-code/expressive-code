@@ -19,6 +19,81 @@ describe('String processing', () => {
 				})
 			})
 		})
+		describe('Handles escaped characters in the value', () => {
+			test('Escaped quote at the beginning of value', () => {
+				const testString = `Oh ins="\\"well" hi!`
+				const matches: ReplaceDelimitedValuesMatch[] = []
+				const result = replaceDelimitedValues(testString, (match) => {
+					matches.push(match)
+					return ''
+				})
+				expect(result).toEqual('Oh hi!')
+				expect(matches).toMatchObject([{ key: 'ins', value: '"well', valueStartDelimiter: '"', valueEndDelimiter: '"' }])
+			})
+			test('Escaped quote at the end of value', () => {
+				const testString = `Oh ins="well\\"" hi!`
+				const matches: ReplaceDelimitedValuesMatch[] = []
+				const result = replaceDelimitedValues(testString, (match) => {
+					matches.push(match)
+					return ''
+				})
+				expect(result).toEqual('Oh hi!')
+				expect(matches).toMatchObject([{ key: 'ins', value: 'well"', valueStartDelimiter: '"', valueEndDelimiter: '"' }])
+			})
+			test('Escaped quote in the middle of value', () => {
+				const testString = `Oh ins="to be\\" continued" hi!`
+				const matches: ReplaceDelimitedValuesMatch[] = []
+				const result = replaceDelimitedValues(testString, (match) => {
+					matches.push(match)
+					return ''
+				})
+				expect(result).toEqual('Oh hi!')
+				expect(matches).toMatchObject([{ key: 'ins', value: 'to be" continued', valueStartDelimiter: '"', valueEndDelimiter: '"' }])
+			})
+			test('Backslash before escaped quote in the middle of value', () => {
+				const testString = `Oh ins="to be\\\\\\" continued" hi!`
+				const matches: ReplaceDelimitedValuesMatch[] = []
+				const result = replaceDelimitedValues(testString, (match) => {
+					matches.push(match)
+					return ''
+				})
+				expect(result).toEqual('Oh hi!')
+				expect(matches).toMatchObject([{ key: 'ins', value: 'to be\\" continued', valueStartDelimiter: '"', valueEndDelimiter: '"' }])
+			})
+			test('Backslash before actual end of string', () => {
+				const testString = `Oh ins="to be\\\\" non-continued" hi!`
+				const matches: ReplaceDelimitedValuesMatch[] = []
+				const result = replaceDelimitedValues(testString, (match) => {
+					matches.push(match)
+					return ''
+				})
+				expect(result).toEqual('Oh non-continued" hi!')
+				expect(matches).toMatchObject([{ key: 'ins', value: 'to be\\', valueStartDelimiter: '"', valueEndDelimiter: '"' }])
+			})
+			test('Backslash before actual end of string, followed by value without key', () => {
+				const testString = `Oh ins="to be\\\\" "non-continued" hi!`
+				const matches: ReplaceDelimitedValuesMatch[] = []
+				const result = replaceDelimitedValues(testString, (match) => {
+					matches.push(match)
+					return ''
+				})
+				expect(result).toEqual('Oh hi!')
+				expect(matches).toMatchObject([
+					{ key: 'ins', value: 'to be\\', valueStartDelimiter: '"', valueEndDelimiter: '"' },
+					{ key: undefined, value: 'non-continued', valueStartDelimiter: '"', valueEndDelimiter: '"' },
+				])
+			})
+			test('Does not remove backslashes not followed by value end delimiters', () => {
+				const testString = `Oh ins="C:\\Users\\Hippo" hi!`
+				const matches: ReplaceDelimitedValuesMatch[] = []
+				const result = replaceDelimitedValues(testString, (match) => {
+					matches.push(match)
+					return ''
+				})
+				expect(result).toEqual('Oh hi!')
+				expect(matches).toMatchObject([{ key: 'ins', value: 'C:\\Users\\Hippo', valueStartDelimiter: '"', valueEndDelimiter: '"' }])
+			})
+		})
 		describe('Supports different value delimiter types', () => {
 			test('Same character on both sides', () => {
 				const testString = `Oh title="This is neat!" 'This, too.' hi!`
@@ -108,7 +183,7 @@ describe('String processing', () => {
 					return ''
 				})
 				expect(result).toEqual('Oh hi!')
-				expect(matches).toMatchObject([{ key: 'ins', value: '= \\"Astronaut\\"', valueStartDelimiter: '"', valueEndDelimiter: '"' }])
+				expect(matches).toMatchObject([{ key: 'ins', value: '= "Astronaut"', valueStartDelimiter: '"', valueEndDelimiter: '"' }])
 			})
 			test('With everything combined', () => {
 				const testString = `Oh ins='= "Hello"' ins="= \\"Astronaut\\"" hi!`
@@ -120,7 +195,7 @@ describe('String processing', () => {
 				expect(result).toEqual('Oh hi!')
 				expect(matches).toMatchObject([
 					{ key: 'ins', value: '= "Hello"', valueStartDelimiter: "'", valueEndDelimiter: "'" },
-					{ key: 'ins', value: '= \\"Astronaut\\"', valueStartDelimiter: '"', valueEndDelimiter: '"' },
+					{ key: 'ins', value: '= "Astronaut"', valueStartDelimiter: '"', valueEndDelimiter: '"' },
 				])
 			})
 		})
