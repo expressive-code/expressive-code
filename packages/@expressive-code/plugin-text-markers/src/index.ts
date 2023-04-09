@@ -1,4 +1,5 @@
 import { ExpressiveCodePlugin, AttachedPluginData, replaceDelimitedValues, addClass } from '@expressive-code/core'
+import { h } from 'hastscript'
 import rangeParser from 'parse-numeric-range'
 import { getTextMarkersBaseStyles } from './styles'
 
@@ -82,6 +83,51 @@ export function textMarkers(): ExpressiveCodePlugin {
 						keyValueSeparator: '=',
 					}
 				)
+			},
+			annotateCode: ({ codeBlock }) => {
+				const blockData = textMarkersPluginData.getOrCreateFor(codeBlock)
+				codeBlock.getLines().forEach((line) => {
+					// Highlight all plaintext terms
+					blockData.plaintextTerms.forEach(({ markerType, text }) => {
+						let idx = line.text.indexOf(text, 0)
+						while (idx > -1) {
+							line.addAnnotation({
+								name: markerType,
+								inlineRange: {
+									columnStart: idx,
+									columnEnd: idx + text.length,
+								},
+								render: ({ nodesToTransform }) => {
+									return nodesToTransform.map((node) => {
+										return h(markerType, node)
+									})
+								},
+							})
+							idx = line.text.indexOf(text, idx + text.length)
+						}
+					})
+
+					// Highlight all regular expression matches
+					// blockData.regExpTerms.forEach(({ markerType, regExp }) => {
+					// 	regExp.lastIndex = 0
+					// 	let match: RegExpExecArray | null
+					// 	while ((match = regExp.exec(line.text))) {
+					// 		const startIndex = match.index
+					// 		const endIndex = startIndex + match[0].length
+					// 		line.addAnnotation({
+					// 			name: markerType,
+					// 			startIndex,
+					// 			endIndex,
+					// 			render: ({ nodesToTransform }) => {
+					// 				return nodesToTransform.map((node) => {
+					// 					addClass(node, markerType)
+					// 					return node
+					// 				})
+					// 			},
+					// 		})
+					// 	}
+					// })
+				})
 			},
 		},
 	}

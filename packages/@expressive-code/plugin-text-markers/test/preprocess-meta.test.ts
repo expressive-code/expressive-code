@@ -200,14 +200,14 @@ describe('Extracts known properties', () => {
 			await expectMetaResult('"double-quoted \\"with escaped inner double\\""', {
 				meta: '',
 				annotations: {
-					plaintextTerms: [{ markerType: 'mark', text: 'double-quoted \\"with escaped inner double\\"' }],
+					plaintextTerms: [{ markerType: 'mark', text: 'double-quoted "with escaped inner double"' }],
 				},
 			})
 
 			await expectMetaResult("'single-quoted \\'with escaped inner single\\''", {
 				meta: '',
 				annotations: {
-					plaintextTerms: [{ markerType: 'mark', text: "single-quoted \\'with escaped inner single\\'" }],
+					plaintextTerms: [{ markerType: 'mark', text: "single-quoted 'with escaped inner single'" }],
 				},
 			})
 		})
@@ -251,6 +251,36 @@ describe('Extracts known properties', () => {
 				annotations: {
 					plaintextTerms: [{ markerType: 'del', text: 'prefixed with rem' }],
 					lineMarkings: [],
+				},
+			})
+		})
+
+		test('With equal signs and nested quotes of different type inside a quoted string', async () => {
+			await expectMetaResult(`ins='= "Hello"'`, {
+				meta: '',
+				annotations: {
+					plaintextTerms: [{ markerType: 'ins', text: '= "Hello"' }],
+				},
+			})
+		})
+
+		test('With equal signs and escaped quotes of same type inside a quoted string', async () => {
+			await expectMetaResult('ins="= \\"Astronaut\\""', {
+				meta: '',
+				annotations: {
+					plaintextTerms: [{ markerType: 'ins', text: '= "Astronaut"' }],
+				},
+			})
+		})
+
+		test('With everything combined', async () => {
+			await expectMetaResult(`title="src/components/GreetingHeadline.astro" ins='= "Hello"' ins="= \\"Astronaut\\""`, {
+				meta: 'title="src/components/GreetingHeadline.astro"',
+				annotations: {
+					plaintextTerms: [
+						{ markerType: 'ins', text: '= "Hello"' },
+						{ markerType: 'ins', text: '= "Astronaut"' },
+					],
 				},
 			})
 		})

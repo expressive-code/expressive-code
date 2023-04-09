@@ -4,8 +4,8 @@ export const textMarkersStyleSettings = new StyleSettings({
 	lineAccentMargin: '0rem',
 	lineAccentWidth: '0.15rem',
 	diffIndicatorMarginLeft: '0.5rem',
-	markBackground: ({ theme }) => theme.colors['editor.findMatchBackground'] || theme.colors['editor.findMatchHighlightBackground'] || theme.colors['editor.selectionBackground'],
-	markBorder: ({ theme }) => theme.colors['editor.findMatchBorder'] || theme.colors['editor.findMatchHighlightBorder'] || theme.colors['editor.selectionHighlightBorder'],
+	markBackground: ({ theme }) => theme.colors['editor.selectionBackground'],
+	markBorder: ({ theme }) => setAlpha(theme.colors['editor.selectionBackground'], 0.75),
 	insBackground: ({ theme }) => theme.colors['diffEditor.insertedLineBackground'],
 	insBorder: ({ theme }) => theme.colors['diffEditor.insertedTextBorder'] || setAlpha(theme.colors['diffEditor.insertedLineBackground'], 0.75),
 	insDiffIndicatorColor: ({ theme, coreStyles }) =>
@@ -63,6 +63,31 @@ export function getTextMarkersBaseStyles(theme: ExpressiveCodeTheme, coreStyles:
 					position: absolute;
 					left: ${textMarkersStyles.diffIndicatorMarginLeft};
 				}
+			}
+
+			/* Support inline mark/ins/del */
+			& mark {
+				--inline-marker-bg-color: ${textMarkersStyles.markBackground};
+				--inline-marker-border-color: ${textMarkersStyles.markBorder};
+			}
+			& ins {
+				--inline-marker-bg-color: ${textMarkersStyles.insBackground};
+				--inline-marker-border-color: ${textMarkersStyles.insBorder};
+			}
+			& del {
+				--inline-marker-bg-color: ${textMarkersStyles.delBackground};
+				--inline-marker-border-color: ${textMarkersStyles.delBorder};
+			}
+			& mark,
+			& ins,
+			& del {
+				all: unset;
+				background: var(--inline-marker-bg-color);
+				box-shadow: 0 0 0 0.05rem var(--inline-marker-bg-color),
+					0 0 0 0.075rem var(--inline-marker-border-color);
+				border-radius: 0.05rem;
+				padding-inline: 0.05rem;
+				margin-inline: 0.1rem;
 			}
 		}
 	`
