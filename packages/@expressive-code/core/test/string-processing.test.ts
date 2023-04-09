@@ -90,6 +90,39 @@ describe('String processing', () => {
 					{ key: undefined, value: 'huh?', valueStartDelimiter: '<!--', valueEndDelimiter: '-->' },
 				])
 			})
+			test('With equal signs and nested quotes of different type inside a quoted string', () => {
+				const testString = `Oh ins='= "Hello"' hi!`
+				const matches: ReplaceDelimitedValuesMatch[] = []
+				const result = replaceDelimitedValues(testString, (match) => {
+					matches.push(match)
+					return ''
+				})
+				expect(result).toEqual('Oh hi!')
+				expect(matches).toMatchObject([{ key: 'ins', value: '= "Hello"', valueStartDelimiter: "'", valueEndDelimiter: "'" }])
+			})
+			test('With equal signs and escaped quotes of same type inside a quoted string', () => {
+				const testString = `Oh ins="= \\"Astronaut\\"" hi!`
+				const matches: ReplaceDelimitedValuesMatch[] = []
+				const result = replaceDelimitedValues(testString, (match) => {
+					matches.push(match)
+					return ''
+				})
+				expect(result).toEqual('Oh hi!')
+				expect(matches).toMatchObject([{ key: 'ins', value: '= \\"Astronaut\\"', valueStartDelimiter: '"', valueEndDelimiter: '"' }])
+			})
+			test('With everything combined', () => {
+				const testString = `Oh ins='= "Hello"' ins="= \\"Astronaut\\"" hi!`
+				const matches: ReplaceDelimitedValuesMatch[] = []
+				const result = replaceDelimitedValues(testString, (match) => {
+					matches.push(match)
+					return ''
+				})
+				expect(result).toEqual('Oh hi!')
+				expect(matches).toMatchObject([
+					{ key: 'ins', value: '= "Hello"', valueStartDelimiter: "'", valueEndDelimiter: "'" },
+					{ key: 'ins', value: '= \\"Astronaut\\"', valueStartDelimiter: '"', valueEndDelimiter: '"' },
+				])
+			})
 		})
 		describe('Supports different key/value separators', () => {
 			test('Single non-standard character', () => {
