@@ -1,4 +1,4 @@
-import { ExpressiveCodePlugin, AttachedPluginData, replaceDelimitedValues, addClass } from '@expressive-code/core'
+import { ExpressiveCodePlugin, AttachedPluginData, replaceDelimitedValues, addClass, getGroupIndicesFromRegExpMatch, AnnotationRenderFunction } from '@expressive-code/core'
 import { h } from 'hastscript'
 import rangeParser from 'parse-numeric-range'
 import { getTextMarkersBaseStyles } from './styles'
@@ -97,36 +97,45 @@ export function textMarkers(): ExpressiveCodePlugin {
 									columnStart: idx,
 									columnEnd: idx + text.length,
 								},
-								render: ({ nodesToTransform }) => {
-									return nodesToTransform.map((node) => {
-										return h(markerType, node)
-									})
-								},
+								render: getInlineMarkerRenderFunction(markerType),
 							})
 							idx = line.text.indexOf(text, idx + text.length)
 						}
 					})
 
 					// Highlight all regular expression matches
-					// blockData.regExpTerms.forEach(({ markerType, regExp }) => {
-					// 	regExp.lastIndex = 0
-					// 	let match: RegExpExecArray | null
-					// 	while ((match = regExp.exec(line.text))) {
-					// 		const startIndex = match.index
-					// 		const endIndex = startIndex + match[0].length
-					// 		line.addAnnotation({
-					// 			name: markerType,
-					// 			startIndex,
-					// 			endIndex,
-					// 			render: ({ nodesToTransform }) => {
-					// 				return nodesToTransform.map((node) => {
-					// 					addClass(node, markerType)
-					// 					return node
-					// 				})
-					// 			},
-					// 		})
-					// 	}
-					// })
+					blockData.regExpTerms.forEach(({ markerType, regExp }) => {
+						const matches = line.text.matchAll(regExp)
+						for (const match of matches) {
+							const rawGroupIndices = getGroupIndicesFromRegExpMatch(match)
+							// Remove null group indices
+							let groupIndices = rawGroupIndices.flatMap((range) => (range ? [range] : []))
+							// If there are no non-null indices, use the full match instead
+							// (capture group feature fallback, impossible to cover in tests)
+							/* c8 ignore start */
+							if (!groupIndices.length) {
+								const fullMatchIndex = match.index as number
+								groupIndices = [[fullMatchIndex, fullMatchIndex + match[0].length]]
+							}
+							/* c8 ignore end */
+							// If there are multiple non-null indices, remove the first one
+							// as it is the full match and we only want to mark capture groups
+							if (groupIndices.length > 1) {
+								groupIndices.shift()
+							}
+							// Create marked ranges from all remaining group indices
+							groupIndices.forEach((range) => {
+								line.addAnnotation({
+									name: markerType,
+									inlineRange: {
+										columnStart: range[0],
+										columnEnd: range[1],
+									},
+									render: getInlineMarkerRenderFunction(markerType),
+								})
+							})
+						}
+					})
 				})
 			},
 		},
@@ -147,4 +156,12 @@ export function markerTypeFromString(input: string) {
 	// Return either the converted type or undefined
 	const markerType = input as MarkerType
 	return MarkerTypeOrder.includes(markerType) ? markerType : undefined
+}
+
+function getInlineMarkerRenderFunction(markerType: MarkerType): AnnotationRenderFunction {
+	return ({ nodesToTransform }) => {
+		return nodesToTransform.map((node) => {
+			return h(markerType, node)
+		})
+	}
 }

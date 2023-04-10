@@ -7,6 +7,13 @@ describe('Renders text markers', () => {
 	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
 	themes.unshift(undefined)
 
+	const inlineMarkerTestText = `
+---
+const { greeting = "Hello", name = "Astronaut" } = Astro.props;
+---
+<h2>{greeting}, punymighty {name}!</h2>
+	`.trim()
+
 	test(`Line-level markers`, async ({ meta: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
 			testName,
@@ -27,42 +34,49 @@ export default defineConfig({
 				plugins: [textMarkers()],
 			}),
 		})
+		// TODO: Actually add validations for the AST
 	})
 
-	test(`Inline markers`, async ({ meta: { name: testName } }) => {
+	test(`Inline plaintext markers`, async ({ meta: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
 			testName,
 			testBaseDir: __dirname,
 			fixtures: buildThemeFixtures(themes, {
-				code: `
----
-const { greeting = "Hello", name = "Astronaut" } = Astro.props;
----
-<h2>{greeting}, punymighty {name}!</h2>
-				`.trim(),
+				code: inlineMarkerTestText,
 				language: 'astro',
 				meta: `title="src/components/GreetingHeadline.astro" mark='= "Hello"' "= \\"Astronaut\\"" del="puny" ins='mighty'`,
 				plugins: [textMarkers()],
 			}),
 		})
+		// TODO: Actually add validations for the AST
 	})
 
-	test(`Combined line and inline markers`, async ({ meta: { name: testName } }) => {
+	test(`Inline RegExp markers`, async ({ meta: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
 			testName,
 			testBaseDir: __dirname,
 			fixtures: buildThemeFixtures(themes, {
-				code: `
----
-const { greeting = "Hello", name = "Astronaut" } = Astro.props;
----
-<h2>{greeting}, punymighty {name}!</h2>
-				`.trim(),
+				code: inlineMarkerTestText,
+				language: 'astro',
+				meta: `title="src/components/GreetingHeadline.astro" mark=/{\\w+?}/ ins=/(?<={.*?)(= ".*?")(?=.*?})/`,
+				plugins: [textMarkers()],
+			}),
+		})
+		// TODO: Actually add validations for the AST
+	})
+
+	test(`Combined line and inline plaintext markers`, async ({ meta: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: inlineMarkerTestText,
 				language: 'astro',
 				meta: `title="src/components/GreetingHeadline.astro" mark={4} mark='= "Hello"' "= \\"Astronaut\\"" del="puny" ins='mighty'`,
 				plugins: [textMarkers()],
 			}),
 		})
+		// TODO: Actually add validations for the AST
 	})
 })
 
