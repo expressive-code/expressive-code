@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { ExpressiveCode } from '@expressive-code/core'
-import { MarkerType, markerTypeFromString, textMarkers, textMarkersPluginData } from '../src'
+import { textMarkers, textMarkersPluginData } from '../src'
+import { MarkerType, markerTypeFromString } from '../src/marker-types'
 
 const astroCodeSnippet = `
 ---

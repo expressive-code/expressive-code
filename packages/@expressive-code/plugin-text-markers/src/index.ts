@@ -1,12 +1,9 @@
-import { ExpressiveCodePlugin, AttachedPluginData, replaceDelimitedValues, addClass, getGroupIndicesFromRegExpMatch, AnnotationRenderFunction } from '@expressive-code/core'
+import { ExpressiveCodePlugin, AttachedPluginData, replaceDelimitedValues, addClass } from '@expressive-code/core'
 import { h } from 'hastscript'
 import rangeParser from 'parse-numeric-range'
+import { MarkerType, markerTypeFromString } from './marker-types'
 import { getTextMarkersBaseStyles } from './styles'
-
-export type MarkerType = 'mark' | 'ins' | 'del'
-
-/** When markers overlap, those with higher indices override lower ones. */
-export const MarkerTypeOrder: MarkerType[] = ['mark', 'del', 'ins']
+import { flattenInlineMarkerRanges, getInlineSearchTermMatches } from './inline-markers'
 
 export interface TextMarkerPluginData {
 	plaintextTerms: { markerType: MarkerType; text: string }[]
@@ -87,81 +84,30 @@ export function textMarkers(): ExpressiveCodePlugin {
 			annotateCode: ({ codeBlock }) => {
 				const blockData = textMarkersPluginData.getOrCreateFor(codeBlock)
 				codeBlock.getLines().forEach((line) => {
-					// Highlight all plaintext terms
-					blockData.plaintextTerms.forEach(({ markerType, text }) => {
-						let idx = line.text.indexOf(text, 0)
-						while (idx > -1) {
-							line.addAnnotation({
-								name: markerType,
-								inlineRange: {
-									columnStart: idx,
-									columnEnd: idx + text.length,
-								},
-								render: getInlineMarkerRenderFunction(markerType),
-							})
-							idx = line.text.indexOf(text, idx + text.length)
-						}
-					})
+					// Check the line text for search term matches and collect their ranges
+					const markerRanges = getInlineSearchTermMatches(line.text, blockData)
+					if (!markerRanges.length) return
 
-					// Highlight all regular expression matches
-					blockData.regExpTerms.forEach(({ markerType, regExp }) => {
-						const matches = line.text.matchAll(regExp)
-						for (const match of matches) {
-							const rawGroupIndices = getGroupIndicesFromRegExpMatch(match)
-							// Remove null group indices
-							let groupIndices = rawGroupIndices.flatMap((range) => (range ? [range] : []))
-							// If there are no non-null indices, use the full match instead
-							// (capture group feature fallback, impossible to cover in tests)
-							/* c8 ignore start */
-							if (!groupIndices.length) {
-								const fullMatchIndex = match.index as number
-								groupIndices = [[fullMatchIndex, fullMatchIndex + match[0].length]]
-							}
-							/* c8 ignore end */
-							// If there are multiple non-null indices, remove the first one
-							// as it is the full match and we only want to mark capture groups
-							if (groupIndices.length > 1) {
-								groupIndices.shift()
-							}
-							// Create marked ranges from all remaining group indices
-							groupIndices.forEach((range) => {
-								line.addAnnotation({
-									name: markerType,
-									inlineRange: {
-										columnStart: range[0],
-										columnEnd: range[1],
-									},
-									render: getInlineMarkerRenderFunction(markerType),
+					// Flatten marked ranges to prevent any overlaps
+					const flattenedRanges = flattenInlineMarkerRanges(markerRanges)
+
+					// Add annotations for all flattened ranges
+					flattenedRanges.forEach(({ markerType, start, end }) => {
+						line.addAnnotation({
+							name: markerType,
+							inlineRange: {
+								columnStart: start,
+								columnEnd: end,
+							},
+							render: ({ nodesToTransform }) => {
+								return nodesToTransform.map((node) => {
+									return h(markerType, node)
 								})
-							})
-						}
+							},
+						})
 					})
 				})
 			},
 		},
-	}
-}
-
-/**
- * If the given input string represents a valid marker type,
- * converts it to a {@link MarkerType} and returns it.
- *
- * Otherwise, returns `undefined`.
- */
-export function markerTypeFromString(input: string) {
-	// Fix common marker type mistakes
-	if (input === 'add') input = 'ins'
-	if (input === 'rem') input = 'del'
-
-	// Return either the converted type or undefined
-	const markerType = input as MarkerType
-	return MarkerTypeOrder.includes(markerType) ? markerType : undefined
-}
-
-function getInlineMarkerRenderFunction(markerType: MarkerType): AnnotationRenderFunction {
-	return ({ nodesToTransform }) => {
-		return nodesToTransform.map((node) => {
-			return h(markerType, node)
-		})
 	}
 }
