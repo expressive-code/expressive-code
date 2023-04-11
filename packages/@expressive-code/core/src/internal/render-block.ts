@@ -9,7 +9,7 @@ import { GroupContents } from './render-group'
 import { renderLineToAst } from './render-line'
 import { isBoolean, isHastElement, isHastParent, newTypeError } from './type-checks'
 
-export function renderBlock({
+export async function renderBlock({
 	codeBlock,
 	groupContents,
 	theme,
@@ -35,9 +35,9 @@ export function renderBlock({
 		theme,
 	}
 
-	const runBeforeRenderingHooks = (key: keyof ExpressiveCodePluginHooks_BeforeRendering) => {
-		runHooks(key, plugins, ({ hookFn, plugin }) => {
-			hookFn({
+	const runBeforeRenderingHooks = async (key: keyof ExpressiveCodePluginHooks_BeforeRendering) => {
+		await runHooks(key, plugins, async ({ hookFn, plugin }) => {
+			await hookFn({
 				...baseContext,
 				addStyles: (styles: string) => blockStyles.push({ pluginName: plugin.name, styles }),
 			})
@@ -46,32 +46,34 @@ export function renderBlock({
 
 	// Run hooks for preprocessing metadata and code
 	state.canEditCode = false
-	runBeforeRenderingHooks('preprocessMetadata')
+	await runBeforeRenderingHooks('preprocessMetadata')
 	state.canEditCode = true
-	runBeforeRenderingHooks('preprocessCode')
+	await runBeforeRenderingHooks('preprocessCode')
 
 	// Run hooks for processing & finalizing the code
-	runBeforeRenderingHooks('performSyntaxAnalysis')
-	runBeforeRenderingHooks('postprocessAnalyzedCode')
+	await runBeforeRenderingHooks('performSyntaxAnalysis')
+	await runBeforeRenderingHooks('postprocessAnalyzedCode')
 	state.canEditCode = false
 
 	// Run hooks for annotating the code
-	runBeforeRenderingHooks('annotateCode')
-	runBeforeRenderingHooks('postprocessAnnotations')
+	await runBeforeRenderingHooks('annotateCode')
+	await runBeforeRenderingHooks('postprocessAnnotations')
 	state.canEditMetadata = false
 	state.canEditAnnotations = false
 
 	// Render lines to AST and run rendering hooks
 	const lines = codeBlock.getLines()
-	const renderedAstLines = lines.map((line, lineIndex) => {
+	const renderedAstLines: Element[] = []
+	for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+		const line = lines[lineIndex]
 		// Render the current line to an AST and wrap it in an object that can be passed
 		// through all hooks, allowing plugins to edit or completely replace the AST
 		const lineRenderData = {
 			lineAst: renderLineToAst(line),
 		}
 		// Allow plugins to modify or even completely replace the AST
-		runHooks('postprocessRenderedLine', plugins, ({ hookFn, plugin }) => {
-			hookFn({
+		await runHooks('postprocessRenderedLine', plugins, async ({ hookFn, plugin }) => {
+			await hookFn({
 				...baseContext,
 				addStyles: (styles: string) => blockStyles.push({ pluginName: plugin.name, styles }),
 				line,
@@ -82,16 +84,16 @@ export function renderBlock({
 				throw newTypeError('hast Element', lineRenderData.lineAst, 'lineAst')
 			}
 		})
-		return lineRenderData.lineAst
-	})
+		renderedAstLines.push(lineRenderData.lineAst)
+	}
 
 	// Combine rendered lines into a block AST and wrap it in an object that can be passed
 	// through all hooks, allowing plugins to edit or completely replace the AST
 	const blockRenderData = {
 		blockAst: buildCodeBlockAstFromRenderedLines(renderedAstLines),
 	}
-	runHooks('postprocessRenderedBlock', plugins, ({ hookFn, plugin }) => {
-		hookFn({
+	await runHooks('postprocessRenderedBlock', plugins, async ({ hookFn, plugin }) => {
+		await hookFn({
 			...baseContext,
 			addStyles: (styles: string) => blockStyles.push({ pluginName: plugin.name, styles }),
 			renderData: blockRenderData,

@@ -57,7 +57,7 @@ export interface PostprocessRenderedBlockGroupContext {
 	}
 }
 
-export type ExpressiveCodeHook<ContextType = ExpressiveCodeHookContext> = (context: ContextType) => void
+export type ExpressiveCodeHook<ContextType = ExpressiveCodeHookContext> = (context: ContextType) => void | Promise<void>
 
 export interface ExpressiveCodePluginHooks_BeforeRendering {
 	/**
@@ -165,21 +165,21 @@ export type ExpressiveCodePluginHookName = keyof ExpressiveCodePluginHooks
  * Errors occuring in the runner function are caught and rethrown with information about the
  * plugin and hook that caused the error.
  */
-export function runHooks<HookType extends keyof ExpressiveCodePluginHooks>(
+export async function runHooks<HookType extends keyof ExpressiveCodePluginHooks>(
 	key: HookType,
 	plugins: readonly ExpressiveCodePlugin[],
-	runner: (hook: { hookName: HookType; hookFn: NonNullable<ExpressiveCodePluginHooks[HookType]>; plugin: ExpressiveCodePlugin }) => void
+	runner: (hook: { hookName: HookType; hookFn: NonNullable<ExpressiveCodePluginHooks[HookType]>; plugin: ExpressiveCodePlugin }) => void | Promise<void>
 ) {
-	plugins.forEach((plugin) => {
+	for (const plugin of plugins) {
 		const hookFn = plugin.hooks[key]
-		if (!hookFn) return
+		if (!hookFn) continue
 
 		try {
-			runner({ hookName: key, hookFn, plugin })
+			await runner({ hookName: key, hookFn, plugin })
 		} catch (error) {
 			/* c8 ignore next */
 			const msg = error instanceof Error ? error.message : (error as string)
 			throw new Error(`Plugin "${plugin.name}" caused an error in its "${key}" hook. Error message: ${msg}`)
 		}
-	})
+	}
 }

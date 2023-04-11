@@ -63,7 +63,7 @@ export async function renderGroup({
 	const pluginStyles: PluginStyles[] = []
 	for (const groupContent of renderedGroupContents) {
 		// Render the current block
-		const { renderedBlockAst, blockStyles } = renderBlock({
+		const { renderedBlockAst, blockStyles } = await renderBlock({
 			codeBlock: groupContent.codeBlock,
 			groupContents,
 			theme,
@@ -85,8 +85,8 @@ export async function renderGroup({
 		),
 	}
 
-	runHooks('postprocessRenderedBlockGroup', plugins, ({ hookFn, plugin }) => {
-		hookFn({
+	await runHooks('postprocessRenderedBlockGroup', plugins, async ({ hookFn, plugin }) => {
+		await hookFn({
 			renderedGroupContents,
 			pluginStyles: pluginStyles,
 			addStyles: (styles: string) => pluginStyles.push({ pluginName: plugin.name, styles }),
