@@ -2,12 +2,10 @@ import { describe, test, expect } from 'vitest'
 import { selectAll } from 'hast-util-select'
 import { toText } from 'hast-util-to-text'
 import { h } from 'hastscript'
-import { AnnotationRenderOptions, ExpressiveCodeTheme } from '@expressive-code/core'
+import { AnnotationRenderOptions, AnnotationRenderPhase, ExpressiveCodePlugin, ExpressiveCodeTheme } from '@expressive-code/core'
 import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures, TestFixture } from '@internal/test-utils'
 import { textMarkers } from '../src'
 import { MarkerType, MarkerTypeOrder } from '../src/marker-types'
-import { ExpressiveCodePlugin } from '@expressive-code/core'
-import { AnnotationRenderPhase } from '../../core/dist'
 
 const lineMarkerTestText = `
 import { defineConfig } from 'astro/config';
