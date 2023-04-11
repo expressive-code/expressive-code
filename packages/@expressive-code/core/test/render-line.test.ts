@@ -278,6 +278,24 @@ describe('renderLineToAst()', () => {
 		})
 	})
 
+	describe('Ensures that empty lines are visible', () => {
+		test('Empty lines are rendered with a <br> child element', () => {
+			const line = new ExpressiveCodeLine('')
+			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}"><br></div>`)
+		})
+		test('The <br> child element also works with line-level annotations', () => {
+			const line = new ExpressiveCodeLine('')
+			line.addAnnotation({
+				name: 'del',
+				render: ({ nodesToTransform }) => {
+					addClass(nodesToTransform[0], 'del')
+					return nodesToTransform
+				},
+			})
+			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass} del"><br></div>`)
+		})
+	})
+
 	describe('Respects render phases', () => {
 		test('Annotation #0 with phase "latest" is rendered after #1 with "normal"', () => {
 			const line = new ExpressiveCodeLine(testText)
