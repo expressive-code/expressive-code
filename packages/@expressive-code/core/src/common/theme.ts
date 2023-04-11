@@ -8,6 +8,8 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 	colors: VSCodeWorkbenchColors
 	fg: string
 	bg: string
+	semanticHighlighting: boolean
+	tokenColors: unknown
 	settings: IShikiTheme['settings']
 
 	/**
@@ -18,7 +20,7 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 	 * function yourself, use it to load its bundled theme (e.g. `themes/dracula.json`),
 	 * and pass the result to this constructor.
 	 */
-	constructor(theme: Partial<ExpressiveCodeTheme> | Partial<IShikiTheme>) {
+	constructor(theme: Partial<ExpressiveCodeTheme> | (Partial<IShikiTheme> & { semanticHighlighting?: boolean; tokenColors?: unknown })) {
 		let themeType = theme.type
 		if (themeType === 'css') throw new Error('Theme type "css" is not supported.')
 		if (themeType !== 'dark' && themeType !== 'light') {
@@ -30,6 +32,8 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 		this.colors = resolveVSCodeWorkbenchColors(theme.colors, this.type)
 		this.fg = theme.fg || this.colors['editor.foreground']
 		this.bg = theme.bg || this.colors['editor.background']
+		this.semanticHighlighting = theme.semanticHighlighting || false
+		this.tokenColors = theme.tokenColors
 		this.settings = theme.settings || []
 	}
 

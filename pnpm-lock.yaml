@@ -133,6 +133,12 @@ importers:
       '@expressive-code/core':
         specifier: workspace:^0.1.0
         version: link:../core
+      '@internal/test-utils':
+        specifier: workspace:^
+        version: link:../../../internal/test-utils
+      hastscript:
+        specifier: ^7.2.0
+        version: 7.2.0
       shiki:
         specifier: ^0.14.1
         version: 0.14.1

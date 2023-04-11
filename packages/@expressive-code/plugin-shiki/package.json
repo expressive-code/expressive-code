@@ -27,6 +27,8 @@
   },
   "dependencies": {
     "@expressive-code/core": "workspace:^0.1.0",
+    "@internal/test-utils": "workspace:^",
+    "hastscript": "^7.2.0",
     "shiki": "^0.14.1"
   },
   "devDependencies": {
