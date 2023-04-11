@@ -135,7 +135,7 @@ export function renderLineToAst(line: ExpressiveCodeLine) {
 	// If the line does not contain any nodes at this point,
 	// insert a line break to ensure the empty line gets rendered
 	// by browsers (otherwise it would be invisible)
-	if (partNodes.length === 0) partNodes.push(h('br'))
+	if (partNodes.length === 0) partNodes.push(h(null, '\n'))
 
 	// Now create a line node that contains all rendered part nodes
 	let lineNode: Parent = h(`div.${codeLineClass}`, partNodes)

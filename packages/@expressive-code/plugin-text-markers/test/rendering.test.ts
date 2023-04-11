@@ -35,9 +35,11 @@ describe('Renders text markers', () => {
 			testBaseDir: __dirname,
 			fixtures: buildThemeFixtures(themes, {
 				code: lineMarkerTestText,
-				meta: `del={5} ins={6-7}`,
+				meta: `del={5} ins={6-7} mark={1,2}`,
 				plugins: [textMarkers()],
 				blockValidationFn: buildMarkerValidationFn([
+					{ fullLine: true, markerType: 'mark', text: `import { defineConfig } from 'astro/config';` },
+					{ fullLine: true, markerType: 'mark', text: '' },
 					{ fullLine: true, markerType: 'del', text: 'extendDefaultPlugins: false,' },
 					{ fullLine: true, markerType: 'ins', text: 'smartypants: false,' },
 					{ fullLine: true, markerType: 'ins', text: 'gfm: false,' },
@@ -99,7 +101,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 <MyReactComponent>
   <MyAstroComponent slot="name" />
 </MyReactComponent>
-		`
+		`.trim()
 
 			test('Markers of the same type get merged', async ({ meta: { name: testName } }) => {
 				await renderAndOutputHtmlSnapshot({

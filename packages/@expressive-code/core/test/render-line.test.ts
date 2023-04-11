@@ -279,11 +279,11 @@ describe('renderLineToAst()', () => {
 	})
 
 	describe('Ensures that empty lines are visible', () => {
-		test('Empty lines are rendered with a <br> child element', () => {
+		test('Empty lines are rendered with a line break inside', () => {
 			const line = new ExpressiveCodeLine('')
-			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}"><br></div>`)
+			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}">\n</div>`)
 		})
-		test('The <br> child element also works with line-level annotations', () => {
+		test('Empty lines also work with line-level annotations', () => {
 			const line = new ExpressiveCodeLine('')
 			line.addAnnotation({
 				name: 'del',
@@ -292,7 +292,7 @@ describe('renderLineToAst()', () => {
 					return nodesToTransform
 				},
 			})
-			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass} del"><br></div>`)
+			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass} del">\n</div>`)
 		})
 	})
 
