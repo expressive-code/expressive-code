@@ -100,8 +100,15 @@ export function textMarkers(): ExpressiveCodePlugin {
 								columnEnd: end,
 							},
 							render: ({ nodesToTransform }) => {
-								return nodesToTransform.map((node) => {
-									return h(markerType, node)
+								return nodesToTransform.map((node, idx) => {
+									const transformedNode = h(markerType, node)
+									if (nodesToTransform.length > 0 && idx > 0) {
+										addClass(transformedNode, 'open-start')
+									}
+									if (nodesToTransform.length > 0 && idx < nodesToTransform.length - 1) {
+										addClass(transformedNode, 'open-end')
+									}
+									return transformedNode
 								})
 							},
 						})

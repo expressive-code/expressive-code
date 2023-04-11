@@ -13,7 +13,7 @@ export type TestFixture = {
 	theme?: ExpressiveCodeTheme
 	plugins: ExpressiveCodePlugin[]
 	engineOptions?: Partial<ExpressiveCodeConfig>
-	blockValidationFn?: ({ renderedGroupAst }: { renderedGroupAst: Parent }) => void
+	blockValidationFn?: ({ renderedGroupAst, theme }: { renderedGroupAst: Parent; theme: ExpressiveCodeTheme }) => void
 }
 
 export function buildThemeFixtures(themes: (ExpressiveCodeTheme | undefined)[], fixtureContents: Omit<TestFixture, 'fixtureName' | 'theme'>) {
@@ -59,9 +59,9 @@ export async function renderAndOutputHtmlSnapshot({ testName, testBaseDir, fixtu
 		renderResults,
 	})
 
-	renderResults.forEach(({ renderedGroupAst, blockValidationFn }) => {
+	renderResults.forEach(({ renderedGroupAst, theme, blockValidationFn }) => {
 		if (!blockValidationFn) return
-		blockValidationFn({ renderedGroupAst })
+		blockValidationFn({ renderedGroupAst, theme })
 	})
 }
 
