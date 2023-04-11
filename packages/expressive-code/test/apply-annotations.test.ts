@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { applyAnnotations } from '../src/index'
-import { createMarkerRegExp, DomUtilsElement, getAnnotationResult, getClassicShikiHighlightedCode, getShikiTwoslashHighlightedCode, ParsedContent } from './utils'
+import { createMarkerRegExp, DomUtilsElement, getAnnotationResult, getClassicShikiHighlightedCode, ParsedContent } from './utils'
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
@@ -642,13 +642,4 @@ describe.skip('Can process HTML code coming from all supported highlighters', ()
 		expect(preHighlightedCodeHtml, 'Expected classic Shiki output to use line spans separated by newlines').toContain('>\n<span class="line">')
 		runSharedAnnotationTest(preHighlightedCodeHtml)
 	})
-
-	test('Shiki-Twoslash with non-TS input', () => {
-		const preHighlightedCodeHtml = getShikiTwoslashHighlightedCode(codeSnippet, 'astro')
-		expect(preHighlightedCodeHtml).toContain('<pre class="shiki"')
-		expect(preHighlightedCodeHtml, 'Expected Shiki-Twoslash output to use line divs without newlines').toContain(`><div class='line'>`)
-		runSharedAnnotationTest(preHighlightedCodeHtml)
-	})
-
-	// TODO: Add a test for Shiki-Twoslash with TS input that ran through Twoslash processing
 })

@@ -3,7 +3,6 @@ import { dirname, join } from 'path'
 import { EOL } from 'os'
 import { expect } from 'vitest'
 import { getHighlighter, Highlighter, HighlighterOptions } from 'shiki'
-import { renderCodeToHTML } from 'shiki-twoslash'
 import { parseDocument, DomUtils } from 'htmlparser2'
 import chroma from 'chroma-js'
 import * as HappyDOM from 'happy-dom'
@@ -167,14 +166,6 @@ export function getClassicShikiHighlightedCode(code: string, lang: string, highl
 	return highlighter.codeToHtml(trimCodeBeforeHighlighting(code), { lang })
 }
 
-/**
- * Runs code through Shiki-Twoslash (which is our default), separated into this function
- * for compatibility testing purposes.
- */
-export function getShikiTwoslashHighlightedCode(code: string, lang: string, highlighter: Highlighter = defaultHighlighter) {
-	return renderCodeToHTML(trimCodeBeforeHighlighting(code), lang, {}, undefined, highlighter)
-}
-
 export function getAnnotationResult(code: string, getAnnotationOptions?: GetAnnotationOptions): AnnotationResult {
 	const { highlighter = defaultHighlighter, preHighlightedCodeHtml, ...partialApplyAnnotationsOptions } = getAnnotationOptions || {}
 	const applyAnnotationsOptions = { annotations: {}, lang: 'astro', ...partialApplyAnnotationsOptions }
@@ -182,7 +173,7 @@ export function getAnnotationResult(code: string, getAnnotationOptions?: GetAnno
 
 	// If no preHighlightedCodeHtml was given, run the input code through the highlighter
 	// to get the syntax-highlighted HTML
-	const highlightedCodeHtml = preHighlightedCodeHtml || getShikiTwoslashHighlightedCode(code, lang, highlighter)
+	const highlightedCodeHtml = preHighlightedCodeHtml || getClassicShikiHighlightedCode(code, lang, highlighter)
 	const highlightedCode = new ShikiOutput(highlightedCodeHtml)
 
 	// Now annotate the result

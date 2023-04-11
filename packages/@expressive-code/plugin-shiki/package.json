@@ -1,7 +1,7 @@
 {
-  "name": "@expressive-code/plugin-shiki-twoslash",
+  "name": "@expressive-code/plugin-shiki",
   "version": "0.1.0",
-  "description": "Shiki Twoslash syntax highlighting plugin for Expressive Code, a text marking & annotation engine for presenting source code on the web.",
+  "description": "Shiki syntax highlighting plugin for Expressive Code, a text marking & annotation engine for presenting source code on the web.",
   "keywords": [],
   "author": "Tibor Schiemann",
   "license": "MIT",
@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@expressive-code/core": "workspace:^0.1.0",
-    "shiki-twoslash": "^3.1.1"
+    "shiki": "^0.14.1"
   },
   "devDependencies": {
     "typescript": "^5.0.4"
