@@ -20,16 +20,20 @@ describe('Renders syntax highlighting', () => {
 	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
 	themes.unshift(undefined)
 
-	test('Supports various themes', async ({ meta: { name: testName } }) => {
-		await renderAndOutputHtmlSnapshot({
-			testName,
-			testBaseDir: __dirname,
-			fixtures: buildThemeFixtures(themes, {
-				code: jsTestCode,
-				language: 'js',
-				meta: '',
-				plugins: [shiki()],
-			}),
-		})
-	})
+	test(
+		'Supports various themes',
+		async ({ meta: { name: testName } }) => {
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code: jsTestCode,
+					language: 'js',
+					meta: '',
+					plugins: [shiki()],
+				}),
+			})
+		},
+		{ timeout: 5 * 1000 }
+	)
 })

@@ -1,15 +1,15 @@
 import { ExpressiveCodePlugin } from '@expressive-code/core'
 import { h } from 'hastscript'
-import { getHighlighter } from 'shiki'
+import { getCachedHighlighter } from './cache'
 
 export function shiki(): ExpressiveCodePlugin {
 	return {
 		name: 'Shiki',
 		hooks: {
 			performSyntaxAnalysis: async ({ codeBlock, theme }) => {
-				const highlighter = await getHighlighter({ theme })
+				const highlighter = await getCachedHighlighter({ theme })
 				const codeLines = codeBlock.getLines()
-				const tokenLines = highlighter.codeToThemedTokens(codeBlock.code, codeBlock.language)
+				const tokenLines = highlighter.codeToThemedTokens(codeBlock.code, codeBlock.language, theme.name)
 				tokenLines.forEach((line, lineIndex) => {
 					let charIndex = 0
 					line.forEach((token) => {
