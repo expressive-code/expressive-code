@@ -13,7 +13,13 @@
     "module": "ESNext",
     "target": "ESNext",
     "paths": {
-      "@expressive-code/core": ["./packages/@expressive-code/core/src"]
+      "@expressive-code/core": ["./packages/@expressive-code/core/src"],
+      "@expressive-code/plugin-frames": ["./packages/@expressive-code/plugin-frames/src"],
+      "@expressive-code/plugin-shiki": ["./packages/@expressive-code/plugin-shiki/src"],
+      "@expressive-code/plugin-text-markers": ["./packages/@expressive-code/plugin-text-markers/src"],
+      "astro-expressive-code": ["./packages/astro-expressive-code/src"],
+      "expressive-code": ["./packages/expressive-code/src"],
+      "remark-expressive-code": ["./packages/remark-expressive-code/src"]
     }
   }
 }

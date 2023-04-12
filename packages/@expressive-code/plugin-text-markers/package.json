@@ -15,8 +15,7 @@
   },
   "types": "./dist/index.d.ts",
   "files": [
-    "dist",
-    "src"
+    "dist"
   ],
   "scripts": {
     "build": "tsup ./src/index.ts --format esm,cjs --dts --sourcemap --clean",
@@ -30,7 +29,7 @@
     "hastscript": "^7.2.0"
   },
   "devDependencies": {
-    "@expressive-code/plugin-shiki": "workspace:^",
+    "@expressive-code/plugin-shiki": "workspace:^0.1.0",
     "@internal/test-utils": "workspace:^0.1.0",
     "hast-util-select": "^5.0.5",
     "hast-util-to-html": "^8.0.4",
