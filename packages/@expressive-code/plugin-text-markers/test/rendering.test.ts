@@ -3,6 +3,7 @@ import { selectAll } from 'hast-util-select'
 import { toText } from 'hast-util-to-text'
 import { h } from 'hastscript'
 import { AnnotationRenderOptions, AnnotationRenderPhase, ExpressiveCodePlugin, ExpressiveCodeTheme } from '@expressive-code/core'
+import { shiki } from '@expressive-code/plugin-shiki'
 import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures, TestFixture } from '@internal/test-utils'
 import { textMarkers } from '../src'
 import { MarkerType, MarkerTypeOrder } from '../src/marker-types'
@@ -375,6 +376,44 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 			}),
 		})
 	})
+
+	test(
+		`Actual example with Shiki highlighting`,
+		async ({ meta: { name: testName } }) => {
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code: `
+---
+layout: ../../layouts/BaseLayout.astro
+title: 'My first MDX post'
+publishDate: '21 September 2022'
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+function fancyJsHelper() {
+  return "Try doing that with YAML!";
+}
+
+<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>
+  Welcome to my new Astro blog, using MDX!
+</BaseLayout>
+					`.trim(),
+					language: 'mdx',
+					meta: `title="src/pages/posts/first-post.mdx" ins={6} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/`,
+					plugins: [textMarkers(), shiki()],
+					blockValidationFn: buildMarkerValidationFn([
+						{ fullLine: true, markerType: 'del', text: `layout: ../../layouts/BaseLayout.astro` },
+						{ fullLine: true, markerType: 'ins', text: `import BaseLayout from '../../layouts/BaseLayout.astro';` },
+						{ markerType: 'mark', text: `<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>` },
+						{ markerType: 'mark', text: `</BaseLayout>` },
+					]),
+				}),
+			})
+		},
+		{ timeout: 5 * 1000 }
+	)
 })
 
 function buildMeta(markers: { markerType?: string; text: string }[]) {
