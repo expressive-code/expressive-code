@@ -1,4 +1,4 @@
-import { StyleSettings, ExpressiveCodeTheme, ResolvedCoreStyles, codeLineClass, setAlpha, mix } from '@expressive-code/core'
+import { StyleSettings, ExpressiveCodeTheme, ResolvedCoreStyles, codeLineClass } from '@expressive-code/core'
 
 export const textMarkersStyleSettings = new StyleSettings({
 	lineMarkerAccentMargin: '0rem',
