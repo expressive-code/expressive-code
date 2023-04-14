@@ -1,4 +1,4 @@
-import { StyleResolverFn } from '../helpers/style-settings'
+import { BaseStylesResolverFn } from '../helpers/style-settings'
 import { ExpressiveCodePluginHooks } from './plugin-hooks'
 
 export interface ExpressiveCodePlugin {
@@ -18,6 +18,6 @@ export interface ExpressiveCodePlugin {
 	 * For example, it could create a site-wide CSS stylesheet from the base styles
 	 * and insert a link to it, or it could insert the base styles into a `<style>` element.
 	 */
-	baseStyles?: string | StyleResolverFn
+	baseStyles?: string | BaseStylesResolverFn
 	hooks: ExpressiveCodePluginHooks
 }

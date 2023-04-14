@@ -7,17 +7,15 @@ export const textMarkersStyleSettings = new StyleSettings({
 	inlineMarkerBorderWidth: '1.5px',
 	inlineMarkerBorderRadius: '0.2rem',
 	inlineMarkerPadding: '0.15rem',
-	markBackground: ({ theme }) => theme.colors['editor.selectionBackground'],
-	markBorderColor: ({ theme }) => setAlpha(theme.colors['editor.selectionBackground'], 0.75),
-	insBackground: ({ theme }) => theme.colors['diffEditor.insertedLineBackground'],
-	insBorderColor: ({ theme }) => theme.colors['diffEditor.insertedTextBorder'] || setAlpha(theme.colors['diffEditor.insertedLineBackground'], 0.75),
-	insDiffIndicatorColor: ({ theme, coreStyles }) =>
-		theme.colors['diffEditor.insertedTextForeground'] || setAlpha(mix(theme.colors['diffEditor.insertedLineBackground'], coreStyles.codeForeground, 0.25), 0.75),
+	markBackground: ['#36468880', '#AEB7FE80'],
+	markBorderColor: '#626DB4D0',
+	insBackground: ['#1F561C80', '#A6C49F80'],
+	insBorderColor: '#487E41D0',
+	insDiffIndicatorColor: ['#86AF7ED0', '#276C26D0'],
 	insDiffIndicatorContent: "'+'",
-	delBackground: ({ theme }) => theme.colors['diffEditor.removedLineBackground'],
-	delBorderColor: ({ theme }) => theme.colors['diffEditor.removedTextBorder'] || setAlpha(theme.colors['diffEditor.removedLineBackground'], 0.75),
-	delDiffIndicatorColor: ({ theme, coreStyles }) =>
-		theme.colors['diffEditor.removedTextForeground'] || setAlpha(mix(theme.colors['diffEditor.removedLineBackground'], coreStyles.codeForeground, 0.25), 0.75),
+	delBackground: ['#832F2980', '#E8AEA580'],
+	delBorderColor: '#B1574ED0',
+	delDiffIndicatorColor: ['#D5948AD0', '#A53B34D0'],
 	delDiffIndicatorContent: "'-'",
 })
 

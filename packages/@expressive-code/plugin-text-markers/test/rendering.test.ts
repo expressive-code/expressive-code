@@ -401,11 +401,12 @@ function fancyJsHelper() {
 </BaseLayout>
 					`.trim(),
 					language: 'mdx',
-					meta: `title="src/pages/posts/first-post.mdx" ins={6} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/`,
+					meta: `title="src/pages/posts/first-post.mdx" ins={6} mark={9} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/`,
 					plugins: [textMarkers(), shiki()],
 					blockValidationFn: buildMarkerValidationFn([
 						{ fullLine: true, markerType: 'del', text: `layout: ../../layouts/BaseLayout.astro` },
 						{ fullLine: true, markerType: 'ins', text: `import BaseLayout from '../../layouts/BaseLayout.astro';` },
+						{ fullLine: true, markerType: 'mark', text: ` return "Try doing that with YAML!";` },
 						{ markerType: 'mark', text: `<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>` },
 						{ markerType: 'mark', text: `</BaseLayout>` },
 					]),
