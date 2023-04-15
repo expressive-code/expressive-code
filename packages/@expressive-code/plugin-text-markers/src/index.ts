@@ -2,20 +2,17 @@ import { ExpressiveCodePlugin, AttachedPluginData, replaceDelimitedValues, addCl
 import { h } from 'hastscript'
 import rangeParser from 'parse-numeric-range'
 import { MarkerType, markerTypeFromString } from './marker-types'
-import { getTextMarkersBaseStyles } from './styles'
+import { getTextMarkersBaseStyles, textMarkersStyleSettings } from './styles'
 import { flattenInlineMarkerRanges, getInlineSearchTermMatches } from './inline-markers'
 
-export interface TextMarkerPluginData {
-	plaintextTerms: { markerType: MarkerType; text: string }[]
-	regExpTerms: { markerType: MarkerType; regExp: RegExp }[]
+export interface TextMarkersPluginOptions {
+	styleOverrides?: Partial<typeof textMarkersStyleSettings.defaultSettings>
 }
 
-export const textMarkersPluginData = new AttachedPluginData<TextMarkerPluginData>(() => ({ plaintextTerms: [], regExpTerms: [] }))
-
-export function textMarkers(): ExpressiveCodePlugin {
+export function textMarkers(options: TextMarkersPluginOptions = {}): ExpressiveCodePlugin {
 	return {
 		name: 'TextMarkers',
-		baseStyles: ({ theme, coreStyles }) => getTextMarkersBaseStyles(theme, coreStyles, {}),
+		baseStyles: ({ theme, coreStyles }) => getTextMarkersBaseStyles(theme, coreStyles, options.styleOverrides || {}),
 		hooks: {
 			preprocessMetadata: ({ codeBlock }) => {
 				const blockData = textMarkersPluginData.getOrCreateFor(codeBlock)
@@ -118,3 +115,10 @@ export function textMarkers(): ExpressiveCodePlugin {
 		},
 	}
 }
+
+export interface TextMarkerPluginData {
+	plaintextTerms: { markerType: MarkerType; text: string }[]
+	regExpTerms: { markerType: MarkerType; regExp: RegExp }[]
+}
+
+export const textMarkersPluginData = new AttachedPluginData<TextMarkerPluginData>(() => ({ plaintextTerms: [], regExpTerms: [] }))
