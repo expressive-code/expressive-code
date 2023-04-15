@@ -8,16 +8,19 @@ import { PluginStyles } from './css'
 import { GroupContents } from './render-group'
 import { renderLineToAst } from './render-line'
 import { isBoolean, isHastElement, isHastParent, newTypeError } from './type-checks'
+import { ResolvedCoreStyles } from '../common/core-styles'
 
 export async function renderBlock({
 	codeBlock,
 	groupContents,
 	theme,
+	coreStyles,
 	plugins,
 }: {
 	codeBlock: ExpressiveCodeBlock
 	groupContents: GroupContents
 	theme: ExpressiveCodeTheme
+	coreStyles: ResolvedCoreStyles
 	plugins: readonly ExpressiveCodePlugin[]
 }) {
 	const state: ExpressiveCodeProcessingState = {
@@ -33,6 +36,7 @@ export async function renderBlock({
 		codeBlock,
 		groupContents,
 		theme,
+		coreStyles,
 	}
 
 	const runBeforeRenderingHooks = async (key: keyof ExpressiveCodePluginHooks_BeforeRendering) => {

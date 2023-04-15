@@ -3,7 +3,7 @@ import { ExpressiveCodePlugin } from './plugin'
 import { renderGroup, RenderInput, RenderOptions } from '../internal/render-group'
 import { ExpressiveCodeTheme } from './theme'
 import { PluginStyles, processPluginStyles } from '../internal/css'
-import { coreStyleSettings, getCoreBaseStyles } from './core-styles'
+import { coreStyleSettings, getCoreBaseStyles, ResolvedCoreStyles } from './core-styles'
 import { UnresolvedCoreStyleSettings } from '../helpers/style-settings'
 import { getStableObjectHash } from '../helpers/objects'
 
@@ -43,6 +43,18 @@ export class ExpressiveCode {
 		}
 		this.plugins = config.plugins || []
 
+		// Resolve core styles based on the given theme and style overrides
+		this.coreStyles = coreStyleSettings.resolve({
+			theme: this.theme,
+			styleOverrides: this.styleOverrides,
+			// @ts-expect-error We have no resolved core styles here as we are just resolving them.
+			// Attempts to access them at this point are a programming error, so we pass `null`
+			// to ensure an error will be thrown if anyone tries to. As `ExpressiveCodeConfig`
+			// uses `UnresolvedCoreStyleSettings` as its `styleOverrides` type, `coreStyles`
+			// will not be available in resolver functions anyway.
+			coreStyles: null,
+		})
+
 		// Generate a unique class name for the wrapper element based on the config
 		const configHash = getStableObjectHash(
 			{
@@ -56,28 +68,25 @@ export class ExpressiveCode {
 	}
 
 	async render(input: RenderInput, options?: RenderOptions) {
-		return await renderGroup({ input, options, theme: this.theme, plugins: this.plugins, configClassName: this.configClassName })
+		return await renderGroup({
+			input,
+			options,
+			theme: this.theme,
+			// Also pass resolved core styles in case plugins need them
+			coreStyles: this.coreStyles,
+			plugins: this.plugins,
+			configClassName: this.configClassName,
+		})
 	}
 
 	async getBaseStyles(): Promise<string> {
 		const pluginStyles: PluginStyles[] = []
-		// Resolve core styles
-		const coreStyles = coreStyleSettings.resolve({
-			theme: this.theme,
-			styleOverrides: this.styleOverrides,
-			// @ts-expect-error We have no resolved core styles here as we are just resolving them.
-			// Attempts to access them at this point are a programming error, so we pass `null`
-			// to ensure an error will be thrown if anyone tries to. As `ExpressiveCodeConfig`
-			// uses `UnresolvedCoreStyleSettings` as its `styleOverrides` type, `coreStyles`
-			// will not be available in resolver functions anyway.
-			coreStyles: null,
-		})
-		// Generate core base styles using the resolved core styles
+		// Add core base styles
 		pluginStyles.push({
 			pluginName: 'core',
 			styles: getCoreBaseStyles({
 				theme: this.theme,
-				coreStyles,
+				coreStyles: this.coreStyles,
 			}),
 		})
 		// Add plugin base styles
@@ -85,7 +94,7 @@ export class ExpressiveCode {
 			if (!plugin.baseStyles) return
 			pluginStyles.push({
 				pluginName: plugin.name,
-				styles: typeof plugin.baseStyles === 'function' ? plugin.baseStyles({ theme: this.theme, coreStyles }) : plugin.baseStyles,
+				styles: typeof plugin.baseStyles === 'function' ? plugin.baseStyles({ theme: this.theme, coreStyles: this.coreStyles }) : plugin.baseStyles,
 			})
 		})
 		// Process styles (scoping, minifying, etc.)
@@ -95,6 +104,7 @@ export class ExpressiveCode {
 
 	readonly theme: ExpressiveCodeTheme
 	readonly styleOverrides: Partial<typeof coreStyleSettings.defaultSettings>
+	readonly coreStyles: ResolvedCoreStyles
 	readonly plugins: readonly ExpressiveCodePlugin[]
 	/**
 	 * This class name is used by Expressive Code when rendering its wrapper element

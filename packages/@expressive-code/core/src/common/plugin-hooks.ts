@@ -5,11 +5,13 @@ import { ExpressiveCodeBlock } from './block'
 import { ExpressiveCodeLine } from './line'
 import { ExpressiveCodePlugin } from './plugin'
 import { ExpressiveCodeTheme } from './theme'
+import { ResolvedCoreStyles } from './core-styles'
 
 export interface ExpressiveCodeHookContext {
 	codeBlock: ExpressiveCodeBlock
 	groupContents: GroupContents
 	theme: ExpressiveCodeTheme
+	coreStyles: ResolvedCoreStyles
 	/**
 	 * Adds CSS styles to the document that contains the rendered code.
 	 *

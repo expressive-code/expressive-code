@@ -1,6 +1,7 @@
 import { Parent, Element } from 'hast-util-to-html/lib/types'
 import { h } from 'hastscript'
 import { ExpressiveCodeBlock, ExpressiveCodeBlockOptions } from '../common/block'
+import { ResolvedCoreStyles } from '../common/core-styles'
 import { ExpressiveCodePlugin } from '../common/plugin'
 import { runHooks } from '../common/plugin-hooks'
 import { ExpressiveCodeTheme } from '../common/theme'
@@ -32,12 +33,14 @@ export async function renderGroup({
 	input,
 	options,
 	theme,
+	coreStyles,
 	plugins,
 	configClassName,
 }: {
 	input: RenderInput
 	options?: RenderOptions
 	theme: ExpressiveCodeTheme
+	coreStyles: ResolvedCoreStyles
 	plugins: readonly ExpressiveCodePlugin[]
 	configClassName: string
 }) {
@@ -67,6 +70,7 @@ export async function renderGroup({
 			codeBlock: groupContent.codeBlock,
 			groupContents,
 			theme,
+			coreStyles,
 			plugins,
 		})
 
