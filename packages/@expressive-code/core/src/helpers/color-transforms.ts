@@ -1,4 +1,4 @@
-import { ColorInput, TinyColor } from '@ctrl/tinycolor'
+import { ColorInput, TinyColor, readability } from '@ctrl/tinycolor'
 
 /**
  * Overrides the alpha value of a color with the given value.
@@ -16,6 +16,16 @@ export function setAlpha(input: ColorInput, newAlpha: number) {
 export function multiplyAlpha(input: ColorInput, factor: number) {
 	const color = new TinyColor(input)
 	return toCssColor(color.setAlpha(minMaxRounded(color.getAlpha() * factor)))
+}
+
+/**
+ * Overrides the luminance value of a color with the given value.
+ * Values should be between 0 and 1.
+ */
+export function setLuminance(input: ColorInput, luminance: number) {
+	const color = new TinyColor(input)
+	const hsl = color.toHsl()
+	return toCssColor(new TinyColor({ ...hsl, l: luminance }))
 }
 
 /**
@@ -56,6 +66,38 @@ export function onBackground(input: ColorInput, background: ColorInput) {
 	const color = new TinyColor(input)
 	const backgroundColor = new TinyColor(background)
 	return toCssColor(color.onBackground(backgroundColor))
+}
+
+export function getColorContrast(input: ColorInput, background: ColorInput) {
+	const color = new TinyColor(input)
+	const backgroundColor = new TinyColor(background)
+	return readability(color, backgroundColor)
+}
+
+export function ensureReadableColorContrast(input: ColorInput, background: ColorInput, minContrast = 6): string {
+	const color = new TinyColor(input)
+	const backgroundColor = new TinyColor(background)
+	const oldContrast = readability(color, backgroundColor)
+	if (oldContrast >= minContrast) return toCssColor(color)
+
+	const colorL = color.getLuminance()
+	const bgL = backgroundColor.getLuminance()
+	const lightenTargetL = (bgL + 0.05) * minContrast - 0.05
+	const darkenTargetL = (bgL + 0.05) / minContrast - 0.05
+	const lightenedColor = setLuminance(color, lightenTargetL)
+	const darkenedColor = setLuminance(color, darkenTargetL)
+	const lightenedContrast = readability(lightenedColor, backgroundColor)
+	const darkenedContrast = readability(darkenedColor, backgroundColor)
+
+	// If we couldn't improve the contrast, return the old color
+	if (lightenedContrast <= oldContrast && darkenedContrast <= oldContrast) return toCssColor(color)
+
+	// First try to achieve the desired minimum contrast without inverting
+	if (colorL >= bgL && lightenedContrast >= minContrast) return lightenedColor
+	if (colorL < bgL && darkenedContrast >= minContrast) return darkenedColor
+
+	// If that didn't work, return the color that achieves the best contrast
+	return lightenedContrast > darkenedContrast ? lightenedColor : darkenedColor
 }
 
 function toCssColor(color: TinyColor) {
