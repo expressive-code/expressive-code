@@ -138,9 +138,9 @@ describe('Renders text markers', () => {
 							const typeColorIdx = theme.type === 'dark' ? 0 : 1
 							expect(actualHighlights).toMatchObject([
 								{ text: '{greeting}, ', color: colors1[typeColorIdx] },
-								{ text: 'puny', color: colors1[typeColorIdx] },
-								{ text: 'mig', color: colors1[typeColorIdx] },
-								{ text: 'hty', color: colors2[typeColorIdx] },
+								{ text: 'puny' },
+								{ text: 'mig' },
+								{ text: 'hty' },
 								{ text: ' {name}!', color: colors2[typeColorIdx] },
 							])
 						},

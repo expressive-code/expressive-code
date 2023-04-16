@@ -76,6 +76,8 @@ export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
 		const tokenStyle = `color:${this.color || 'inherit'}`
 		return nodesToTransform.map((node) => {
 			const transformedNode = h('span', { style: tokenStyle }, node)
+			transformedNode.data = transformedNode.data || {}
+			transformedNode.data.inlineStyleColor = this.color
 			return transformedNode
 		})
 	}

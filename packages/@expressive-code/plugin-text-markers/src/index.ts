@@ -1,9 +1,10 @@
-import { ExpressiveCodePlugin, AttachedPluginData, replaceDelimitedValues } from '@expressive-code/core'
+import { ExpressiveCodePlugin, AttachedPluginData, replaceDelimitedValues, onBackground, ensureReadableColorContrast } from '@expressive-code/core'
 import rangeParser from 'parse-numeric-range'
+import { visitParents } from 'unist-util-visit-parents'
 import { MarkerType, markerTypeFromString } from './marker-types'
-import { getTextMarkersBaseStyles, textMarkersStyleSettings } from './styles'
+import { getMarkerTypeColorsForContrastCalculation, getTextMarkersBaseStyles, textMarkersStyleSettings } from './styles'
 import { flattenInlineMarkerRanges, getInlineSearchTermMatches } from './inline-markers'
-import { TextMarkersInlineAnnotation, TextMarkersLineAnnotation } from './annotations'
+import { TextMarkerAnnotation } from './annotations'
 
 export interface TextMarkersPluginOptions {
 	styleOverrides?: Partial<typeof textMarkersStyleSettings.defaultSettings>
@@ -14,7 +15,12 @@ export function textMarkers(options: TextMarkersPluginOptions = {}): ExpressiveC
 		name: 'TextMarkers',
 		baseStyles: ({ theme, coreStyles }) => getTextMarkersBaseStyles(theme, coreStyles, options.styleOverrides || {}),
 		hooks: {
-			preprocessMetadata: ({ codeBlock }) => {
+			preprocessMetadata: ({ codeBlock, theme, coreStyles }) => {
+				const markerTypeColors = getMarkerTypeColorsForContrastCalculation({
+					theme,
+					coreStyles,
+					styleOverrides: options.styleOverrides,
+				})
 				const blockData = textMarkersPluginData.getOrCreateFor(codeBlock)
 
 				codeBlock.meta = replaceDelimitedValues(
@@ -32,8 +38,9 @@ export function textMarkers(options: TextMarkersPluginOptions = {}): ExpressiveC
 							lineNumbers.forEach((lineNumber) => {
 								const lineIndex = lineNumber - 1
 								codeBlock.getLine(lineIndex)?.addAnnotation(
-									new TextMarkersLineAnnotation({
+									new TextMarkerAnnotation({
 										markerType,
+										backgroundColor: markerTypeColors[markerType],
 									})
 								)
 							})
@@ -74,7 +81,12 @@ export function textMarkers(options: TextMarkersPluginOptions = {}): ExpressiveC
 					}
 				)
 			},
-			annotateCode: ({ codeBlock }) => {
+			annotateCode: ({ codeBlock, theme, coreStyles }) => {
+				const markerTypeColors = getMarkerTypeColorsForContrastCalculation({
+					theme,
+					coreStyles,
+					styleOverrides: options.styleOverrides,
+				})
 				const blockData = textMarkersPluginData.getOrCreateFor(codeBlock)
 				codeBlock.getLines().forEach((line) => {
 					// Check the line text for search term matches and collect their ranges
@@ -87,8 +99,9 @@ export function textMarkers(options: TextMarkersPluginOptions = {}): ExpressiveC
 					// Add annotations for all flattened ranges
 					flattenedRanges.forEach(({ markerType, start, end }) => {
 						line.addAnnotation(
-							new TextMarkersInlineAnnotation({
+							new TextMarkerAnnotation({
 								markerType,
+								backgroundColor: markerTypeColors[markerType],
 								inlineRange: {
 									columnStart: start,
 									columnEnd: end,
@@ -96,6 +109,28 @@ export function textMarkers(options: TextMarkersPluginOptions = {}): ExpressiveC
 							})
 						)
 					})
+				})
+			},
+			postprocessRenderedLine: ({ renderData, theme, coreStyles }) => {
+				const backgroundColor = coreStyles.codeBackground[0] === '#' ? coreStyles.codeBackground : theme.bg
+				visitParents(renderData.lineAst, (node, ancestors) => {
+					if (node.type !== 'element' || !node.properties || !node.data) return
+					const textColor = typeof node.data.inlineStyleColor === 'string' ? node.data.inlineStyleColor : undefined
+					if (!textColor) return
+					// Mix combined background color from ancestor chain
+					let combinedBackgroundColor = backgroundColor
+					ancestors.forEach((ancestor) => {
+						const markerBackgroundColor = typeof ancestor.data?.textMarkersBackgroundColor === 'string' ? ancestor.data.textMarkersBackgroundColor : undefined
+						if (!markerBackgroundColor) return
+						combinedBackgroundColor = onBackground(markerBackgroundColor, combinedBackgroundColor)
+					})
+					// Abort if the resulting background color is the same as the default
+					if (combinedBackgroundColor === backgroundColor) return
+					// Otherwise, ensure a goot contrast ratio of the text
+					const readableTextColor = ensureReadableColorContrast(textColor, combinedBackgroundColor)
+					if (readableTextColor.toLowerCase() === textColor.toLowerCase()) return
+					node.data.inlineStyleColor = readableTextColor
+					node.properties.style = `color:${readableTextColor}`
 				})
 			},
 		},

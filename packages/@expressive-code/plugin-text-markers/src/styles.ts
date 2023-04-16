@@ -1,4 +1,5 @@
 import { StyleSettings, ExpressiveCodeTheme, ResolvedCoreStyles, codeLineClass } from '@expressive-code/core'
+import { MarkerType } from './marker-types'
 
 export const textMarkersStyleSettings = new StyleSettings({
 	lineMarkerAccentMargin: '0rem',
@@ -122,4 +123,42 @@ export function getTextMarkersBaseStyles(theme: ExpressiveCodeTheme, coreStyles:
 	`
 
 	return styles
+}
+
+/**
+ * Attempts to get background color values per marker type.
+ * These colors are used for calculating contrast ratios.
+ *
+ * Usually, these are either the colors defined in `textMarkersStyleSettings`,
+ * or style overrides provided by the user.
+ *
+ * One notable exception is that if non-color values (e.g. CSS variables)
+ * were provided, the default colors will be returned instead. This is because
+ * we can't reliably determine the actual color values from CSS variables.
+ */
+export function getMarkerTypeColorsForContrastCalculation({
+	theme,
+	coreStyles,
+	styleOverrides,
+}: {
+	theme: ExpressiveCodeTheme
+	coreStyles: ResolvedCoreStyles
+	styleOverrides?: Partial<typeof textMarkersStyleSettings.defaultSettings>
+}) {
+	const textMarkersStyles = textMarkersStyleSettings.resolve({
+		theme,
+		coreStyles,
+		styleOverrides,
+	})
+	const defaultTextMarkersStyles = textMarkersStyleSettings.resolve({
+		theme,
+		coreStyles,
+	})
+	const colorOrDefault = (input: string, defaultColor: string) => (input[0] === '#' ? input : defaultColor)
+	const result: { [K in MarkerType]: string } = {
+		mark: colorOrDefault(textMarkersStyles.markBackground, defaultTextMarkersStyles.markBackground),
+		ins: colorOrDefault(textMarkersStyles.insBackground, defaultTextMarkersStyles.insBackground),
+		del: colorOrDefault(textMarkersStyles.delBackground, defaultTextMarkersStyles.delBackground),
+	}
+	return result
 }

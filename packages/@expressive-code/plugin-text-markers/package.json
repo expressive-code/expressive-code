@@ -26,7 +26,8 @@
   },
   "dependencies": {
     "@expressive-code/core": "workspace:^0.1.0",
-    "hastscript": "^7.2.0"
+    "hastscript": "^7.2.0",
+    "unist-util-visit-parents": "^5.1.3"
   },
   "devDependencies": {
     "@expressive-code/plugin-shiki": "workspace:^0.1.0",

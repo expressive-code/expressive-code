@@ -19,13 +19,18 @@ export function multiplyAlpha(input: ColorInput, factor: number) {
 }
 
 /**
- * Overrides the luminance value of a color with the given value.
- * Values should be between 0 and 1.
+ * Mixes a color with white or black to achieve the desired luminance.
+ * Luminance values should be between 0 and 1.
  */
 export function setLuminance(input: ColorInput, luminance: number) {
 	const color = new TinyColor(input)
-	const hsl = color.toHsl()
-	return toCssColor(new TinyColor({ ...hsl, l: luminance }))
+	const v = color.getLuminance()
+	luminance = minMaxRounded(luminance)
+	const prel = (v: number, a: number, b: number) => (v - a) / (b - a)
+	if (luminance < v) {
+		return mix('#000', color, prel(luminance, 0, v))
+	}
+	return mix('#fff', color, prel(luminance, 1, v))
 }
 
 /**

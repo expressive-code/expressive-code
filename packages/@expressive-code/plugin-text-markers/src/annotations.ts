@@ -2,33 +2,36 @@ import { addClass, ExpressiveCodeAnnotation, AnnotationBaseOptions, AnnotationRe
 import { h } from 'hastscript'
 import { MarkerType } from './marker-types'
 
-export class TextMarkersLineAnnotation extends ExpressiveCodeAnnotation {
+export class TextMarkerAnnotation extends ExpressiveCodeAnnotation {
 	markerType: MarkerType
+	backgroundColor: string
 
-	constructor({ markerType, ...baseOptions }: { markerType: MarkerType } & Omit<AnnotationBaseOptions, 'inlineRange'>) {
+	constructor({ markerType, backgroundColor, ...baseOptions }: { markerType: MarkerType; backgroundColor: string } & AnnotationBaseOptions) {
 		super(baseOptions)
 		this.markerType = markerType
+		this.backgroundColor = backgroundColor
 	}
 
-	render({ nodesToTransform }: AnnotationRenderOptions) {
+	render(options: AnnotationRenderOptions) {
+		if (!this.inlineRange) return this.renderFullLineMarker(options)
+		return this.renderInlineMarker(options)
+	}
+
+	private renderFullLineMarker({ nodesToTransform }: AnnotationRenderOptions) {
 		return nodesToTransform.map((node) => {
+			node.data = node.data || {}
+			node.data.textMarkersBackgroundColor = this.backgroundColor
 			addClass(node, this.markerType)
 			return node
 		})
 	}
-}
 
-export class TextMarkersInlineAnnotation extends ExpressiveCodeAnnotation {
-	markerType: MarkerType
-
-	constructor({ markerType, ...baseOptions }: { markerType: MarkerType } & NonNullable<Pick<AnnotationBaseOptions, 'inlineRange'>> & Omit<AnnotationBaseOptions, 'inlineRange'>) {
-		super(baseOptions)
-		this.markerType = markerType
-	}
-
-	render({ nodesToTransform }: AnnotationRenderOptions) {
+	private renderInlineMarker({ nodesToTransform }: AnnotationRenderOptions) {
 		return nodesToTransform.map((node, idx) => {
 			const transformedNode = h(this.markerType, node)
+			transformedNode.data = transformedNode.data || {}
+			transformedNode.data.textMarkersBackgroundColor = this.backgroundColor
+
 			if (nodesToTransform.length > 0 && idx > 0) {
 				addClass(transformedNode, 'open-start')
 			}
