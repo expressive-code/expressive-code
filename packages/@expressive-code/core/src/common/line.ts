@@ -44,7 +44,9 @@ export class ExpressiveCodeLine {
 		if (this.#parent?.state?.canEditAnnotations === false) throw new Error('Cannot edit code line annotations in the current state.')
 		const index = this.#annotations.indexOf(annotation)
 		if (index === -1)
-			throw new Error(`Failed to delete annotation as it was not found (name=${JSON.stringify(annotation.name)}, inlineRange=${JSON.stringify(annotation.inlineRange)})`)
+			throw new Error(
+				`Failed to delete annotation as it was not found (name=${JSON.stringify(annotation.constructor.name)}, inlineRange=${JSON.stringify(annotation.inlineRange)})`
+			)
 		this.#annotations.splice(index, 1)
 	}
 

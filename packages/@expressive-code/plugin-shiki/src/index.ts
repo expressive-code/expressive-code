@@ -1,5 +1,4 @@
-import { ExpressiveCodePlugin } from '@expressive-code/core'
-import { h } from 'hastscript'
+import { ExpressiveCodePlugin, InlineStyleAnnotation } from '@expressive-code/core'
 import { getCachedHighlighter } from './cache'
 
 export function shiki(): ExpressiveCodePlugin {
@@ -15,20 +14,15 @@ export function shiki(): ExpressiveCodePlugin {
 					line.forEach((token) => {
 						const tokenLength = token.content.length
 						const tokenEndIndex = charIndex + tokenLength
-						const tokenStyle = `color:${token.color || 'inherit'}`
-						codeLines[lineIndex].addAnnotation({
-							name: 'shiki-syntax-highlight',
-							inlineRange: {
-								columnStart: charIndex,
-								columnEnd: tokenEndIndex,
-							},
-							render: ({ nodesToTransform }) => {
-								return nodesToTransform.map((node) => {
-									const transformedNode = h('span', { style: tokenStyle }, node)
-									return transformedNode
-								})
-							},
-						})
+						codeLines[lineIndex].addAnnotation(
+							new InlineStyleAnnotation({
+								color: token.color,
+								inlineRange: {
+									columnStart: charIndex,
+									columnEnd: tokenEndIndex,
+								},
+							})
+						)
 						charIndex = tokenEndIndex
 					})
 				})

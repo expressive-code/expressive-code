@@ -3,7 +3,7 @@ import { Element } from 'hast-util-to-html/lib/types'
 import { sanitize } from 'hast-util-sanitize'
 import { toHtml } from 'hast-util-to-html'
 import { h } from 'hastscript'
-import { defaultBlockOptions, expectToWorkOrThrow, getHookTestResult, getMultiHookTestResult, getMultiPluginTestResult, nonObjectValues, testRender } from './utils'
+import { WrapperAnnotation, defaultBlockOptions, expectToWorkOrThrow, getHookTestResult, getMultiHookTestResult, getMultiPluginTestResult, nonObjectValues } from './utils'
 import { ExpressiveCodePluginHookName } from '../src/common/plugin-hooks'
 import { ExpressiveCodeProcessingState } from '../src/internal/render-block'
 import { groupWrapperElement } from '../src/internal/css'
@@ -452,10 +452,7 @@ async function testEditingProperty(hookName: ExpressiveCodePluginHookName, prope
 }
 
 async function testAddingAnnotation(hookName: ExpressiveCodePluginHookName) {
-	const testAnnotation = {
-		name: 'del',
-		render: testRender,
-	}
+	const testAnnotation = new WrapperAnnotation()
 	const { codeBlock } = await getHookTestResult(hookName, ({ codeBlock }) => {
 		codeBlock.getLine(0)?.addAnnotation(testAnnotation)
 	})

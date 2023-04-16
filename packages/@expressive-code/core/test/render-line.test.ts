@@ -3,9 +3,10 @@ import { toHtml } from 'hast-util-to-html'
 import { h } from 'hastscript'
 import { ExpressiveCodeLine } from '../src/common/line'
 import { renderLineToAst, splitLineAtAnnotationBoundaries } from '../src/internal/render-line'
-import { annotateMatchingTextParts, getAnnotatedTextParts, nonArrayValues, nonObjectValues, testRender } from './utils'
+import { ClassNameAnnotation, WrapperAnnotation, annotateMatchingTextParts, getAnnotatedTextParts, nonArrayValues, nonObjectValues } from './utils'
 import { codeLineClass } from '../src/common/core-styles'
-import { addClass } from '../src/helpers/ast-transforms'
+import { AnnotationBaseOptions, AnnotationRenderOptions, ExpressiveCodeAnnotation } from '../src/common/annotation'
+import { Parent } from 'hast-util-to-html/lib/types'
 
 describe('splitLineAtAnnotationBoundaries()', () => {
 	const testText = 'Nothing to see here!'
@@ -19,10 +20,7 @@ describe('splitLineAtAnnotationBoundaries()', () => {
 
 	test('Ignores full-line annotations', () => {
 		const line = new ExpressiveCodeLine(testText)
-		line.addAnnotation({
-			name: 'full-line-test',
-			render: testRender,
-		})
+		line.addAnnotation(new WrapperAnnotation())
 		const actual = splitLineAtAnnotationBoundaries(line)
 		expect(actual.textParts).toMatchObject(['Nothing to see here!'])
 		expectPartsToMatchAnnotationText(line, actual)
@@ -142,15 +140,15 @@ describe('renderLineToAst()', () => {
 			]
 			invalidValues.forEach((invalidValue) => {
 				const line = new ExpressiveCodeLine(testText)
-				line.addAnnotation({
-					name: 'test',
-					// @ts-expect-error Intentionally returning an invalid value
-					render: () => invalidValue,
-					inlineRange: {
-						columnStart: 5,
-						columnEnd: 8,
-					},
-				})
+				line.addAnnotation(
+					new InvalidRenderAnnotation({
+						renderResult: invalidValue,
+						inlineRange: {
+							columnStart: 5,
+							columnEnd: 8,
+						},
+					})
+				)
 				expect(() => renderLineToAst(line)).toThrow()
 			})
 		})
@@ -167,11 +165,7 @@ describe('renderLineToAst()', () => {
 			]
 			invalidValues.forEach((invalidValue) => {
 				const line = new ExpressiveCodeLine(testText)
-				line.addAnnotation({
-					name: 'test',
-					// @ts-expect-error Intentionally returning an invalid value
-					render: () => invalidValue,
-				})
+				line.addAnnotation(new InvalidRenderAnnotation({ renderResult: invalidValue }))
 				expect(() => renderLineToAst(line)).toThrow()
 			})
 		})
@@ -193,52 +187,22 @@ describe('renderLineToAst()', () => {
 	describe('Line-level annotations', () => {
 		test('Single line-level annotation', () => {
 			const line = new ExpressiveCodeLine(testText)
-			line.addAnnotation({
-				name: 'del',
-				render: ({ nodesToTransform }) => {
-					addClass(nodesToTransform[0], 'del')
-					return nodesToTransform
-				},
-			})
+			line.addAnnotation(new ClassNameAnnotation({ addClass: 'del' }))
 			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass} del">Wow, I am rendered!</div>`)
 		})
 		test('Multiple line-level annotations', () => {
 			const line = new ExpressiveCodeLine(testText)
-			line.addAnnotation({
-				name: 'del',
-				render: ({ nodesToTransform }) => {
-					addClass(nodesToTransform[0], 'del')
-					return nodesToTransform
-				},
-			})
-			line.addAnnotation({
-				name: 'mark',
-				render: ({ nodesToTransform }) => {
-					addClass(nodesToTransform[0], 'mark')
-					return nodesToTransform
-				},
-			})
+			line.addAnnotation(new ClassNameAnnotation({ addClass: 'del' }))
+			line.addAnnotation(new ClassNameAnnotation({ addClass: 'mark' }))
 			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass} del mark">Wow, I am rendered!</div>`)
 		})
 	})
 
 	test('Combined line-level and inline annotations', () => {
 		const line = new ExpressiveCodeLine(testText)
-		line.addAnnotation({
-			name: 'del',
-			render: ({ nodesToTransform }) => {
-				addClass(nodesToTransform[0], 'del')
-				return nodesToTransform
-			},
-		})
+		line.addAnnotation(new ClassNameAnnotation({ addClass: 'del' }))
 		annotateMatchingTextParts({ line, partsToAnnotate: ['rendered', 'I am rendered!'] })
-		line.addAnnotation({
-			name: 'mark',
-			render: ({ nodesToTransform }) => {
-				addClass(nodesToTransform[0], 'mark')
-				return nodesToTransform
-			},
-		})
+		line.addAnnotation(new ClassNameAnnotation({ addClass: 'mark' }))
 		expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass} del mark">Wow, <2>I am <1>rendered</1>!</2></div>`)
 	})
 
@@ -285,13 +249,7 @@ describe('renderLineToAst()', () => {
 		})
 		test('Empty lines also work with line-level annotations', () => {
 			const line = new ExpressiveCodeLine('')
-			line.addAnnotation({
-				name: 'del',
-				render: ({ nodesToTransform }) => {
-					addClass(nodesToTransform[0], 'del')
-					return nodesToTransform
-				},
-			})
+			line.addAnnotation(new ClassNameAnnotation({ addClass: 'del' }))
 			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass} del">\n</div>`)
 		})
 	})
@@ -311,6 +269,18 @@ describe('renderLineToAst()', () => {
 		})
 	})
 })
+
+class InvalidRenderAnnotation extends ExpressiveCodeAnnotation {
+	renderResult: unknown
+
+	constructor({ renderResult, ...baseOptions }: { renderResult: unknown } & AnnotationBaseOptions) {
+		super(baseOptions)
+		this.renderResult = renderResult
+	}
+	render(_options: AnnotationRenderOptions) {
+		return this.renderResult as Parent[]
+	}
+}
 
 function expectPartsToMatchAnnotationText(line: ExpressiveCodeLine, actual: ReturnType<typeof splitLineAtAnnotationBoundaries>) {
 	const { textParts, partIndicesByAnnotation } = actual

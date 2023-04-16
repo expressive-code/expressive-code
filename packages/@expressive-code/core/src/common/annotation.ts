@@ -1,14 +1,17 @@
 import { Parent } from 'hast-util-to-html/lib/types'
-import { isFunction, isNumber, isString, newTypeError } from '../internal/type-checks'
+import { isNumber, newTypeError } from '../internal/type-checks'
 import { ExpressiveCodeLine } from './line'
+import { h } from 'hastscript'
 
 export type ExpressiveCodeInlineRange = {
 	columnStart: number
 	columnEnd: number
 }
 
+// Note: We need to re-export this type to enable VS Code's "auto-implement interface" feature
+// in external code using this package.
+export type { Parent }
 export type AnnotationRenderOptions = { nodesToTransform: Parent[]; line: ExpressiveCodeLine }
-export type AnnotationRenderFunction = ({ nodesToTransform, line }: AnnotationRenderOptions) => Parent[]
 
 export type AnnotationRenderPhase = 'earliest' | 'earlier' | 'normal' | 'later' | 'latest'
 
@@ -21,18 +24,34 @@ export function annotationSortFn(a: ExpressiveCodeAnnotation, b: ExpressiveCodeA
 	return indexA - indexB
 }
 
-export type ExpressiveCodeAnnotation = {
-	name: string
-	inlineRange?: ExpressiveCodeInlineRange
+export type AnnotationBaseOptions = { inlineRange?: ExpressiveCodeInlineRange; renderPhase?: AnnotationRenderPhase }
+
+export abstract class ExpressiveCodeAnnotation {
+	constructor({ inlineRange, renderPhase }: AnnotationBaseOptions) {
+		if (inlineRange) validateExpressiveCodeInlineRange(inlineRange)
+		this.inlineRange = inlineRange
+		this.renderPhase = renderPhase
+	}
+
 	/**
-	 * The function that will be called to render the annotation.
+	 * Renders the annotation by transforming the provided nodes.
 	 *
-	 * It will be called with an array of AST nodes to transform, and is expected to return
-	 * an array containing the same number of nodes. For example, you could use the `hastscript`
-	 * library to wrap the received nodes in HTML elements.
+	 * This function will be called with an array of AST nodes to transform, and is expected
+	 * to return an array containing the same number of nodes.
+	 *
+	 * For example, you could use the `hastscript` library to wrap the received nodes
+	 * in HTML elements.
 	 */
-	render: AnnotationRenderFunction
+	abstract render({ nodesToTransform, line }: AnnotationRenderOptions): Parent[]
+
 	/**
+	 * An optional range of columns within the line that this annotation applies to.
+	 * If not provided, the annotation will apply to the entire line.
+	 */
+	readonly inlineRange?: ExpressiveCodeInlineRange
+
+	/**
+	 * Determines the phase in which this annotation should be rendered.
 	 * Rendering is done in phases, from `earliest` to `latest`.
 	 * Annotations with the same phase are rendered in the order they were added.
 	 *
@@ -42,24 +61,35 @@ export type ExpressiveCodeAnnotation = {
 	 *
 	 * The default phase is `normal`.
 	 */
-	renderPhase?: AnnotationRenderPhase
+	readonly renderPhase?: AnnotationRenderPhase
+}
+
+export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
+	color?: string
+
+	constructor({ color, ...baseOptions }: { color?: string } & AnnotationBaseOptions) {
+		super(baseOptions)
+		this.color = color
+	}
+
+	render({ nodesToTransform }: AnnotationRenderOptions) {
+		const tokenStyle = `color:${this.color || 'inherit'}`
+		return nodesToTransform.map((node) => {
+			const transformedNode = h('span', { style: tokenStyle }, node)
+			return transformedNode
+		})
+	}
 }
 
 function validateExpressiveCodeInlineRange(inlineRange: ExpressiveCodeInlineRange) {
 	if (!isNumber(inlineRange.columnStart) || !isNumber(inlineRange.columnEnd)) throw newTypeError('ExpressiveCodeInlineRange', inlineRange)
 }
 
-function validateAnnotationRenderFunction(renderFunction: AnnotationRenderFunction) {
-	if (!isFunction(renderFunction)) throw newTypeError('AnnotationRenderFunction', renderFunction)
-}
-
 export function validateExpressiveCodeAnnotation(annotation: ExpressiveCodeAnnotation) {
 	try {
-		const { name, inlineRange, render } = annotation
-		if (!isString(name)) throw newTypeError('string', name)
-		if (inlineRange) validateExpressiveCodeInlineRange(inlineRange)
-		validateAnnotationRenderFunction(render)
+		if (!(annotation instanceof ExpressiveCodeAnnotation)) throw 'Not an ExpressiveCodeAnnotation instance'
+		if (annotation.inlineRange) validateExpressiveCodeInlineRange(annotation.inlineRange)
 	} catch (error) {
-		throw newTypeError('ExpressiveCodeAnnotation', annotation)
+		throw newTypeError('instance of ExpressiveCodeAnnotation', annotation)
 	}
 }

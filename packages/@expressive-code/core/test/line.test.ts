@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { ExpressiveCodeBlock } from '../src/common/block'
-import { ExpressiveCodeAnnotation, ExpressiveCodeLine } from '../src/index'
-import { annotateMatchingTextParts, cloneAnnotation, getAnnotatedTextParts, nonNumberValues, nonObjectValues, nonStringValues, testRender } from './utils'
+import { AnnotationRenderOptions, ExpressiveCodeAnnotation, ExpressiveCodeInlineRange, ExpressiveCodeLine } from '../src/index'
+import { WrapperAnnotation, annotateMatchingTextParts, cloneAnnotation, getAnnotatedTextParts, nonNumberValues, nonObjectValues, nonStringValues } from './utils'
 
 describe('ExpressiveCodeLine', () => {
 	describe('Constructor', () => {
@@ -105,10 +105,7 @@ describe('ExpressiveCodeLine', () => {
 			test('Full-line annotations', () => {
 				// Set up an annotated line
 				const line = new ExpressiveCodeLine('This is a test.')
-				const originalAnnotation: ExpressiveCodeAnnotation = {
-					name: 'del',
-					render: testRender,
-				}
+				const originalAnnotation = new WrapperAnnotation({ selector: 'del' })
 				line.addAnnotation(originalAnnotation)
 				expect(getAnnotatedTextParts(line)).toMatchObject([])
 
@@ -232,50 +229,41 @@ describe('ExpressiveCodeLine', () => {
 
 	describe('addAnnotation()', () => {
 		test('Throws on invalid arguments', () => {
-			const render = testRender
-			const invalidArguments: ExpressiveCodeAnnotation[] = [
-				...nonStringValues.map(
-					(value) =>
-						({
-							name: value,
-							render,
-						} as ExpressiveCodeAnnotation)
-				),
-				...nonNumberValues.map(
-					(value) =>
-						({
-							name: 'test',
-							inlineRange: {
-								columnStart: value,
-								columnEnd: 10,
-							},
-							render,
-						} as ExpressiveCodeAnnotation)
-				),
-				...nonNumberValues.map(
-					(value) =>
-						({
-							name: 'test',
-							inlineRange: {
-								columnStart: 5,
-								columnEnd: value,
-							},
-							render,
-						} as ExpressiveCodeAnnotation)
-				),
+			const invalidFirstArguments: ExpressiveCodeAnnotation[] = [
+				{} as ExpressiveCodeAnnotation,
+				...nonObjectValues.map((value) => value as unknown as ExpressiveCodeAnnotation),
 				...nonObjectValues.map(
 					(value) =>
 						({
-							name: 'test',
-							render: value as unknown,
-						} as ExpressiveCodeAnnotation)
+							render: value,
+						} as unknown as ExpressiveCodeAnnotation)
 				),
 			]
-			invalidArguments.forEach((invalidArgument) => {
+			const invalidOptions: { inlineRange: ExpressiveCodeInlineRange }[] = [
+				...nonNumberValues.map((value) => ({
+					inlineRange: {
+						columnStart: value,
+						columnEnd: 10,
+					} as ExpressiveCodeInlineRange,
+				})),
+				...nonNumberValues.map((value) => ({
+					inlineRange: {
+						columnStart: 5,
+						columnEnd: value,
+					} as ExpressiveCodeInlineRange,
+				})),
+			]
+			invalidFirstArguments.forEach((invalidArgument) => {
 				expect(() => {
 					const line = new ExpressiveCodeLine('This is a test.')
 					line.addAnnotation(invalidArgument)
-				}, `Did not throw when called with \`${JSON.stringify(invalidArgument)}\``).toThrowError()
+				}, `Did not throw when called with \`${JSON.stringify(invalidArgument)}\` as first argument`).toThrowError()
+			})
+			invalidOptions.forEach((invalidOption) => {
+				expect(() => {
+					const line = new ExpressiveCodeLine('This is a test.')
+					line.addAnnotation(new WrapperAnnotation(invalidOption))
+				}, `Did not throw when called with \`${JSON.stringify(invalidOption)}\` as options`).toThrowError()
 			})
 		})
 		test('Can be prevented when a state is set', () => {
@@ -287,40 +275,38 @@ describe('ExpressiveCodeLine', () => {
 				canEditCode: true,
 				canEditAnnotations: true,
 			}
-			const render = testRender
 
 			// Assign state object to the block and ensure we can still add an annotation
 			block.state = state
-			line.addAnnotation({ name: 'test', render })
-			expect(line.getAnnotations()).toMatchObject([{ name: 'test' }])
+			line.addAnnotation(new WrapperAnnotation({ selector: 'test' }))
+			expect(line.getAnnotations()).toMatchObject([{ selector: 'test' }])
 
 			// Prevent annotation editing and ensure no more annotations can be added
 			state.canEditAnnotations = false
 			expect(() => {
-				line.addAnnotation({ name: 'bug', render })
+				line.addAnnotation(new WrapperAnnotation({ selector: 'bug' }))
 			}).toThrow()
-			expect(line.getAnnotations()).toMatchObject([{ name: 'test' }])
+			expect(line.getAnnotations()).toMatchObject([{ selector: 'test' }])
 
 			// Allow annotation editing and ensure adding annotations is possible again
 			state.canEditAnnotations = true
-			line.addAnnotation({ name: 'passed', render })
-			expect(line.getAnnotations()).toMatchObject([{ name: 'test' }, { name: 'passed' }])
+			line.addAnnotation(new WrapperAnnotation({ selector: 'passed' }))
+			expect(line.getAnnotations()).toMatchObject([{ selector: 'test' }, { selector: 'passed' }])
 		})
 	})
 
 	describe('deleteAnnotation()', () => {
 		test('Throws when the annotation was not found', () => {
 			const line = new ExpressiveCodeLine('This is a test.')
-			const render = testRender
-			const testAnnotation = { name: 'test', render }
+			const testAnnotation = new WrapperAnnotation({ selector: 'test' })
 			line.addAnnotation(testAnnotation)
-			// Attempt deleting a non-existing annotation
+			// Attempt deleting a non-added annotation
 			expect(() => {
-				line.deleteAnnotation({ name: 'non-existing', render })
+				line.deleteAnnotation(new WrapperAnnotation())
 			}).toThrow()
 			// Attempt deleting a clone of the added annotation that has the same properties
 			expect(() => {
-				line.deleteAnnotation({ ...testAnnotation })
+				line.deleteAnnotation({ ...testAnnotation, render: (options: AnnotationRenderOptions) => testAnnotation.render(options) })
 			}).toThrow()
 		})
 		test('Can be prevented when a state is set', () => {
@@ -332,10 +318,9 @@ describe('ExpressiveCodeLine', () => {
 				canEditCode: true,
 				canEditAnnotations: true,
 			}
-			const render = testRender
-			const testAnnotation: ExpressiveCodeAnnotation = { name: 'test', render }
+			const testAnnotation = new WrapperAnnotation({ selector: 'test' })
 			line.addAnnotation(testAnnotation)
-			expect(line.getAnnotations()).toMatchObject([{ name: 'test' }])
+			expect(line.getAnnotations()).toMatchObject([{ selector: 'test' }])
 
 			// Assign state object to the block and ensure we can still delete an annotation
 			block.state = state
@@ -350,7 +335,7 @@ describe('ExpressiveCodeLine', () => {
 			expect(() => {
 				line.deleteAnnotation(testAnnotation)
 			}).toThrow()
-			expect(line.getAnnotations()).toMatchObject([{ name: 'test' }])
+			expect(line.getAnnotations()).toMatchObject([{ selector: 'test' }])
 
 			// Allow annotation editing and ensure deleting annotations is possible again
 			state.canEditAnnotations = true

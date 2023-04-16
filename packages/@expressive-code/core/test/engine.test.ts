@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest'
 import { sanitize } from 'hast-util-sanitize'
 import { toHtml } from 'hast-util-to-html'
 import githubDark from 'shiki/themes/github-dark.json'
-import { getHookTestResult, getMultiPluginTestResult, getWrapperRenderer, nonArrayValues, nonObjectValues } from './utils'
+import { WrapperAnnotation, getHookTestResult, getMultiPluginTestResult, nonArrayValues, nonObjectValues } from './utils'
 import { ExpressiveCode } from '../src/common/engine'
 import { ExpressiveCodeBlock } from '../src/common/block'
 import { ExpressiveCodeTheme } from '../src/common/theme'
@@ -75,14 +75,15 @@ describe('ExpressiveCode', () => {
 					const line = codeBlock.getLine(1)
 					if (!line) return
 					const index = line.text.indexOf(searchTerm)
-					line.addAnnotation({
-						name: 'del',
-						render: getWrapperRenderer('del'),
-						inlineRange: {
-							columnStart: index,
-							columnEnd: index + searchTerm.length,
-						},
-					})
+					line.addAnnotation(
+						new WrapperAnnotation({
+							selector: 'del',
+							inlineRange: {
+								columnStart: index,
+								columnEnd: index + searchTerm.length,
+							},
+						})
+					)
 				})
 				const html = toHtml(sanitize(renderedBlockAst, {}))
 				expect(html).toEqual('<pre><code><div>Example code...</div><div>...with <del>two </del>lines!</div></code></pre>')

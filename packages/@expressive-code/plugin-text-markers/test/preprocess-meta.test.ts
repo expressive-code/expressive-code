@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest'
 import { ExpressiveCode } from '@expressive-code/core'
 import { textMarkers, textMarkersPluginData } from '../src'
 import { MarkerType, markerTypeFromString } from '../src/marker-types'
+import { TextMarkersLineAnnotation } from '../src/annotations'
 
 const astroCodeSnippet = `
 ---
@@ -69,9 +70,9 @@ const expectMetaResult = async (input: string, partialExpectedResult: ExpectedTe
 	// Collect all applied full-line text marker annotations in the form expected by the test cases
 	const lineMarkings: { markerType: MarkerType; lines: number[] }[] = []
 	codeBlock.getLines().forEach((line, lineIndex) => {
-		const fullLineAnnotations = line.getAnnotations().filter((annotation) => annotation.inlineRange === undefined)
+		const fullLineAnnotations = line.getAnnotations().filter((annotation) => annotation instanceof TextMarkersLineAnnotation) as TextMarkersLineAnnotation[]
 		fullLineAnnotations.forEach((annotation) => {
-			const markerType = markerTypeFromString(annotation.name)
+			const markerType = markerTypeFromString(annotation.markerType)
 			if (!markerType) return
 			let lineMarkingsEntry = lineMarkings.find((entry) => entry.markerType === markerType)
 			if (!lineMarkingsEntry) {

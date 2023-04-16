@@ -1,8 +1,7 @@
 import { describe, test, expect } from 'vitest'
 import { selectAll } from 'hast-util-select'
 import { toText } from 'hast-util-to-text'
-import { h } from 'hastscript'
-import { AnnotationRenderOptions, AnnotationRenderPhase, ExpressiveCodePlugin, ExpressiveCodeTheme } from '@expressive-code/core'
+import { AnnotationRenderPhase, ExpressiveCodePlugin, ExpressiveCodeTheme, InlineStyleAnnotation } from '@expressive-code/core'
 import { shiki } from '@expressive-code/plugin-shiki'
 import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures, TestFixture } from '@internal/test-utils'
 import { textMarkers } from '../src'
@@ -128,7 +127,7 @@ describe('Renders text markers', () => {
 							validateMarkers({ renderedGroupAst, theme })
 
 							// Expect that the highlights were split correctly
-							const matchingElements = selectAll(`span.highlight`, renderedGroupAst)
+							const matchingElements = selectAll(`span[style]`, renderedGroupAst)
 							const actualHighlights = matchingElements.map((highlight) => {
 								const text = toText(highlight)
 								return {
@@ -186,7 +185,7 @@ describe('Renders text markers', () => {
 							validateMarkers({ renderedGroupAst, theme })
 
 							// Expect that the highlights were not split
-							const matchingElements = selectAll(`span.highlight`, renderedGroupAst)
+							const matchingElements = selectAll(`span[style]`, renderedGroupAst)
 							const actualHighlights = matchingElements.map((highlight) => {
 								const text = toText(highlight)
 								return {
@@ -470,17 +469,16 @@ function pseudoSyntaxHighlighter(options: { highlights: { text: string; colors: 
 					options.highlights.forEach(({ text, colors: [dark, light] }) => {
 						let idx = line.text.indexOf(text, 0)
 						while (idx > -1) {
-							line.addAnnotation({
-								name: 'highlight',
-								inlineRange: {
-									columnStart: idx,
-									columnEnd: idx + text.length,
-								},
-								render: ({ nodesToTransform }: AnnotationRenderOptions) => {
-									return nodesToTransform.map((node) => h('span.highlight', { style: `color:${theme.type === 'dark' ? dark : light}` }, [node]))
-								},
-								renderPhase: options.renderPhase || 'normal',
-							})
+							line.addAnnotation(
+								new InlineStyleAnnotation({
+									color: theme.type === 'dark' ? dark : light,
+									inlineRange: {
+										columnStart: idx,
+										columnEnd: idx + text.length,
+									},
+									renderPhase: options.renderPhase || 'normal',
+								})
+							)
 							idx = line.text.indexOf(text, idx + text.length)
 						}
 					})

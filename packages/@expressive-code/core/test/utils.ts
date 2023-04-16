@@ -1,11 +1,12 @@
 import { expect } from 'vitest'
 import { h } from 'hastscript'
-import { AnnotationRenderOptions, AnnotationRenderPhase, ExpressiveCodeAnnotation } from '../src/common/annotation'
+import { AnnotationBaseOptions, AnnotationRenderOptions, AnnotationRenderPhase, ExpressiveCodeAnnotation } from '../src/common/annotation'
 import { ExpressiveCodeLine } from '../src/common/line'
 import { ExpressiveCodeBlockOptions } from '../src/common/block'
 import { ExpressiveCode } from '../src/common/engine'
 import { ExpressiveCodePlugin } from '../src/common/plugin'
 import { ExpressiveCodePluginHookName, ExpressiveCodeHook, ExpressiveCodePluginHooks } from '../src/common/plugin-hooks'
+import { addClass } from '../src/helpers/ast-transforms'
 
 const nothings = [undefined, null, NaN]
 const booleans = [true, false]
@@ -40,15 +41,16 @@ export function annotateMatchingTextParts({
 		if (columnStart === -1) throw new Error(`Failed to add test annotation: The string "${partToAnnotate}" was not found in line text.`)
 		const columnEnd = columnStart + partToAnnotate.length
 		const newAnnotationIndex = line.getAnnotations().length
-		line.addAnnotation({
-			name: selector || 'del',
-			render: getWrapperRenderer(`${selector || newAnnotationIndex}`),
-			...(renderPhase ? { renderPhase } : {}),
-			inlineRange: {
-				columnStart,
-				columnEnd,
-			},
-		})
+		line.addAnnotation(
+			new WrapperAnnotation({
+				selector: `${selector || newAnnotationIndex}`,
+				inlineRange: {
+					columnStart,
+					columnEnd,
+				},
+				...(renderPhase ? { renderPhase } : {}),
+			})
+		)
 	})
 }
 
@@ -68,13 +70,30 @@ export function cloneAnnotation(annotation: ExpressiveCodeAnnotation) {
 	return clone
 }
 
-export function getWrapperRenderer(selector = 'span') {
-	return ({ nodesToTransform }: AnnotationRenderOptions) => {
-		return nodesToTransform.map((node) => h(selector, [node]))
+export class WrapperAnnotation extends ExpressiveCodeAnnotation {
+	selector: string
+
+	constructor({ selector = 'span', ...baseOptions }: { selector?: string } & AnnotationBaseOptions = {}) {
+		super(baseOptions)
+		this.selector = selector
+	}
+	render({ nodesToTransform }: AnnotationRenderOptions) {
+		return nodesToTransform.map((node) => h(this.selector, [node]))
 	}
 }
 
-export const testRender = getWrapperRenderer()
+export class ClassNameAnnotation extends ExpressiveCodeAnnotation {
+	addClass: string
+
+	constructor({ addClass, ...baseOptions }: { addClass: string } & AnnotationBaseOptions) {
+		super(baseOptions)
+		this.addClass = addClass
+	}
+	render({ nodesToTransform }: AnnotationRenderOptions) {
+		nodesToTransform.forEach((node) => addClass(node, this.addClass))
+		return nodesToTransform
+	}
+}
 
 export async function getHookTestResult(hookName: ExpressiveCodePluginHookName, hookFunc: ExpressiveCodeHook) {
 	return await getMultiHookTestResult({

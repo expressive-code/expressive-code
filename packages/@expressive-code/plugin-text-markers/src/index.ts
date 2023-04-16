@@ -1,9 +1,9 @@
-import { ExpressiveCodePlugin, AttachedPluginData, replaceDelimitedValues, addClass } from '@expressive-code/core'
-import { h } from 'hastscript'
+import { ExpressiveCodePlugin, AttachedPluginData, replaceDelimitedValues } from '@expressive-code/core'
 import rangeParser from 'parse-numeric-range'
 import { MarkerType, markerTypeFromString } from './marker-types'
 import { getTextMarkersBaseStyles, textMarkersStyleSettings } from './styles'
 import { flattenInlineMarkerRanges, getInlineSearchTermMatches } from './inline-markers'
+import { TextMarkersInlineAnnotation, TextMarkersLineAnnotation } from './annotations'
 
 export interface TextMarkersPluginOptions {
 	styleOverrides?: Partial<typeof textMarkersStyleSettings.defaultSettings>
@@ -31,15 +31,11 @@ export function textMarkers(options: TextMarkersPluginOptions = {}): ExpressiveC
 							const lineNumbers = rangeParser(value)
 							lineNumbers.forEach((lineNumber) => {
 								const lineIndex = lineNumber - 1
-								codeBlock.getLine(lineIndex)?.addAnnotation({
-									name: markerType,
-									render: ({ nodesToTransform }) => {
-										return nodesToTransform.map((node) => {
-											addClass(node, markerType)
-											return node
-										})
-									},
-								})
+								codeBlock.getLine(lineIndex)?.addAnnotation(
+									new TextMarkersLineAnnotation({
+										markerType,
+									})
+								)
 							})
 							return ''
 						}
@@ -90,25 +86,15 @@ export function textMarkers(options: TextMarkersPluginOptions = {}): ExpressiveC
 
 					// Add annotations for all flattened ranges
 					flattenedRanges.forEach(({ markerType, start, end }) => {
-						line.addAnnotation({
-							name: markerType,
-							inlineRange: {
-								columnStart: start,
-								columnEnd: end,
-							},
-							render: ({ nodesToTransform }) => {
-								return nodesToTransform.map((node, idx) => {
-									const transformedNode = h(markerType, node)
-									if (nodesToTransform.length > 0 && idx > 0) {
-										addClass(transformedNode, 'open-start')
-									}
-									if (nodesToTransform.length > 0 && idx < nodesToTransform.length - 1) {
-										addClass(transformedNode, 'open-end')
-									}
-									return transformedNode
-								})
-							},
-						})
+						line.addAnnotation(
+							new TextMarkersInlineAnnotation({
+								markerType,
+								inlineRange: {
+									columnStart: start,
+									columnEnd: end,
+								},
+							})
+						)
 					})
 				})
 			},
