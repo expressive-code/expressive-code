@@ -1,6 +1,6 @@
 import { getGroupIndicesFromRegExpMatch } from '@expressive-code/core'
 import { MarkerType, MarkerTypeOrder } from './marker-types'
-import { TextMarkerPluginData } from '.'
+import { PluginTextMarkersData } from '.'
 
 export type InlineMarkerRange = { markerType: MarkerType; start: number; end: number }
 
@@ -8,7 +8,7 @@ export type InlineMarkerRange = { markerType: MarkerType; start: number; end: nu
  * Goes through all search terms in the given block data and returns an array of
  * inline marker ranges that match the given line text.
  */
-export function getInlineSearchTermMatches(lineText: string, blockData: TextMarkerPluginData) {
+export function getInlineSearchTermMatches(lineText: string, blockData: PluginTextMarkersData) {
 	const markerMatches: InlineMarkerRange[] = []
 
 	// Collect all plaintext term matches

@@ -448,7 +448,7 @@ async function testEditingProperty(hookName: ExpressiveCodePluginHookName, prope
 	const { codeBlock, input } = await getHookTestResult(hookName, ({ codeBlock }) => {
 		codeBlock[propertyName] = `wrapped(${codeBlock[propertyName]})`
 	})
-	expect(codeBlock[propertyName]).toEqual(`wrapped(${input[0][propertyName]})`)
+	expect(codeBlock[propertyName]).toEqual(`wrapped(${input[0][propertyName] || ''})`)
 }
 
 async function testAddingAnnotation(hookName: ExpressiveCodePluginHookName) {

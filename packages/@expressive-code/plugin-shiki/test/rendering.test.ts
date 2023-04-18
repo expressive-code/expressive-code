@@ -2,7 +2,7 @@ import { describe, test } from 'vitest'
 import { ExpressiveCodeTheme } from '@expressive-code/core'
 import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures } from '@internal/test-utils'
 // import dracula from 'shiki/themes/dracula.json'
-import { shiki } from '../src'
+import { pluginShiki } from '../src'
 
 const jsTestCode = `
 import { defineConfig } from 'astro/config';
@@ -30,7 +30,7 @@ describe('Renders syntax highlighting', () => {
 					code: jsTestCode,
 					language: 'js',
 					meta: '',
-					plugins: [shiki()],
+					plugins: [pluginShiki()],
 				}),
 			})
 		},

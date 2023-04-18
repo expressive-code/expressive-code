@@ -5,7 +5,7 @@ import { ExpressiveCodeLine } from './line'
 export interface ExpressiveCodeBlockOptions {
 	code: string
 	language: string
-	meta: string
+	meta?: string
 	/**
 	 * An optional handler function that can initialize plugin data for the
 	 * code block before processing starts.
@@ -21,7 +21,7 @@ export interface ExpressiveCodeBlockOptions {
 
 export class ExpressiveCodeBlock {
 	constructor(options: ExpressiveCodeBlockOptions) {
-		const { code, language, meta, onInitBlock } = options
+		const { code, language, meta = '', onInitBlock } = options
 		if (!isString(code) || !isString(language) || !isString(meta)) throw newTypeError('object of type ExpressiveCodeBlockOptions', options)
 		this.#lines = []
 		this.#language = language
@@ -31,6 +31,13 @@ export class ExpressiveCodeBlock {
 		// Allow the caller to initialize block data after the block has been created
 		onInitBlock?.(this)
 	}
+
+	/**
+	 * This field exists to ensure that only actual class instances are accepted
+	 * as the type `ExpressiveCodeBlock` by TypeScript. Without this workaround,
+	 * plain objects with the same structure would be accepted, but fail at runtime.
+	 */
+	private _requireInstance = Symbol('ExpressiveCodeBlock')
 
 	readonly #lines: ExpressiveCodeLine[]
 	#language: string

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { ExpressiveCode } from '@expressive-code/core'
-import { textMarkers, textMarkersPluginData } from '../src'
+import { pluginTextMarkers, pluginTextMarkersData } from '../src'
 import { MarkerType, markerTypeFromString } from '../src/marker-types'
 import { TextMarkerAnnotation } from '../src/annotations'
 
@@ -56,7 +56,7 @@ const expectMetaResult = async (input: string, partialExpectedResult: ExpectedTe
 	// Create an Expressive Code instance with our plugin
 	// and use it to render the test code
 	const ec = new ExpressiveCode({
-		plugins: [textMarkers()],
+		plugins: [pluginTextMarkers()],
 	})
 	const data = {
 		code: astroCodeSnippet,
@@ -84,7 +84,7 @@ const expectMetaResult = async (input: string, partialExpectedResult: ExpectedTe
 	})
 
 	// Build actual data using all collected information
-	const pluginData = textMarkersPluginData.getOrCreateFor(codeBlock)
+	const pluginData = pluginTextMarkersData.getOrCreateFor(codeBlock)
 	const actual: ExpectedTextMarkerResults = {
 		meta: codeBlock.meta,
 		annotations: {

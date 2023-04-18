@@ -6,11 +6,11 @@ import { getMarkerTypeColorsForContrastCalculation, getTextMarkersBaseStyles, te
 import { flattenInlineMarkerRanges, getInlineSearchTermMatches } from './inline-markers'
 import { TextMarkerAnnotation } from './annotations'
 
-export interface TextMarkersPluginOptions {
+export interface PluginTextMarkersOptions {
 	styleOverrides?: Partial<typeof textMarkersStyleSettings.defaultSettings>
 }
 
-export function textMarkers(options: TextMarkersPluginOptions = {}): ExpressiveCodePlugin {
+export function pluginTextMarkers(options: PluginTextMarkersOptions = {}): ExpressiveCodePlugin {
 	return {
 		name: 'TextMarkers',
 		baseStyles: ({ theme, coreStyles }) => getTextMarkersBaseStyles(theme, coreStyles, options.styleOverrides || {}),
@@ -21,7 +21,7 @@ export function textMarkers(options: TextMarkersPluginOptions = {}): ExpressiveC
 					coreStyles,
 					styleOverrides: options.styleOverrides,
 				})
-				const blockData = textMarkersPluginData.getOrCreateFor(codeBlock)
+				const blockData = pluginTextMarkersData.getOrCreateFor(codeBlock)
 
 				codeBlock.meta = replaceDelimitedValues(
 					codeBlock.meta,
@@ -87,7 +87,7 @@ export function textMarkers(options: TextMarkersPluginOptions = {}): ExpressiveC
 					coreStyles,
 					styleOverrides: options.styleOverrides,
 				})
-				const blockData = textMarkersPluginData.getOrCreateFor(codeBlock)
+				const blockData = pluginTextMarkersData.getOrCreateFor(codeBlock)
 				codeBlock.getLines().forEach((line) => {
 					// Check the line text for search term matches and collect their ranges
 					const markerRanges = getInlineSearchTermMatches(line.text, blockData)
@@ -137,9 +137,9 @@ export function textMarkers(options: TextMarkersPluginOptions = {}): ExpressiveC
 	}
 }
 
-export interface TextMarkerPluginData {
+export interface PluginTextMarkersData {
 	plaintextTerms: { markerType: MarkerType; text: string }[]
 	regExpTerms: { markerType: MarkerType; regExp: RegExp }[]
 }
 
-export const textMarkersPluginData = new AttachedPluginData<TextMarkerPluginData>(() => ({ plaintextTerms: [], regExpTerms: [] }))
+export const pluginTextMarkersData = new AttachedPluginData<PluginTextMarkersData>(() => ({ plaintextTerms: [], regExpTerms: [] }))

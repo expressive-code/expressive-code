@@ -3,7 +3,7 @@ import { h } from 'hastscript'
 import { framesStyleSettings, getFramesBaseStyles } from './styles'
 import { getFileNameFromComment, isTerminalLanguage } from './utils'
 
-export interface FramesPluginOptions {
+export interface PluginFramesOptions {
 	/**
 	 * If this is true (default) and no title was found in the code block's meta string,
 	 * the plugin will try to find and extract a comment line containing the code block file name
@@ -13,7 +13,7 @@ export interface FramesPluginOptions {
 	styleOverrides?: Partial<typeof framesStyleSettings.defaultSettings>
 }
 
-export function frames(options: FramesPluginOptions = {}): ExpressiveCodePlugin {
+export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodePlugin {
 	// Apply default settings
 	const extractFileNameFromCode = options.extractFileNameFromCode ?? true
 	return {
@@ -21,7 +21,7 @@ export function frames(options: FramesPluginOptions = {}): ExpressiveCodePlugin 
 		baseStyles: ({ theme, coreStyles }) => getFramesBaseStyles(theme, coreStyles, options.styleOverrides || {}),
 		hooks: {
 			preprocessMetadata: ({ codeBlock }) => {
-				const blockData = framesPluginData.getOrCreateFor(codeBlock)
+				const blockData = pluginFramesData.getOrCreateFor(codeBlock)
 
 				codeBlock.meta = replaceDelimitedValues(codeBlock.meta, ({ fullMatch, key, value }) => {
 					// Handle "title" and "@title" keys in meta string
@@ -38,7 +38,7 @@ export function frames(options: FramesPluginOptions = {}): ExpressiveCodePlugin 
 				// Skip processing if the given options do not allow file name extraction from code
 				if (!extractFileNameFromCode) return
 
-				const blockData = framesPluginData.getOrCreateFor(codeBlock)
+				const blockData = pluginFramesData.getOrCreateFor(codeBlock)
 
 				// If we already extracted a title from the meta information,
 				// do not attempt to find a title inside the code
@@ -63,8 +63,12 @@ export function frames(options: FramesPluginOptions = {}): ExpressiveCodePlugin 
 			},
 			postprocessRenderedBlock: ({ codeBlock, renderData }) => {
 				// Retrieve information about the current block
-				const titleText = framesPluginData.getOrCreateFor(codeBlock).title
+				const titleText = pluginFramesData.getOrCreateFor(codeBlock).title
 				const isTerminal = isTerminalLanguage(codeBlock.language)
+
+				// TODO: Improve the ability to wrap long file paths into multiple lines
+				// by inserting a line break opportunity after each slash
+				// const titleHtml = decodeURIComponent(title).replace(/([\\/])/g, '$1<wbr/>')
 
 				// If a title was given, render it as a visible span
 				const visibleTitle = titleText ? [h('span', { className: 'title' }, titleText)] : []
@@ -97,8 +101,8 @@ export function frames(options: FramesPluginOptions = {}): ExpressiveCodePlugin 
 	}
 }
 
-export interface FramesPluginData {
+export interface PluginFramesData {
 	title?: string
 }
 
-export const framesPluginData = new AttachedPluginData<FramesPluginData>(() => ({}))
+export const pluginFramesData = new AttachedPluginData<PluginFramesData>(() => ({}))

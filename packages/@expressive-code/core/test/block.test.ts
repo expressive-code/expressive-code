@@ -9,7 +9,8 @@ describe('ExpressiveCodeBlock', () => {
 			const invalidFirstArgContents = nonStringValues.flatMap((value) => [
 				{ code: value, language: '', meta: '' },
 				{ code: '', language: value, meta: '' },
-				{ code: '', language: '', meta: value },
+				// Meta can be undefined, so pass another invalid value in this case
+				{ code: '', language: '', meta: value !== undefined ? value : false },
 			])
 			const invalidArgs = [...invalidFirstArgTypes, ...invalidFirstArgContents]
 

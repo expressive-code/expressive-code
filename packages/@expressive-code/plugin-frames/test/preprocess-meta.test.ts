@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { ExpressiveCode } from '@expressive-code/core'
-import { frames } from '../src'
+import { pluginFrames } from '../src'
 
 describe('Extracts known attributes from meta string', () => {
 	test('`title` attribute', async () => {
@@ -21,7 +21,7 @@ describe('Extracts known attributes from meta string', () => {
 
 async function getMetaResult(input: string) {
 	// Create frames plugin
-	const plugin = frames()
+	const plugin = pluginFrames()
 
 	// Create an Expressive Code instance with our plugin
 	// and use it to render the test code

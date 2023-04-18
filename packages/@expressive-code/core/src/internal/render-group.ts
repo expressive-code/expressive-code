@@ -9,7 +9,7 @@ import { groupWrapperClassName, groupWrapperElement, PluginStyles, processPlugin
 import { renderBlock } from './render-block'
 import { isHastParent, newTypeError } from './type-checks'
 
-export type RenderInput = ExpressiveCodeBlock | ExpressiveCodeBlockOptions | (ExpressiveCodeBlock | ExpressiveCodeBlockOptions)[]
+export type RenderInput = ExpressiveCodeBlockOptions | ExpressiveCodeBlock | (ExpressiveCodeBlockOptions | ExpressiveCodeBlock)[]
 
 export interface RenderOptions {
 	/**

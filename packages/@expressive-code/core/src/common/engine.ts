@@ -32,7 +32,7 @@ export interface ExpressiveCodeConfig {
 	 * If the plugin has any configuration options, you can pass them to the initialization
 	 * function as an object containing your desired property values.
 	 */
-	plugins?: ExpressiveCodePlugin[]
+	plugins?: (ExpressiveCodePlugin | ExpressiveCodePlugin[])[]
 }
 
 export class ExpressiveCode {
@@ -41,7 +41,7 @@ export class ExpressiveCode {
 		this.styleOverrides = {
 			...config.styleOverrides,
 		}
-		this.plugins = config.plugins || []
+		this.plugins = config.plugins?.flat() || []
 
 		// Resolve core styles based on the given theme and style overrides
 		this.coreStyles = coreStyleSettings.resolve({

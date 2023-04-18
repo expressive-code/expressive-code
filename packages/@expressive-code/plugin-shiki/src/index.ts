@@ -1,7 +1,7 @@
 import { ExpressiveCodePlugin, InlineStyleAnnotation } from '@expressive-code/core'
 import { getCachedHighlighter } from './cache'
 
-export function shiki(): ExpressiveCodePlugin {
+export function pluginShiki(): ExpressiveCodePlugin {
 	return {
 		name: 'Shiki',
 		hooks: {
@@ -17,6 +17,7 @@ export function shiki(): ExpressiveCodePlugin {
 						codeLines[lineIndex].addAnnotation(
 							new InlineStyleAnnotation({
 								color: token.color,
+								// TODO: Add other inline styles
 								inlineRange: {
 									columnStart: charIndex,
 									columnEnd: tokenEndIndex,

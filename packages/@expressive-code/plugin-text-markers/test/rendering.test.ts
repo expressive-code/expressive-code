@@ -2,9 +2,9 @@ import { describe, test, expect } from 'vitest'
 import { selectAll } from 'hast-util-select'
 import { toText } from 'hast-util-to-text'
 import { AnnotationRenderPhase, ExpressiveCodePlugin, ExpressiveCodeTheme, InlineStyleAnnotation } from '@expressive-code/core'
-import { shiki } from '@expressive-code/plugin-shiki'
+import { pluginShiki } from '@expressive-code/plugin-shiki'
 import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures, TestFixture } from '@internal/test-utils'
-import { textMarkers } from '../src'
+import { pluginTextMarkers } from '../src'
 import { MarkerType, MarkerTypeOrder } from '../src/marker-types'
 
 const lineMarkerTestText = `
@@ -37,7 +37,7 @@ describe('Renders text markers', () => {
 			fixtures: buildThemeFixtures(themes, {
 				code: lineMarkerTestText,
 				meta: `del={5} ins={6-7} mark={1,2}`,
-				plugins: [textMarkers()],
+				plugins: [pluginTextMarkers()],
 				blockValidationFn: buildMarkerValidationFn([
 					{ fullLine: true, markerType: 'mark', text: `import { defineConfig } from 'astro/config';` },
 					{ fullLine: true, markerType: 'mark', text: '' },
@@ -58,7 +58,7 @@ describe('Renders text markers', () => {
 					code: inlineMarkerTestText,
 					language: 'astro',
 					meta: `title="src/components/GreetingHeadline.astro" mark='= "Hello"' "= \\"Astronaut\\"" del="puny" ins='mighty'`,
-					plugins: [textMarkers()],
+					plugins: [pluginTextMarkers()],
 					blockValidationFn: buildMarkerValidationFn([
 						{ markerType: 'mark', text: '= "Hello"' },
 						{ markerType: 'mark', text: '= "Astronaut"' },
@@ -77,7 +77,7 @@ describe('Renders text markers', () => {
 					code: inlineMarkerTestText,
 					language: 'astro',
 					meta: `title="src/components/GreetingHeadline.astro" mark=/{\\w+?}/ ins=/(?<={.*?)= (".*?")(?=.*?})/`,
-					plugins: [textMarkers()],
+					plugins: [pluginTextMarkers()],
 					blockValidationFn: buildMarkerValidationFn([
 						// Expect RegExp matches including capture groups to only mark
 						// the capture group contents, not the entire text of the match
@@ -113,7 +113,7 @@ describe('Renders text markers', () => {
 									{ text: 'hty {name}!', colors: colors2 },
 								],
 							}),
-							textMarkers(),
+							pluginTextMarkers(),
 						],
 						blockValidationFn: ({ renderedGroupAst, theme }) => {
 							// Expect that the correct texts were marked
@@ -168,7 +168,7 @@ describe('Renders text markers', () => {
 								],
 								renderPhase: 'latest',
 							}),
-							textMarkers(),
+							pluginTextMarkers(),
 						],
 						blockValidationFn: ({ renderedGroupAst, theme }) => {
 							// Expect that the correct texts were marked
@@ -232,7 +232,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 							{ markerType: 'ins', text: 'components/MyReact' },
 							{ markerType: 'ins', text: '../components/MyR' },
 						]),
-						plugins: [textMarkers()],
+						plugins: [pluginTextMarkers()],
 						blockValidationFn: buildMarkerValidationFn([
 							{
 								markerType: 'ins',
@@ -259,7 +259,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 							// so it must override it
 							{ markerType: 'del', text: 'slot="name"' },
 						]),
-						plugins: [textMarkers()],
+						plugins: [pluginTextMarkers()],
 						blockValidationFn: buildMarkerValidationFn([
 							{
 								markerType: 'mark',
@@ -293,7 +293,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 							// so it must override it again
 							{ markerType: 'ins', text: 'slot' },
 						]),
-						plugins: [textMarkers()],
+						plugins: [pluginTextMarkers()],
 						blockValidationFn: buildMarkerValidationFn([
 							{
 								markerType: 'mark',
@@ -331,7 +331,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 							// so it must not override it despite the order
 							{ text: '<MyAstroComponent slot="name" />' },
 						]),
-						plugins: [textMarkers()],
+						plugins: [pluginTextMarkers()],
 						blockValidationFn: buildMarkerValidationFn([
 							{
 								markerType: 'mark',
@@ -364,7 +364,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 				code: inlineMarkerTestText,
 				language: 'astro',
 				meta: `title="src/components/GreetingHeadline.astro" mark={4} mark='= "Hello"' "= \\"Astronaut\\"" del="puny" ins='mighty'`,
-				plugins: [textMarkers()],
+				plugins: [pluginTextMarkers()],
 				blockValidationFn: buildMarkerValidationFn([
 					{ markerType: 'mark', text: '= "Hello"' },
 					{ markerType: 'mark', text: '= "Astronaut"' },
@@ -401,7 +401,7 @@ function fancyJsHelper() {
 					`.trim(),
 					language: 'mdx',
 					meta: `title="src/pages/posts/first-post.mdx" ins={6} mark={9} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/`,
-					plugins: [textMarkers(), shiki()],
+					plugins: [pluginTextMarkers(), pluginShiki()],
 					blockValidationFn: buildMarkerValidationFn([
 						{ fullLine: true, markerType: 'del', text: `layout: ../../layouts/BaseLayout.astro` },
 						{ fullLine: true, markerType: 'ins', text: `import BaseLayout from '../../layouts/BaseLayout.astro';` },

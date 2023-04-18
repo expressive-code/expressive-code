@@ -3,7 +3,7 @@ import { Parent } from 'hast-util-to-html/lib/types'
 import { matches, select, selectAll } from 'hast-util-select'
 import { ExpressiveCodeTheme } from '@expressive-code/core'
 import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures } from '@internal/test-utils'
-import { frames } from '../src'
+import { pluginFrames } from '../src'
 
 describe('Renders frames around the code', () => {
 	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
@@ -15,7 +15,7 @@ describe('Renders frames around the code', () => {
 			testBaseDir: __dirname,
 			fixtures: buildThemeFixtures(themes, {
 				code: `import { defineConfig } from 'example/config'`,
-				plugins: [frames()],
+				plugins: [pluginFrames()],
 				blockValidationFn: ({ renderedGroupAst }) => {
 					validateBlockAst({
 						renderedGroupAst,
@@ -36,7 +36,7 @@ describe('Renders frames around the code', () => {
 
 import { defineConfig } from 'example/config'
 				`.trim(),
-				plugins: [frames()],
+				plugins: [pluginFrames()],
 				blockValidationFn: ({ renderedGroupAst }) => {
 					validateBlockAst({
 						renderedGroupAst,
@@ -55,7 +55,7 @@ import { defineConfig } from 'example/config'
 			fixtures: buildThemeFixtures(themes, {
 				code: 'pnpm i expressive-code',
 				language: 'shell',
-				plugins: [frames()],
+				plugins: [pluginFrames()],
 				blockValidationFn: ({ renderedGroupAst }) => {
 					validateBlockAst({
 						renderedGroupAst,
@@ -74,7 +74,7 @@ import { defineConfig } from 'example/config'
 				code: 'pnpm i expressive-code',
 				language: 'shell',
 				meta: 'title="Installing Expressive Code"',
-				plugins: [frames()],
+				plugins: [pluginFrames()],
 				blockValidationFn: ({ renderedGroupAst }) => {
 					validateBlockAst({
 						renderedGroupAst,
