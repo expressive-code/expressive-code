@@ -21,6 +21,7 @@
     "build": "tsup ./src/index.ts --format esm,cjs --dts --sourcemap --clean",
     "coverage": "vitest run --coverage",
     "test": "vitest run --reporter verbose",
+    "test-short": "vitest run --reporter basic",
     "test-watch": "vitest --reporter verbose",
     "watch": "pnpm build --watch src"
   },

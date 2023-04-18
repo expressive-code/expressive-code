@@ -8,7 +8,7 @@
     "build": "pnpm -r --stream build",
     "lint": "eslint .",
     "coverage": "pnpm -r --no-bail --stream coverage",
-    "test": "pnpm -r --no-bail test"
+    "test": "pnpm -r --no-bail test-short"
   },
   "workspaces": [
     "packages/@expressive-code/*",

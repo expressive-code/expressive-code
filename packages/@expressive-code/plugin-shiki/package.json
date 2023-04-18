@@ -21,6 +21,7 @@
     "build": "tsup ./src/index.ts --format esm,cjs --dts --sourcemap --clean",
     "coverage": "vitest run --coverage",
     "test": "vitest run --reporter verbose",
+    "test-short": "vitest run --reporter basic",
     "test-watch": "vitest --reporter verbose",
     "watch": "pnpm build --watch src"
   },
@@ -28,8 +29,5 @@
     "@expressive-code/core": "workspace:^0.1.0",
     "@internal/test-utils": "workspace:^",
     "shiki": "^0.14.1"
-  },
-  "devDependencies": {
-    "typescript": "^5.0.4"
   }
 }

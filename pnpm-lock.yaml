@@ -139,10 +139,6 @@ importers:
       shiki:
         specifier: ^0.14.1
         version: 0.14.1
-    devDependencies:
-      typescript:
-        specifier: ^5.0.4
-        version: 5.0.4
 
   packages/@expressive-code/plugin-text-markers:
     dependencies:
