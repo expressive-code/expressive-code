@@ -58,9 +58,7 @@ export function getTextMarkersBaseStyles(theme: ExpressiveCodeTheme, coreStyles:
 				background: var(--line-marker-bg-color);
 				margin-inline-start: var(--accent-margin);
 				border-inline-start: var(--accent-width) solid var(--line-marker-border-color);
-				padding-inline-start: calc(
-					${coreStyles.codePaddingInline} - var(--accent-margin) - var(--accent-width)
-				) !important;
+				padding-inline-start: calc(${coreStyles.codePaddingInline} - var(--accent-margin) - var(--accent-width)) !important;
 				&::before {
 					position: absolute;
 					left: ${textMarkersStyles.lineDiffIndicatorMarginLeft};

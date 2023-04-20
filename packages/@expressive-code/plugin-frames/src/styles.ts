@@ -7,13 +7,14 @@ export const framesStyleSettings = new StyleSettings({
 	editorActiveTabBorderBottom: ({ theme }) => theme.colors['tab.activeBorder'],
 	editorTabBorderRadius: ({ coreStyles }) => coreStyles.borderRadius,
 	editorTabBorderRight: ({ theme }) => theme.colors['tab.border'] || 'transparent',
-	editorTabBarBackground: ({ theme }) => multiplyAlpha(theme.colors['editorGroupHeader.tabsBackground'], 0.5),
+	editorTabBarBackground: ({ theme }) => multiplyAlpha(theme.colors['editorGroupHeader.tabsBackground'], 0.75),
 	editorTabBarBorderBottom: ({ theme, coreStyles }) => `${coreStyles.borderWidth} solid ${theme.colors['editorGroupHeader.tabsBorder'] || 'transparent'}`,
 	editorBackground: ({ coreStyles }) => coreStyles.codeBackground,
 	terminalTitlebarDotsForeground: ({ theme }) => (theme.type === 'dark' ? '#ffffff26' : '#00000026'),
-	terminalTitlebarBackground: ({ theme }) => theme.colors['titleBar.activeBackground'],
+	terminalTitlebarBackground: ({ theme }) => theme.colors['editorGroupHeader.tabsBackground'],
 	terminalTitlebarForeground: ({ theme }) => theme.colors['titleBar.activeForeground'],
-	terminalTitlebarBorderBottom: ({ coreStyles }) => `${coreStyles.borderWidth} solid ${onBackground(coreStyles.borderColor, '#000')}`,
+	terminalTitlebarBorderBottom: ({ theme, coreStyles }) =>
+		`${coreStyles.borderWidth} solid ${onBackground(coreStyles.borderColor, theme.type === 'dark' ? '#000000bf' : '#ffffffbf')}`,
 	terminalBackground: ({ theme }) => theme.colors['terminal.background'],
 })
 
