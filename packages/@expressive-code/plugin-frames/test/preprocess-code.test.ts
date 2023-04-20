@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { ExpressiveCode } from '@expressive-code/core'
+import { ExpressiveCodeEngine } from '@expressive-code/core'
 import { pluginFrames, pluginFramesData, PluginFramesOptions } from '../src'
 
 describe('Extracts file name comments from the first code lines', () => {
@@ -198,10 +198,10 @@ async function expectCodeResult({
 }) {
 	// Create an Expressive Code instance with our plugin
 	// and use it to render the test code
-	const ec = new ExpressiveCode({
+	const engine = new ExpressiveCodeEngine({
 		plugins: [pluginFrames(options)],
 	})
-	const { renderedGroupContents } = await ec.render({ code: code.trim(), language, meta })
+	const { renderedGroupContents } = await engine.render({ code: code.trim(), language, meta })
 	expect(renderedGroupContents).toHaveLength(1)
 	const codeBlock = renderedGroupContents[0].codeBlock
 

@@ -1,9 +1,8 @@
 import { mkdirSync, writeFileSync } from 'fs'
 import { join, dirname } from 'path'
+import { ExpressiveCodeEngine, ExpressiveCodeEngineConfig, ExpressiveCodePlugin, ExpressiveCodeTheme } from '@expressive-code/core'
 import { Parent } from 'hast-util-to-html/lib/types'
-import { ExpressiveCode, ExpressiveCodeConfig, ExpressiveCodeTheme } from '@expressive-code/core'
 import { toHtml } from 'hast-util-to-html'
-import { ExpressiveCodePlugin } from '@expressive-code/core'
 
 export type TestFixture = {
 	fixtureName: string
@@ -12,7 +11,7 @@ export type TestFixture = {
 	meta?: string
 	theme?: ExpressiveCodeTheme
 	plugins: ExpressiveCodePlugin[]
-	engineOptions?: Partial<ExpressiveCodeConfig>
+	engineOptions?: Partial<ExpressiveCodeEngineConfig>
 	blockValidationFn?: ({ renderedGroupAst, theme }: { renderedGroupAst: Parent; theme: ExpressiveCodeTheme }) => void
 }
 
@@ -29,13 +28,13 @@ export function buildThemeFixtures(themes: (ExpressiveCodeTheme | undefined)[], 
 export async function renderAndOutputHtmlSnapshot({ testName, testBaseDir, fixtures }: { testName: string; testBaseDir: string; fixtures: TestFixture[] }) {
 	const renderResults = await Promise.all(
 		fixtures.map(async ({ code, language = 'js', meta = '', theme, plugins, engineOptions, blockValidationFn }) => {
-			const ec = new ExpressiveCode({
+			const engine = new ExpressiveCodeEngine({
 				plugins,
 				theme,
 				...engineOptions,
 			})
-			const baseStyles = await ec.getBaseStyles()
-			const { renderedGroupAst, styles } = await ec.render({
+			const baseStyles = await engine.getBaseStyles()
+			const { renderedGroupAst, styles } = await engine.render({
 				code,
 				language,
 				meta,
@@ -45,9 +44,9 @@ export async function renderAndOutputHtmlSnapshot({ testName, testBaseDir, fixtu
 				renderedGroupAst,
 				baseStyles,
 				styles,
-				theme: ec.theme,
-				foreground: ec.theme.type === 'dark' ? '#fff' : '#000',
-				background: ec.theme.type === 'dark' ? '#000' : '#fff',
+				theme: engine.theme,
+				foreground: engine.theme.type === 'dark' ? '#fff' : '#000',
+				background: engine.theme.type === 'dark' ? '#000' : '#fff',
 				blockValidationFn,
 			}
 		})

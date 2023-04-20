@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { ExpressiveCode } from '@expressive-code/core'
+import { ExpressiveCodeEngine } from '@expressive-code/core'
 import { pluginFrames } from '../src'
 
 describe('Extracts known attributes from meta string', () => {
@@ -25,7 +25,7 @@ async function getMetaResult(input: string) {
 
 	// Create an Expressive Code instance with our plugin
 	// and use it to render the test code
-	const ec = new ExpressiveCode({
+	const engine = new ExpressiveCodeEngine({
 		plugins: [plugin],
 	})
 	const data = {
@@ -33,7 +33,7 @@ async function getMetaResult(input: string) {
 		language: 'md',
 		meta: input,
 	}
-	const { renderedGroupContents } = await ec.render(data)
+	const { renderedGroupContents } = await engine.render(data)
 	expect(renderedGroupContents).toHaveLength(1)
 	const codeBlock = renderedGroupContents[0].codeBlock
 

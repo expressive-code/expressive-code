@@ -7,7 +7,7 @@ import { coreStyleSettings, getCoreBaseStyles, ResolvedCoreStyles } from './core
 import { UnresolvedCoreStyleSettings } from '../helpers/style-settings'
 import { getStableObjectHash } from '../helpers/objects'
 
-export interface ExpressiveCodeConfig {
+export interface ExpressiveCodeEngineConfig {
 	/**
 	 * The color theme that should be used when rendering.
 	 *
@@ -35,8 +35,8 @@ export interface ExpressiveCodeConfig {
 	plugins?: (ExpressiveCodePlugin | ExpressiveCodePlugin[])[]
 }
 
-export class ExpressiveCode {
-	constructor(config: ExpressiveCodeConfig) {
+export class ExpressiveCodeEngine {
+	constructor(config: ExpressiveCodeEngineConfig) {
 		this.theme = config.theme || new ExpressiveCodeTheme(githubDark)
 		this.styleOverrides = {
 			...config.styleOverrides,

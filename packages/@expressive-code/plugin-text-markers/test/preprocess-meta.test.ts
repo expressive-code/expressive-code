@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { ExpressiveCode } from '@expressive-code/core'
+import { ExpressiveCodeEngine } from '@expressive-code/core'
 import { pluginTextMarkers, pluginTextMarkersData } from '../src'
 import { MarkerType, markerTypeFromString } from '../src/marker-types'
 import { TextMarkerAnnotation } from '../src/annotations'
@@ -55,7 +55,7 @@ const expectMetaResult = async (input: string, partialExpectedResult: ExpectedTe
 
 	// Create an Expressive Code instance with our plugin
 	// and use it to render the test code
-	const ec = new ExpressiveCode({
+	const engine = new ExpressiveCodeEngine({
 		plugins: [pluginTextMarkers()],
 	})
 	const data = {
@@ -63,7 +63,7 @@ const expectMetaResult = async (input: string, partialExpectedResult: ExpectedTe
 		language: 'astro',
 		meta: input,
 	}
-	const { renderedGroupContents } = await ec.render(data)
+	const { renderedGroupContents } = await engine.render(data)
 	expect(renderedGroupContents).toHaveLength(1)
 	const codeBlock = renderedGroupContents[0].codeBlock
 

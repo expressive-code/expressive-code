@@ -3,7 +3,7 @@ import { h } from 'hastscript'
 import { AnnotationBaseOptions, AnnotationRenderOptions, AnnotationRenderPhase, ExpressiveCodeAnnotation } from '../src/common/annotation'
 import { ExpressiveCodeLine } from '../src/common/line'
 import { ExpressiveCodeBlockOptions } from '../src/common/block'
-import { ExpressiveCode } from '../src/common/engine'
+import { ExpressiveCodeEngine } from '../src/common/engine'
 import { ExpressiveCodePlugin } from '../src/common/plugin'
 import { ExpressiveCodePluginHookName, ExpressiveCodeHook, ExpressiveCodePluginHooks } from '../src/common/plugin-hooks'
 import { addClass } from '../src/helpers/ast-transforms'
@@ -122,11 +122,11 @@ export const defaultBlockOptions = {
 }
 
 export async function getMultiPluginTestResult({ plugins, input = [defaultBlockOptions] }: { plugins: ExpressiveCodePlugin[]; input?: ExpressiveCodeBlockOptions[] }) {
-	const ec = new ExpressiveCode({
+	const engine = new ExpressiveCodeEngine({
 		plugins,
 	})
 
-	const { renderedGroupAst, renderedGroupContents, styles } = await ec.render(input)
+	const { renderedGroupAst, renderedGroupContents, styles } = await engine.render(input)
 	expect(renderedGroupContents).toHaveLength(input.length)
 
 	return {
@@ -134,6 +134,6 @@ export async function getMultiPluginTestResult({ plugins, input = [defaultBlockO
 		styles,
 		...renderedGroupContents[0],
 		input,
-		configClassName: ec.configClassName,
+		configClassName: engine.configClassName,
 	}
 }

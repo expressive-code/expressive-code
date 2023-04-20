@@ -3,11 +3,11 @@ import { sanitize } from 'hast-util-sanitize'
 import { toHtml } from 'hast-util-to-html'
 import githubDark from 'shiki/themes/github-dark.json'
 import { WrapperAnnotation, getHookTestResult, getMultiPluginTestResult, nonArrayValues, nonObjectValues } from './utils'
-import { ExpressiveCode } from '../src/common/engine'
+import { ExpressiveCodeEngine } from '../src/common/engine'
 import { ExpressiveCodeBlock } from '../src/common/block'
 import { ExpressiveCodeTheme } from '../src/common/theme'
 
-describe('ExpressiveCode', () => {
+describe('ExpressiveCodeEngine', () => {
 	describe('render()', () => {
 		describe('Validates input', () => {
 			test('Throws on invalid input', async () => {
@@ -23,40 +23,40 @@ describe('ExpressiveCode', () => {
 				]
 				for (const invalidValue of invalidValues) {
 					await expect(async () => {
-						const ec = new ExpressiveCode({ plugins: [] })
+						const engine = new ExpressiveCodeEngine({ plugins: [] })
 						// @ts-expect-error Intentionally passing an invalid value
-						await ec.render(invalidValue)
+						await engine.render(invalidValue)
 					}, `Did not throw on invalid input ${JSON.stringify(invalidValue)}`).rejects.toThrow()
 				}
 			})
 			test('Accepts a single ExpressiveCodeBlock instance', async () => {
-				const ec = new ExpressiveCode({ plugins: [] })
+				const engine = new ExpressiveCodeEngine({ plugins: [] })
 				const codeBlock = new ExpressiveCodeBlock({ code: 'test', language: 'md', meta: '' })
-				const result = await ec.render(codeBlock)
+				const result = await engine.render(codeBlock)
 				expect(result.renderedGroupContents).toHaveLength(1)
 				expect(result.renderedGroupContents[0].codeBlock, 'Expected the same block instance to be returned in group contents').toBe(codeBlock)
 			})
 			test('Accepts a single data object and creates an ExpressiveCodeBlock instance from it', async () => {
-				const ec = new ExpressiveCode({ plugins: [] })
-				const result = await ec.render({ code: 'test', language: 'md', meta: '' })
+				const engine = new ExpressiveCodeEngine({ plugins: [] })
+				const result = await engine.render({ code: 'test', language: 'md', meta: '' })
 				expect(result.renderedGroupContents).toHaveLength(1)
 				const codeBlock = result.renderedGroupContents[0].codeBlock
 				expect(codeBlock).toBeInstanceOf(ExpressiveCodeBlock)
 				expect(codeBlock.code).toEqual('test')
 			})
 			test('Accepts multiple ExpressiveCodeBlock instances', async () => {
-				const ec = new ExpressiveCode({ plugins: [] })
+				const engine = new ExpressiveCodeEngine({ plugins: [] })
 				const codeBlocks = ['test1', 'test2', 'test3'].map((code) => new ExpressiveCodeBlock({ code, language: 'md', meta: '' }))
-				const result = await ec.render(codeBlocks)
+				const result = await engine.render(codeBlocks)
 				expect(result.renderedGroupContents).toHaveLength(codeBlocks.length)
 				codeBlocks.forEach((codeBlock, i) => {
 					expect(result.renderedGroupContents[i].codeBlock, 'Expected the same block instances to be returned in group contents').toBe(codeBlock)
 				})
 			})
 			test('Accepts multiple data objects and creates ExpressiveCodeBlock instances from them', async () => {
-				const ec = new ExpressiveCode({ plugins: [] })
+				const engine = new ExpressiveCodeEngine({ plugins: [] })
 				const dataObjects = ['test1', 'test2', 'test3'].map((code) => ({ code, language: 'md', meta: '' }))
-				const result = await ec.render(dataObjects)
+				const result = await engine.render(dataObjects)
 				expect(result.renderedGroupContents).toHaveLength(dataObjects.length)
 				dataObjects.forEach((dataObject, i) => {
 					expect(result.renderedGroupContents[i].codeBlock.code, 'Expected the created block instance to contain the input code').toEqual(dataObject.code)

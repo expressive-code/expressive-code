@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { ExpressiveCode } from '../src/common/engine'
+import { ExpressiveCodeEngine } from '../src/common/engine'
 import { ExpressiveCodePlugin } from '../src/common/plugin'
 import { ExpressiveCodeBlock } from '../src/common/block'
 import { AttachedPluginData } from '../src/common/plugin-data'
@@ -75,7 +75,7 @@ describe('AttachedPluginData', () => {
 					},
 				},
 			}
-			const ec = new ExpressiveCode({
+			const engine = new ExpressiveCodeEngine({
 				plugins: [testPlugin],
 			})
 			const input = {
@@ -85,9 +85,9 @@ describe('AttachedPluginData', () => {
 			}
 
 			// Reuse the same plugin instance for processing three subsequent blocks
-			await ec.render(input)
-			await ec.render(input)
-			await ec.render(input)
+			await engine.render(input)
+			await engine.render(input)
+			await engine.render(input)
 		})
 		test('Is not shared between plugins', async () => {
 			const testPluginOneData = new AttachedPluginData(() => ({ justInitialized: true }))
@@ -132,7 +132,7 @@ describe('AttachedPluginData', () => {
 						},
 					},
 				}
-				const ec = new ExpressiveCode({
+				const engine = new ExpressiveCodeEngine({
 					plugins: [testPlugin],
 				})
 				const input = {
@@ -143,7 +143,7 @@ describe('AttachedPluginData', () => {
 
 				// Use the same input to create a group of 3 blocks, render them,
 				// and expect the plugin to have access to the same group-scoped data
-				await ec.render([input, input, input], {
+				await engine.render([input, input, input], {
 					onInitGroup: (groupContents) => {
 						// Initialize the group data to start at 10
 						testPluginData.setFor(groupContents, { processedBlocksPlusTen: 10 })
@@ -181,7 +181,7 @@ describe('AttachedPluginData', () => {
 					},
 				},
 			}
-			const ec = new ExpressiveCode({
+			const engine = new ExpressiveCodeEngine({
 				plugins: [testPlugin],
 			})
 			const input = {
@@ -192,7 +192,7 @@ describe('AttachedPluginData', () => {
 
 			// Use the same input to create a group of 3 blocks, render them,
 			// and expect the plugin to have access to the same group-scoped data
-			await ec.render([input, input, input])
+			await engine.render([input, input, input])
 			expect(expectedProcessedBlocks).toEqual(3)
 		})
 		test('Is not shared between blocks in different groups', async () => {
@@ -209,7 +209,7 @@ describe('AttachedPluginData', () => {
 					},
 				},
 			}
-			const ec = new ExpressiveCode({
+			const engine = new ExpressiveCodeEngine({
 				plugins: [testPlugin],
 			})
 			const input = {
@@ -221,12 +221,12 @@ describe('AttachedPluginData', () => {
 			// Use the same input to create a group of 2 blocks, render them,
 			// and expect the plugin to have access to the same group-scoped data
 			// (just like in the previous test)
-			await ec.render([input, input])
+			await engine.render([input, input])
 			expect(expectedProcessedBlocks).toEqual(2)
 			// However, now that rendering has finished and we render a new group,
 			// expect the group data to be empty again
 			expectedProcessedBlocks = 0
-			await ec.render(input)
+			await engine.render(input)
 			expect(expectedProcessedBlocks).toEqual(1)
 		})
 		test('Is not shared between plugins, even inside the same group', async () => {

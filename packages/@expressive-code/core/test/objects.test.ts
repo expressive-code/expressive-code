@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { getStableObjectHash, stableStringify } from '../src/helpers/objects'
-import { ExpressiveCode } from '../src/common/engine'
+import { ExpressiveCodeEngine } from '../src/common/engine'
 
 describe('stableStringify()', () => {
 	test('Returns a stable sort order', () => {
@@ -113,7 +113,7 @@ describe('stableStringify()', () => {
 		expect(stableStringify(obj, { includeFunctionContents: true })).toBe('{"a":1,"b":2,"c":"(input) => input.length"}')
 	})
 	test('Serializes an Expressive Code plugins array', () => {
-		const ec = new ExpressiveCode({
+		const engine = new ExpressiveCodeEngine({
 			plugins: [
 				{
 					name: 'test',
@@ -133,7 +133,7 @@ describe('stableStringify()', () => {
 				},
 			],
 		})
-		expect(stableStringify(ec.plugins)).toBe(
+		expect(stableStringify(engine.plugins)).toBe(
 			`[${[
 				'{"hooks":{"preprocessMetadata":"[Function]"},"name":"test"}',
 				// Validate that hooks are not sorted alphabetically,
@@ -143,13 +143,13 @@ describe('stableStringify()', () => {
 		)
 	})
 	test('Serializes an Expressive Code theme', () => {
-		const ec = new ExpressiveCode({
+		const engine = new ExpressiveCodeEngine({
 			plugins: [],
 		})
-		expect(stableStringify(ec.theme)).toContain('"name":"github-dark",')
+		expect(stableStringify(engine.theme)).toContain('"name":"github-dark",')
 	})
 	test('Serializes an Expressive Code styleOverrides object', () => {
-		const ec = new ExpressiveCode({
+		const engine = new ExpressiveCodeEngine({
 			plugins: [],
 			styleOverrides: {
 				codeFontFamily: 'var(--font-family-mono)',
@@ -157,7 +157,7 @@ describe('stableStringify()', () => {
 				uiSelectionBackground: ({ theme }) => theme.colors['button.background'],
 			},
 		})
-		const actual = stableStringify(ec.styleOverrides, { includeFunctionContents: true })
+		const actual = stableStringify(engine.styleOverrides, { includeFunctionContents: true })
 		expect(actual).toEqual('{"borderColor":"red","codeFontFamily":"var(--font-family-mono)","uiSelectionBackground":"({ theme }) => theme.colors[\\"button.background\\"]"}')
 	})
 	test('Does not fail on non-object values', () => {
