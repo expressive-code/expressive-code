@@ -1,5 +1,6 @@
-This is **Markdown** content.
+# Sample code
 
-```js
-const hello = 'world'
+```js ins={2}
+// test.js
+const a = 1
 ```

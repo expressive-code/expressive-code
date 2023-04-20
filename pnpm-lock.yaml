@@ -210,6 +210,9 @@ importers:
       '@types/unist':
         specifier: ^2.0.6
         version: 2.0.6
+      execa:
+        specifier: ^7.1.1
+        version: 7.1.1
       rehype-raw:
         specifier: ^6.1.1
         version: 6.1.1
