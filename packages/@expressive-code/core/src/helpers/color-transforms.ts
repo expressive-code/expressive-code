@@ -5,8 +5,9 @@ import { ColorInput, TinyColor, readability } from '@ctrl/tinycolor'
  * Values should be between 0 and 1.
  */
 export function setAlpha(input: ColorInput, newAlpha: number) {
-	const color = new TinyColor(input)
-	return toCssColor(color.setAlpha(newAlpha))
+	return withParsedColor(input, (color) => {
+		return toCssColor(color.setAlpha(newAlpha))
+	})
 }
 
 /**
@@ -14,8 +15,9 @@ export function setAlpha(input: ColorInput, newAlpha: number) {
  * Automatically limits the resulting alpha value to the range 0 to 1.
  */
 export function multiplyAlpha(input: ColorInput, factor: number) {
-	const color = new TinyColor(input)
-	return toCssColor(color.setAlpha(minMaxRounded(color.getAlpha() * factor)))
+	return withParsedColor(input, (color) => {
+		return toCssColor(color.setAlpha(minMaxRounded(color.getAlpha() * factor)))
+	})
 }
 
 /**
@@ -23,14 +25,15 @@ export function multiplyAlpha(input: ColorInput, factor: number) {
  * Luminance values should be between 0 and 1.
  */
 export function setLuminance(input: ColorInput, luminance: number) {
-	const color = new TinyColor(input)
-	const v = color.getLuminance()
-	luminance = minMaxRounded(luminance)
-	const prel = (v: number, a: number, b: number) => (v - a) / (b - a)
-	if (luminance < v) {
-		return mix('#000', color, prel(luminance, 0, v))
-	}
-	return mix('#fff', color, prel(luminance, 1, v))
+	return withParsedColor(input, (color) => {
+		const v = color.getLuminance()
+		luminance = minMaxRounded(luminance)
+		const prel = (v: number, a: number, b: number) => (v - a) / (b - a)
+		if (luminance < v) {
+			return mix('#000', color, prel(luminance, 0, v))
+		}
+		return mix('#fff', color, prel(luminance, 1, v))
+	})
 }
 
 /**
@@ -38,10 +41,11 @@ export function setLuminance(input: ColorInput, luminance: number) {
  * Automatically limits the resulting lightness value to the range 0 to 1.
  */
 export function lighten(input: ColorInput, amount: number) {
-	const color = new TinyColor(input)
-	const hsl = color.toHsl()
-	const l = minMaxRounded(hsl.l)
-	return toCssColor(new TinyColor({ ...hsl, l: minMaxRounded(l + l * amount) }))
+	return withParsedColor(input, (color) => {
+		const hsl = color.toHsl()
+		const l = minMaxRounded(hsl.l)
+		return toCssColor(new TinyColor({ ...hsl, l: minMaxRounded(l + l * amount) }))
+	})
 }
 
 /**
@@ -57,20 +61,22 @@ export function darken(input: ColorInput, amount: number) {
  * Amount should be between 0 and 1.
  */
 export function mix(input: ColorInput, mixinInput: ColorInput, amount: number) {
-	const color = new TinyColor(input)
-	const mixinColor = new TinyColor(mixinInput)
-	// TinyColor's mix() method expects a value between 0 and 100
-	const mixAmount = minMaxRounded(amount * 100, 0, 100)
-	return toCssColor(color.mix(mixinColor, mixAmount))
+	return withParsedColor(input, (color) => {
+		const mixinColor = new TinyColor(mixinInput)
+		// TinyColor's mix() method expects a value between 0 and 100
+		const mixAmount = minMaxRounded(amount * 100, 0, 100)
+		return toCssColor(color.mix(mixinColor, mixAmount))
+	})
 }
 
 /**
  * Computes how the first color would look on top of the second color.
  */
 export function onBackground(input: ColorInput, background: ColorInput) {
-	const color = new TinyColor(input)
-	const backgroundColor = new TinyColor(background)
-	return toCssColor(color.onBackground(backgroundColor))
+	return withParsedColor(input, (color) => {
+		const backgroundColor = new TinyColor(background)
+		return toCssColor(color.onBackground(backgroundColor))
+	})
 }
 
 export function getColorContrast(input: ColorInput, background: ColorInput) {
@@ -103,6 +109,14 @@ export function ensureReadableColorContrast(input: ColorInput, background: Color
 
 	// If that didn't work, return the color that achieves the best contrast
 	return lightenedContrast > darkenedContrast ? lightenedColor : darkenedColor
+}
+
+function withParsedColor(input: ColorInput, transform: (color: TinyColor) => string) {
+	const color = new TinyColor(input)
+	if (!color.isValid) {
+		return input === undefined || typeof input === 'string' ? input : toCssColor(color)
+	}
+	return transform(color)
 }
 
 function toCssColor(color: TinyColor) {
