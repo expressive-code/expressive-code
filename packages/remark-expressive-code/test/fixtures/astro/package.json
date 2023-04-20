@@ -1,0 +1,21 @@
+{
+  "name": "remark-expressive-code-astro-fixture",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^2.3.0",
+    "remark-expressive-code": "workspace:^"
+  },
+  "engines": {
+    "node": "^14.15.0 || >=16.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.0.0"
+}

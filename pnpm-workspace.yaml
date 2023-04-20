@@ -2,3 +2,4 @@ packages:
   - 'packages/@expressive-code/*'
   - 'packages/*'
   - 'internal/*'
+  - 'packages/remark-expressive-code/test/fixtures/*'
