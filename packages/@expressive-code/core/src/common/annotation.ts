@@ -66,14 +66,32 @@ export abstract class ExpressiveCodeAnnotation {
 
 export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
 	color?: string
+	italic: boolean
+	bold: boolean
+	underline: boolean
 
-	constructor({ color, ...baseOptions }: { color?: string } & AnnotationBaseOptions) {
+	constructor({
+		color,
+		italic = false,
+		bold = false,
+		underline = false,
+		...baseOptions
+	}: { color?: string; italic?: boolean; bold?: boolean; underline?: boolean } & AnnotationBaseOptions) {
 		super(baseOptions)
 		this.color = color
+		this.italic = italic
+		this.bold = bold
+		this.underline = underline
 	}
 
 	render({ nodesToTransform }: AnnotationRenderOptions) {
-		const tokenStyle = `color:${this.color || 'inherit'}`
+		const tokenStyles: string[] = []
+		tokenStyles.push(`color:${this.color || 'inherit'}`)
+		if (this.italic) tokenStyles.push('font-style:italic')
+		if (this.bold) tokenStyles.push('font-weight:bold')
+		if (this.underline) tokenStyles.push('text-decoration:underline')
+		const tokenStyle = tokenStyles.join(';')
+
 		return nodesToTransform.map((node) => {
 			const transformedNode = h('span', { style: tokenStyle }, node)
 			transformedNode.data = transformedNode.data || {}

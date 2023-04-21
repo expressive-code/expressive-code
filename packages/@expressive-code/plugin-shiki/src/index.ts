@@ -1,5 +1,6 @@
 import { ExpressiveCodePlugin, InlineStyleAnnotation } from '@expressive-code/core'
 import { getCachedHighlighter } from './cache'
+import { FontStyle } from 'shiki'
 
 export function pluginShiki(): ExpressiveCodePlugin {
 	return {
@@ -14,10 +15,13 @@ export function pluginShiki(): ExpressiveCodePlugin {
 					line.forEach((token) => {
 						const tokenLength = token.content.length
 						const tokenEndIndex = charIndex + tokenLength
+						const fontStyle = token.fontStyle || FontStyle.None
 						codeLines[lineIndex].addAnnotation(
 							new InlineStyleAnnotation({
-								color: token.color,
-								// TODO: Add other inline styles
+								color: token.color || theme.fg,
+								italic: (fontStyle & FontStyle.Italic) === FontStyle.Italic,
+								bold: (fontStyle & FontStyle.Bold) === FontStyle.Bold,
+								underline: (fontStyle & FontStyle.Underline) === FontStyle.Underline,
 								inlineRange: {
 									columnStart: charIndex,
 									columnEnd: tokenEndIndex,

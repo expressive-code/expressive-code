@@ -130,7 +130,7 @@ export function pluginTextMarkers(options: PluginTextMarkersOptions = {}): Expre
 					const readableTextColor = ensureReadableColorContrast(textColor, combinedBackgroundColor)
 					if (readableTextColor.toLowerCase() === textColor.toLowerCase()) return
 					node.data.inlineStyleColor = readableTextColor
-					node.properties.style = `color:${readableTextColor}`
+					node.properties.style = `color:${readableTextColor}${node.properties.style?.toString().replace(/^(color:[^;]+)(;|$)/, '$2') || ''}`
 				})
 			},
 		},
