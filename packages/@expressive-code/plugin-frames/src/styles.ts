@@ -3,11 +3,11 @@ import { StyleSettings, multiplyAlpha, ExpressiveCodeTheme, ResolvedCoreStyles, 
 export const framesStyleSettings = new StyleSettings({
 	editorActiveTabBackground: ({ theme }) => theme.colors['tab.activeBackground'],
 	editorActiveTabForeground: ({ theme }) => theme.colors['tab.activeForeground'],
-	editorActiveTabBorderTop: ({ theme }) => theme.colors['tab.activeBorderTop'] || theme.colors['tab.border'],
+	editorActiveTabBorderTop: ({ theme }) => theme.colors['tab.activeBorderTop'],
 	editorActiveTabBorderBottom: ({ theme }) => theme.colors['tab.activeBorder'],
 	editorTabBorderRadius: ({ coreStyles }) => coreStyles.borderRadius,
-	editorTabBorderRight: ({ theme }) => theme.colors['tab.border'] || 'transparent',
 	editorTabBarBackground: ({ theme }) => multiplyAlpha(theme.colors['editorGroupHeader.tabsBackground'], 0.75),
+	editorTabBarBorder: ({ coreStyles }) => multiplyAlpha(coreStyles.borderColor, 0.75),
 	editorTabBarBorderBottom: ({ theme, coreStyles }) => `${coreStyles.borderWidth} solid ${theme.colors['editorGroupHeader.tabsBorder'] || 'transparent'}`,
 	editorBackground: ({ coreStyles }) => coreStyles.codeBackground,
 	terminalTitlebarDotsForeground: ({ theme }) => (theme.type === 'dark' ? '#ffffff26' : '#00000026'),
@@ -35,6 +35,20 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 	].join('')
 	const escapedDotsSvg = dotsSvg.replace(/</g, '%3C').replace(/>/g, '%3E')
 	const terminalTitlebarDots = `url("data:image/svg+xml,${escapedDotsSvg}")`
+
+	const activeTabBackgrounds: string[] = []
+	if (framesStyles.editorActiveTabBorderTop) {
+		activeTabBackgrounds.push(`linear-gradient(to bottom, ${framesStyles.editorActiveTabBorderTop} ${coreStyles.borderWidth}, transparent ${coreStyles.borderWidth})`)
+	}
+	if (framesStyles.editorActiveTabBorderBottom) {
+		activeTabBackgrounds.push(`linear-gradient(to top, ${framesStyles.editorActiveTabBorderBottom} ${coreStyles.borderWidth}, transparent ${coreStyles.borderWidth})`)
+	}
+	if (activeTabBackgrounds.length) {
+		activeTabBackgrounds.push(`linear-gradient(${framesStyles.editorActiveTabBackground}, ${framesStyles.editorActiveTabBackground})`)
+	} else {
+		activeTabBackgrounds.push(framesStyles.editorActiveTabBackground)
+	}
+	const activeTabBackground = activeTabBackgrounds.join(',')
 
 	const styles = `
 		.frame {
@@ -67,24 +81,31 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 				& .title {
 					position: relative;
 					color: ${framesStyles.editorActiveTabForeground};
-					background: ${framesStyles.editorActiveTabBackground};
+					background: ${activeTabBackground};
 					background-clip: padding-box;
+					margin-block-start: ${coreStyles.uiPaddingBlock};
 					padding: ${coreStyles.uiPaddingBlock} ${coreStyles.uiPaddingInline};
 					border-radius: ${framesStyles.editorTabBorderRadius} ${framesStyles.editorTabBorderRadius} 0 0;
-					border-top: ${coreStyles.borderWidth} solid ${framesStyles.editorActiveTabBorderTop};
-					border-bottom: ${coreStyles.borderWidth} solid ${framesStyles.editorActiveTabBorderBottom};
-					box-shadow: 1px 0 0 ${framesStyles.editorTabBorderRight};
+					border: ${coreStyles.borderWidth} solid ${coreStyles.borderColor};
+					border-bottom: none;
 				}
 
 				/* Tab bar background */
 				& .header {
+					border-color: ${framesStyles.editorTabBarBorder};
 					display: flex;
 					background: ${framesStyles.editorTabBarBackground};
 					background-clip: padding-box;
+					&::before {
+						padding-inline-start: calc(0.5 * ${coreStyles.uiPaddingInline});
+					}
 					&::after {
 						flex-grow: 1;
+					}
+					&::before,
+					&::after {
 						content: '';
-						border-bottom: ${framesStyles.editorTabBarBorderBottom};
+						border-bottom: ${coreStyles.borderWidth} solid ${coreStyles.borderColor};
 					}
 				}
 			}

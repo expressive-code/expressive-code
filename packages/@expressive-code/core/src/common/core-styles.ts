@@ -1,13 +1,12 @@
-import { multiplyAlpha } from '../helpers/color-transforms'
+import { lighten } from '../helpers/color-transforms'
 import { ResolvedStyleSettings, StyleSettings } from '../helpers/style-settings'
 import { ExpressiveCodeTheme } from './theme'
 
 export const coreStyleSettings = new StyleSettings({
 	// Outer container
 	borderRadius: '0.3rem',
-	borderWidth: '2px',
-	borderColor: ({ theme }) =>
-		multiplyAlpha(theme.colors['titleBar.border'] || theme.colors['editorGroupHeader.tabsBorder'] || theme.colors['editorHoverWidget.border'], 0.75) || 'transparent',
+	borderWidth: '1.5px',
+	borderColor: ({ theme }) => lighten(theme.colors['editor.background'], theme.type === 'dark' ? 0.5 : -0.15) || 'transparent',
 	// Code editor content
 	codeFontFamily: [
 		`'IBM Plex Mono'`,
