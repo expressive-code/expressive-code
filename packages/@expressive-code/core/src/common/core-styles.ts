@@ -1,4 +1,4 @@
-import { lighten } from '../helpers/color-transforms'
+import { lighten, multiplyAlpha } from '../helpers/color-transforms'
 import { ColorDefinition, CoreStyleResolverFn, ResolvedStyleSettings, StyleSettings } from '../helpers/style-settings'
 import { ExpressiveCodeTheme } from './theme'
 
@@ -43,6 +43,7 @@ const coreStyleDefaults = {
 	uiSelectionForeground: ({ theme }) => theme.colors['menu.selectionForeground'],
 	// Special colors
 	focusBorder: ({ theme }) => theme.colors['focusBorder'],
+	scrollbarThumbColor: ({ theme }) => theme.colors['scrollbarSlider.background'],
 } satisfies Record<string, ColorDefinition | CoreStyleResolverFn>
 
 export const coreStyleSettings = new StyleSettings(coreStyleDefaults)
@@ -63,6 +64,7 @@ export function getCoreBaseStyles({ coreStyles }: { theme: ExpressiveCodeTheme; 
 		}
 
 		pre {
+			display: flex;
 			margin: 0;
 			border: ${coreStyles.borderWidth} solid ${coreStyles.borderColor};
 			border-radius: calc(${coreStyles.borderRadius} + ${coreStyles.borderWidth});
@@ -76,8 +78,8 @@ export function getCoreBaseStyles({ coreStyles }: { theme: ExpressiveCodeTheme; 
 
 			& > code {
 				all: unset;
-				display: inline-block;
-				min-width: 100%;
+				display: block;
+				flex: 1 0 100%;
 
 				padding: ${coreStyles.codePaddingBlock} 0;
 				color: ${coreStyles.codeForeground};
@@ -91,6 +93,25 @@ export function getCoreBaseStyles({ coreStyles }: { theme: ExpressiveCodeTheme; 
 			::selection {
 				background: ${coreStyles.codeSelectionBackground};
 			}
+
+			/* Show minimal horizontal scrollbar if required */
+			overflow-x: auto;
+			&::-webkit-scrollbar,
+			&::-webkit-scrollbar-track {
+				background-color: inherit;
+				border-radius: calc(${coreStyles.borderRadius} + ${coreStyles.borderWidth});
+				border-top-left-radius: 0;
+				border-top-right-radius: 0;
+			}
+			&::-webkit-scrollbar-thumb {
+				background-color: ${multiplyAlpha(coreStyles.scrollbarThumbColor, 0.6)};
+				border: 4px solid transparent;
+				background-clip: content-box;
+				border-radius: 10px;
+			}
+			&::-webkit-scrollbar-thumb:hover {
+				background-color: ${coreStyles.scrollbarThumbColor};
+			}
 		}
 
 		/* Code lines */
@@ -98,8 +119,7 @@ export function getCoreBaseStyles({ coreStyles }: { theme: ExpressiveCodeTheme; 
 			box-sizing: border-box;
 			--accent-margin: 0rem;
 			min-width: calc(100% - var(--accent-margin));
-			padding-inline-start: var(--padding-inline);
-			padding-inline-end: calc(2 * var(--padding-inline));
+			padding-inline: var(--padding-inline);
 		}
 
 		/* Common style to hide elements from screen readers */

@@ -5,6 +5,15 @@ import { ExpressiveCodeTheme } from '@expressive-code/core'
 import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures } from '@internal/test-utils'
 import { pluginFrames } from '../src'
 
+const exampleCode = `
+const btn = document.getElementById('btn')
+btn.addEventListener('click', () => console.log('Hello World!'))
+`.trim()
+
+const exampleTerminalCode = `
+pnpm i --save-dev expressive-code some-other-package yet-another-package 
+`.trim()
+
 describe('Renders frames around the code', () => {
 	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
 	themes.unshift(undefined)
@@ -14,7 +23,7 @@ describe('Renders frames around the code', () => {
 			testName,
 			testBaseDir: __dirname,
 			fixtures: buildThemeFixtures(themes, {
-				code: `import { defineConfig } from 'example/config'`,
+				code: exampleCode,
 				plugins: [pluginFrames()],
 				blockValidationFn: ({ renderedGroupAst }) => {
 					validateBlockAst({
@@ -34,7 +43,7 @@ describe('Renders frames around the code', () => {
 				code: `
 // test.config.mjs
 
-import { defineConfig } from 'example/config'
+${exampleCode}
 				`.trim(),
 				plugins: [pluginFrames()],
 				blockValidationFn: ({ renderedGroupAst }) => {
@@ -53,7 +62,7 @@ import { defineConfig } from 'example/config'
 			testName,
 			testBaseDir: __dirname,
 			fixtures: buildThemeFixtures(themes, {
-				code: 'pnpm i expressive-code',
+				code: exampleTerminalCode,
 				language: 'shell',
 				plugins: [pluginFrames()],
 				blockValidationFn: ({ renderedGroupAst }) => {
@@ -71,7 +80,7 @@ import { defineConfig } from 'example/config'
 			testName,
 			testBaseDir: __dirname,
 			fixtures: buildThemeFixtures(themes, {
-				code: 'pnpm i expressive-code',
+				code: exampleTerminalCode,
 				language: 'shell',
 				meta: 'title="Installing Expressive Code"',
 				plugins: [pluginFrames()],
