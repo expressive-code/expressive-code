@@ -1,13 +1,15 @@
 import { StyleSettings, multiplyAlpha, ExpressiveCodeTheme, ResolvedCoreStyles, onBackground, toRgbaString } from '@expressive-code/core'
 
 export const framesStyleSettings = new StyleSettings({
+	shadowColor: ({ theme, coreStyles }) => theme.colors['widget.shadow'] || multiplyAlpha(coreStyles.borderColor, 0.75),
+	frameBoxShadowCssValue: ({ resolveSetting }) => `0.1rem 0.1rem 0.2rem ${resolveSetting('shadowColor')}`,
 	editorActiveTabBackground: ({ theme }) => theme.colors['tab.activeBackground'],
 	editorActiveTabForeground: ({ theme }) => theme.colors['tab.activeForeground'],
 	editorActiveTabBorderTop: ({ theme }) => theme.colors['tab.activeBorderTop'],
 	editorActiveTabBorderBottom: ({ theme }) => theme.colors['tab.activeBorder'],
 	editorTabBorderRadius: ({ coreStyles }) => coreStyles.borderRadius,
 	editorTabBarBackground: ({ theme }) => multiplyAlpha(theme.colors['editorGroupHeader.tabsBackground'], 0.75),
-	editorTabBarBorder: ({ coreStyles }) => multiplyAlpha(coreStyles.borderColor, 0.75),
+	editorTabBarBorderColor: ({ coreStyles }) => multiplyAlpha(coreStyles.borderColor, 0.75),
 	editorTabBarBorderBottom: ({ theme, coreStyles }) => `${coreStyles.borderWidth} solid ${theme.colors['editorGroupHeader.tabsBorder'] || 'transparent'}`,
 	editorBackground: ({ coreStyles }) => coreStyles.codeBackground,
 	terminalTitlebarDotsForeground: ({ theme }) => (theme.type === 'dark' ? '#ffffff26' : '#00000026'),
@@ -53,6 +55,10 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 	const styles = `
 		.frame {
 			all: unset;
+			display: block;
+			--header-border-radius: calc(${coreStyles.borderRadius} + ${coreStyles.borderWidth});
+			border-radius: var(--header-border-radius);
+			box-shadow: ${framesStyles.frameBoxShadowCssValue};
 
 			.header {
 				display: none;
@@ -61,7 +67,6 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 
 				border: ${coreStyles.borderWidth} solid ${coreStyles.borderColor};
 				border-bottom: none;
-				--header-border-radius: calc(${coreStyles.borderRadius} + ${coreStyles.borderWidth});
 				border-radius: var(--header-border-radius) var(--header-border-radius) 0 0;
 			}
 
@@ -92,7 +97,7 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 
 				/* Tab bar background */
 				& .header {
-					border-color: ${framesStyles.editorTabBarBorder};
+					border-color: ${framesStyles.editorTabBarBorderColor};
 					display: flex;
 					background: ${framesStyles.editorTabBarBackground};
 					background-clip: padding-box;

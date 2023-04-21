@@ -1,8 +1,8 @@
 import { lighten } from '../helpers/color-transforms'
-import { ResolvedStyleSettings, StyleSettings } from '../helpers/style-settings'
+import { ColorDefinition, CoreStyleResolverFn, ResolvedStyleSettings, StyleSettings } from '../helpers/style-settings'
 import { ExpressiveCodeTheme } from './theme'
 
-export const coreStyleSettings = new StyleSettings({
+const coreStyleDefaults = {
 	// Outer container
 	borderRadius: '0.3rem',
 	borderWidth: '1.5px',
@@ -43,9 +43,11 @@ export const coreStyleSettings = new StyleSettings({
 	uiSelectionForeground: ({ theme }) => theme.colors['menu.selectionForeground'],
 	// Special colors
 	focusBorder: ({ theme }) => theme.colors['focusBorder'],
-})
+} satisfies Record<string, ColorDefinition | CoreStyleResolverFn>
 
-export type ResolvedCoreStyles = ResolvedStyleSettings<keyof typeof coreStyleSettings.defaultSettings>
+export const coreStyleSettings = new StyleSettings(coreStyleDefaults)
+
+export type ResolvedCoreStyles = ResolvedStyleSettings<keyof typeof coreStyleDefaults>
 
 export const codeLineClass = 'ec-line'
 

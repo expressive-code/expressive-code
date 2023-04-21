@@ -64,21 +64,48 @@ export class StyleSettings<T extends string> {
 		coreStyles: ResolvedCoreStyles
 		styleOverrides?: Partial<UnresolvedStyleSettings<T>>
 	}): ResolvedStyleSettings<T> {
+		const attemptedToResolve = new Set<T>()
 		const resolvedSettings = {} as ResolvedStyleSettings<T>
-		for (const propertyName in this.defaultSettings) {
-			const valueOrResolver = styleOverrides?.[propertyName] || this.defaultSettings[propertyName]
-			const resolvedDefinition: ColorDefinition = typeof valueOrResolver === 'function' ? valueOrResolver({ theme, coreStyles }) : valueOrResolver
-			const resolvedValue = Array.isArray(resolvedDefinition) ? resolvedDefinition[theme.type === 'dark' ? 0 : 1] : resolvedDefinition
-			resolvedSettings[propertyName] = resolvedValue
+		const defaultSettings = this.defaultSettings
+		const resolverArgs = { theme, coreStyles, resolveSetting }
+
+		function resolveSetting(propertyName: T): string {
+			let result = resolvedSettings[propertyName]
+			if (result === undefined) {
+				if (attemptedToResolve.has(propertyName)) throw new Error(`Circular dependency detected while resolving style setting '${propertyName}'`)
+				attemptedToResolve.add(propertyName)
+
+				const valueOrResolver = styleOverrides?.[propertyName] || defaultSettings[propertyName]
+				const resolvedDefinition: ColorDefinition = typeof valueOrResolver === 'function' ? valueOrResolver(resolverArgs) : valueOrResolver
+				result = Array.isArray(resolvedDefinition) ? resolvedDefinition[theme.type === 'dark' ? 0 : 1] : resolvedDefinition
+
+				resolvedSettings[propertyName] = result
+			}
+			return result
 		}
+
+		for (const propertyName in defaultSettings) {
+			resolveSetting(propertyName)
+		}
+
 		return resolvedSettings
 	}
 }
 
 export type ColorDefinition = string | [dark: string, light: string]
 export type CoreStyleResolverFn = ({ theme }: { theme: ExpressiveCodeTheme }) => ColorDefinition
-export type StyleResolverFn = ({ theme, coreStyles }: { theme: ExpressiveCodeTheme; coreStyles: ResolvedCoreStyles }) => ColorDefinition
+export type StyleResolverFn<T extends string> = ({
+	theme,
+	coreStyles,
+	resolveSetting,
+}: {
+	theme: ExpressiveCodeTheme
+	coreStyles: ResolvedCoreStyles
+	resolveSetting: (propertyName: T) => string
+}) => ColorDefinition
 export type BaseStylesResolverFn = ({ theme, coreStyles }: { theme: ExpressiveCodeTheme; coreStyles: ResolvedCoreStyles }) => string
 export type UnresolvedCoreStyleSettings<T extends string> = { [K in T]: ColorDefinition | CoreStyleResolverFn }
-export type UnresolvedStyleSettings<T extends string> = { [K in T]: ColorDefinition | StyleResolverFn }
+export type UnresolvedStyleSettings<T extends string> = {
+	[K in T]: ColorDefinition | StyleResolverFn<T>
+}
 export type ResolvedStyleSettings<T extends string> = { [K in T]: string }
