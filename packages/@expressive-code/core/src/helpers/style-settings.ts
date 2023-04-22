@@ -93,7 +93,14 @@ export class StyleSettings<T extends string> {
 }
 
 export type ColorDefinition = string | [dark: string, light: string]
-export type CoreStyleResolverFn = ({ theme }: { theme: ExpressiveCodeTheme }) => ColorDefinition
+export type CoreStyleResolverFn<T extends string> = ({
+	theme,
+	// We don't have a coreStyles object here yet
+	resolveSetting,
+}: {
+	theme: ExpressiveCodeTheme
+	resolveSetting: (propertyName: T) => string
+}) => ColorDefinition
 export type StyleResolverFn<T extends string> = ({
 	theme,
 	coreStyles,
@@ -104,7 +111,7 @@ export type StyleResolverFn<T extends string> = ({
 	resolveSetting: (propertyName: T) => string
 }) => ColorDefinition
 export type BaseStylesResolverFn = ({ theme, coreStyles }: { theme: ExpressiveCodeTheme; coreStyles: ResolvedCoreStyles }) => string
-export type UnresolvedCoreStyleSettings<T extends string> = { [K in T]: ColorDefinition | CoreStyleResolverFn }
+export type UnresolvedCoreStyleSettings<T extends string> = { [K in T]: ColorDefinition | CoreStyleResolverFn<T> }
 export type UnresolvedStyleSettings<T extends string> = {
 	[K in T]: ColorDefinition | StyleResolverFn<T>
 }

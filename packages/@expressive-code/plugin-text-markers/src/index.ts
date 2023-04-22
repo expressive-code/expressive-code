@@ -1,4 +1,4 @@
-import { ExpressiveCodePlugin, AttachedPluginData, replaceDelimitedValues, onBackground, ensureReadableColorContrast } from '@expressive-code/core'
+import { ExpressiveCodePlugin, AttachedPluginData, replaceDelimitedValues, onBackground, ensureColorContrastOnBackground } from '@expressive-code/core'
 import rangeParser from 'parse-numeric-range'
 import { visitParents } from 'unist-util-visit-parents'
 import { MarkerType, markerTypeFromString } from './marker-types'
@@ -126,8 +126,8 @@ export function pluginTextMarkers(options: PluginTextMarkersOptions = {}): Expre
 					})
 					// Abort if the resulting background color is the same as the default
 					if (combinedBackgroundColor === backgroundColor) return
-					// Otherwise, ensure a goot contrast ratio of the text
-					const readableTextColor = ensureReadableColorContrast(textColor, combinedBackgroundColor)
+					// Otherwise, ensure a good contrast ratio of the text
+					const readableTextColor = ensureColorContrastOnBackground(textColor, combinedBackgroundColor)
 					if (readableTextColor.toLowerCase() === textColor.toLowerCase()) return
 					node.data.inlineStyleColor = readableTextColor
 					node.properties.style = `color:${readableTextColor}${node.properties.style?.toString().replace(/^(color:[^;]+)(;|$)/, '$2') || ''}`

@@ -1,8 +1,33 @@
-import { lighten, multiplyAlpha } from '../helpers/color-transforms'
-import { ColorDefinition, CoreStyleResolverFn, ResolvedStyleSettings, StyleSettings } from '../helpers/style-settings'
+import { lighten, ensureColorContrastOnBackground } from '../helpers/color-transforms'
+import { ResolvedStyleSettings, StyleSettings, UnresolvedCoreStyleSettings } from '../helpers/style-settings'
 import { ExpressiveCodeTheme } from './theme'
 
-const coreStyleDefaults = {
+type CoreStyleSettings =
+	| 'borderRadius'
+	| 'borderWidth'
+	| 'borderColor'
+	| 'codeFontFamily'
+	| 'codeFontSize'
+	| 'codeFontWeight'
+	| 'codeLineHeight'
+	| 'codePaddingBlock'
+	| 'codePaddingInline'
+	| 'codeBackground'
+	| 'codeForeground'
+	| 'codeSelectionBackground'
+	| 'uiFontFamily'
+	| 'uiFontSize'
+	| 'uiFontWeight'
+	| 'uiLineHeight'
+	| 'uiPaddingBlock'
+	| 'uiPaddingInline'
+	| 'uiSelectionBackground'
+	| 'uiSelectionForeground'
+	| 'focusBorder'
+	| 'scrollbarThumbColor'
+	| 'scrollbarThumbHoverColor'
+
+export const coreStyleSettings = new StyleSettings<CoreStyleSettings>({
 	// Outer container
 	borderRadius: '0.3rem',
 	borderWidth: '1.5px',
@@ -43,12 +68,12 @@ const coreStyleDefaults = {
 	uiSelectionForeground: ({ theme }) => theme.colors['menu.selectionForeground'],
 	// Special colors
 	focusBorder: ({ theme }) => theme.colors['focusBorder'],
-	scrollbarThumbColor: ({ theme }) => theme.colors['scrollbarSlider.background'],
-} satisfies Record<string, ColorDefinition | CoreStyleResolverFn>
+	scrollbarThumbColor: ({ theme, resolveSetting }) => ensureColorContrastOnBackground(theme.colors['scrollbarSlider.background'], resolveSetting('codeBackground'), 1, 2),
+	scrollbarThumbHoverColor: ({ theme, resolveSetting }) =>
+		ensureColorContrastOnBackground(theme.colors['scrollbarSlider.hoverBackground'], resolveSetting('codeBackground'), 2.5, 3.5),
+} satisfies UnresolvedCoreStyleSettings<CoreStyleSettings>)
 
-export const coreStyleSettings = new StyleSettings(coreStyleDefaults)
-
-export type ResolvedCoreStyles = ResolvedStyleSettings<keyof typeof coreStyleDefaults>
+export type ResolvedCoreStyles = ResolvedStyleSettings<CoreStyleSettings>
 
 export const codeLineClass = 'ec-line'
 
@@ -104,13 +129,13 @@ export function getCoreBaseStyles({ coreStyles }: { theme: ExpressiveCodeTheme; 
 				border-top-right-radius: 0;
 			}
 			&::-webkit-scrollbar-thumb {
-				background-color: ${multiplyAlpha(coreStyles.scrollbarThumbColor, 0.6)};
+				background-color: ${coreStyles.scrollbarThumbColor};
 				border: 4px solid transparent;
 				background-clip: content-box;
 				border-radius: 10px;
 			}
 			&::-webkit-scrollbar-thumb:hover {
-				background-color: ${coreStyles.scrollbarThumbColor};
+				background-color: ${coreStyles.scrollbarThumbHoverColor};
 			}
 		}
 
