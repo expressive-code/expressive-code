@@ -52,22 +52,35 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions?] | [], Root> = 
 		}
 		const { ec, baseStyles } = await lazyLoadPromise
 		let addedBaseStyles = false
+		const addedGroupStyles = new Set<string>()
 
 		for (const [parent, code] of nodesToProcess) {
 			// Try to render the current code node
-			const { renderedGroupAst /*, styles*/ } = await ec.render({
+			const { renderedGroupAst, styles } = await ec.render({
 				code: code.value,
 				language: code.lang || '',
 				meta: code.meta || '',
 			})
 			let htmlContent = toHtml(renderedGroupAst)
 
-			// If the current code node is the first one, add base styles
+			// Collect styles that we need to prepend to the rendered HTML content
+			const stylesToPrepend: string[] = []
 			if (!addedBaseStyles) {
+				// We didn't add the base styles yet, so we need to do that first
 				addedBaseStyles = true
-				htmlContent = `<style>${[...baseStyles].join('')}</style>${htmlContent}`
+				stylesToPrepend.push(baseStyles)
 			}
-			// TODO: Add group styles (if any) as a style element
+			// Add all group-level styles that we haven't added yet
+			for (const style of styles) {
+				if (!addedGroupStyles.has(style)) {
+					addedGroupStyles.add(style)
+					stylesToPrepend.push(style)
+				}
+			}
+			// If we collected any styles, add them before the HTML content
+			if (stylesToPrepend.length) {
+				htmlContent = `<style>${[...stylesToPrepend].join('')}</style>${htmlContent}`
+			}
 
 			// Replace current node with a new HTML node
 			const html: HTML = {
