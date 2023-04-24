@@ -1,20 +1,39 @@
 import type { Plugin } from 'unified'
 import type { Root, Parent, Code, HTML } from 'mdast'
 import { visit } from 'unist-util-visit'
-import { ExpressiveCode, ExpressiveCodeConfig } from 'expressive-code'
+import { BundledShikiTheme, loadShikiTheme, ExpressiveCode, ExpressiveCodeConfig, ExpressiveCodeTheme } from 'expressive-code'
 import { toHtml } from 'hast-util-to-html'
 
 export { ExpressiveCodeTheme } from 'expressive-code'
 
-// TODO: Decide on additional options to be exposed by this plugin
-export type RemarkExpressiveCodeOptions = ExpressiveCodeConfig /*& {
-	someAdditionalOption?: boolean
-}*/
+export type RemarkExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'theme'> & {
+	/**
+	 * The color theme that should be used when rendering. You can either reference any
+	 * theme bundled with Shiki by name or load an ExpressiveCodeTheme and pass it here.
+	 *
+	 * If you want to load a custom JSON theme file yourself, you can load its contents
+	 * into a string and pass it to `ExpressiveCodeTheme.fromJSONString()`.
+	 *
+	 * Defaults to the `github-dark` theme bundled with Shiki.
+	 */
+	theme?: BundledShikiTheme | ExpressiveCodeTheme
+}
 
 const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions?] | [], Root> = (options?: RemarkExpressiveCodeOptions) => {
-	const { /*someAdditionalOption,*/ ...ecOptions } = options ?? {}
-	const ec = new ExpressiveCode(ecOptions)
-	let baseStyles: string | undefined
+	const { theme, ...ecOptions } = options ?? {}
+
+	const getLazyLoadPromise = async () => {
+		const mustLoadTheme = theme !== undefined && !(theme instanceof ExpressiveCodeTheme)
+		const optLoadedTheme = mustLoadTheme ? new ExpressiveCodeTheme(await loadShikiTheme(theme)) : theme
+		const ec = new ExpressiveCode({ theme: optLoadedTheme, ...ecOptions })
+		const baseStyles = await ec.getBaseStyles()
+
+		return {
+			ec,
+			baseStyles,
+		}
+	}
+	let lazyLoadPromise: ReturnType<typeof getLazyLoadPromise> | undefined
 
 	return async (tree) => {
 		const nodesToProcess: [Parent, Code][] = []
@@ -26,7 +45,12 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions?] | [], Root> = 
 
 		if (nodesToProcess.length === 0) return
 
-		if (baseStyles === undefined) baseStyles = await ec.getBaseStyles()
+		// We found at least one code node, so we need to ensure our lazy-loaded
+		// resources are available before we can continue
+		if (lazyLoadPromise === undefined) {
+			lazyLoadPromise = getLazyLoadPromise()
+		}
+		const { ec, baseStyles } = await lazyLoadPromise
 		let addedBaseStyles = false
 
 		for (const [parent, code] of nodesToProcess) {

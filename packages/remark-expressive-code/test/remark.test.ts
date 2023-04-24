@@ -13,6 +13,28 @@ describe('Usage inside unified/remark', () => {
 		const result = await processor.process(sampleCodeMarkdown)
 		expect(result.value).toMatch(sampleCodeHtmlRegExp)
 	})
+	test('Can load themes bundled with Shiki by name', async () => {
+		const testCases: {
+			theme: RemarkExpressiveCodeOptions['theme']
+			bgColor: string
+			textColor: string
+		}[] = [
+			{ theme: 'light-plus', bgColor: '#ffffff', textColor: '#000000' },
+			{ theme: 'material-theme', bgColor: '#263238', textColor: '#eeffff' },
+		]
+		await Promise.all(
+			testCases.map(async ({ theme, bgColor, textColor }) => {
+				const processor = createRemarkProcessor({ theme })
+				const result = await processor.process(sampleCodeMarkdown)
+				const html = result.value.toString()
+				const actualBgColor = html.match(/.ec-\w+? pre{(?:[^}]*?;)*background:(.*?)[;}]/)?.[1]
+				const actualTextColor = html.match(/.ec-\w+? pre\s*>\s*code{(?:[^}]*?;)*color:(.*?)[;}]/)?.[1]
+				expect(html).toMatch(sampleCodeHtmlRegExp)
+				expect(actualBgColor).toMatch(bgColor)
+				expect(actualTextColor).toMatch(textColor)
+			})
+		)
+	})
 })
 
 function createRemarkProcessor(options?: RemarkExpressiveCodeOptions) {

@@ -1,11 +1,9 @@
 import { defineConfig } from 'astro/config'
-import remarkExpressiveCode, { ExpressiveCodeTheme } from 'remark-expressive-code'
+import remarkExpressiveCode from 'remark-expressive-code'
 
 /** @type import('remark-expressive-code').RemarkExpressiveCodeOptions */
 const remarkExpressiveCodeOptions = {
-	theme: new ExpressiveCodeTheme({
-		type: 'light',
-	}),
+	theme: 'solarized-light',
 }
 
 // https://astro.build/config
