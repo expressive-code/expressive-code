@@ -2,7 +2,7 @@ import { lighten, ensureColorContrastOnBackground } from '../helpers/color-trans
 import { ResolvedStyleSettings, StyleSettings, UnresolvedCoreStyleSettings } from '../helpers/style-settings'
 import { ExpressiveCodeTheme } from './theme'
 
-type CoreStyleSettings =
+export type CoreStyleSettings =
 	| 'borderRadius'
 	| 'borderWidth'
 	| 'borderColor'

@@ -3,7 +3,7 @@ import { ExpressiveCodePlugin } from './plugin'
 import { renderGroup, RenderInput, RenderOptions } from '../internal/render-group'
 import { ExpressiveCodeTheme } from './theme'
 import { PluginStyles, processPluginStyles } from '../internal/css'
-import { coreStyleSettings, getCoreBaseStyles, ResolvedCoreStyles } from './core-styles'
+import { CoreStyleSettings, coreStyleSettings, getCoreBaseStyles, ResolvedCoreStyles } from './core-styles'
 import { UnresolvedCoreStyleSettings } from '../helpers/style-settings'
 import { getStableObjectHash } from '../helpers/objects'
 
@@ -25,7 +25,7 @@ export interface ExpressiveCodeEngineConfig {
 	 * **Tip:** If your site uses CSS variables for styling, you can also use these overrides
 	 * to replace any core style with a CSS variable reference, e.g. `var(--your-css-var)`.
 	 */
-	styleOverrides?: Partial<UnresolvedCoreStyleSettings<keyof typeof coreStyleSettings.defaultSettings>>
+	styleOverrides?: Partial<UnresolvedCoreStyleSettings<CoreStyleSettings>>
 	/**
 	 * To add a plugin, import its initialization function and call it inside this array.
 	 *
