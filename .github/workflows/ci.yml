@@ -9,7 +9,7 @@ on:
 
 jobs:
   ci:
-    name: Lint, build & test
+    name: Build, test & lint
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -27,11 +27,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       
-      - name: Lint source code
-        run: pnpm lint
-      
       - name: Build packages
         run: pnpm build
       
       - name: Run tests with coverage
         run: pnpm coverage
+
+      - name: Lint source code
+        run: pnpm lint
