@@ -6,14 +6,16 @@
 - [When should I use this?](#when-should-i-use-this)
 - [Installation](#installation)
 - [Usage example](#usage-example)
-- [API](#api)
+- [Base API](#base-api)
   - [`ExpressiveCodeEngine`](#expressivecodeengine)
   - [`ExpressiveCodeBlock`](#expressivecodeblock)
   - [`ExpressiveCodeBlockOptions`](#expressivecodeblockoptions)
   - [`ExpressiveCodeLine`](#expressivecodeline)
   - [`ExpressiveCodeTheme`](#expressivecodetheme)
+- [Annotation API](#annotation-api)
   - [`ExpressiveCodeAnnotation`](#expressivecodeannotation)
   - [`InlineStyleAnnotation`](#inlinestyleannotation)
+- [Plugin API](#plugin-api)
   - [`ExpressiveCodePlugin`](#expressivecodeplugin)
   - [`ExpressiveCodePluginHooks`](#expressivecodepluginhooks)
   - [`AttachedPluginData`](#attachedplugindata)
@@ -61,7 +63,7 @@ console.dir({
 })
 ```
 
-## API
+## Base API
 
 ### `ExpressiveCodeEngine`
 
@@ -426,7 +428,7 @@ A class representing a single code line that is part of an `ExpressiveCodeBlock`
 
   An object containing the theme's settings. Used by Shiki.
 
----
+## Annotation API
 
 ### `ExpressiveCodeAnnotation`
 
@@ -489,10 +491,136 @@ You can develop your own annotations by extending this class and providing imple
 
     You do not need to create new nodes. You can simply modify the existing nodes in the `nodesToTransform` array and return it.
 
+---
+
 ### `InlineStyleAnnotation`
+
+A concrete implementation of [`ExpressiveCodeAnnotation`](#expressivecodeannotation) that allows you to apply inline styles to code.
+
+Used by `@expressive-code/plugin-shiki` to render syntax highlighting.
+
+#### InlineStyleAnnotation constructor
+
+- ##### `new InlineStyleAnnotation(options)`
+
+  Creates a new inline style annotation.
+
+  **Properties of the `options` argument**:
+
+  - `color?: string`
+
+    The color of the annotation. This is expected to be a hex color string, e.g. `#888`. Using CSS variables or other color formats is possible, but prevents automatic color contrast checks from working.
+
+  - `italic?: boolean`
+
+    Whether the annotation should be rendered in italics.
+
+  - `bold?: boolean`
+
+    Whether the annotation should be rendered in bold.
+
+  - `underline?: boolean`
+
+    Whether the annotation should be rendered with an underline.
+
+  - `inlineRange?: ExpressiveCodeInlineRange`
+
+    See [`ExpressiveCodeAnnotation.inlineRange`](#inlinerange-expressivecodeinlinerange).
+
+  - `renderPhase?: AnnotationRenderPhase`
+
+    See [`ExpressiveCodeAnnotation.renderPhase`](#renderphase-annotationrenderphase).
+
+#### InlineStyleAnnotation instance properties
+
+All properties passed to the constructor are available as instance properties.
+
+## Plugin API
+
+In Expressive Code, all processing of your code blocks and their metadata is performed by plugins and annotations. To render markup around lines or inline ranges of characters, plugins create annotations and attach them to the target line.
+
+### Using plugins
+
+To add a plugin to your Expressive Code configuration, import its initialization function and call it inside the `plugins` array passed to the [ExpressiveCodeEngine constructor](#expressivecodeengine-constructor).
+
+If the plugin has any configuration options, you can pass them to the initialization function as an object containing your desired property values.
+
+**Example**:
+
+```js
+import { ExpressiveCodeEngine } from '@expressive-code/core';
+// Import the frames plugin
+import { pluginFrames } from '@expressive-code/plugin-frames';
+
+const engine = new ExpressiveCodeEngine({
+  plugins: [
+    // Add the plugin to the engine configuration
+    pluginFrames({
+      // Set the plugin's options (if any)
+      extractFileNameFromCode: false,
+    }),
+  ],
+});
+```
+
+### Writing your own plugins
+
+To write a new plugin, you need to create a **plugin initialization function** that returns an object matching the interface [`ExpressiveCodePlugin`](#expressivecodeplugin).
+
+```js
+// my-example-plugin.js
+export function pluginExample() {
+  return {
+    name: 'Example',
+    hooks: {
+      // Add your hooks here
+    },
+  }
+}
+```
+
+If your plugin has any configuration options, you can add a single `options` argument to your initialization function. This argument must be an object type containing the desired configuration properties.
+
+> **Note**:
+> Please use sensible default values for all options wherever possible, so that users ideally do not need to pass any options for your plugin to work.
+
+---
 
 ### `ExpressiveCodePlugin`
 
+This interface defines the structure of a plugin object.
+
+#### ExpressiveCodePlugin interface properties
+
+- ##### `name: string`
+
+- ##### `baseStyles?: string | BaseStylesResolverFn`
+
+  The CSS styles that should be added to every page containing code blocks.
+
+  All styles are scoped to Expressive Code by default, so they will not affect the rest of the page. SASS-like nesting is supported.
+  
+  If you want to add global styles, you can use the `@at-root` rule or target `:root`, `html` or `body` in your selectors.
+
+  The engine's [`getBaseStyles`](#async-getbasestyles) function goes through all registered plugins and collects their base styles. If you provide a function instead of a string, the function is called with the current theme and the resolved core styles as an argument.
+
+  > **Warning**:
+  > If you are an advanced user who uses the engine directly (e.g. when writing your own integration into a framework), please note that the these styles do not get added to the render output automatically.
+  >
+  > Instead, your integration code must take care of collecting all styles and adding them to the page. For example, you could create a site-wide CSS stylesheet from the base style and insert a link to it, or you could insert the base styles into a `<style>` element.
+  >
+  > If you are not writing an integration, please consider using a higher-level package like `remark-expressive-code`, which takes care of this for you.
+
+- ##### `hooks: ExpressiveCodePluginHooks`
+
+  The plugin's hook functions that should be called by the engine during rendering.
+
+  See [`ExpressiveCodePluginHooks`](#expressivecodepluginhooks).
+
+---
+
 ### `ExpressiveCodePluginHooks`
+
+---
 
 ### `AttachedPluginData`
