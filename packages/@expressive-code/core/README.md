@@ -99,7 +99,8 @@ See above for a [usage example](#usage-example).
 
       If any of the settings are not given, default values will be used or derived from the theme, as seen in the exported `coreStyleSettings` object.
 
-      **Note**: If your site uses CSS variables for styling, you can also use these overrides to replace any core style with a CSS variable reference, e.g. `var(--your-css-var)`.
+      > **Note**:
+      > If your site uses CSS variables for styling, you can also use these overrides to replace any core style with a CSS variable reference, e.g. `var(--your-css-var)`.
 
     - `plugins?: (ExpressiveCodePlugin | ExpressiveCodePlugin[])[]`
 
@@ -137,7 +138,8 @@ See above for a [usage example](#usage-example).
 
   Non-global CSS styles returned by the `getBaseStyles` and `render` methods are scoped automatically using this class name.
 
-  **Note**: If you want to target all code blocks in CSS, you will probably want to use the non-config-dependent default class `expressive-code` instead, which is also added to all wrapper elements.
+  > **Note**:
+  > If you want to target all code blocks in CSS, you will probably want to use the non-config-dependent default class `expressive-code` instead, which is also added to all wrapper elements.
 
 #### ExpressiveCodeEngine instance methods
 
@@ -189,22 +191,22 @@ A class representing a single code block that can be rendered by the Expressive 
 #### Usage example
 
 ```js
-import { ExpressiveCodeBlock } from 'expressive-code';
+import { ExpressiveCodeBlock } from 'expressive-code'
 
 const codePlaintext = `
 // Perform very important calculations
-const a = 1 + 2;
-`;
+const a = 1 + 2
+`
 
 const codeBlock = new ExpressiveCodeBlock({
   code: codePlaintext.trim(),
   language: 'js',
-});
+})
 
 // Delete the first line and output the remaining code
 codeBlock.deleteLine(0)
 console.dir(codeBlock.code)
-// --> 'const a = 1 + 2;'
+// --> 'const a = 1 + 2'
 ```
 
 #### ExpressiveCodeBlock constructor
@@ -562,9 +564,9 @@ If the plugin has any configuration options, you can pass them to the initializa
 **Example**:
 
 ```js
-import { ExpressiveCodeEngine } from '@expressive-code/core';
+import { ExpressiveCodeEngine } from '@expressive-code/core'
 // Import the frames plugin
-import { pluginFrames } from '@expressive-code/plugin-frames';
+import { pluginFrames } from '@expressive-code/plugin-frames'
 
 const engine = new ExpressiveCodeEngine({
   plugins: [
@@ -574,7 +576,7 @@ const engine = new ExpressiveCodeEngine({
       extractFileNameFromCode: false,
     }),
   ],
-});
+})
 ```
 
 ### Writing your own plugins
