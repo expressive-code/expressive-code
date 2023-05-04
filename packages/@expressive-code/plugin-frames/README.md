@@ -8,6 +8,7 @@
 - [Configuration](#configuration)
   - [Astro configuration example](#astro-configuration-example)
   - [Next.js configuration example using `@next/mdx`](#nextjs-configuration-example-using-nextmdx)
+  - [Available plugin options](#available-plugin-options)
 - [Usage in markdown / MDX documents](#usage-in-markdown--mdx-documents)
   - [Code editor window frames](#code-editor-window-frames)
   - [Terminal window frames](#terminal-window-frames)
