@@ -22,7 +22,7 @@ It performs syntax highlighting of your code blocks using the popular [Shiki](ht
 
 ## When should I use this?
 
-This plugin is **installed by default** by our higher-level packages like `remark-expressive-code`, so it will be used automatically when rendering code blocks in your markdown / MDX documents..
+This plugin is **installed by default** by our higher-level packages like `remark-expressive-code`, so it will be used automatically when rendering code blocks in your markdown / MDX documents.
 
 ## Installation (not required)
 
