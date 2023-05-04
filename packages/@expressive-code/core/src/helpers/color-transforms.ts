@@ -1,12 +1,15 @@
 import { ColorInput, TinyColor, readability } from '@ctrl/tinycolor'
+import { LabColor, LchColor, labToRgba, lchToRgba, parseCssLabColor, parseCssLchColor } from '../internal/color-spaces'
+
+export type ColorValue = ColorInput | LabColor | LchColor
 
 /**
  * Overrides the alpha value of a color with the given value.
  * Values should be between 0 and 1.
  */
-export function setAlpha(input: ColorInput, newAlpha: number) {
+export function setAlpha(input: ColorValue, newAlpha: number) {
 	return withParsedColor(input, (color) => {
-		return toCssColor(color.setAlpha(newAlpha))
+		return toHexColor(color.setAlpha(newAlpha))
 	})
 }
 
@@ -14,9 +17,9 @@ export function setAlpha(input: ColorInput, newAlpha: number) {
  * Multiplies the existing alpha value of a color with the given factor.
  * Automatically limits the resulting alpha value to the range 0 to 1.
  */
-export function multiplyAlpha(input: ColorInput, factor: number) {
+export function multiplyAlpha(input: ColorValue, factor: number) {
 	return withParsedColor(input, (color) => {
-		return toCssColor(color.setAlpha(minMaxRounded(color.getAlpha() * factor)))
+		return toHexColor(color.setAlpha(minMaxRounded(color.getAlpha() * factor)))
 	})
 }
 
@@ -24,7 +27,7 @@ export function multiplyAlpha(input: ColorInput, factor: number) {
  * Mixes a color with white or black to achieve the desired luminance.
  * Luminance values should be between 0 and 1.
  */
-export function setLuminance(input: ColorInput, luminance: number) {
+export function setLuminance(input: ColorValue, luminance: number) {
 	return withParsedColor(input, (color) => {
 		const v = color.getLuminance()
 		const mixColor = v < luminance ? '#fff' : '#000'
@@ -37,7 +40,7 @@ export function setLuminance(input: ColorInput, luminance: number) {
 			},
 			targetValue: luminance,
 		})
-		return toCssColor(color.mix(mixColor, mixAmount * 100))
+		return toHexColor(color.mix(mixColor, mixAmount * 100))
 	})
 }
 
@@ -45,11 +48,11 @@ export function setLuminance(input: ColorInput, luminance: number) {
  * Lightens a color by the given amount.
  * Automatically limits the resulting lightness value to the range 0 to 1.
  */
-export function lighten(input: ColorInput, amount: number) {
+export function lighten(input: ColorValue, amount: number) {
 	return withParsedColor(input, (color) => {
 		const hsl = color.toHsl()
 		const l = minMaxRounded(hsl.l)
-		return toCssColor(new TinyColor({ ...hsl, l: minMaxRounded(l + l * amount) }))
+		return toHexColor(toTinyColor({ ...hsl, l: minMaxRounded(l + l * amount) }))
 	})
 }
 
@@ -57,7 +60,7 @@ export function lighten(input: ColorInput, amount: number) {
  * Darkens a color by the given amount.
  * Automatically limits the resulting lightness value to the range 0 to 1.
  */
-export function darken(input: ColorInput, amount: number) {
+export function darken(input: ColorValue, amount: number) {
 	return lighten(input, -amount)
 }
 
@@ -65,38 +68,38 @@ export function darken(input: ColorInput, amount: number) {
  * Mixes the second color into the first color by the given amount.
  * Amount should be between 0 and 1.
  */
-export function mix(input: ColorInput, mixinInput: ColorInput, amount: number) {
+export function mix(input: ColorValue, mixinInput: ColorValue, amount: number) {
 	return withParsedColor(input, (color) => {
-		const mixinColor = new TinyColor(mixinInput)
+		const mixinColor = toTinyColor(mixinInput)
 		// TinyColor's mix() method expects a value between 0 and 100
 		const mixAmount = minMaxRounded(amount * 100, 0, 100)
-		return toCssColor(color.mix(mixinColor, mixAmount))
+		return toHexColor(color.mix(mixinColor, mixAmount))
 	})
 }
 
 /**
  * Computes how the first color would look on top of the second color.
  */
-export function onBackground(input: ColorInput, background: ColorInput) {
+export function onBackground(input: ColorValue, background: ColorValue) {
 	return withParsedColor(input, (color) => {
-		const backgroundColor = new TinyColor(background)
-		return toCssColor(color.onBackground(backgroundColor))
+		const backgroundColor = toTinyColor(background)
+		return toHexColor(color.onBackground(backgroundColor))
 	})
 }
 
-export function getColorContrast(color1: ColorInput, color2: ColorInput) {
-	const color = new TinyColor(color1)
-	const backgroundColor = new TinyColor(color2)
+export function getColorContrast(color1: ColorValue, color2: ColorValue) {
+	const color = toTinyColor(color1)
+	const backgroundColor = toTinyColor(color2)
 	return readability(color, backgroundColor)
 }
 
-export function getColorContrastOnBackground(input: ColorInput, background: ColorInput) {
-	const color = new TinyColor(input)
-	const backgroundColor = new TinyColor(background)
+export function getColorContrastOnBackground(input: ColorValue, background: ColorValue) {
+	const color = toTinyColor(input)
+	const backgroundColor = toTinyColor(background)
 	return readability(color.onBackground(backgroundColor), backgroundColor)
 }
 
-export function ensureColorContrastOnBackground(input: ColorInput, background: ColorInput, minContrast = 5.5, maxContrast = 22): string {
+export function ensureColorContrastOnBackground(input: ColorValue, background: ColorValue, minContrast = 5.5, maxContrast = 22): string {
 	return withParsedColor(input, (color) => {
 		return withParsedColor(background, (backgroundColor) => {
 			let newColor = color.clone()
@@ -107,26 +110,26 @@ export function ensureColorContrastOnBackground(input: ColorInput, background: C
 				const contrastWithoutAlpha = readability(newColor, backgroundColor)
 				if (contrastWithoutAlpha < minContrast) {
 					// The contrast is also too low when fully opaque, so change the luminance
-					newColor = new TinyColor(changeLuminanceToReachColorContrast(newColor, backgroundColor, minContrast))
+					newColor = toTinyColor(changeLuminanceToReachColorContrast(newColor, backgroundColor, minContrast))
 					curContrast = readability(newColor.onBackground(backgroundColor), backgroundColor)
 				}
 			}
 
 			// Try to modify the alpha value to reach the desired contrast
 			if (curContrast < minContrast || curContrast > maxContrast) {
-				newColor = new TinyColor(changeAlphaToReachColorContrast(newColor, backgroundColor, minContrast, maxContrast))
+				newColor = toTinyColor(changeAlphaToReachColorContrast(newColor, backgroundColor, minContrast, maxContrast))
 			}
 
-			return toCssColor(newColor)
+			return toHexColor(newColor)
 		})
 	})
 }
 
-export function changeLuminanceToReachColorContrast(input1: ColorInput, input2: ColorInput, minContrast = 6): string {
-	const color1 = new TinyColor(input1)
-	const color2 = new TinyColor(input2)
+export function changeLuminanceToReachColorContrast(input1: ColorValue, input2: ColorValue, minContrast = 6): string {
+	const color1 = toTinyColor(input1)
+	const color2 = toTinyColor(input2)
 	const oldContrast = readability(color1, color2)
-	if (oldContrast >= minContrast) return toCssColor(color1)
+	if (oldContrast >= minContrast) return toHexColor(color1)
 
 	const color1L = color1.getLuminance()
 	const color2L = color2.getLuminance()
@@ -138,7 +141,7 @@ export function changeLuminanceToReachColorContrast(input1: ColorInput, input2: 
 	const darkenedContrast = readability(darkenedColor, color2)
 
 	// If we couldn't improve the contrast, return the old color
-	if (lightenedContrast <= oldContrast && darkenedContrast <= oldContrast) return toCssColor(color1)
+	if (lightenedContrast <= oldContrast && darkenedContrast <= oldContrast) return toHexColor(color1)
 
 	// First try to achieve the desired minimum contrast without inverting
 	if (color1L >= color2L && lightenedContrast >= minContrast) return lightenedColor
@@ -148,12 +151,12 @@ export function changeLuminanceToReachColorContrast(input1: ColorInput, input2: 
 	return lightenedContrast > darkenedContrast ? lightenedColor : darkenedColor
 }
 
-export function changeAlphaToReachColorContrast(input: ColorInput, background: ColorInput, minContrast = 6, maxContrast = 22) {
-	const color = new TinyColor(input)
-	const backgroundColor = new TinyColor(background)
+export function changeAlphaToReachColorContrast(input: ColorValue, background: ColorValue, minContrast = 6, maxContrast = 22) {
+	const color = toTinyColor(input)
+	const backgroundColor = toTinyColor(background)
 	const colorOnBackground = color.onBackground(backgroundColor)
 	const curContrast = readability(colorOnBackground, backgroundColor)
-	if (curContrast >= minContrast && curContrast <= maxContrast) return toCssColor(color)
+	if (curContrast >= minContrast && curContrast <= maxContrast) return toHexColor(color)
 
 	const newAlpha = binarySearch({
 		getValueFn: (alpha) => {
@@ -203,20 +206,53 @@ function binarySearch({
 	return mid
 }
 
-function withParsedColor(input: ColorInput, transform: (color: TinyColor) => string) {
-	const color = input instanceof TinyColor ? input.clone() : new TinyColor(input)
+function withParsedColor(input: ColorValue, transform: (color: TinyColor) => string) {
+	const color = toTinyColor(input)
 	if (!color.isValid) {
-		return input === undefined || typeof input === 'string' ? input : toCssColor(color)
+		return input === undefined || typeof input === 'string' ? input : toHexColor(color)
 	}
 	return transform(color)
 }
 
-function toCssColor(color: TinyColor) {
+function toTinyColor(input: ColorValue) {
+	if (input instanceof TinyColor) {
+		// We use this instead of clone() because clone performs unwanted rounding
+		return new TinyColor(input.toHexShortString())
+	}
+	if (typeof input === 'string') {
+		// Detect CSS lab() color notation as input and convert it to RGBA
+		// as this color space is not supported by TinyColor yet
+		const labColor = parseCssLabColor(input)
+		if (labColor) {
+			return new TinyColor(labToRgba(labColor))
+		}
+		// Detect CSS lch() color notation as input and convert it to RGBA
+		// as this color space is not supported by TinyColor yet
+		const lchColor = parseCssLchColor(input)
+		if (lchColor) {
+			return new TinyColor(lchToRgba(lchColor))
+		}
+	}
+	if (typeof input === 'object') {
+		// Detect lab color objects
+		if ('l' in input && 'a' in input && 'b' in input) {
+			return new TinyColor(labToRgba(input))
+		}
+		// Detect lch color objects
+		if ('l' in input && 'c' in input && 'h' in input) {
+			return new TinyColor(lchToRgba(input))
+		}
+	}
+	return new TinyColor(input)
+}
+
+export function toHexColor(input: ColorValue) {
+	const color = input instanceof TinyColor ? input : toTinyColor(input)
 	return color.toHexShortString()
 }
 
-export function toRgbaString(input: ColorInput) {
-	const color = new TinyColor(input)
+export function toRgbaString(input: ColorValue) {
+	const color = input instanceof TinyColor ? input : toTinyColor(input)
 	return color.toRgbString().toLowerCase()
 }
 
