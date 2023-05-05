@@ -5,14 +5,14 @@
 - [What is this?](#what-is-this)
 - [When should I use this?](#when-should-i-use-this)
 - [Installation (not required)](#installation-not-required)
-- [Configuration](#configuration)
-  - [Astro configuration example](#astro-configuration-example)
-  - [Next.js configuration example using `@next/mdx`](#nextjs-configuration-example-using-nextmdx)
-  - [Available plugin options](#available-plugin-options)
 - [Usage in markdown / MDX documents](#usage-in-markdown--mdx-documents)
   - [Code editor window frames](#code-editor-window-frames)
   - [Terminal window frames](#terminal-window-frames)
   - [Adding titles (open file tab or terminal window title)](#adding-titles-open-file-tab-or-terminal-window-title)
+- [Configuration](#configuration)
+  - [Astro configuration example](#astro-configuration-example)
+  - [Next.js configuration example using `@next/mdx`](#nextjs-configuration-example-using-nextmdx)
+  - [Available plugin options](#available-plugin-options)
 - [Advanced use cases](#advanced-use-cases)
   - [Manual installation](#manual-installation)
   - [Manual usage from the core package](#manual-usage-from-the-core-package)
@@ -36,6 +36,53 @@ This plugin is **installed by default** by our higher-level packages like `remar
 No installation is required. This package is **installed by default** by our higher-level packages.
 
 If you are using the core package directly (e.g. because you are writing an integration), see the [Advanced use cases](#advanced-use-cases) section for more information.
+
+## Usage in markdown / MDX documents
+
+If you are using a higher-level integration package like `remark-expressive-code`, frames will automatically be rendered around your code blocks in markdown / MDX documents.
+
+The type of frame that will be rendered (editor window or terminal window) is selected automatically based on the language identifier in your code block's opening fence:
+
+### Code editor window frames
+
+Code blocks will be rendered as a code editor window if their language identifier is not a terminal language (see next section for a list of terminal languages):
+
+````md
+```js
+console.log('Hello World!')
+```
+````
+
+### Terminal window frames
+
+Code blocks will be rendered as a terminal window if their language identifier matches one of the supported terminal languages `bash`, `shellscript`, `shell`, `sh`, or `zsh`:
+
+````md
+```bash
+npm install
+```
+````
+
+### Adding titles (open file tab or terminal window title)
+
+You can give your frames a title by adding an optional `title="...your title..."` attribute after the language identifier.
+
+The following code block will be rendered as an editor window with an open file tab named `my-test-file.js`:
+
+````md
+```js title="my-test-file.js"
+console.log('Hello World!')
+```
+````
+
+Unless turned off in the plugin configuration, you can also add a file name comment in the first lines of your code to set the title. This comment will be removed from the code and shown as the frame's title instead:
+
+````md
+```js
+// my-test-file.js
+console.log('Hello World!')
+```
+````
 
 ## Configuration
 
@@ -145,53 +192,6 @@ You can pass the following options to the plugin:
 
   - Terminal styles:
     `terminalTitlebarDotsForeground`, `terminalTitlebarBackground`, `terminalTitlebarForeground`, `terminalTitlebarBorderBottom`, `terminalBackground`
-
-## Usage in markdown / MDX documents
-
-If you are using a higher-level integration package like `remark-expressive-code`, frames will automatically be rendered around your code blocks in markdown / MDX documents.
-
-The type of frame that will be rendered (editor window or terminal window) is selected automatically based on the language identifier in your code block's opening fence:
-
-### Code editor window frames
-
-Code blocks will be rendered as a code editor window if their language identifier is not a terminal language (see next section for a list of terminal languages):
-
-````md
-```js
-console.log('Hello World!')
-```
-````
-
-### Terminal window frames
-
-Code blocks will be rendered as a terminal window if their language identifier matches one of the supported terminal languages `bash`, `shellscript`, `shell`, `sh`, or `zsh`:
-
-````md
-```bash
-npm install
-```
-````
-
-### Adding titles (open file tab or terminal window title)
-
-You can give your frames a title by adding an optional `title="...your title..."` attribute after the language identifier.
-
-The following code block will be rendered as an editor window with an open file tab named `my-test-file.js`:
-
-````md
-```js title="my-test-file.js"
-console.log('Hello World!')
-```
-````
-
-Unless turned off in the plugin configuration, you can also add a file name comment in the first lines of your code to set the title. This comment will be removed from the code and shown as the frame's title instead:
-
-````md
-```js
-// my-test-file.js
-console.log('Hello World!')
-```
-````
 
 ## Advanced use cases
 
