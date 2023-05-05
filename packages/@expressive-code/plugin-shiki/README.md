@@ -5,11 +5,11 @@
 - [What is this?](#what-is-this)
 - [When should I use this?](#when-should-i-use-this)
 - [Installation (not required)](#installation-not-required)
+- [Usage in markdown / MDX documents](#usage-in-markdown--mdx-documents)
+- [Supported languages](#supported-languages)
 - [Configuration](#configuration)
   - [Astro configuration example](#astro-configuration-example)
   - [Next.js configuration example using `@next/mdx`](#nextjs-configuration-example-using-nextmdx)
-- [Usage in markdown / MDX documents](#usage-in-markdown--mdx-documents)
-- [Supported languages](#supported-languages)
 - [Advanced use cases](#advanced-use-cases)
   - [Manual installation](#manual-installation)
   - [Manual usage from the core package](#manual-usage-from-the-core-package)
@@ -29,6 +29,22 @@ This plugin is **installed by default** by our higher-level packages like `remar
 No installation is required. This package is **installed by default** by our higher-level packages.
 
 If you are using the core package directly (e.g. because you are writing an integration), see the [Advanced use cases](#advanced-use-cases) section for more information.
+
+## Usage in markdown / MDX documents
+
+This plugin will automatically highlight your code blocks using the current theme of Expressive Code.
+
+You only need to ensure that your opening code fences have a language identifier, e.g. `js` for JavaScript:
+
+````md
+```js
+console.log('This code will be syntax highlighted!')
+```
+````
+
+## Supported languages
+
+The full list of languages can be found in the [Shiki documentation](https://github.com/shikijs/shiki/blob/main/docs/languages.md#all-languages).
 
 ## Configuration
 
@@ -97,22 +113,6 @@ const withMDX = createMDX({
 
 export default withMDX(nextConfig)
 ```
-
-## Usage in markdown / MDX documents
-
-This plugin will automatically highlight your code blocks using the current theme of Expressive Code.
-
-You only need to ensure that your opening code fences have a language identifier, e.g. `js` for JavaScript:
-
-````md
-```js
-console.log('This code will be syntax highlighted!')
-```
-````
-
-## Supported languages
-
-The full list of languages can be found in the [Shiki documentation](https://github.com/shikijs/shiki/blob/main/docs/languages.md#all-languages).
 
 ## Advanced use cases
 
