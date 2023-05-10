@@ -133,12 +133,13 @@ importers:
       '@expressive-code/core':
         specifier: workspace:^0.2.0
         version: link:../core
-      '@internal/test-utils':
-        specifier: workspace:^
-        version: link:../../../internal/test-utils
       shiki:
         specifier: ^0.14.1
         version: 0.14.1
+    devDependencies:
+      '@internal/test-utils':
+        specifier: workspace:^
+        version: link:../../../internal/test-utils
 
   packages/@expressive-code/plugin-text-markers:
     dependencies:
