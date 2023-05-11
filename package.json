@@ -9,8 +9,8 @@
     "coverage": "pnpm -r --no-bail --stream coverage",
     "test": "pnpm -r --no-bail test-short",
     "validate": "pnpm i && pnpm build && pnpm test && pnpm lint",
-    "version": "changeset version && pnpm i",
-    "release": "pnpm validate && pnpm version && changeset publish"
+    "bump": "changeset version && pnpm i",
+    "release": "pnpm validate && pnpm bump && changeset publish"
   },
   "workspaces": [
     "packages/@expressive-code/*",

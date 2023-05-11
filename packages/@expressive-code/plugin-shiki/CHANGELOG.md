@@ -1,5 +1,16 @@
 # @expressive-code/plugin-shiki
 
+## 0.3.0
+
+### Minor Changes
+
+- 3ffa599: Fix incorrect highlighting of terminal placeholders
+
+### Patch Changes
+
+- Updated dependencies [6d316f6]
+  - @expressive-code/core@0.3.0
+
 ## 0.2.1
 
 ### Patch Changes
