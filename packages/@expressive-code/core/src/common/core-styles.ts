@@ -49,7 +49,7 @@ export const coreStyleSettings = new StyleSettings<CoreStyleSettings>({
 		`Courier`,
 		`monospace`,
 	].join(','),
-	codeFontSize: '0.85em',
+	codeFontSize: '0.85rem',
 	codeFontWeight: '400',
 	codeLineHeight: '1.65',
 	codePaddingBlock: '1rem',
