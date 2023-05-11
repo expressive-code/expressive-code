@@ -140,6 +140,9 @@ importers:
       '@internal/test-utils':
         specifier: workspace:^
         version: link:../../../internal/test-utils
+      hast-util-to-html:
+        specifier: ^8.0.4
+        version: 8.0.4
 
   packages/@expressive-code/plugin-text-markers:
     dependencies:
