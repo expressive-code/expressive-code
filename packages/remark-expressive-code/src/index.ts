@@ -4,7 +4,7 @@ import { visit } from 'unist-util-visit'
 import { BundledShikiTheme, loadShikiTheme, ExpressiveCode, ExpressiveCodeConfig, ExpressiveCodeTheme } from 'expressive-code'
 import { toHtml } from 'hast-util-to-html'
 
-export { ExpressiveCodeTheme } from 'expressive-code'
+export * from 'expressive-code'
 
 export type RemarkExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'theme'> & {
 	/**
