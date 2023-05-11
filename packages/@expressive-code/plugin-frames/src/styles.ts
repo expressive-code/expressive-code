@@ -8,9 +8,11 @@ export const framesStyleSettings = new StyleSettings({
 	editorActiveTabBorder: 'transparent',
 	editorActiveTabBorderTop: ({ theme }) => theme.colors['tab.activeBorderTop'],
 	editorActiveTabBorderBottom: ({ theme }) => theme.colors['tab.activeBorder'],
+	editorActiveTabMarginInlineStart: '0',
+	editorActiveTabMarginBlockStart: '0',
 	editorTabBorderRadius: ({ coreStyles }) => coreStyles.borderRadius,
-	editorTabBarBackground: ({ theme }) => multiplyAlpha(theme.colors['editorGroupHeader.tabsBackground'], 0.75),
-	editorTabBarBorderColor: ({ coreStyles }) => multiplyAlpha(coreStyles.borderColor, 0.75),
+	editorTabBarBackground: ({ theme }) => theme.colors['editorGroupHeader.tabsBackground'],
+	editorTabBarBorderColor: ({ coreStyles }) => coreStyles.borderColor,
 	editorTabBarBorderBottom: ({ theme }) => theme.colors['editorGroupHeader.tabsBorder'] || 'transparent',
 	editorBackground: ({ coreStyles }) => coreStyles.codeBackground,
 	terminalTitlebarDotsForeground: ({ theme }) => (theme.type === 'dark' ? '#ffffff26' : '#00000026'),
@@ -88,7 +90,7 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 					color: ${framesStyles.editorActiveTabForeground};
 					background: ${activeTabBackground};
 					background-clip: padding-box;
-					margin-block-start: ${coreStyles.uiPaddingBlock};
+					margin-block-start: ${framesStyles.editorActiveTabMarginBlockStart};
 					padding: ${coreStyles.uiPaddingBlock} ${coreStyles.uiPaddingInline};
 					border-radius: ${framesStyles.editorTabBorderRadius} ${framesStyles.editorTabBorderRadius} 0 0;
 					border: ${coreStyles.borderWidth} solid ${framesStyles.editorActiveTabBorder};
@@ -102,7 +104,7 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 					background: ${framesStyles.editorTabBarBackground};
 					background-clip: padding-box;
 					&::before {
-						padding-inline-start: calc(0.5 * ${coreStyles.uiPaddingInline});
+						padding-inline-start: ${framesStyles.editorActiveTabMarginInlineStart};
 					}
 					&::after {
 						flex-grow: 1;
