@@ -1,5 +1,15 @@
 # remark-expressive-code
 
+## 0.3.0
+
+### Minor Changes
+
+- Synchronize package versions
+
+### Patch Changes
+
+- expressive-code@0.3.0
+
 ## 0.2.1
 
 ### Patch Changes
