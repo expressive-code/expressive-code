@@ -1,3 +1,4 @@
+// @ts-check
 import { defineConfig } from 'astro/config'
 import remarkExpressiveCode from 'remark-expressive-code'
 

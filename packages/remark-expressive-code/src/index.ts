@@ -1,4 +1,4 @@
-import type { Plugin } from 'unified'
+import type { Plugin, Transformer } from 'unified'
 import type { Root, Parent, Code, HTML } from 'mdast'
 import { visit } from 'unist-util-visit'
 import { BundledShikiTheme, loadShikiTheme, ExpressiveCode, ExpressiveCodeConfig, ExpressiveCodeTheme } from 'expressive-code'
@@ -19,8 +19,9 @@ export type RemarkExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'theme'> & 
 	theme?: BundledShikiTheme | ExpressiveCodeTheme
 }
 
-const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions?] | [], Root> = (options?: RemarkExpressiveCodeOptions) => {
-	const { theme, ...ecOptions } = options ?? {}
+const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Root> = (...settings) => {
+	const options: RemarkExpressiveCodeOptions = settings[0] ?? {}
+	const { theme, ...ecOptions } = options
 
 	const getLazyLoadPromise = async () => {
 		const mustLoadTheme = theme !== undefined && !(theme instanceof ExpressiveCodeTheme)
@@ -35,7 +36,7 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions?] | [], Root> = 
 	}
 	let lazyLoadPromise: ReturnType<typeof getLazyLoadPromise> | undefined
 
-	return async (tree) => {
+	const transformer: Transformer<Root, Root> = async (tree) => {
 		const nodesToProcess: [Parent, Code][] = []
 
 		visit(tree, 'code', (code, index, parent) => {
@@ -90,6 +91,8 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions?] | [], Root> = 
 			parent.children.splice(parent.children.indexOf(code), 1, html)
 		}
 	}
+
+	return transformer
 }
 
 export default remarkExpressiveCode

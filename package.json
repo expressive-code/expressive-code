@@ -7,7 +7,9 @@
     "build": "pnpm -r --stream build",
     "lint": "eslint . && markdownlint **/*.md --ignore **/node_modules/**/*.md",
     "coverage": "pnpm -r --no-bail --stream coverage",
-    "test": "pnpm -r --no-bail test-short"
+    "test": "pnpm -r --no-bail test-short",
+    "validate": "pnpm i && pnpm build && pnpm test && pnpm lint",
+    "release": "pnpm validate && changeset version && changeset publish"
   },
   "workspaces": [
     "packages/@expressive-code/*",
