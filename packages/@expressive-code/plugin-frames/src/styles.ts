@@ -5,18 +5,18 @@ export const framesStyleSettings = new StyleSettings({
 	frameBoxShadowCssValue: ({ resolveSetting }) => `0.1rem 0.1rem 0.2rem ${resolveSetting('shadowColor')}`,
 	editorActiveTabBackground: ({ theme }) => theme.colors['tab.activeBackground'],
 	editorActiveTabForeground: ({ theme }) => theme.colors['tab.activeForeground'],
+	editorActiveTabBorder: 'transparent',
 	editorActiveTabBorderTop: ({ theme }) => theme.colors['tab.activeBorderTop'],
 	editorActiveTabBorderBottom: ({ theme }) => theme.colors['tab.activeBorder'],
 	editorTabBorderRadius: ({ coreStyles }) => coreStyles.borderRadius,
 	editorTabBarBackground: ({ theme }) => multiplyAlpha(theme.colors['editorGroupHeader.tabsBackground'], 0.75),
 	editorTabBarBorderColor: ({ coreStyles }) => multiplyAlpha(coreStyles.borderColor, 0.75),
-	editorTabBarBorderBottom: ({ theme, coreStyles }) => `${coreStyles.borderWidth} solid ${theme.colors['editorGroupHeader.tabsBorder'] || 'transparent'}`,
+	editorTabBarBorderBottom: ({ theme }) => theme.colors['editorGroupHeader.tabsBorder'] || 'transparent',
 	editorBackground: ({ coreStyles }) => coreStyles.codeBackground,
 	terminalTitlebarDotsForeground: ({ theme }) => (theme.type === 'dark' ? '#ffffff26' : '#00000026'),
 	terminalTitlebarBackground: ({ theme }) => theme.colors['editorGroupHeader.tabsBackground'],
 	terminalTitlebarForeground: ({ theme }) => theme.colors['titleBar.activeForeground'],
-	terminalTitlebarBorderBottom: ({ theme, coreStyles }) =>
-		`${coreStyles.borderWidth} solid ${onBackground(coreStyles.borderColor, theme.type === 'dark' ? '#000000bf' : '#ffffffbf')}`,
+	terminalTitlebarBorderBottom: ({ theme, coreStyles }) => onBackground(coreStyles.borderColor, theme.type === 'dark' ? '#000000bf' : '#ffffffbf'),
 	terminalBackground: ({ theme }) => theme.colors['terminal.background'],
 })
 
@@ -91,7 +91,7 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 					margin-block-start: ${coreStyles.uiPaddingBlock};
 					padding: ${coreStyles.uiPaddingBlock} ${coreStyles.uiPaddingInline};
 					border-radius: ${framesStyles.editorTabBorderRadius} ${framesStyles.editorTabBorderRadius} 0 0;
-					border: ${coreStyles.borderWidth} solid ${coreStyles.borderColor};
+					border: ${coreStyles.borderWidth} solid ${framesStyles.editorActiveTabBorder};
 					border-bottom: none;
 				}
 
@@ -110,7 +110,7 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 					&::before,
 					&::after {
 						content: '';
-						border-bottom: ${coreStyles.borderWidth} solid ${coreStyles.borderColor};
+						border-bottom: ${coreStyles.borderWidth} solid ${framesStyles.editorTabBarBorderBottom};
 					}
 				}
 			}
@@ -146,7 +146,7 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 						content: '';
 						position: absolute;
 						inset: 0;
-						border-bottom: ${framesStyles.terminalTitlebarBorderBottom};
+						border-bottom: ${coreStyles.borderWidth} solid ${framesStyles.terminalTitlebarBorderBottom};
 					}
 				}
 

@@ -188,7 +188,7 @@ You can pass the following options to the plugin:
   - General styles: `shadowColor`, `frameBoxShadowCssValue`
 
   - Editor styles:
-    `editorActiveTabBackground`, `editorActiveTabForeground`, `editorActiveTabBorderTop`, `editorActiveTabBorderBottom`, `editorTabBorderRadius`, `editorTabBarBackground`, `editorTabBarBorderColor`, `editorTabBarBorderBottom`, `editorBackground`
+    `editorActiveTabBackground`, `editorActiveTabForeground`, `editorActiveTabBorder`, `editorActiveTabBorderTop`, `editorActiveTabBorderBottom`, `editorTabBorderRadius`, `editorTabBarBackground`, `editorTabBarBorderColor`, `editorTabBarBorderBottom`, `editorBackground`
 
   - Terminal styles:
     `terminalTitlebarDotsForeground`, `terminalTitlebarBackground`, `terminalTitlebarForeground`, `terminalTitlebarBorderBottom`, `terminalBackground`

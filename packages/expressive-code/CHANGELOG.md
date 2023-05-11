@@ -1,5 +1,12 @@
 # expressive-code
 
+## 0.2.1
+
+### Patch Changes
+
+- Updated dependencies
+  - @expressive-code/plugin-frames@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes
