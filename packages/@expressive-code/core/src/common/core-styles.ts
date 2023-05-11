@@ -91,6 +91,7 @@ export function getCoreBaseStyles({ coreStyles }: { theme: ExpressiveCodeTheme; 
 		pre {
 			display: flex;
 			margin: 0;
+			padding: 0;
 			border: ${coreStyles.borderWidth} solid ${coreStyles.borderColor};
 			border-radius: calc(${coreStyles.borderRadius} + ${coreStyles.borderWidth});
 			background: ${coreStyles.codeBackground};
