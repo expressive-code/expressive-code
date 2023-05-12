@@ -27,18 +27,23 @@ export function multiplyAlpha(input: ColorValue, factor: number) {
  * Mixes a color with white or black to achieve the desired luminance.
  * Luminance values should be between 0 and 1.
  */
-export function setLuminance(input: ColorValue, luminance: number) {
+export function setLuminance(input: ColorValue, targetLuminance: number) {
 	return withParsedColor(input, (color) => {
-		const v = color.getLuminance()
-		const mixColor = v < luminance ? '#fff' : '#000'
+		targetLuminance = minMaxRounded(targetLuminance)
+		const increasing = targetLuminance > color.getLuminance()
+		const mixColor = increasing ? '#fff' : '#000'
 		const mixAmount = binarySearch({
 			getValueFn: (amount) => {
-				return color
-					.clone()
+				return toTinyColor(color)
 					.mix(mixColor, amount * 100)
 					.getLuminance()
 			},
-			targetValue: luminance,
+			targetValue: targetLuminance,
+			preferHigher: targetLuminance > 0 && targetLuminance < 1 ? increasing : undefined,
+			tolerance: 1 / 256,
+			// Ensure that the binary search range matches the luminance target direction
+			low: increasing ? 0 : 1,
+			high: increasing ? 1 : 0,
 		})
 		return toHexColor(color.mix(mixColor, mixAmount * 100))
 	})
@@ -99,29 +104,43 @@ export function getColorContrastOnBackground(input: ColorValue, background: Colo
 	return readability(color.onBackground(backgroundColor), backgroundColor)
 }
 
+/**
+ * Modifies the luminance and/or the alpha value of a color to ensure its color contrast
+ * on the given background color is within the given range.
+ *
+ * - If the contrast is too low, the luminance is either increased or decreased first,
+ *   and then the alpha value is increased (if required).
+ * - If the contrast is too high, only the alpha value is decreased.
+ *
+ * If the target contrast cannot be reached, the function will try to get as close as possible.
+ */
 export function ensureColorContrastOnBackground(input: ColorValue, background: ColorValue, minContrast = 5.5, maxContrast = 22): string {
 	return withParsedColor(input, (color) => {
-		return withParsedColor(background, (backgroundColor) => {
-			let newColor = color.clone()
-			let curContrast = readability(newColor.onBackground(backgroundColor), backgroundColor)
+		return withParsedColor(
+			background,
+			(backgroundColor) => {
+				let newColor = toTinyColor(color)
+				let curContrast = readability(newColor.onBackground(backgroundColor), backgroundColor)
 
-			// If the current contrast is too low, check if we need to change the luminance
-			if (curContrast < minContrast) {
-				const contrastWithoutAlpha = readability(newColor, backgroundColor)
-				if (contrastWithoutAlpha < minContrast) {
-					// The contrast is also too low when fully opaque, so change the luminance
-					newColor = toTinyColor(changeLuminanceToReachColorContrast(newColor, backgroundColor, minContrast))
-					curContrast = readability(newColor.onBackground(backgroundColor), backgroundColor)
+				// If the current contrast is too low, check if we need to change the luminance
+				if (curContrast < minContrast) {
+					const contrastWithoutAlpha = readability(newColor, backgroundColor)
+					if (contrastWithoutAlpha < minContrast) {
+						// The contrast is also too low when fully opaque, so change the luminance
+						newColor = toTinyColor(changeLuminanceToReachColorContrast(newColor, backgroundColor, minContrast))
+						curContrast = readability(newColor.onBackground(backgroundColor), backgroundColor)
+					}
 				}
-			}
 
-			// Try to modify the alpha value to reach the desired contrast
-			if (curContrast < minContrast || curContrast > maxContrast) {
-				newColor = toTinyColor(changeAlphaToReachColorContrast(newColor, backgroundColor, minContrast, maxContrast))
-			}
+				// Try to modify the alpha value to reach the desired contrast
+				if (curContrast < minContrast || curContrast > maxContrast) {
+					newColor = toTinyColor(changeAlphaToReachColorContrast(newColor, backgroundColor, minContrast, maxContrast))
+				}
 
-			return toHexColor(newColor)
-		})
+				return toHexColor(newColor)
+			},
+			color
+		)
 	})
 }
 
@@ -160,10 +179,14 @@ export function changeAlphaToReachColorContrast(input: ColorValue, background: C
 
 	const newAlpha = binarySearch({
 		getValueFn: (alpha) => {
-			const newColor = color.clone().setAlpha(alpha).onBackground(backgroundColor)
-			return readability(newColor, backgroundColor)
+			const newColor = toTinyColor(color).setAlpha(alpha)
+			const onBg = newColor.onBackground(backgroundColor)
+			const result = readability(onBg, backgroundColor)
+			return result
 		},
-		targetValue: maxContrast,
+		targetValue: curContrast < minContrast ? minContrast : maxContrast,
+		preferHigher: curContrast < minContrast,
+		tolerance: 1 / 256,
 		low: 0.15,
 		high: 1,
 	})
@@ -174,25 +197,47 @@ export function changeAlphaToReachColorContrast(input: ColorValue, background: C
 function binarySearch({
 	getValueFn,
 	targetValue,
+	preferHigher,
+	tolerance = 0.1,
 	low = 0,
 	high = 1,
-	tolerance = 0.1,
+	minChangeFactor = 0.001,
 	maxIterations = 25,
 }: {
 	getValueFn: (mid: number) => number
 	targetValue: number
+	/**
+	 * Determines the preferred direction in relation to `targetValue`. Will be used in two cases:
+	 * - The calculated value is within `tolerance` of `targetValue`.
+	 * - The midpoint does not change enough between iterations anymore (see `minChangeFactor`).
+	 *
+	 * If undefined, the direction will not be taken into account.
+	 */
+	preferHigher?: boolean
+	tolerance?: number
 	low?: number
 	high?: number
-	tolerance?: number
+	/**
+	 * If the midpoint changes less than `minChangeFactor * Math.abs(high - low)`
+	 * between iterations, the search will stop as soon as the value returned by `getValueFn`
+	 * is in the preferred direction in relation to `targetValue`.
+	 */
+	minChangeFactor?: number
 	maxIterations?: number
 }) {
+	const epsilon = minChangeFactor * Math.abs(high - low)
 	let iterations = 0
 	let mid: number
+	let lastMid: number | undefined
 
 	while (((mid = (low + high) / 2), iterations < maxIterations)) {
 		const currentValue = getValueFn(mid)
 
-		if (Math.abs(currentValue - targetValue) <= tolerance) {
+		const resultIsWithinTolerance = Math.abs(currentValue - targetValue) <= tolerance
+		const resultIsInPreferredDirection = preferHigher === undefined ? true : preferHigher ? currentValue > targetValue : currentValue < targetValue
+		const midChangedLessThanEpsilon = lastMid !== undefined && Math.abs(lastMid - mid) < epsilon
+
+		if (resultIsInPreferredDirection && (resultIsWithinTolerance || midChangedLessThanEpsilon)) {
 			return mid
 		} else if (currentValue < targetValue) {
 			low = mid
@@ -201,15 +246,17 @@ function binarySearch({
 		}
 
 		iterations++
+		lastMid = mid
 	}
 
 	return mid
 }
 
-function withParsedColor(input: ColorValue, transform: (color: TinyColor) => string) {
+function withParsedColor(input: ColorValue, transform: (color: TinyColor) => string, fallback?: ColorValue) {
 	const color = toTinyColor(input)
 	if (!color.isValid) {
-		return input === undefined || typeof input === 'string' ? input : toHexColor(color)
+		const fallbackOrInput = fallback !== undefined ? fallback : input
+		return fallbackOrInput === undefined || typeof fallbackOrInput === 'string' ? fallbackOrInput : toHexColor(fallbackOrInput)
 	}
 	return transform(color)
 }
