@@ -71,6 +71,8 @@ const processor = postcss([
 
 export type PluginStyles = { pluginName: string; styles: string }
 
+const processedStylesCache = new Map<string, string>()
+
 /**
  * Processes the CSS styles added by plugins:
  * - Deduplicates the styles.
@@ -83,9 +85,19 @@ export async function processPluginStyles({ pluginStyles, configClassName }: { p
 	const postCssOptions = { from: undefined }
 
 	for (const { pluginName, styles } of pluginStyles) {
-		// Prevent duplicate styles from being processed
+		// Deduplicate the current set of styles
 		if (seenStyles.has(styles)) continue
 		seenStyles.add(styles)
+
+		// Return cached result if the current styles have already been processed
+		// in a previous call to this function with the same config class name
+		// (this is useful because plugins tend to add the same styles for every block)
+		const cacheKey = `${configClassName}::${styles}`
+		const cachedStyles = processedStylesCache.get(cacheKey)
+		if (cachedStyles !== undefined) {
+			result.add(cachedStyles)
+			continue
+		}
 
 		try {
 			// Parse the styles and attach processing data to the root node for use by plugins
@@ -100,6 +112,9 @@ export async function processPluginStyles({ pluginStyles, configClassName }: { p
 
 			// Add the processed styles to the result
 			result.add(processedStyles.css)
+
+			// Cache the processed styles
+			processedStylesCache.set(cacheKey, processedStyles.css)
 		} catch (error) {
 			/* c8 ignore next */
 			const msg = error instanceof Error ? error.message : (error as string)
