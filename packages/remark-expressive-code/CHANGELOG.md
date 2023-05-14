@@ -1,5 +1,13 @@
 # remark-expressive-code
 
+## 0.4.2
+
+### Patch Changes
+
+- Turn off explanations to improve Shiki performance
+- Updated dependencies
+  - expressive-code@0.4.2
+
 ## 0.4.1
 
 ### Patch Changes

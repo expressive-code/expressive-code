@@ -178,7 +178,7 @@ importers:
   packages/astro-expressive-code:
     dependencies:
       remark-expressive-code:
-        specifier: workspace:^0.4.1
+        specifier: workspace:^0.4.2
         version: link:../remark-expressive-code
 
   packages/expressive-code:
@@ -190,7 +190,7 @@ importers:
         specifier: workspace:^0.4.0
         version: link:../@expressive-code/plugin-frames
       '@expressive-code/plugin-shiki':
-        specifier: workspace:^0.3.0
+        specifier: workspace:^0.3.1
         version: link:../@expressive-code/plugin-shiki
       '@expressive-code/plugin-text-markers':
         specifier: workspace:^0.2.1
@@ -199,7 +199,7 @@ importers:
   packages/remark-expressive-code:
     dependencies:
       expressive-code:
-        specifier: workspace:^0.4.1
+        specifier: workspace:^0.4.2
         version: link:../expressive-code
       hast-util-to-html:
         specifier: ^8.0.4

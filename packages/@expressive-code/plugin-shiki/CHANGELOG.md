@@ -1,5 +1,11 @@
 # @expressive-code/plugin-shiki
 
+## 0.3.1
+
+### Patch Changes
+
+- Turn off explanations to improve Shiki performance
+
 ## 0.3.0
 
 ### Minor Changes
