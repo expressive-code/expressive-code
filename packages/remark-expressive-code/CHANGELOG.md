@@ -1,5 +1,13 @@
 # remark-expressive-code
 
+## 0.4.1
+
+### Patch Changes
+
+- Fix issues with color transforms
+- Updated dependencies
+  - expressive-code@0.4.1
+
 ## 0.4.0
 
 ### Minor Changes
