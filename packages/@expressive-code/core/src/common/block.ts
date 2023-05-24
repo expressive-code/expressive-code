@@ -26,7 +26,16 @@ export class ExpressiveCodeBlock {
 		this.#lines = []
 		this.#language = language
 		this.#meta = meta
-		if (code.length) this.insertLines(0, code.split(/\r?\n/))
+
+		// Split the code into lines and remove whitespace from the end of the lines
+		const lines = code.split(/\r?\n/).map((line) => line.trimEnd())
+
+		// Remove any fully empty lines from the start & end
+		while (lines.length && !lines[0].length) lines.shift()
+		while (lines.length && !lines[lines.length - 1].length) lines.pop()
+
+		// If there are any lines left, insert them into the block
+		if (lines.length) this.insertLines(0, lines)
 
 		// Allow the caller to initialize block data after the block has been created
 		onInitBlock?.(this)

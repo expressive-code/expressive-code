@@ -366,6 +366,30 @@ describe('ExpressiveCodeBlock', () => {
 				expect(block.code, `Failed when using line ending ${JSON.stringify(lineEnding)}`).toEqual(testLines.join('\n'))
 			})
 		})
+
+		test('Automatically removes empty lines at the beginning', () => {
+			const code = [`  `, `  node -v`].join('\n')
+
+			const block = prepareTestBlock({ code, language: 'sh' })
+			expect(block.code).toEqual(`  node -v`)
+		})
+
+		test('Automatically removes empty lines at the end', () => {
+			const code = [`  node -v`, `  `].join('\n')
+
+			const block = prepareTestBlock({ code, language: 'sh' })
+			expect(block.code).toEqual(`  node -v`)
+		})
+
+		test('Automatically trims whitespace at the end of every line', () => {
+			const lines = [`  # Get node version  `, `  node -v\t`]
+			const code = lines.join('\n')
+			const trimmedCode = lines.map((line) => line.trimEnd()).join('\n')
+
+			const block = prepareTestBlock({ code, language: 'sh' })
+			expect(block.code).toEqual(trimmedCode)
+		})
+
 		test('Cannot be edited directly', () => {
 			const block = prepareTestBlock({ code: 'Hello!' })
 			expect(() => {

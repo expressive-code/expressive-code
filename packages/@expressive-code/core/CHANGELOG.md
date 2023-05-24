@@ -1,5 +1,11 @@
 # @expressive-code/core
 
+## 0.4.0
+
+### Minor Changes
+
+- Automatically trim whitespace at the end of lines, and remove empty lines at the beginning & end of code blocks
+
 ## 0.3.1
 
 ### Patch Changes

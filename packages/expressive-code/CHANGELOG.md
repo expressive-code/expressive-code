@@ -1,5 +1,19 @@
 # expressive-code
 
+## 0.5.0
+
+### Minor Changes
+
+- Automatically trim whitespace at the end of lines, and remove empty lines at the beginning & end of code blocks
+
+### Patch Changes
+
+- Updated dependencies
+  - @expressive-code/core@0.4.0
+  - @expressive-code/plugin-frames@0.4.1
+  - @expressive-code/plugin-shiki@0.3.2
+  - @expressive-code/plugin-text-markers@0.2.2
+
 ## 0.4.2
 
 ### Patch Changes

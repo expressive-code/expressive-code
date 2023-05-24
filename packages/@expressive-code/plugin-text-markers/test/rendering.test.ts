@@ -30,22 +30,43 @@ describe('Renders text markers', () => {
 	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
 	themes.unshift(undefined)
 
-	test(`Line-level markers`, async ({ meta: { name: testName } }) => {
-		await renderAndOutputHtmlSnapshot({
-			testName,
-			testBaseDir: __dirname,
-			fixtures: buildThemeFixtures(themes, {
-				code: lineMarkerTestText,
-				meta: `del={5} ins={6-7} mark={1,2}`,
-				plugins: [pluginTextMarkers()],
-				blockValidationFn: buildMarkerValidationFn([
-					{ fullLine: true, markerType: 'mark', text: `import { defineConfig } from 'astro/config';` },
-					{ fullLine: true, markerType: 'mark', text: '' },
-					{ fullLine: true, markerType: 'del', text: 'extendDefaultPlugins: false,' },
-					{ fullLine: true, markerType: 'ins', text: 'smartypants: false,' },
-					{ fullLine: true, markerType: 'ins', text: 'gfm: false,' },
-				]),
-			}),
+	describe('Line-level markers', () => {
+		test(`Marks the expected lines`, async ({ meta: { name: testName } }) => {
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code: lineMarkerTestText,
+					meta: `del={5} ins={6-7} mark={1,2}`,
+					plugins: [pluginTextMarkers()],
+					blockValidationFn: buildMarkerValidationFn([
+						{ fullLine: true, markerType: 'mark', text: `import { defineConfig } from 'astro/config';` },
+						{ fullLine: true, markerType: 'mark', text: '' },
+						{ fullLine: true, markerType: 'del', text: 'extendDefaultPlugins: false,' },
+						{ fullLine: true, markerType: 'ins', text: 'smartypants: false,' },
+						{ fullLine: true, markerType: 'ins', text: 'gfm: false,' },
+					]),
+				}),
+			})
+		})
+
+		test(`Correctly targets lines when code block starts with empty lines`, async ({ meta: { name: testName } }) => {
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code: `\n\t\n  \n${lineMarkerTestText}`,
+					meta: `del={5} ins={6-7} mark={1,2}`,
+					plugins: [pluginTextMarkers()],
+					blockValidationFn: buildMarkerValidationFn([
+						{ fullLine: true, markerType: 'mark', text: `import { defineConfig } from 'astro/config';` },
+						{ fullLine: true, markerType: 'mark', text: '' },
+						{ fullLine: true, markerType: 'del', text: 'extendDefaultPlugins: false,' },
+						{ fullLine: true, markerType: 'ins', text: 'smartypants: false,' },
+						{ fullLine: true, markerType: 'ins', text: 'gfm: false,' },
+					]),
+				}),
+			})
 		})
 	})
 
