@@ -1,5 +1,5 @@
 import githubDark from 'shiki/themes/github-dark.json'
-import { ExpressiveCodePlugin } from './plugin'
+import { ExpressiveCodePlugin, PluginContentResolverFn } from './plugin'
 import { renderGroup, RenderInput, RenderOptions } from '../internal/render-group'
 import { ExpressiveCodeTheme } from './theme'
 import { PluginStyles, processPluginStyles } from '../internal/css'
@@ -90,16 +90,49 @@ export class ExpressiveCodeEngine {
 			}),
 		})
 		// Add plugin base styles
-		this.plugins.forEach((plugin) => {
-			if (!plugin.baseStyles) return
+		for (const plugin of this.plugins) {
+			if (!plugin.baseStyles) continue
+			const resolvedStyles = typeof plugin.baseStyles === 'function' ? await plugin.baseStyles({ theme: this.theme, coreStyles: this.coreStyles }) : plugin.baseStyles
+			if (!resolvedStyles) continue
 			pluginStyles.push({
 				pluginName: plugin.name,
-				styles: typeof plugin.baseStyles === 'function' ? plugin.baseStyles({ theme: this.theme, coreStyles: this.coreStyles }) : plugin.baseStyles,
+				styles: resolvedStyles,
 			})
-		})
+		}
 		// Process styles (scoping, minifying, etc.)
 		const processedStyles = await processPluginStyles({ pluginStyles, configClassName: this.configClassName })
 		return [...processedStyles].join('')
+	}
+
+	private async collectPluginContent({
+		valueGetter,
+		separator = '',
+	}: {
+		valueGetter: (plugin: ExpressiveCodePlugin) => string | PluginContentResolverFn | undefined
+		separator?: string
+	}): Promise<string> {
+		const content = new Set<string>()
+		for (const plugin of this.plugins) {
+			const rawValue = valueGetter(plugin)
+			const resolved = typeof rawValue === 'function' ? await rawValue({ theme: this.theme, coreStyles: this.coreStyles, configClassName: this.configClassName }) : rawValue
+			if (resolved) content.add(resolved)
+		}
+		return [...content].join(separator)
+	}
+
+	async getBaseScripts(): Promise<string> {
+		return await this.collectPluginContent({
+			valueGetter: (plugin) => plugin.baseJsModuleCode,
+			separator: ';',
+		})
+	}
+
+	async getCustomHtml() {
+		return {
+			head: await this.collectPluginContent({ valueGetter: (plugin) => plugin.customHtmlHead }),
+			bodyStart: await this.collectPluginContent({ valueGetter: (plugin) => plugin.customHtmlBodyStart }),
+			bodyEnd: await this.collectPluginContent({ valueGetter: (plugin) => plugin.customHtmlBodyEnd }),
+		}
 	}
 
 	readonly theme: ExpressiveCodeTheme
