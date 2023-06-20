@@ -3,7 +3,7 @@ import { ResolvedCoreStyles } from './core-styles'
 import { ExpressiveCodePluginHooks } from './plugin-hooks'
 import { ExpressiveCodeTheme } from './theme'
 
-export type PluginContentResolverFn = ({
+export type JsModulesResolverFn = ({
 	theme,
 	coreStyles,
 	configClassName,
@@ -11,7 +11,7 @@ export type PluginContentResolverFn = ({
 	theme: ExpressiveCodeTheme
 	coreStyles: ResolvedCoreStyles
 	configClassName: string
-}) => string | Promise<string>
+}) => string[] | Promise<string[]>
 
 export interface ExpressiveCodePlugin {
 	name: string
@@ -35,45 +35,21 @@ export interface ExpressiveCodePlugin {
 	 */
 	baseStyles?: string | BaseStylesResolverFn
 	/**
-	 * JavaScript module code (without any wrapping `script` tags) that should be added
+	 * JavaScript modules (pure code without any wrapping `script` tags) that should be added
 	 * to every page containing code blocks.
 	 *
-	 * The engine's `getBaseScripts` function goes through all registered plugins
-	 * and collects their base script modules.
+	 * The engine's `getJsModules` function goes through all registered plugins,
+	 * collects their JS modules and deduplicates them.
 	 *
 	 * If you provide a function instead of a string, it is called with an object argument
 	 * containing the current theme, the resolved core styles and the config-dependent
-	 * wrapper class name. It is expected to either return a string or a string promise.
+	 * wrapper class name. It is expected to either return or promise a string array.
 	 *
 	 * The calling code must take care of actually adding the collected scripts to the page.
-	 * For example, it could create site-wide JavaScript files from the base scripts
-	 * and refer to them in a script tag with `type="module"`, or it could insert the base scripts
-	 * into an inline `<script type="module">` element.
+	 * For example, it could create site-wide JavaScript files from the returned modules
+	 * and refer to them in a script tag with `type="module"`, or it could insert them
+	 * into inline `<script type="module">` elements.
 	 */
-	baseJsModuleCode?: string | PluginContentResolverFn
-	/**
-	 * Custom HTML code that should be added to the `<head>` element
-	 * of every page containing code blocks.
-	 *
-	 * The engine's `getCustomHtml` function goes through all registered plugins
-	 * and collects the HTML code from the `customHtml...` properties.
-	 *
-	 * If you provide a function instead of a string, it is called with an object argument
-	 * containing the current theme, the resolved core styles and the config-dependent
-	 * wrapper class name. It is expected to either return a string or a string promise.
-	 *
-	 * The calling code must take care of actually adding the collected HTML to the page.
-	 */
-	customHtmlHead?: string | PluginContentResolverFn
-	/**
-	 * Custom HTML code that should be added after the opening `<body>` tag
-	 * of every page containing code blocks.
-	 */
-	customHtmlBodyStart?: string | PluginContentResolverFn
-	/**
-	 * Custom HTML code that should be added before the closing `</body>` tag
-	 * of every page containing code blocks.
-	 */
-	customHtmlBodyEnd?: string | PluginContentResolverFn
+	jsModules?: string[] | JsModulesResolverFn
 	hooks: ExpressiveCodePluginHooks
 }

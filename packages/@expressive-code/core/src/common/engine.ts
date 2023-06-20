@@ -1,5 +1,5 @@
 import githubDark from 'shiki/themes/github-dark.json'
-import { ExpressiveCodePlugin, PluginContentResolverFn } from './plugin'
+import { ExpressiveCodePlugin } from './plugin'
 import { renderGroup, RenderInput, RenderOptions } from '../internal/render-group'
 import { ExpressiveCodeTheme } from './theme'
 import { PluginStyles, processPluginStyles } from '../internal/css'
@@ -104,35 +104,31 @@ export class ExpressiveCodeEngine {
 		return [...processedStyles].join('')
 	}
 
-	private async collectPluginContent({
-		valueGetter,
-		separator = '',
-	}: {
-		valueGetter: (plugin: ExpressiveCodePlugin) => string | PluginContentResolverFn | undefined
-		separator?: string
-	}): Promise<string> {
-		const content = new Set<string>()
+	/**
+	 * Returns an array of JavaScript modules (pure core without any wrapping `script` tags)
+	 * that should be added to every page containing code blocks.
+	 *
+	 * The contents are collected from the `jsModules` property of all registered plugins.
+	 * Any duplicates are removed.
+	 *
+	 * The calling code must take care of actually adding the collected scripts to the page.
+	 * For example, it could create site-wide JavaScript files from the returned modules
+	 * and refer to them in a script tag with `type="module"`, or it could insert them
+	 * into inline `<script type="module">` elements.
+	 */
+	async getJsModules(): Promise<string[]> {
+		const jsModules = new Set<string>()
 		for (const plugin of this.plugins) {
-			const rawValue = valueGetter(plugin)
-			const resolved = typeof rawValue === 'function' ? await rawValue({ theme: this.theme, coreStyles: this.coreStyles, configClassName: this.configClassName }) : rawValue
-			if (resolved) content.add(resolved)
+			const pluginModules =
+				typeof plugin.jsModules === 'function'
+					? await plugin.jsModules({ theme: this.theme, coreStyles: this.coreStyles, configClassName: this.configClassName })
+					: plugin.jsModules
+			pluginModules?.forEach((moduleCode) => {
+				moduleCode = moduleCode.trim()
+				if (moduleCode) jsModules.add(moduleCode)
+			})
 		}
-		return [...content].join(separator)
-	}
-
-	async getBaseScripts(): Promise<string> {
-		return await this.collectPluginContent({
-			valueGetter: (plugin) => plugin.baseJsModuleCode,
-			separator: ';',
-		})
-	}
-
-	async getCustomHtml() {
-		return {
-			head: await this.collectPluginContent({ valueGetter: (plugin) => plugin.customHtmlHead }),
-			bodyStart: await this.collectPluginContent({ valueGetter: (plugin) => plugin.customHtmlBodyStart }),
-			bodyEnd: await this.collectPluginContent({ valueGetter: (plugin) => plugin.customHtmlBodyEnd }),
-		}
+		return [...jsModules]
 	}
 
 	readonly theme: ExpressiveCodeTheme

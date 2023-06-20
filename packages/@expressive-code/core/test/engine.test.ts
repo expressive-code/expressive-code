@@ -103,4 +103,98 @@ describe('ExpressiveCodeEngine', () => {
 			})
 		})
 	})
+	describe('getJsModules()', () => {
+		test('Returns an empty array if no modules are provided', async () => {
+			const engine = new ExpressiveCodeEngine({
+				plugins: [
+					{
+						name: 'TestPlugin',
+						hooks: {},
+					},
+				],
+			})
+			expect(await engine.getJsModules()).toEqual([])
+		})
+		describe('Returns the JS modules provided by a plugin', () => {
+			test('Supports empty arrays', async () => {
+				const engine = new ExpressiveCodeEngine({
+					plugins: [
+						{
+							name: 'TestPlugin',
+							hooks: {},
+							jsModules: [],
+						},
+					],
+				})
+				expect(await engine.getJsModules()).toEqual([])
+			})
+			test('Supports string arrays', async () => {
+				const engine = new ExpressiveCodeEngine({
+					plugins: [
+						{
+							name: 'TestPlugin',
+							hooks: {},
+							jsModules: ['console.log("Test 1")', 'console.log("Test 2")'],
+						},
+					],
+				})
+				expect(await engine.getJsModules()).toEqual(['console.log("Test 1")', 'console.log("Test 2")'])
+			})
+			test('Supports module resolver functions', async () => {
+				const engine = new ExpressiveCodeEngine({
+					plugins: [
+						{
+							name: 'TestPlugin',
+							hooks: {},
+							jsModules: ({ theme }) => [`console.log("${theme.name}")`],
+						},
+					],
+				})
+				expect(await engine.getJsModules()).toEqual(['console.log("github-dark")'])
+			})
+		})
+		describe('Deduplicates JS modules', () => {
+			test('When they contain the same code', async () => {
+				const engine = new ExpressiveCodeEngine({
+					plugins: [
+						{
+							name: 'TestPlugin',
+							hooks: {},
+							jsModules: () => ['export const test = "something"', 'export const test = "something"'],
+						},
+					],
+				})
+				expect(await engine.getJsModules()).toEqual(['export const test = "something"'])
+			})
+			test('When they only differ in surrounding whitespace', async () => {
+				const engine = new ExpressiveCodeEngine({
+					plugins: [
+						{
+							name: 'TestPlugin',
+							hooks: {},
+							jsModules: () => ['export const test = "something"', '\t\texport const test = "something" '],
+						},
+					],
+				})
+				expect(await engine.getJsModules()).toEqual(['export const test = "something"'])
+			})
+			test('Also checks across plugins', async () => {
+				const engine = new ExpressiveCodeEngine({
+					plugins: [
+						{
+							name: 'TestPlugin1',
+							hooks: {},
+							jsModules: () => ['export const test = "something"', 'console.log(test)'],
+						},
+						{
+							name: 'TestPlugin2',
+							hooks: {},
+							jsModules: () => ['console.log("Success!")', '\texport const test = "something"'],
+						},
+					],
+				})
+				expect(await engine.getJsModules()).toEqual(['export const test = "something"', 'console.log(test)', 'console.log("Success!")'])
+			})
+		})
+	})
 })

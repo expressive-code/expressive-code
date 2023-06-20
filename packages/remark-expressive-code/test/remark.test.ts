@@ -35,6 +35,26 @@ describe('Usage inside unified/remark', () => {
 			})
 		)
 	})
+	test('Adds JS modules provided by plugins before the first code block', async () => {
+		const processor = createRemarkProcessor({
+			plugins: [
+				{
+					name: 'TestPlugin',
+					hooks: {},
+					jsModules: ['console.log("Test 1")', '\t\tconsole.log("Test 2") '],
+				},
+			],
+		})
+		const result = await processor.process(sampleCodeMarkdown)
+		const html = result.value.toString()
+		const actualJsModules = html.match(/<script type="module">(.*?)<\/script>/g)
+		expect(html).toMatch(sampleCodeHtmlRegExp)
+		expect(actualJsModules).toEqual([
+			'<script type="module">console.log("Test 1")</script>',
+			// Expect whitespace to be normalized in Test 2
+			'<script type="module">console.log("Test 2")</script>',
+		])
+	})
 })
 
 function createRemarkProcessor(options?: RemarkExpressiveCodeOptions) {

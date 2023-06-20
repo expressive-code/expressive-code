@@ -28,10 +28,12 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 		const optLoadedTheme = mustLoadTheme ? new ExpressiveCodeTheme(await loadShikiTheme(theme)) : theme
 		const ec = new ExpressiveCode({ theme: optLoadedTheme, ...ecOptions })
 		const baseStyles = await ec.getBaseStyles()
+		const jsModules = await ec.getJsModules()
 
 		return {
 			ec,
 			baseStyles,
+			jsModules,
 		}
 	}
 	let lazyLoadPromise: ReturnType<typeof getLazyLoadPromise> | undefined
@@ -51,8 +53,8 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 		if (lazyLoadPromise === undefined) {
 			lazyLoadPromise = getLazyLoadPromise()
 		}
-		const { ec, baseStyles } = await lazyLoadPromise
-		let addedBaseStyles = false
+		const { ec, baseStyles, jsModules } = await lazyLoadPromise
+		let isFirstBlock = true
 		const addedGroupStyles = new Set<string>()
 
 		for (const [parent, code] of nodesToProcess) {
@@ -66,11 +68,8 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 
 			// Collect styles that we need to prepend to the rendered HTML content
 			const stylesToPrepend: string[] = []
-			if (!addedBaseStyles) {
-				// We didn't add the base styles yet, so we need to do that first
-				addedBaseStyles = true
-				stylesToPrepend.push(baseStyles)
-			}
+			// Add base styles to the first code block in the document
+			if (isFirstBlock && baseStyles) stylesToPrepend.push(baseStyles)
 			// Add all group-level styles that we haven't added yet
 			for (const style of styles) {
 				if (!addedGroupStyles.has(style)) {
@@ -83,12 +82,19 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 				htmlContent = `<style>${[...stylesToPrepend].join('')}</style>${htmlContent}`
 			}
 
+			// Add JS modules (if any) to the first code block in the document
+			if (isFirstBlock && jsModules.length) {
+				const inlineJsModules = jsModules.map((moduleCode) => `<script type="module">${moduleCode}</script>`).join('')
+				htmlContent = `${inlineJsModules}${htmlContent}`
+			}
+
 			// Replace current node with a new HTML node
 			const html: HTML = {
 				type: 'html',
 				value: htmlContent,
 			}
 			parent.children.splice(parent.children.indexOf(code), 1, html)
+			isFirstBlock = false
 		}
 	}
 

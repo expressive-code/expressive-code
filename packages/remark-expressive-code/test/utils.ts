@@ -10,6 +10,8 @@ export const sampleCodeHtmlRegExp = new RegExp(
 	[
 		// The heading should have been transformed to an h1
 		'<h1(| .*?)>Sample code</h1>',
+		// Allow 0-n inline script modules
+		'(<script type="module">.*?</script>)*',
 		// A style element should have been added
 		// (we expect no newlines in the style element,
 		// so we use `.*?` instead of `[\\s\\S]*?`)
