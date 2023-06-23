@@ -1,4 +1,4 @@
-import { StyleSettings, multiplyAlpha, ExpressiveCodeTheme, ResolvedCoreStyles, onBackground, toRgbaString } from '@expressive-code/core'
+import { StyleSettings, multiplyAlpha, ExpressiveCodeTheme, ResolvedCoreStyles, onBackground, toRgbaString, setAlpha } from '@expressive-code/core'
 
 export const framesStyleSettings = new StyleSettings({
 	shadowColor: ({ theme, coreStyles }) => theme.colors['widget.shadow'] || multiplyAlpha(coreStyles.borderColor, 0.75),
@@ -20,6 +20,11 @@ export const framesStyleSettings = new StyleSettings({
 	terminalTitlebarForeground: ({ theme }) => theme.colors['titleBar.activeForeground'],
 	terminalTitlebarBorderBottom: ({ theme, coreStyles }) => onBackground(coreStyles.borderColor, theme.type === 'dark' ? '#000000bf' : '#ffffffbf'),
 	terminalBackground: ({ theme }) => theme.colors['terminal.background'],
+	inlineButtonForeground: ({ coreStyles }) => coreStyles.codeForeground,
+	inlineButtonHoverBackground: ({ resolveSetting }) => setAlpha(resolveSetting('inlineButtonForeground'), 0.2),
+	inlineButtonActiveBorder: ({ resolveSetting }) => setAlpha(resolveSetting('inlineButtonForeground'), 0.4),
+	tooltipSuccessBackground: '#177d07',
+	tooltipSuccessForeground: 'white',
 })
 
 export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: ResolvedCoreStyles, styleOverrides: Partial<typeof framesStyleSettings.defaultSettings>) {
@@ -39,6 +44,16 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 	].join('')
 	const escapedDotsSvg = dotsSvg.replace(/</g, '%3C').replace(/>/g, '%3E')
 	const terminalTitlebarDots = `url("data:image/svg+xml,${escapedDotsSvg}")`
+	const inlineButtonFg = toRgbaString(framesStyles.inlineButtonForeground)
+	const copySvg = [
+		`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='${inlineButtonFg}' stroke-width='1.75'>`,
+		`<path d='M3 19a2 2 0 0 1-1-2V2a2 2 0 0 1 1-1h13a2 2 0 0 1 2 1'/>`,
+		`<rect x='6' y='5' width='16' height='18' rx='1.5' ry='1.5'/>`,
+		`</svg>`,
+	].join('')
+
+	const escapedCopySvg = copySvg.replace(/</g, '%3C').replace(/>/g, '%3E')
+	const copyToClipboard = `url("data:image/svg+xml,${escapedCopySvg}")`
 
 	const activeTabBackgrounds: string[] = []
 	if (framesStyles.editorActiveTabBorderTop) {
@@ -57,8 +72,10 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 	const styles = `
 		.frame {
 			all: unset;
+			position: relative;
 			display: block;
 			--header-border-radius: calc(${coreStyles.borderRadius} + ${coreStyles.borderWidth});
+			--button-spacing: calc(${coreStyles.borderWidth} + 0.1rem);
 			border-radius: var(--header-border-radius);
 			box-shadow: ${framesStyles.frameBoxShadowCssValue};
 
@@ -119,6 +136,8 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 
 			/* Terminal window */
 			&.is-terminal {
+				--button-spacing: calc(${coreStyles.borderWidth} + 0.02rem);
+
 				/* Terminal title bar */
 				& .header {
 					display: flex;
@@ -157,6 +176,83 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 					background: ${framesStyles.terminalBackground};
 					background-clip: padding-box;
 				}
+			}
+		}
+		.copy {
+			display: flex;
+			gap: 0.25rem;
+			flex-direction: row-reverse;
+			position: absolute;
+			top: var(--button-spacing);
+			inset-inline-end: 0.5rem;
+
+			button {
+				align-self: flex-end;
+				width: 1.75rem;
+				height: 1.75rem;
+				margin: 0;
+				padding: 0.4rem;
+				border-radius: 0.2rem;
+				z-index: 2;
+				cursor: pointer;
+
+				background: transparent;
+				border: ${coreStyles.borderWidth} solid transparent;
+				opacity: 0.5;
+				transition-property: opacity, background, border-color;
+				transition-duration: 0.2s;
+				transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+				&:hover, &:focus:focus-visible {
+					opacity: 0.75;
+					background: ${framesStyles.inlineButtonHoverBackground};
+				}
+
+				&:active {
+					transition-duration: 0s;
+					opacity: 1;
+					border-color: ${framesStyles.inlineButtonActiveBorder};
+				}
+
+				&::before {
+					content: ${copyToClipboard};
+					line-height: 0;
+				}
+			}
+
+			.feedback {
+				--tooltip-arrow-size: 0.35rem;
+				--tooltip-bg: ${framesStyles.tooltipSuccessBackground};
+				color: ${framesStyles.tooltipSuccessForeground};
+				pointer-events: none;
+				user-select: none;
+				-webkit-user-select: none;
+				position: relative;
+				align-self: center;
+				background-color: var(--tooltip-bg);
+				z-index: 99;
+				padding: 0.125rem 0.75rem;
+				border-radius: 0.2rem;
+				margin-inline-end: var(--tooltip-arrow-size);
+				opacity: 0;
+				transition-property: opacity, transform;
+				transition-duration: 0.2s;
+				transition-timing-function: ease-in-out;
+				transform: translate3d(0, 0.25rem, 0);
+
+				&::after {
+					position: absolute;
+					content: '';
+					top: calc(50% - var(--tooltip-arrow-size));
+					inset-inline-end: calc(-2 * (var(--tooltip-arrow-size) - 0.5px));
+					border: var(--tooltip-arrow-size) solid transparent;
+					border-inline-start-color: var(--tooltip-bg);
+				}
+			}
+
+			button:focus + .feedback.show {
+				opacity: 1;
+				transform: translate3d(0, 0, 0);
 			}
 		}
 	`
