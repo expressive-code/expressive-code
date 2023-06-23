@@ -37,6 +37,10 @@ describe('Usage inside unified/remark', () => {
 	})
 	test('Adds JS modules provided by plugins before the first code block', async () => {
 		const processor = createRemarkProcessor({
+			frames: {
+				// Test that disabling the copy button prevents its JS module from being added
+				showCopyToClipboardButton: false,
+			},
 			plugins: [
 				{
 					name: 'TestPlugin',

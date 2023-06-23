@@ -20,6 +20,8 @@ export const sampleCodeHtmlRegExp = new RegExp(
 		'<div class="expressive-code .*?">',
 		'<figure(| .*?)>',
 		'<figcaption(| .*?)>.*?test.js.*?</figcaption>',
+		// Allow an optional copy button
+		'(<div class="copy">.*?</div>)?',
 		'<pre(| .*?)><code(| .*?)>',
 		// Expect the code line to be marked as inserted
 		'<div class="ec-line ins">',
