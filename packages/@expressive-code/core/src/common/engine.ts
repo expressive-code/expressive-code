@@ -90,16 +90,45 @@ export class ExpressiveCodeEngine {
 			}),
 		})
 		// Add plugin base styles
-		this.plugins.forEach((plugin) => {
-			if (!plugin.baseStyles) return
+		for (const plugin of this.plugins) {
+			if (!plugin.baseStyles) continue
+			const resolvedStyles = typeof plugin.baseStyles === 'function' ? await plugin.baseStyles({ theme: this.theme, coreStyles: this.coreStyles }) : plugin.baseStyles
+			if (!resolvedStyles) continue
 			pluginStyles.push({
 				pluginName: plugin.name,
-				styles: typeof plugin.baseStyles === 'function' ? plugin.baseStyles({ theme: this.theme, coreStyles: this.coreStyles }) : plugin.baseStyles,
+				styles: resolvedStyles,
 			})
-		})
+		}
 		// Process styles (scoping, minifying, etc.)
 		const processedStyles = await processPluginStyles({ pluginStyles, configClassName: this.configClassName })
 		return [...processedStyles].join('')
+	}
+
+	/**
+	 * Returns an array of JavaScript modules (pure core without any wrapping `script` tags)
+	 * that should be added to every page containing code blocks.
+	 *
+	 * The contents are collected from the `jsModules` property of all registered plugins.
+	 * Any duplicates are removed.
+	 *
+	 * The calling code must take care of actually adding the collected scripts to the page.
+	 * For example, it could create site-wide JavaScript files from the returned modules
+	 * and refer to them in a script tag with `type="module"`, or it could insert them
+	 * into inline `<script type="module">` elements.
+	 */
+	async getJsModules(): Promise<string[]> {
+		const jsModules = new Set<string>()
+		for (const plugin of this.plugins) {
+			const pluginModules =
+				typeof plugin.jsModules === 'function'
+					? await plugin.jsModules({ theme: this.theme, coreStyles: this.coreStyles, configClassName: this.configClassName })
+					: plugin.jsModules
+			pluginModules?.forEach((moduleCode) => {
+				moduleCode = moduleCode.trim()
+				if (moduleCode) jsModules.add(moduleCode)
+			})
+		}
+		return [...jsModules]
 	}
 
 	readonly theme: ExpressiveCodeTheme

@@ -1,7 +1,8 @@
 import { AttachedPluginData, ExpressiveCodePlugin, replaceDelimitedValues } from '@expressive-code/core'
-import { h } from 'hastscript'
+import { h, Result as HastEntity } from 'hastscript'
 import { framesStyleSettings, getFramesBaseStyles } from './styles'
 import { getFileNameFromComment, isTerminalLanguage } from './utils'
+import { getCopyJsModule } from './copy-js-module'
 
 export interface PluginFramesOptions {
 	/**
@@ -10,15 +11,22 @@ export interface PluginFramesOptions {
 	 * from the first 4 lines of the code.
 	 */
 	extractFileNameFromCode?: boolean
+	/**
+	 * If this is true (default), a "Copy to clipboard" button
+	 * will be shown for each code block.
+	 */
+	showCopyToClipboardButton?: boolean
 	styleOverrides?: Partial<typeof framesStyleSettings.defaultSettings>
 }
 
 export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodePlugin {
 	// Apply default settings
 	const extractFileNameFromCode = options.extractFileNameFromCode ?? true
+	const showCopyToClipboardButton = options.showCopyToClipboardButton ?? true
 	return {
 		name: 'Frames',
 		baseStyles: ({ theme, coreStyles }) => getFramesBaseStyles(theme, coreStyles, options.styleOverrides || {}),
+		jsModules: showCopyToClipboardButton ? [getCopyJsModule(`.expressive-code .copy button`)] : undefined,
 		hooks: {
 			preprocessMetadata: ({ codeBlock }) => {
 				const blockData = pluginFramesData.getOrCreateFor(codeBlock)
@@ -78,6 +86,28 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 				const fallbackTerminalWindowTitle = 'Terminal window' // TODO: i18n
 				const screenReaderTitle = !titleText && isTerminal ? [h('span', { className: 'sr-only' }, fallbackTerminalWindowTitle)] : []
 
+				const extraElements: HastEntity[] = []
+
+				// If enabled, create a button to copy the code to the clipboard
+				if (showCopyToClipboardButton) {
+					const copyButtonTooltip = 'Copy to clipboard' // TODO: i18n
+					const copyButtonCopied = 'Copied!' // TODO: i18n
+					// Replace all line breaks with a special character
+					// because HAST does not encode them in attribute values
+					// (which seems to work, but looks ugly in the HTML source)
+					const codeToCopy = codeBlock.code.replace(/\n/g, '\u007f')
+
+					extraElements.push(
+						h('div', { className: 'copy' }, [
+							h('button', {
+								title: copyButtonTooltip,
+								'data-copied': copyButtonCopied,
+								'data-code': codeToCopy,
+							}),
+						])
+					)
+				}
+
 				// Wrap the code block in a figure element with helpful classes for styling
 				renderData.blockAst = h(
 					'figure',
@@ -92,6 +122,7 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 					},
 					[
 						h('figcaption', { className: 'header' }, [...visibleTitle, ...screenReaderTitle]),
+						...extraElements,
 						// Render the original code block
 						renderData.blockAst,
 					]

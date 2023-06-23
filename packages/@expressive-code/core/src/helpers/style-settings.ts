@@ -110,7 +110,7 @@ export type StyleResolverFn<T extends string> = ({
 	coreStyles: ResolvedCoreStyles
 	resolveSetting: (propertyName: T) => string
 }) => ColorDefinition
-export type BaseStylesResolverFn = ({ theme, coreStyles }: { theme: ExpressiveCodeTheme; coreStyles: ResolvedCoreStyles }) => string
+export type BaseStylesResolverFn = ({ theme, coreStyles }: { theme: ExpressiveCodeTheme; coreStyles: ResolvedCoreStyles }) => string | Promise<string>
 export type UnresolvedCoreStyleSettings<T extends string> = { [K in T]: ColorDefinition | CoreStyleResolverFn<T> }
 export type UnresolvedStyleSettings<T extends string> = {
 	[K in T]: ColorDefinition | StyleResolverFn<T>
