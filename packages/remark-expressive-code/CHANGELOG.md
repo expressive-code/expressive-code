@@ -1,5 +1,15 @@
 # remark-expressive-code
 
+## 0.6.0
+
+### Minor Changes
+
+- af207b0: Allow plugins to add JS modules
+
+### Patch Changes
+
+- expressive-code@0.6.0
+
 ## 0.5.0
 
 ### Patch Changes

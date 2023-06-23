@@ -1,5 +1,11 @@
 # @expressive-code/core
 
+## 0.5.0
+
+### Minor Changes
+
+- af207b0: Allow plugins to add JS modules
+
 ## 0.4.0
 
 ### Minor Changes

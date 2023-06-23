@@ -1,6 +1,6 @@
 {
   "name": "astro-expressive-code",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Astro integration for Expressive Code, a text marking & annotation engine for presenting source code on the web.",
   "keywords": [],
   "author": "Tibor Schiemann",
@@ -26,6 +26,6 @@
     "watch": "pnpm build --watch src"
   },
   "dependencies": {
-    "remark-expressive-code": "workspace:^0.5.0"
+    "remark-expressive-code": "workspace:^0.6.0"
   }
 }
