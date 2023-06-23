@@ -34,6 +34,7 @@ export async function renderAndOutputHtmlSnapshot({ testName, testBaseDir, fixtu
 				...engineOptions,
 			})
 			const baseStyles = await engine.getBaseStyles()
+			const jsModules = await engine.getJsModules()
 			const { renderedGroupAst, styles } = await engine.render({
 				code,
 				language,
@@ -43,6 +44,7 @@ export async function renderAndOutputHtmlSnapshot({ testName, testBaseDir, fixtu
 			return {
 				renderedGroupAst,
 				baseStyles,
+				jsModules,
 				styles,
 				theme: engine.theme,
 				foreground: engine.theme.type === 'dark' ? '#fff' : '#000',
@@ -75,6 +77,7 @@ export function outputHtmlSnapshot({
 		renderedGroupAst: Parent
 		styles: Set<string>
 		baseStyles: string
+		jsModules: string[]
 		theme: ExpressiveCodeTheme
 		foreground: string
 		background: string
@@ -89,6 +92,13 @@ export function outputHtmlSnapshot({
 		if (renderResult.baseStyles) {
 			baseStyles.add(renderResult.baseStyles)
 		}
+	})
+
+	const jsModules = new Set<string>()
+	renderResults.forEach((renderResult) => {
+		renderResult.jsModules.forEach((jsModule) => {
+			jsModules.add(jsModule)
+		})
 	})
 
 	const renderedBlocks = renderResults.map(({ styles, renderedGroupAst, theme, foreground, background }) => {
@@ -119,6 +129,7 @@ export function outputHtmlSnapshot({
 </head>
 <body>
   <header><h1>Test: ${testName}</h1></header>
+  ${[...jsModules].map((moduleCode) => `<script type="module">${moduleCode}</script>`).join('')}
   ${[...renderedBlocks].join('\n')}
 </body>
 </html>
