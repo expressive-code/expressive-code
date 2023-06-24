@@ -17,26 +17,51 @@ export type RemarkExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'theme'> & 
 	 * Defaults to the `github-dark` theme bundled with Shiki.
 	 */
 	theme?: BundledShikiTheme | ExpressiveCodeTheme
+	/**
+	 * This advanced option allows you to influence the rendering process by providing
+	 * your own `ExpressiveCode` instance or processing the base styles and JS modules
+	 * added to every page.
+	 */
+	customRenderer?: RemarkExpressiveCodeRenderer
+}
+
+export type RemarkExpressiveCodeRenderer = {
+	ec: ExpressiveCode
+	baseStyles: string
+	jsModules: string[]
+}
+
+/**
+ * Uses the given options to create an `ExpressiveCode` instance, including support to load
+ * themes bundled with Shiki by name.
+ *
+ * Returns the `ExpressiveCode` instance together with the base styles and JS modules
+ * that should be added to every page.
+ *
+ * Unless you use the `customRenderer` option, the remark plugin automatically calls this function
+ * once when encountering the first code block, and caches the result.
+ */
+export async function createRenderer(options: RemarkExpressiveCodeOptions): Promise<RemarkExpressiveCodeRenderer> {
+	const { theme, ...ecOptions } = options
+
+	const mustLoadTheme = theme !== undefined && !(theme instanceof ExpressiveCodeTheme)
+	const optLoadedTheme = mustLoadTheme ? new ExpressiveCodeTheme(await loadShikiTheme(theme)) : theme
+	const ec = new ExpressiveCode({ theme: optLoadedTheme, ...ecOptions })
+	const baseStyles = await ec.getBaseStyles()
+	const jsModules = await ec.getJsModules()
+
+	return {
+		ec,
+		baseStyles,
+		jsModules,
+	}
 }
 
 const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Root> = (...settings) => {
 	const options: RemarkExpressiveCodeOptions = settings[0] ?? {}
-	const { theme, ...ecOptions } = options
+	const { customRenderer } = options
 
-	const getLazyLoadPromise = async () => {
-		const mustLoadTheme = theme !== undefined && !(theme instanceof ExpressiveCodeTheme)
-		const optLoadedTheme = mustLoadTheme ? new ExpressiveCodeTheme(await loadShikiTheme(theme)) : theme
-		const ec = new ExpressiveCode({ theme: optLoadedTheme, ...ecOptions })
-		const baseStyles = await ec.getBaseStyles()
-		const jsModules = await ec.getJsModules()
-
-		return {
-			ec,
-			baseStyles,
-			jsModules,
-		}
-	}
-	let lazyLoadPromise: ReturnType<typeof getLazyLoadPromise> | undefined
+	let cachedRenderer: Promise<RemarkExpressiveCodeRenderer> | RemarkExpressiveCodeRenderer | undefined
 
 	const transformer: Transformer<Root, Root> = async (tree) => {
 		const nodesToProcess: [Parent, Code][] = []
@@ -48,12 +73,12 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 
 		if (nodesToProcess.length === 0) return
 
-		// We found at least one code node, so we need to ensure our lazy-loaded
-		// resources are available before we can continue
-		if (lazyLoadPromise === undefined) {
-			lazyLoadPromise = getLazyLoadPromise()
+		// We found at least one code node, so we need to ensure our renderer is available
+		// and wait for its initialization if necessary
+		if (cachedRenderer === undefined) {
+			cachedRenderer = customRenderer ?? createRenderer(options)
 		}
-		const { ec, baseStyles, jsModules } = await lazyLoadPromise
+		const { ec, baseStyles, jsModules } = await cachedRenderer
 		let isFirstBlock = true
 		const addedGroupStyles = new Set<string>()
 
@@ -64,11 +89,13 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 				language: code.lang || '',
 				meta: code.meta || '',
 			})
-			let htmlContent = toHtml(renderedGroupAst)
 
-			// Collect styles that we need to prepend to the rendered HTML content
+			// Collect any style and script elements that we need to add to the output
+			type HastElement = Extract<(typeof renderedGroupAst.children)[number], { type: 'element' }>
+			const extraElements: HastElement[] = []
 			const stylesToPrepend: string[] = []
-			// Add base styles to the first code block in the document
+
+			// Add base styles when we are processing the first code block in the document
 			if (isFirstBlock && baseStyles) stylesToPrepend.push(baseStyles)
 			// Add all group-level styles that we haven't added yet
 			for (const style of styles) {
@@ -77,16 +104,34 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 					stylesToPrepend.push(style)
 				}
 			}
-			// If we collected any styles, add them before the HTML content
+			// Combine all styles we collected (if any) into a single style element
 			if (stylesToPrepend.length) {
-				htmlContent = `<style>${[...stylesToPrepend].join('')}</style>${htmlContent}`
+				extraElements.push({
+					type: 'element',
+					tagName: 'style',
+					children: [{ type: 'text', value: [...stylesToPrepend].join('') }],
+				})
 			}
 
-			// Add JS modules (if any) to the first code block in the document
+			// Create script elements for all JS modules on the first code block in the document
 			if (isFirstBlock && jsModules.length) {
-				const inlineJsModules = jsModules.map((moduleCode) => `<script type="module">${moduleCode}</script>`).join('')
-				htmlContent = `${inlineJsModules}${htmlContent}`
+				jsModules.forEach((moduleCode) =>
+					extraElements.push({
+						type: 'element',
+						tagName: 'script',
+						properties: { type: 'module' },
+						children: [{ type: 'text', value: moduleCode }],
+					})
+				)
 			}
+
+			// Prepend any extra elements to the children of the renderedGroupAst wrapper,
+			// which keeps them inside the wrapper and reduces the chance of CSS issues
+			// caused by selectors like `* + *` on the parent level
+			renderedGroupAst.children.unshift(...extraElements)
+
+			// Render the group AST to HTML
+			const htmlContent = toHtml(renderedGroupAst)
 
 			// Replace current node with a new HTML node
 			const html: HTML = {

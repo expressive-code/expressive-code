@@ -10,14 +10,15 @@ export const sampleCodeHtmlRegExp = new RegExp(
 	[
 		// The heading should have been transformed to an h1
 		'<h1(| .*?)>Sample code</h1>',
-		// Allow 0-n inline script modules
-		'(<script type="module">.*?</script>)*',
+		// The code block should have been wrapped into an Expressive Code div
+		'<div class="expressive-code .*?">',
 		// A style element should have been added
 		// (we expect no newlines in the style element,
 		// so we use `.*?` instead of `[\\s\\S]*?`)
 		'<style>.*?</style>',
-		// The code block should have been transformed to an Expressive Code div
-		'<div class="expressive-code .*?">',
+		// Allow 0-n inline script modules
+		'(<script type="module">.*?</script>)*',
+		// Start of the code block
 		'<figure(| .*?)>',
 		'<figcaption(| .*?)>.*?test.js.*?</figcaption>',
 		// Allow an optional copy button
