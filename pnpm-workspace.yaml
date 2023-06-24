@@ -2,4 +2,4 @@ packages:
   - 'packages/@expressive-code/*'
   - 'packages/*'
   - 'internal/*'
-  - 'packages/remark-expressive-code/test/fixtures/*'
+  - 'packages/astro-expressive-code/test/fixtures/*'

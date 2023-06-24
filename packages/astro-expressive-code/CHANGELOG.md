@@ -1,5 +1,16 @@
 # astro-expressive-code
 
+## 0.7.0
+
+### Minor Changes
+
+- First working version of Astro integration
+
+### Patch Changes
+
+- Updated dependencies
+  - remark-expressive-code@0.7.0
+
 ## 0.6.0
 
 ### Patch Changes

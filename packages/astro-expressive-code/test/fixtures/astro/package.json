@@ -3,8 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "astro": "^2.3.0",
-    "remark-expressive-code": "workspace:^"
+    "@astrojs/mdx": "^0.19.7",
+    "astro": "^2.5.0",
+    "astro-expressive-code": "workspace:^"
   },
   "engines": {
     "node": "^14.15.0 || >=16.0.0",
