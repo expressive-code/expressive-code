@@ -1,5 +1,15 @@
 # remark-expressive-code
 
+## 0.7.0
+
+### Minor Changes
+
+- Add custom renderer support
+
+### Patch Changes
+
+- expressive-code@0.7.0
+
 ## 0.6.0
 
 ### Minor Changes

@@ -1,23 +1,28 @@
-import { describe, test, expect } from 'vitest'
+import { describe, test, expect, beforeAll } from 'vitest'
 import { existsSync, rmSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { execa } from 'execa'
-import { sampleCodeHtmlRegExp } from './utils'
+import { sampleCodeHtmlRegExp } from '../../remark-expressive-code/test/utils'
 
-describe('Integration into Astro', () => {
-	test(
-		'Regular Markdown files',
-		async () => {
-			const fixture = await buildFixture({
-				fixtureDir: 'astro',
-				buildCommand: 'pnpm',
-				buildArgs: ['astro', 'build'],
-				outputDir: 'dist',
-			})
-			expect(fixture.readFile('index.html')).toMatch(sampleCodeHtmlRegExp)
-		},
-		{ timeout: 20 * 1000 }
-	)
+describe('Integration into an Astro project', () => {
+	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
+
+	beforeAll(async () => {
+		fixture = await buildFixture({
+			fixtureDir: 'astro',
+			buildCommand: 'pnpm',
+			buildArgs: ['astro', 'build'],
+			outputDir: 'dist',
+		})
+	}, 20 * 1000)
+
+	test('Regular Markdown files', () => {
+		expect(fixture?.readFile('index.html')).toMatch(sampleCodeHtmlRegExp)
+	})
+
+	test('MDX files', () => {
+		expect(fixture?.readFile('mdx-page/index.html')).toMatch(sampleCodeHtmlRegExp)
+	})
 })
 
 async function buildFixture({ fixtureDir, buildCommand, buildArgs, outputDir }: { fixtureDir: string; buildCommand: string; buildArgs?: string[]; outputDir: string }) {
