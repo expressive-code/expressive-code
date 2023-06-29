@@ -75,7 +75,7 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 			position: relative;
 			display: block;
 			--header-border-radius: calc(${coreStyles.borderRadius} + ${coreStyles.borderWidth});
-			--button-spacing: calc(${coreStyles.borderWidth} + 0.1rem);
+			--button-spacing: 0.4rem;
 			border-radius: var(--header-border-radius);
 			box-shadow: ${framesStyles.frameBoxShadowCssValue};
 
@@ -99,8 +99,15 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 				}
 			}
 
+			/* Prevent empty window titles from collapsing in height */
+			.title:empty:before {
+				content: '\\a0';
+			}
+
 			/* Editor tab bar */
 			&.has-title:not(.is-terminal) {
+				--button-spacing: 0.15rem;
+
 				/* Active editor tab */
 				& .title {
 					position: relative;
@@ -136,15 +143,14 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 
 			/* Terminal window */
 			&.is-terminal {
-				--button-spacing: calc(${coreStyles.borderWidth} + 0.02rem);
+				--button-spacing: 0.075rem;
 
 				/* Terminal title bar */
 				& .header {
 					display: flex;
 					align-items: center;
 					justify-content: center;
-					padding-bottom: 0.175rem;
-					min-height: 1.75rem;
+					padding-block: ${coreStyles.uiPaddingBlock};
 					position: relative;
 
 					font-weight: 500;
@@ -183,8 +189,8 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 			gap: 0.25rem;
 			flex-direction: row-reverse;
 			position: absolute;
-			top: var(--button-spacing);
-			inset-inline-end: 0.5rem;
+			inset-block-start: calc(${coreStyles.borderWidth} + var(--button-spacing));
+			inset-inline-end: calc(${coreStyles.borderWidth} + ${coreStyles.uiPaddingInline} / 2);
 
 			button {
 				align-self: flex-end;

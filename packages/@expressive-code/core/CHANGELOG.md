@@ -1,5 +1,11 @@
 # @expressive-code/core
 
+## 0.7.0
+
+### Minor Changes
+
+- Fix CSS inconsistencies due to box-sizing
+
 ## 0.6.0
 
 ### Minor Changes

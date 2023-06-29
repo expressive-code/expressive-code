@@ -83,6 +83,10 @@ export function getCoreBaseStyles({ coreStyles }: { theme: ExpressiveCodeTheme; 
 		font-size: ${coreStyles.uiFontSize};
 		line-height: ${coreStyles.uiLineHeight};
 
+		* {
+			box-sizing: border-box;
+		}
+
 		::selection {
 			background: ${coreStyles.uiSelectionBackground};
 			color: ${coreStyles.uiSelectionForeground};
@@ -142,7 +146,6 @@ export function getCoreBaseStyles({ coreStyles }: { theme: ExpressiveCodeTheme; 
 
 		/* Code lines */
 		.${codeLineClass} {
-			box-sizing: border-box;
 			--accent-margin: 0rem;
 			min-width: calc(100% - var(--accent-margin));
 			padding-inline: var(--padding-inline);

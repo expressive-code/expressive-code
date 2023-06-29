@@ -69,6 +69,7 @@ ${exampleCode}
 					validateBlockAst({
 						renderedGroupAst,
 						figureSelector: '.frame.is-terminal:not(.has-title)',
+						title: '',
 						srTitlePresent: true,
 					})
 				},
@@ -120,8 +121,8 @@ function validateBlockAst({
 
 	// Check visible title
 	const titles = selectAll('figure > figcaption.header > span.title', renderedGroupAst)
-	expect(titles).toHaveLength(title ? 1 : 0)
-	if (title) {
+	expect(titles).toHaveLength(title !== undefined ? 1 : 0)
+	if (title !== undefined) {
 		expect(titles[0].children[0].type === 'text' ? titles[0].children[0].value : '').toEqual(title)
 	}
 
