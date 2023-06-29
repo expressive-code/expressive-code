@@ -182,10 +182,10 @@ importers:
   packages/astro-expressive-code:
     dependencies:
       astro:
-        specifier: ^2.5.0
+        specifier: ^2
         version: 2.5.0
       remark-expressive-code:
-        specifier: workspace:^0.8.0
+        specifier: workspace:^0.8.1
         version: link:../remark-expressive-code
     devDependencies:
       execa:
@@ -222,7 +222,7 @@ importers:
   packages/remark-expressive-code:
     dependencies:
       expressive-code:
-        specifier: workspace:^0.8.0
+        specifier: workspace:^0.8.1
         version: link:../expressive-code
       hast-util-to-html:
         specifier: ^8.0.4
@@ -1326,7 +1326,7 @@ packages:
       estree-util-build-jsx: 2.2.2
       estree-util-is-identifier-name: 2.1.0
       estree-util-to-js: 1.2.0
-      estree-walker: 3.0.0
+      estree-walker: 3.0.3
       hast-util-to-estree: 2.3.3
       markdown-extensions: 1.1.1
       periscopic: 3.1.0
@@ -2805,7 +2805,7 @@ packages:
     dependencies:
       '@types/estree-jsx': 1.0.0
       estree-util-is-identifier-name: 2.1.0
-      estree-walker: 3.0.0
+      estree-walker: 3.0.3
     dev: false
 
   /estree-util-is-identifier-name@2.1.0:
@@ -2829,6 +2829,12 @@ packages:
 
   /estree-walker@3.0.0:
     resolution: {integrity: sha512-s6ceX0NFiU/vKPiKvFdR83U1Zffu7upwZsGwpoqfg5rbbq1l50WQ5hCeIvM6E6oD4shUHCYMsiFPns4Jk0YfMQ==}
+    dev: false
+
+  /estree-walker@3.0.3:
+    resolution: {integrity: sha512-7RUKfXgSMMkzt6ZuXmqapOurLGPPfgj6l9uRZ7lRGolvk0y2yocc35LdcxKC5PQZdn2DMqioAQ2NoWcrTKmm6g==}
+    dependencies:
+      '@types/estree': 1.0.1
     dev: false
 
   /esutils@2.0.3:
@@ -4963,7 +4969,7 @@ packages:
     resolution: {integrity: sha512-vKiQ8RRtkl9P+r/+oefh25C3fhybptkHKCZSPlcXiJux2tJF55GnEj3BVn4A5gKfq9NWWXXrxkHBwVPUfH0opw==}
     dependencies:
       '@types/estree': 1.0.1
-      estree-walker: 3.0.0
+      estree-walker: 3.0.3
       is-reference: 3.0.1
     dev: false
 

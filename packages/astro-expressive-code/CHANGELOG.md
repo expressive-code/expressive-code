@@ -1,5 +1,12 @@
 # astro-expressive-code
 
+## 0.8.1
+
+### Patch Changes
+
+- Make `astro` peer dependency more tolerant
+  - remark-expressive-code@0.8.1
+
 ## 0.8.0
 
 ### Minor Changes
