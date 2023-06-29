@@ -1,5 +1,16 @@
 # astro-expressive-code
 
+## 0.8.0
+
+### Minor Changes
+
+- f8ed803: Add support for localized texts, add German to frames plugin
+
+### Patch Changes
+
+- Updated dependencies [f8ed803]
+  - remark-expressive-code@0.8.0
+
 ## 0.7.0
 
 ### Minor Changes

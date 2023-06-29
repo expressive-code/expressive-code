@@ -1,5 +1,11 @@
 # @expressive-code/core
 
+## 0.6.0
+
+### Minor Changes
+
+- f8ed803: Add support for localized texts, add German to frames plugin
+
 ## 0.5.0
 
 ### Minor Changes
