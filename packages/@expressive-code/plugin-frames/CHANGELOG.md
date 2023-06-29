@@ -1,5 +1,16 @@
 # @expressive-code/plugin-frames
 
+## 0.7.0
+
+### Minor Changes
+
+- Fix CSS inconsistencies due to box-sizing
+
+### Patch Changes
+
+- Updated dependencies
+  - @expressive-code/core@0.7.0
+
 ## 0.6.0
 
 ### Minor Changes

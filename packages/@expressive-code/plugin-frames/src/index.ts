@@ -93,8 +93,10 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 				// by inserting a line break opportunity after each slash
 				// const titleHtml = decodeURIComponent(title).replace(/([\\/])/g, '$1<wbr/>')
 
-				// If a title was given, render it as a visible span
-				const visibleTitle = titleText ? [h('span', { className: 'title' }, titleText)] : []
+				// If a title was given, render it as a visible span.
+				// Also render a visible (but empty) span for terminals without a title
+				// to keep the same window caption line height.
+				const visibleTitle = titleText || isTerminal ? [h('span', { className: 'title' }, titleText || '')] : []
 
 				// Otherwise, render a screen reader-only title for terminals
 				// to clarify that the code block is a terminal window
