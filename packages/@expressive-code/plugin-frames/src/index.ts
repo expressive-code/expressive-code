@@ -1,4 +1,4 @@
-import { AttachedPluginData, ExpressiveCodePlugin, replaceDelimitedValues } from '@expressive-code/core'
+import { AttachedPluginData, ExpressiveCodePlugin, PluginTexts, replaceDelimitedValues } from '@expressive-code/core'
 import { h, Result as HastEntity } from 'hastscript'
 import { framesStyleSettings, getFramesBaseStyles } from './styles'
 import { getFileNameFromComment, isTerminalLanguage } from './utils'
@@ -18,6 +18,18 @@ export interface PluginFramesOptions {
 	showCopyToClipboardButton?: boolean
 	styleOverrides?: Partial<typeof framesStyleSettings.defaultSettings>
 }
+
+export const pluginFramesTexts = new PluginTexts({
+	terminalWindowFallbackTitle: 'Terminal window',
+	copyButtonTooltip: 'Copy to clipboard',
+	copyButtonCopied: 'Copied!',
+})
+
+pluginFramesTexts.addLocale('de', {
+	terminalWindowFallbackTitle: 'Terminal-Fenster',
+	copyButtonTooltip: 'In die Zwischenablage kopieren',
+	copyButtonCopied: 'Kopiert!',
+})
 
 export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodePlugin {
 	// Apply default settings
@@ -69,7 +81,10 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 					}
 				}
 			},
-			postprocessRenderedBlock: ({ codeBlock, renderData }) => {
+			postprocessRenderedBlock: ({ codeBlock, renderData, locale }) => {
+				// Get text strings for the current locale
+				const texts = pluginFramesTexts.get(locale)
+
 				// Retrieve information about the current block
 				const titleText = pluginFramesData.getOrCreateFor(codeBlock).title
 				const isTerminal = isTerminalLanguage(codeBlock.language)
@@ -83,15 +98,12 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 
 				// Otherwise, render a screen reader-only title for terminals
 				// to clarify that the code block is a terminal window
-				const fallbackTerminalWindowTitle = 'Terminal window' // TODO: i18n
-				const screenReaderTitle = !titleText && isTerminal ? [h('span', { className: 'sr-only' }, fallbackTerminalWindowTitle)] : []
+				const screenReaderTitle = !titleText && isTerminal ? [h('span', { className: 'sr-only' }, texts.terminalWindowFallbackTitle)] : []
 
 				const extraElements: HastEntity[] = []
 
 				// If enabled, create a button to copy the code to the clipboard
 				if (showCopyToClipboardButton) {
-					const copyButtonTooltip = 'Copy to clipboard' // TODO: i18n
-					const copyButtonCopied = 'Copied!' // TODO: i18n
 					// Replace all line breaks with a special character
 					// because HAST does not encode them in attribute values
 					// (which seems to work, but looks ugly in the HTML source)
@@ -100,8 +112,8 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 					extraElements.push(
 						h('div', { className: 'copy' }, [
 							h('button', {
-								title: copyButtonTooltip,
-								'data-copied': copyButtonCopied,
+								title: texts.copyButtonTooltip,
+								'data-copied': texts.copyButtonCopied,
 								'data-code': codeToCopy,
 							}),
 						])

@@ -34,10 +34,15 @@ export function astroExpressiveCode(options: AstroExpressiveCodeOptions): AstroI
 				const jsModules = renderer.jsModules ?? []
 				renderer.jsModules = []
 
+				const remarkExpressiveCodeOptions: RemarkExpressiveCodeOptions = {
+					...options,
+					customRenderer: renderer,
+				}
+
 				updateConfig({
 					markdown: {
 						syntaxHighlight: false,
-						remarkPlugins: [[remarkExpressiveCode, { ...options, customRenderer: renderer }]],
+						remarkPlugins: [[remarkExpressiveCode, remarkExpressiveCodeOptions]],
 					},
 				})
 

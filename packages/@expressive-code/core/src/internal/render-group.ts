@@ -33,6 +33,7 @@ export async function renderGroup({
 	input,
 	options,
 	theme,
+	defaultLocale,
 	coreStyles,
 	plugins,
 	configClassName,
@@ -40,6 +41,7 @@ export async function renderGroup({
 	input: RenderInput
 	options?: RenderOptions
 	theme: ExpressiveCodeTheme
+	defaultLocale: string
 	coreStyles: ResolvedCoreStyles
 	plugins: readonly ExpressiveCodePlugin[]
 	configClassName: string
@@ -70,6 +72,7 @@ export async function renderGroup({
 			codeBlock: groupContent.codeBlock,
 			groupContents,
 			theme,
+			locale: groupContent.codeBlock.locale || defaultLocale,
 			coreStyles,
 			plugins,
 		})

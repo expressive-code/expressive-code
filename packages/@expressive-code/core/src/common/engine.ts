@@ -15,6 +15,10 @@ export interface ExpressiveCodeEngineConfig {
 	 */
 	theme?: ExpressiveCodeTheme
 	/**
+	 * The locale that should be used for text content. Defaults to `en-US`.
+	 */
+	defaultLocale?: string
+	/**
 	 * An optional set of style overrides that can be used to customize the appearance of
 	 * the rendered code blocks without having to write custom CSS. You can customize core
 	 * colors, fonts, paddings and more.
@@ -38,6 +42,7 @@ export interface ExpressiveCodeEngineConfig {
 export class ExpressiveCodeEngine {
 	constructor(config: ExpressiveCodeEngineConfig) {
 		this.theme = config.theme || new ExpressiveCodeTheme(githubDark)
+		this.defaultLocale = config.defaultLocale || 'en-US'
 		this.styleOverrides = {
 			...config.styleOverrides,
 		}
@@ -72,6 +77,7 @@ export class ExpressiveCodeEngine {
 			input,
 			options,
 			theme: this.theme,
+			defaultLocale: this.defaultLocale,
 			// Also pass resolved core styles in case plugins need them
 			coreStyles: this.coreStyles,
 			plugins: this.plugins,
@@ -132,6 +138,7 @@ export class ExpressiveCodeEngine {
 	}
 
 	readonly theme: ExpressiveCodeTheme
+	readonly defaultLocale: string
 	readonly styleOverrides: Partial<typeof coreStyleSettings.defaultSettings>
 	readonly coreStyles: ResolvedCoreStyles
 	readonly plugins: readonly ExpressiveCodePlugin[]

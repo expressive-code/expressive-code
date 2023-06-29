@@ -11,6 +11,7 @@ export interface ExpressiveCodeHookContext {
 	codeBlock: ExpressiveCodeBlock
 	groupContents: GroupContents
 	theme: ExpressiveCodeTheme
+	locale: string
 	coreStyles: ResolvedCoreStyles
 	/**
 	 * Adds CSS styles to the document that contains the rendered code.

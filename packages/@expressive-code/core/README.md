@@ -308,14 +308,6 @@ An object type that can be passed as input to the [`render`](#async-renderinput-
 
   An optional meta string. In markdown or MDX documents, this is the part of the code block's opening fence that comes after the language name.
 
-- ##### `onInitBlock?: (block: ExpressiveCodeBlock) => void`
-
-  An optional handler function that can initialize plugin data for the code block before processing starts.
-
-  Plugins can provide access to their data by exporting a const set to a `new AttachedPluginData(...)` instance (e.g. `myPluginData`).
-
-  You can then import the const and set `onInitBlock` to a function that calls `myPluginData.setFor(block, { ...data... })`.
-
 ---
 
 ### `ExpressiveCodeLine`
