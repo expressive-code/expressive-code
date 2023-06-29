@@ -14,12 +14,14 @@ export async function renderBlock({
 	codeBlock,
 	groupContents,
 	theme,
+	locale,
 	coreStyles,
 	plugins,
 }: {
 	codeBlock: ExpressiveCodeBlock
 	groupContents: GroupContents
 	theme: ExpressiveCodeTheme
+	locale: string
 	coreStyles: ResolvedCoreStyles
 	plugins: readonly ExpressiveCodePlugin[]
 }) {
@@ -36,6 +38,7 @@ export async function renderBlock({
 		codeBlock,
 		groupContents,
 		theme,
+		locale,
 		coreStyles,
 	}
 

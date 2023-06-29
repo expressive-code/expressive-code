@@ -7,25 +7,40 @@ export interface ExpressiveCodeBlockOptions {
 	language: string
 	meta?: string
 	/**
-	 * An optional handler function that can initialize plugin data for the
-	 * code block before processing starts.
+	 * The code block's locale (e.g. `en-US` or `de-DE`). This is used by plugins to display
+	 * localized strings depending on the language of the containing page.
 	 *
-	 * Plugins can provide access to their data by exporting a const
-	 * set to a `new AttachedPluginData(...)` instance (e.g. `myPluginData`).
+	 * Integrations like `remark-expressive-code` support multi-language sites by allowing you
+	 * to provide custom logic to determine a block's locale (e.g. based on its parent document).
 	 *
-	 * You can then import the const and set `onInitBlock` to a function that
-	 * calls `myPluginData.setFor(block, { ...data... })`.
+	 * If no locale is defined here, `ExpressiveCodeEngine` will render the code block
+	 * using the `defaultLocale` provided in its configuration.
 	 */
-	onInitBlock?: (block: ExpressiveCodeBlock) => void
+	locale?: string
+	/**
+	 * Optional data about the parent document the code block is located in.
+	 *
+	 * Integrations like `remark-expressive-code` can provide this information based on the
+	 * source document being processed. There may be cases where no document is available,
+	 * e.g. when the code block was created dynamically.
+	 */
+	parentDocument?: {
+		/**
+		 * The full path to the source file containing the code block.
+		 */
+		sourceFilePath?: string
+	}
 }
 
 export class ExpressiveCodeBlock {
 	constructor(options: ExpressiveCodeBlockOptions) {
-		const { code, language, meta = '', onInitBlock } = options
+		const { code, language, meta = '', locale, parentDocument } = options
 		if (!isString(code) || !isString(language) || !isString(meta)) throw newTypeError('object of type ExpressiveCodeBlockOptions', options)
 		this.#lines = []
 		this.#language = language
 		this.#meta = meta
+		this.#locale = locale
+		this.#parentDocument = parentDocument
 
 		// Split the code into lines and remove whitespace from the end of the lines
 		const lines = code.split(/\r?\n/).map((line) => line.trimEnd())
@@ -36,9 +51,6 @@ export class ExpressiveCodeBlock {
 
 		// If there are any lines left, insert them into the block
 		if (lines.length) this.insertLines(0, lines)
-
-		// Allow the caller to initialize block data after the block has been created
-		onInitBlock?.(this)
 	}
 
 	/**
@@ -51,6 +63,8 @@ export class ExpressiveCodeBlock {
 	readonly #lines: ExpressiveCodeLine[]
 	#language: string
 	#meta: string
+	#locale: ExpressiveCodeBlockOptions['locale']
+	#parentDocument: ExpressiveCodeBlockOptions['parentDocument']
 	#state?: ExpressiveCodeProcessingState
 
 	get code() {
@@ -73,6 +87,14 @@ export class ExpressiveCodeBlock {
 	set meta(value: string) {
 		if (this.#state?.canEditMetadata === false) throw new Error('Cannot edit code block property "meta" in the current state.')
 		this.#meta = value
+	}
+
+	get locale() {
+		return this.#locale
+	}
+
+	get parentDocument() {
+		return this.#parentDocument
 	}
 
 	get state() {

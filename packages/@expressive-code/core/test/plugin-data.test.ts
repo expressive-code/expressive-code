@@ -8,25 +8,6 @@ import { getMultiHookTestResult, defaultBlockOptions, getMultiPluginTestResult }
 describe('AttachedPluginData', () => {
 	describe('Data attached to code blocks', () => {
 		describe('Can be initialized from outside before processing', () => {
-			test('By using an onInitBlock handler function', async () => {
-				const testPluginData = new AttachedPluginData(() => ({ justInitialized: true }))
-				await getMultiHookTestResult({
-					input: [
-						{
-							...defaultBlockOptions,
-							onInitBlock: (block) => {
-								testPluginData.setFor(block, { justInitialized: false })
-							},
-						},
-					],
-					hooks: {
-						preprocessMetadata: ({ codeBlock }) => {
-							const blockData = testPluginData.getOrCreateFor(codeBlock)
-							expect(blockData.justInitialized).toEqual(false)
-						},
-					},
-				})
-			})
 			test('By manually creating an ExpressiveCodeBlock instance', async () => {
 				const testPluginData = new AttachedPluginData(() => ({ justInitialized: true }))
 				const testBlock = new ExpressiveCodeBlock(defaultBlockOptions)

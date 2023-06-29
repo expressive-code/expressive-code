@@ -1,7 +1,7 @@
-import type { Plugin, Transformer } from 'unified'
+import type { Plugin, Transformer, VFileWithOutput } from 'unified'
 import type { Root, Parent, Code, HTML } from 'mdast'
 import { visit } from 'unist-util-visit'
-import { BundledShikiTheme, loadShikiTheme, ExpressiveCode, ExpressiveCodeConfig, ExpressiveCodeTheme } from 'expressive-code'
+import { BundledShikiTheme, loadShikiTheme, ExpressiveCode, ExpressiveCodeConfig, ExpressiveCodeTheme, ExpressiveCodeBlockOptions, ExpressiveCodeBlock } from 'expressive-code'
 import { toHtml } from 'hast-util-to-html'
 
 export * from 'expressive-code'
@@ -18,11 +18,38 @@ export type RemarkExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'theme'> & 
 	 */
 	theme?: BundledShikiTheme | ExpressiveCodeTheme
 	/**
+	 * This optional function provides support for multi-language sites by allowing you
+	 * to customize the locale used for a given code block.
+	 *
+	 * If the function returns `undefined`, the default locale provided in the
+	 * Expressive Code configuration is used.
+	 */
+	getBlockLocale?: ({ input, file }: { input: ExpressiveCodeBlockOptions; file: VFileWithOutput<null> }) => string | undefined | Promise<string | undefined>
+	/**
+	 * This optional function allows you to customize how `ExpressiveCodeBlock`
+	 * instances are created from code blocks found in the Markdown document.
+	 *
+	 * The function is called with an object containing the following properties:
+	 * - `input`: Block data for the `ExpressiveCodeBlock` constructor.
+	 * - `file`: A `VFile` instance representing the Markdown document.
+	 *
+	 * The function is expected to return an `ExpressiveCodeBlock` instance
+	 * or a promise resolving to one.
+	 */
+	customCreateBlock?: ({ input, file }: { input: ExpressiveCodeBlockOptions; file: VFileWithOutput<null> }) => ExpressiveCodeBlock | Promise<ExpressiveCodeBlock>
+	/**
 	 * This advanced option allows you to influence the rendering process by providing
 	 * your own `ExpressiveCode` instance or processing the base styles and JS modules
 	 * added to every page.
 	 */
 	customRenderer?: RemarkExpressiveCodeRenderer
+}
+
+export type RemarkExpressiveCodeDocument = {
+	/**
+	 * The full path to the source file containing the code block.
+	 */
+	sourceFilePath?: string
 }
 
 export type RemarkExpressiveCodeRenderer = {
@@ -46,7 +73,10 @@ export async function createRenderer(options: RemarkExpressiveCodeOptions): Prom
 
 	const mustLoadTheme = theme !== undefined && !(theme instanceof ExpressiveCodeTheme)
 	const optLoadedTheme = mustLoadTheme ? new ExpressiveCodeTheme(await loadShikiTheme(theme)) : theme
-	const ec = new ExpressiveCode({ theme: optLoadedTheme, ...ecOptions })
+	const ec = new ExpressiveCode({
+		theme: optLoadedTheme,
+		...ecOptions,
+	})
 	const baseStyles = await ec.getBaseStyles()
 	const jsModules = await ec.getJsModules()
 
@@ -59,11 +89,11 @@ export async function createRenderer(options: RemarkExpressiveCodeOptions): Prom
 
 const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Root> = (...settings) => {
 	const options: RemarkExpressiveCodeOptions = settings[0] ?? {}
-	const { customRenderer } = options
+	const { customRenderer, getBlockLocale, customCreateBlock } = options
 
 	let cachedRenderer: Promise<RemarkExpressiveCodeRenderer> | RemarkExpressiveCodeRenderer | undefined
 
-	const transformer: Transformer<Root, Root> = async (tree) => {
+	const transformer: Transformer<Root, Root> = async (tree, file) => {
 		const nodesToProcess: [Parent, Code][] = []
 
 		visit(tree, 'code', (code, index, parent) => {
@@ -79,16 +109,33 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 			cachedRenderer = customRenderer ?? createRenderer(options)
 		}
 		const { ec, baseStyles, jsModules } = await cachedRenderer
+
+		const parentDocument: ExpressiveCodeBlockOptions['parentDocument'] = {
+			sourceFilePath: file.path,
+		}
 		let isFirstBlock = true
 		const addedGroupStyles = new Set<string>()
 
 		for (const [parent, code] of nodesToProcess) {
-			// Try to render the current code node
-			const { renderedGroupAst, styles } = await ec.render({
+			// Build the ExpressiveCodeBlockOptions object that we will pass either
+			// to the ExpressiveCodeBlock constructor or the customCreateBlock function
+			const input: ExpressiveCodeBlockOptions = {
 				code: code.value,
 				language: code.lang || '',
 				meta: code.meta || '',
-			})
+				parentDocument,
+			}
+
+			// Allow the user to customize the locale for this code block
+			if (getBlockLocale) {
+				input.locale = await getBlockLocale({ input, file })
+			}
+
+			// Allow the user to customize the ExpressiveCodeBlock instance
+			const codeBlock = customCreateBlock ? await customCreateBlock({ input, file }) : new ExpressiveCodeBlock(input)
+
+			// Try to render the current code block
+			const { renderedGroupAst, styles } = await ec.render(codeBlock)
 
 			// Collect any style and script elements that we need to add to the output
 			type HastElement = Extract<(typeof renderedGroupAst.children)[number], { type: 'element' }>
