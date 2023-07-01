@@ -1,5 +1,13 @@
 # @expressive-code/plugin-text-markers
 
+## 0.2.7
+
+### Patch Changes
+
+- Enable stricter TypeScript checks (exactOptionalPropertyTypes), improve types
+- Updated dependencies
+  - @expressive-code/core@0.8.1
+
 ## 0.2.6
 
 ### Patch Changes

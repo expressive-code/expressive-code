@@ -7,12 +7,12 @@ import { toHtml } from 'hast-util-to-html'
 export type TestFixture = {
 	fixtureName: string
 	code: string
-	language?: string
-	meta?: string
-	theme?: ExpressiveCodeTheme
+	language?: string | undefined
+	meta?: string | undefined
+	theme?: ExpressiveCodeTheme | undefined
 	plugins: ExpressiveCodePlugin[]
-	engineOptions?: Partial<ExpressiveCodeEngineConfig>
-	blockValidationFn?: ({ renderedGroupAst, theme }: { renderedGroupAst: Parent; theme: ExpressiveCodeTheme }) => void
+	engineOptions?: Partial<ExpressiveCodeEngineConfig> | undefined
+	blockValidationFn?: (({ renderedGroupAst, theme }: { renderedGroupAst: Parent; theme: ExpressiveCodeTheme }) => void) | undefined
 }
 
 export function buildThemeFixtures(themes: (ExpressiveCodeTheme | undefined)[], fixtureContents: Omit<TestFixture, 'fixtureName' | 'theme'>) {

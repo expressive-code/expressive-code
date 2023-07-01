@@ -33,11 +33,13 @@ const myFavoritePokemon = [/* ... */];
 
 type ExpectedTextMarkerResults = {
 	meta: string
-	annotations?: {
-		lineMarkings?: { markerType: MarkerType; lines: number[] }[]
-		plaintextTerms?: { markerType: MarkerType; text: string }[]
-		regExpTerms?: { markerType: MarkerType; regExp: RegExp }[]
-	}
+	annotations?:
+		| {
+				lineMarkings?: { markerType: MarkerType; lines: number[] }[] | undefined
+				plaintextTerms?: { markerType: MarkerType; text: string }[] | undefined
+				regExpTerms?: { markerType: MarkerType; regExp: RegExp }[] | undefined
+		  }
+		| undefined
 }
 
 const expectMetaResult = async (input: string, partialExpectedResult: ExpectedTextMarkerResults) => {

@@ -33,7 +33,7 @@ export interface ExpressiveCodePlugin {
 	 * For example, it could create a site-wide CSS stylesheet from the base styles
 	 * and insert a link to it, or it could insert the base styles into a `<style>` element.
 	 */
-	baseStyles?: string | BaseStylesResolverFn
+	baseStyles?: string | BaseStylesResolverFn | undefined
 	/**
 	 * JavaScript modules (pure code without any wrapping `script` tags) that should be added
 	 * to every page containing code blocks.
@@ -50,6 +50,6 @@ export interface ExpressiveCodePlugin {
 	 * and refer to them in a script tag with `type="module"`, or it could insert them
 	 * into inline `<script type="module">` elements.
 	 */
-	jsModules?: string[] | JsModulesResolverFn
+	jsModules?: string[] | JsModulesResolverFn | undefined
 	hooks: ExpressiveCodePluginHooks
 }

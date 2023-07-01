@@ -437,12 +437,12 @@ function fancyJsHelper() {
 	)
 })
 
-function buildMeta(markers: { markerType?: string; text: string }[]) {
+function buildMeta(markers: { markerType?: string | undefined; text: string }[]) {
 	return markers.map(({ markerType, text }) => `${markerType ? `${markerType}=` : ''}"${text.replace(/(")/g, '\\$1')}"`).join(' ')
 }
 
 function buildMarkerValidationFn(
-	expectedMarkers: { fullLine?: boolean; markerType: MarkerType; text: string; classNames?: string[] }[]
+	expectedMarkers: { fullLine?: boolean | undefined; markerType: MarkerType; text: string; classNames?: string[] | undefined }[]
 ): NonNullable<TestFixture['blockValidationFn']> {
 	return ({ renderedGroupAst }) => {
 		const lineMarkerSelectors = MarkerTypeOrder.map((markerType) => `.${markerType}`)
@@ -481,7 +481,7 @@ function buildMarkerValidationFn(
 	}
 }
 
-function pseudoSyntaxHighlighter(options: { highlights: { text: string; colors: string[] }[]; renderPhase?: AnnotationRenderPhase }): ExpressiveCodePlugin {
+function pseudoSyntaxHighlighter(options: { highlights: { text: string; colors: string[] }[]; renderPhase?: AnnotationRenderPhase | undefined }): ExpressiveCodePlugin {
 	return {
 		name: 'Pseudo Syntax Highlighter',
 		hooks: {

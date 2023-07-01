@@ -10,8 +10,8 @@ import djb2a from 'djb2a'
  * Functions are replaced with the string `[Function]`, unless the `includeFunctionContents`
  * option is set to `true`.
  */
-export function stableStringify(obj: unknown, options?: { includeFunctionContents?: boolean }): string {
-	const { includeFunctionContents: includeFunctionContents = false } = options ?? {}
+export function stableStringify(obj: unknown, options: { includeFunctionContents?: boolean | undefined } = {}): string {
+	const { includeFunctionContents: includeFunctionContents = false } = options
 	const visited = new WeakSet()
 
 	const toJson = (value: unknown): unknown => {
@@ -58,8 +58,8 @@ export function stableStringify(obj: unknown, options?: { includeFunctionContent
  * the hash will be the same. The hash is not cryptographically secure, but uses the simple
  * and fast `djb2a` algorithm, which is known to produce few collisions.
  */
-export function getStableObjectHash(obj: unknown, options?: { includeFunctionContents?: boolean; hashLength?: number }): string {
-	const { includeFunctionContents = false, hashLength = 5 } = options ?? {}
+export function getStableObjectHash(obj: unknown, options: { includeFunctionContents?: boolean | undefined; hashLength?: number | undefined } = {}): string {
+	const { includeFunctionContents = false, hashLength = 5 } = options
 	const numericHash = djb2a(stableStringify(obj, { includeFunctionContents }))
 	const padding = '0'.repeat(hashLength)
 	return (padding + numericHash.toString(36)).slice(-hashLength)

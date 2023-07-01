@@ -1,6 +1,6 @@
 {
   "name": "@expressive-code/plugin-frames",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "Frames plugin for Expressive Code. Wraps code blocks in a styled editor or terminal frame with support for titles, multiple tabs and more.",
   "keywords": [],
   "author": "Tibor Schiemann",
@@ -26,11 +26,11 @@
     "watch": "pnpm build --watch src"
   },
   "dependencies": {
-    "@expressive-code/core": "workspace:^0.8.0",
+    "@expressive-code/core": "workspace:^0.8.1",
     "hastscript": "^7.2.0"
   },
   "devDependencies": {
-    "@internal/test-utils": "workspace:^0.2.3",
+    "@internal/test-utils": "workspace:^0.2.4",
     "hast-util-select": "^5.0.5",
     "hast-util-to-html": "^8.0.4"
   }

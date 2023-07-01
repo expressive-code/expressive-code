@@ -62,7 +62,7 @@ export class StyleSettings<T extends string> {
 	}: {
 		theme: ExpressiveCodeTheme
 		coreStyles: ResolvedCoreStyles
-		styleOverrides?: Partial<UnresolvedStyleSettings<T>>
+		styleOverrides?: Partial<UnresolvedStyleSettings<T>> | undefined
 	}): ResolvedStyleSettings<T> {
 		const attemptedToResolve = new Set<T>()
 		const resolvedSettings = {} as ResolvedStyleSettings<T>

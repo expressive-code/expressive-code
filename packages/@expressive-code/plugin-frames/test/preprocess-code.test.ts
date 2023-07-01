@@ -189,8 +189,8 @@ async function expectCodeResult({
 }: {
 	code: string
 	language: string
-	meta?: string
-	options?: PluginFramesOptions
+	meta?: string | undefined
+	options?: PluginFramesOptions | undefined
 	expected: {
 		extractedFileName: string | undefined
 		code: string

@@ -20,7 +20,7 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 	 * function yourself, use it to load its bundled theme (e.g. `themes/dracula.json`),
 	 * and pass the result to this constructor.
 	 */
-	constructor(theme: Partial<ExpressiveCodeTheme> | (Partial<IShikiTheme> & { semanticHighlighting?: boolean; tokenColors?: unknown })) {
+	constructor(theme: Partial<ExpressiveCodeTheme> | (Partial<IShikiTheme> & { semanticHighlighting?: boolean | undefined; tokenColors?: unknown | undefined })) {
 		let themeType = theme.type
 		if (themeType === 'css') throw new Error('Theme type "css" is not supported.')
 		if (themeType !== 'dark' && themeType !== 'light') {

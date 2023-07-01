@@ -7,7 +7,7 @@ import { flattenInlineMarkerRanges, getInlineSearchTermMatches } from './inline-
 import { TextMarkerAnnotation } from './annotations'
 
 export interface PluginTextMarkersOptions {
-	styleOverrides?: Partial<typeof textMarkersStyleSettings.defaultSettings>
+	styleOverrides?: Partial<typeof textMarkersStyleSettings.defaultSettings> | undefined
 }
 
 export function pluginTextMarkers(options: PluginTextMarkersOptions = {}): ExpressiveCodePlugin {

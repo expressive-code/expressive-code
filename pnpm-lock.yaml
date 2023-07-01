@@ -32,6 +32,9 @@ importers:
       eslint-plugin-prettier:
         specifier: ^4.2.1
         version: 4.2.1(eslint-config-prettier@8.8.0)(eslint@8.38.0)(prettier@2.8.7)
+      eslint-plugin-redundant-undefined:
+        specifier: ^0.4.0
+        version: 0.4.0(@typescript-eslint/parser@5.58.0)(eslint@8.38.0)(typescript@5.0.4)
       happy-dom:
         specifier: ^8.9.0
         version: 8.9.0
@@ -57,7 +60,7 @@ importers:
   internal/test-utils:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.8.0
+        specifier: workspace:^0.8.1
         version: link:../../packages/@expressive-code/core
     devDependencies:
       '@types/node':
@@ -116,14 +119,14 @@ importers:
   packages/@expressive-code/plugin-frames:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.8.0
+        specifier: workspace:^0.8.1
         version: link:../core
       hastscript:
         specifier: ^7.2.0
         version: 7.2.0
     devDependencies:
       '@internal/test-utils':
-        specifier: workspace:^0.2.3
+        specifier: workspace:^0.2.4
         version: link:../../../internal/test-utils
       hast-util-select:
         specifier: ^5.0.5
@@ -135,7 +138,7 @@ importers:
   packages/@expressive-code/plugin-shiki:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.8.0
+        specifier: workspace:^0.8.1
         version: link:../core
       shiki:
         specifier: ^0.14.1
@@ -151,7 +154,7 @@ importers:
   packages/@expressive-code/plugin-text-markers:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.8.0
+        specifier: workspace:^0.8.1
         version: link:../core
       hastscript:
         specifier: ^7.2.0
@@ -164,7 +167,7 @@ importers:
         specifier: workspace:^0.3.6
         version: link:../plugin-shiki
       '@internal/test-utils':
-        specifier: workspace:^0.2.3
+        specifier: workspace:^0.2.4
         version: link:../../../internal/test-utils
       hast-util-select:
         specifier: ^5.0.5
@@ -185,7 +188,7 @@ importers:
         specifier: ^2
         version: 2.5.0
       remark-expressive-code:
-        specifier: workspace:^0.9.0
+        specifier: workspace:^0.9.1
         version: link:../remark-expressive-code
     devDependencies:
       execa:
@@ -207,22 +210,22 @@ importers:
   packages/expressive-code:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.8.0
+        specifier: workspace:^0.8.1
         version: link:../@expressive-code/core
       '@expressive-code/plugin-frames':
-        specifier: workspace:^0.8.1
+        specifier: workspace:^0.8.2
         version: link:../@expressive-code/plugin-frames
       '@expressive-code/plugin-shiki':
         specifier: workspace:^0.3.6
         version: link:../@expressive-code/plugin-shiki
       '@expressive-code/plugin-text-markers':
-        specifier: workspace:^0.2.6
+        specifier: workspace:^0.2.7
         version: link:../@expressive-code/plugin-text-markers
 
   packages/remark-expressive-code:
     dependencies:
       expressive-code:
-        specifier: workspace:^0.9.0
+        specifier: workspace:^0.9.1
         version: link:../expressive-code
       hast-util-to-html:
         specifier: ^8.0.4
@@ -2684,6 +2687,21 @@ packages:
       eslint-config-prettier: 8.8.0(eslint@8.38.0)
       prettier: 2.8.7
       prettier-linter-helpers: 1.0.0
+    dev: true
+
+  /eslint-plugin-redundant-undefined@0.4.0(@typescript-eslint/parser@5.58.0)(eslint@8.38.0)(typescript@5.0.4):
+    resolution: {integrity: sha512-+nzoUIWJCIwlWxhoFL9LJDPE2y0RCq2Eq8qD8NhfMScTHlNHvBc0haIWdBkjgzJZaN6OX/bkke/4WisV0qs7Vg==}
+    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    peerDependencies:
+      '@typescript-eslint/parser': ^5.38.0
+      eslint: ^8.2.0
+    dependencies:
+      '@typescript-eslint/parser': 5.58.0(eslint@8.38.0)(typescript@5.0.4)
+      '@typescript-eslint/utils': 5.58.0(eslint@8.38.0)(typescript@5.0.4)
+      eslint: 8.38.0
+    transitivePeerDependencies:
+      - supports-color
+      - typescript
     dev: true
 
   /eslint-scope@5.1.1:

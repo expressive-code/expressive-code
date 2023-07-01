@@ -14,7 +14,7 @@ export class ExpressiveCodeLine {
 		return this.#text
 	}
 
-	#parent?: ExpressiveCodeBlock
+	#parent: ExpressiveCodeBlock | undefined
 	get parent() {
 		return this.#parent
 	}

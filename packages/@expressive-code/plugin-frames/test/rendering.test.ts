@@ -106,7 +106,7 @@ function validateBlockAst({
 }: {
 	renderedGroupAst: Parent
 	figureSelector: string
-	title?: string
+	title?: string | undefined
 	srTitlePresent: boolean
 }) {
 	// Expect the AST to only contain a single figure element

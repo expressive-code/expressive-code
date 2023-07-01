@@ -24,7 +24,7 @@ export function annotationSortFn(a: ExpressiveCodeAnnotation, b: ExpressiveCodeA
 	return indexA - indexB
 }
 
-export type AnnotationBaseOptions = { inlineRange?: ExpressiveCodeInlineRange; renderPhase?: AnnotationRenderPhase }
+export type AnnotationBaseOptions = { inlineRange?: ExpressiveCodeInlineRange | undefined; renderPhase?: AnnotationRenderPhase | undefined }
 
 export abstract class ExpressiveCodeAnnotation {
 	constructor({ inlineRange, renderPhase }: AnnotationBaseOptions) {
@@ -48,7 +48,7 @@ export abstract class ExpressiveCodeAnnotation {
 	 * An optional range of columns within the line that this annotation applies to.
 	 * If not provided, the annotation will apply to the entire line.
 	 */
-	readonly inlineRange?: ExpressiveCodeInlineRange
+	readonly inlineRange: ExpressiveCodeInlineRange | undefined
 
 	/**
 	 * Determines the phase in which this annotation should be rendered.
@@ -61,11 +61,11 @@ export abstract class ExpressiveCodeAnnotation {
 	 *
 	 * The default phase is `normal`.
 	 */
-	readonly renderPhase?: AnnotationRenderPhase
+	readonly renderPhase: AnnotationRenderPhase | undefined
 }
 
 export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
-	color?: string
+	color: string | undefined
 	italic: boolean
 	bold: boolean
 	underline: boolean
@@ -76,7 +76,7 @@ export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
 		bold = false,
 		underline = false,
 		...baseOptions
-	}: { color?: string; italic?: boolean; bold?: boolean; underline?: boolean } & AnnotationBaseOptions) {
+	}: { color?: string | undefined; italic?: boolean | undefined; bold?: boolean | undefined; underline?: boolean | undefined } & AnnotationBaseOptions) {
 		super(baseOptions)
 		this.color = color
 		this.italic = italic

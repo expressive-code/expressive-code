@@ -22,7 +22,7 @@ export interface RenderOptions {
 	 * You can then import the const and set `onInitGroup` to a function that
 	 * calls `myPluginData.setFor(group, { ...data... })`.
 	 */
-	onInitGroup?: (groupContents: GroupContents) => void
+	onInitGroup?: ((groupContents: GroupContents) => void) | undefined
 }
 
 export type GroupContents = readonly { codeBlock: ExpressiveCodeBlock }[]
@@ -39,7 +39,7 @@ export async function renderGroup({
 	configClassName,
 }: {
 	input: RenderInput
-	options?: RenderOptions
+	options?: RenderOptions | undefined
 	theme: ExpressiveCodeTheme
 	defaultLocale: string
 	coreStyles: ResolvedCoreStyles

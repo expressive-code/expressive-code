@@ -31,8 +31,8 @@ export function annotateMatchingTextParts({
 }: {
 	line: ExpressiveCodeLine
 	partsToAnnotate: string[]
-	renderPhase?: AnnotationRenderPhase
-	selector?: string
+	renderPhase?: AnnotationRenderPhase | undefined
+	selector?: string | undefined
 }) {
 	// Create annotations for all the given parts
 	partsToAnnotate.forEach((partToAnnotate) => {
@@ -73,7 +73,7 @@ export function cloneAnnotation(annotation: ExpressiveCodeAnnotation) {
 export class WrapperAnnotation extends ExpressiveCodeAnnotation {
 	selector: string
 
-	constructor({ selector = 'span', ...baseOptions }: { selector?: string } & AnnotationBaseOptions = {}) {
+	constructor({ selector = 'span', ...baseOptions }: { selector?: string | undefined } & AnnotationBaseOptions = {}) {
 		super(baseOptions)
 		this.selector = selector
 	}
@@ -103,7 +103,7 @@ export async function getHookTestResult(hookName: ExpressiveCodePluginHookName, 
 	})
 }
 
-export async function getMultiHookTestResult({ hooks, input }: { hooks: ExpressiveCodePluginHooks; input?: ExpressiveCodeBlockOptions[] }) {
+export async function getMultiHookTestResult({ hooks, input }: { hooks: ExpressiveCodePluginHooks; input?: ExpressiveCodeBlockOptions[] | undefined }) {
 	return await getMultiPluginTestResult({
 		plugins: [
 			{
@@ -121,7 +121,7 @@ export const defaultBlockOptions = {
 	meta: 'test',
 }
 
-export async function getMultiPluginTestResult({ plugins, input = [defaultBlockOptions] }: { plugins: ExpressiveCodePlugin[]; input?: ExpressiveCodeBlockOptions[] }) {
+export async function getMultiPluginTestResult({ plugins, input = [defaultBlockOptions] }: { plugins: ExpressiveCodePlugin[]; input?: ExpressiveCodeBlockOptions[] | undefined }) {
 	const engine = new ExpressiveCodeEngine({
 		plugins,
 	})

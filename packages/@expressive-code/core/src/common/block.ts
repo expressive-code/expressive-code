@@ -5,7 +5,7 @@ import { ExpressiveCodeLine } from './line'
 export interface ExpressiveCodeBlockOptions {
 	code: string
 	language: string
-	meta?: string
+	meta?: string | undefined
 	/**
 	 * The code block's locale (e.g. `en-US` or `de-DE`). This is used by plugins to display
 	 * localized strings depending on the language of the containing page.
@@ -16,7 +16,7 @@ export interface ExpressiveCodeBlockOptions {
 	 * If no locale is defined here, `ExpressiveCodeEngine` will render the code block
 	 * using the `defaultLocale` provided in its configuration.
 	 */
-	locale?: string
+	locale?: string | undefined
 	/**
 	 * Optional data about the parent document the code block is located in.
 	 *
@@ -24,12 +24,14 @@ export interface ExpressiveCodeBlockOptions {
 	 * source document being processed. There may be cases where no document is available,
 	 * e.g. when the code block was created dynamically.
 	 */
-	parentDocument?: {
-		/**
-		 * The full path to the source file containing the code block.
-		 */
-		sourceFilePath?: string
-	}
+	parentDocument?:
+		| {
+				/**
+				 * The full path to the source file containing the code block.
+				 */
+				sourceFilePath?: string | undefined
+		  }
+		| undefined
 }
 
 export class ExpressiveCodeBlock {
@@ -65,7 +67,7 @@ export class ExpressiveCodeBlock {
 	#meta: string
 	#locale: ExpressiveCodeBlockOptions['locale']
 	#parentDocument: ExpressiveCodeBlockOptions['parentDocument']
-	#state?: ExpressiveCodeProcessingState
+	#state: ExpressiveCodeProcessingState | undefined
 
 	get code() {
 		return this.#lines.map((line) => line.text).join('\n')

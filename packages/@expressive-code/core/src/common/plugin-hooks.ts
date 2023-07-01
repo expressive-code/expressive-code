@@ -73,7 +73,7 @@ export interface ExpressiveCodePluginHooks_BeforeRendering {
 	 * As the code still matches the plaintext in the containing Markdown/MDX document at this
 	 * point, this hook can be used to apply annotations by line numbers.
 	 */
-	preprocessMetadata?: ExpressiveCodeHook
+	preprocessMetadata?: ExpressiveCodeHook | undefined
 
 	/**
 	 * Allows preprocessing the code before any language-specific hooks are run.
@@ -86,7 +86,7 @@ export interface ExpressiveCodePluginHooks_BeforeRendering {
 	 * syntax highlighters, or to provide functionality to include external files into the
 	 * code block.
 	 */
-	preprocessCode?: ExpressiveCodeHook
+	preprocessCode?: ExpressiveCodeHook | undefined
 
 	/**
 	 * Allows analyzing the preprocessed code and collecting language-specific syntax annotations.
@@ -97,7 +97,7 @@ export interface ExpressiveCodePluginHooks_BeforeRendering {
 	 * These annotations are then available to the following hooks and will be used during
 	 * rendering.
 	 */
-	performSyntaxAnalysis?: ExpressiveCodeHook
+	performSyntaxAnalysis?: ExpressiveCodeHook | undefined
 
 	/**
 	 * Allows postprocessing the code plaintext after collecting syntax annotations.
@@ -109,7 +109,7 @@ export interface ExpressiveCodePluginHooks_BeforeRendering {
 	 *
 	 * After this hook has finished processing, the plaintext of all code lines becomes read-only.
 	 */
-	postprocessAnalyzedCode?: ExpressiveCodeHook
+	postprocessAnalyzedCode?: ExpressiveCodeHook | undefined
 
 	/**
 	 * Allows annotating the final code plaintext.
@@ -117,27 +117,27 @@ export interface ExpressiveCodePluginHooks_BeforeRendering {
 	 * As the code is read-only at this point, plugins can use this hook to create annotations
 	 * on lines or inline ranges matching a specific search term.
 	 */
-	annotateCode?: ExpressiveCodeHook
+	annotateCode?: ExpressiveCodeHook | undefined
 
 	/**
 	 * Allows applying final changes to annotations before rendering.
 	 *
 	 * After this hook has finished processing, all annotations become read-only.
 	 */
-	postprocessAnnotations?: ExpressiveCodeHook
+	postprocessAnnotations?: ExpressiveCodeHook | undefined
 }
 
 export interface ExpressiveCodePluginHooks_Rendering {
 	/**
 	 * Allows editing the AST of a single line of code after all annotations were rendered.
 	 */
-	postprocessRenderedLine?: ExpressiveCodeHook<PostprocessRenderedLineContext>
+	postprocessRenderedLine?: ExpressiveCodeHook<PostprocessRenderedLineContext> | undefined
 
 	/**
 	 * Allows editing the AST of the entire code block after all annotations were rendered
 	 * and all lines were postprocessed.
 	 */
-	postprocessRenderedBlock?: ExpressiveCodeHook<PostprocessRenderedBlockContext>
+	postprocessRenderedBlock?: ExpressiveCodeHook<PostprocessRenderedBlockContext> | undefined
 
 	/**
 	 * Allows editing the ASTs of all code blocks that were rendered as part of the same group,
@@ -151,7 +151,7 @@ export interface ExpressiveCodePluginHooks_Rendering {
 	 * Note: Even if a code block is not part of any group, this hook will still be called.
 	 * Standalone code blocks are treated like a group containing only a single block.
 	 */
-	postprocessRenderedBlockGroup?: ExpressiveCodeHook<PostprocessRenderedBlockGroupContext>
+	postprocessRenderedBlockGroup?: ExpressiveCodeHook<PostprocessRenderedBlockGroupContext> | undefined
 }
 
 export interface ExpressiveCodePluginHooks extends ExpressiveCodePluginHooks_BeforeRendering, ExpressiveCodePluginHooks_Rendering {}

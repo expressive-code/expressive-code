@@ -14,7 +14,7 @@ export interface ExpressiveCodeConfig extends ExpressiveCodeEngineConfig {
 	 *
 	 * This plugin is enabled by default. Set this to `false` to disable it.
 	 */
-	shiki?: boolean
+	shiki?: boolean | undefined
 	/**
 	 * The Text Markers plugin allows to highlight lines and inline ranges
 	 * in code blocks in various styles (e.g. marked, inserted, deleted).
@@ -22,7 +22,7 @@ export interface ExpressiveCodeConfig extends ExpressiveCodeEngineConfig {
 	 * This plugin is enabled by default. Set this to `false` to disable it.
 	 * You can also configure the plugin by setting this to an options object.
 	 */
-	textMarkers?: PluginTextMarkersOptions | boolean
+	textMarkers?: PluginTextMarkersOptions | boolean | undefined
 	/**
 	 * The Frames plugin adds an editor or terminal frame around code blocks,
 	 * including an optional title displayed as a tab or window caption.
@@ -30,7 +30,7 @@ export interface ExpressiveCodeConfig extends ExpressiveCodeEngineConfig {
 	 * This plugin is enabled by default. Set this to `false` to disable it.
 	 * You can also configure the plugin by setting this to an options object.
 	 */
-	frames?: PluginFramesOptions | boolean
+	frames?: PluginFramesOptions | boolean | undefined
 }
 
 export class ExpressiveCode extends ExpressiveCodeEngine {

@@ -66,7 +66,7 @@ export function getInlineSearchTermMatches(lineText: string, blockData: PluginTe
 export function flattenInlineMarkerRanges(markerRanges: InlineMarkerRange[]): InlineMarkerRange[] {
 	const flattenedRanges: InlineMarkerRange[] = []
 	const sortedRanges = [...markerRanges].sort((a, b) => a.start - b.start)
-	const posInRange = (pos: number): { idx: number; range?: InlineMarkerRange } => {
+	const posInRange = (pos: number): { idx: number; range?: InlineMarkerRange | undefined } => {
 		for (let idx = 0; idx < flattenedRanges.length; idx++) {
 			const range = flattenedRanges[idx]
 			if (pos < range.end)

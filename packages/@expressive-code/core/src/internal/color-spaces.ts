@@ -3,21 +3,21 @@ type RgbaColor = {
 	r: number
 	g: number
 	b: number
-	a?: number
+	a?: number | undefined
 }
 
 export type LabColor = {
 	l: number
 	a: number
 	b: number
-	alpha?: number
+	alpha?: number | undefined
 }
 
 export type LchColor = {
 	l: number
 	c: number
 	h: number
-	alpha?: number
+	alpha?: number | undefined
 }
 
 // White point constants
