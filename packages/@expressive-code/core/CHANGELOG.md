@@ -1,5 +1,11 @@
 # @expressive-code/core
 
+## 0.8.0
+
+### Minor Changes
+
+- Improve mobile core and copy button styles
+
 ## 0.7.0
 
 ### Minor Changes

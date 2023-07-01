@@ -1,5 +1,15 @@
 # expressive-code
 
+## 0.8.3
+
+### Patch Changes
+
+- Updated dependencies
+  - @expressive-code/plugin-frames@0.8.0
+  - @expressive-code/core@0.8.0
+  - @expressive-code/plugin-shiki@0.3.6
+  - @expressive-code/plugin-text-markers@0.2.6
+
 ## 0.8.2
 
 ### Patch Changes

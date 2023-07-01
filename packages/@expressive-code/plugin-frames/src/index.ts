@@ -33,12 +33,15 @@ pluginFramesTexts.addLocale('de', {
 
 export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodePlugin {
 	// Apply default settings
-	const extractFileNameFromCode = options.extractFileNameFromCode ?? true
-	const showCopyToClipboardButton = options.showCopyToClipboardButton ?? true
+	options = {
+		extractFileNameFromCode: true,
+		showCopyToClipboardButton: true,
+		...options,
+	}
 	return {
 		name: 'Frames',
-		baseStyles: ({ theme, coreStyles }) => getFramesBaseStyles(theme, coreStyles, options.styleOverrides || {}),
-		jsModules: showCopyToClipboardButton ? [getCopyJsModule(`.expressive-code .copy button`)] : undefined,
+		baseStyles: ({ theme, coreStyles }) => getFramesBaseStyles(theme, coreStyles, options),
+		jsModules: options.showCopyToClipboardButton ? [getCopyJsModule(`.expressive-code .copy button`)] : undefined,
 		hooks: {
 			preprocessMetadata: ({ codeBlock }) => {
 				const blockData = pluginFramesData.getOrCreateFor(codeBlock)
@@ -56,7 +59,7 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 			},
 			preprocessCode: ({ codeBlock }) => {
 				// Skip processing if the given options do not allow file name extraction from code
-				if (!extractFileNameFromCode) return
+				if (!options.extractFileNameFromCode) return
 
 				const blockData = pluginFramesData.getOrCreateFor(codeBlock)
 
@@ -105,7 +108,7 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 				const extraElements: HastEntity[] = []
 
 				// If enabled, create a button to copy the code to the clipboard
-				if (showCopyToClipboardButton) {
+				if (options.showCopyToClipboardButton) {
 					// Replace all line breaks with a special character
 					// because HAST does not encode them in attribute values
 					// (which seems to work, but looks ugly in the HTML source)
