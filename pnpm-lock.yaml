@@ -185,7 +185,7 @@ importers:
         specifier: ^2
         version: 2.5.0
       remark-expressive-code:
-        specifier: workspace:^0.8.4
+        specifier: workspace:^0.9.0
         version: link:../remark-expressive-code
     devDependencies:
       execa:
@@ -222,7 +222,7 @@ importers:
   packages/remark-expressive-code:
     dependencies:
       expressive-code:
-        specifier: workspace:^0.8.4
+        specifier: workspace:^0.9.0
         version: link:../expressive-code
       hast-util-to-html:
         specifier: ^8.0.4

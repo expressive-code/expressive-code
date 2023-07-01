@@ -59,6 +59,42 @@ describe('Usage inside unified/remark', () => {
 			'<script type="module">console.log("Test 2")</script>',
 		])
 	})
+	describe('Normalizes tabs in code', () => {
+		const codeWithTabs = `\`\`\`js
+function test() {
+	try {
+		console.log('It worked!')
+	} catch (e) {
+		console.log('How did this happen?')
+	}
+}
+\`\`\``
+
+		test('Replaces tabs with 2 spaces by default', async () => {
+			const processor = createRemarkProcessor()
+			const result = await processor.process(codeWithTabs)
+			const html = result.value.toString()
+			const text = getCodePlaintextFromHtml(html)
+			expect(text).toContain(`\n  try {\n`)
+			expect(text).toContain(`\n    console.log('It worked!')\n`)
+		})
+		test('Can be configured to use a different tab width', async () => {
+			const processor = createRemarkProcessor({ tabWidth: 4 })
+			const result = await processor.process(codeWithTabs)
+			const html = result.value.toString()
+			const text = getCodePlaintextFromHtml(html)
+			expect(text).toContain(`\n    try {\n`)
+			expect(text).toContain(`\n        console.log('It worked!')\n`)
+		})
+		test('Can be skipped by setting tabWidth to 0', async () => {
+			const processor = createRemarkProcessor({ tabWidth: 0 })
+			const result = await processor.process(codeWithTabs)
+			const html = result.value.toString()
+			const text = getCodePlaintextFromHtml(html)
+			expect(text).toContain(`\n\ttry {\n`)
+			expect(text).toContain(`\n\t\tconsole.log('It worked!')\n`)
+		})
+	})
 })
 
 function createRemarkProcessor(options?: RemarkExpressiveCodeOptions) {
@@ -71,4 +107,9 @@ function createRemarkProcessor(options?: RemarkExpressiveCodeOptions) {
 		.use(toHtml)
 		.freeze()
 	return processor
+}
+
+function getCodePlaintextFromHtml(html: string) {
+	const blockHtml = html.match(/<pre><code>(.*?)<\/code><\/pre>/)?.[1] || ''
+	return blockHtml.replace(/<span.*?>(.*?)<\/span>/g, '$1').replace(/<div class="ec-line.*?>(.*?)<\/div>/g, '$1\n')
 }

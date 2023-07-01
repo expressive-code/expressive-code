@@ -1,5 +1,15 @@
 # remark-expressive-code
 
+## 0.9.0
+
+### Minor Changes
+
+- Add tabWidth option to normalize tabs to spaces (default: 2)
+
+### Patch Changes
+
+- expressive-code@0.9.0
+
 ## 0.8.4
 
 ### Patch Changes

@@ -18,6 +18,16 @@ export type RemarkExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'theme'> & 
 	 */
 	theme?: BundledShikiTheme | ExpressiveCodeTheme
 	/**
+	 * The number of spaces that should be used to render tabs. Defaults to 2.
+	 *
+	 * Any tabs found in code blocks in your markdown/MDX documents will be replaced
+	 * with the specified number of spaces. This ensures that the code blocks are
+	 * rendered consistently across browsers and platforms.
+	 *
+	 * If you want to preserve tabs in your code blocks, set this option to 0.
+	 */
+	tabWidth?: number
+	/**
 	 * This optional function provides support for multi-language sites by allowing you
 	 * to customize the locale used for a given code block.
 	 *
@@ -89,7 +99,7 @@ export async function createRenderer(options: RemarkExpressiveCodeOptions): Prom
 
 const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Root> = (...settings) => {
 	const options: RemarkExpressiveCodeOptions = settings[0] ?? {}
-	const { customRenderer, getBlockLocale, customCreateBlock } = options
+	const { tabWidth = 2, customRenderer, getBlockLocale, customCreateBlock } = options
 
 	let cachedRenderer: Promise<RemarkExpressiveCodeRenderer> | RemarkExpressiveCodeRenderer | undefined
 
@@ -117,10 +127,14 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 		const addedGroupStyles = new Set<string>()
 
 		for (const [parent, code] of nodesToProcess) {
+			// Normalize the code coming from the Markdown/MDX document
+			let normalizedCode = code.value
+			if (tabWidth > 0) normalizedCode = normalizedCode.replace(/\t/g, ' '.repeat(tabWidth))
+
 			// Build the ExpressiveCodeBlockOptions object that we will pass either
 			// to the ExpressiveCodeBlock constructor or the customCreateBlock function
 			const input: ExpressiveCodeBlockOptions = {
-				code: code.value,
+				code: normalizedCode,
 				language: code.lang || '',
 				meta: code.meta || '',
 				parentDocument,
