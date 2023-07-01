@@ -1,5 +1,13 @@
 # expressive-code
 
+## 0.8.4
+
+### Patch Changes
+
+- Fix feedback tooltip on mobile Safari
+- Updated dependencies
+  - @expressive-code/plugin-frames@0.8.1
+
 ## 0.8.3
 
 ### Patch Changes

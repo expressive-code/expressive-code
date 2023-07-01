@@ -68,13 +68,18 @@ const handleClicks = [
 	`	tt.offsetWidth;
 		requestAnimationFrame(() => tt.classList.add('show'));`,
 	// Hide & remove the tooltip again when we no longer need it
-	`	let h = () => {
-			if (!(parseFloat(getComputedStyle(tt).opacity) > 0)) tt.remove();
+	`	let h = () => !tt || tt.classList.remove('show');
+		let r = () => {
+			if (!(!tt || parseFloat(getComputedStyle(tt).opacity) > 0)) {
+				tt.remove();
+				tt = null;
+			}
 		};
-		setTimeout(() => tt.classList.remove('show'), 1500);
-		setTimeout(() => h(), 2500);
-		tt.addEventListener('transitioncancel', h);
-		tt.addEventListener('transitionend', h);
+		setTimeout(h, 1500);
+		setTimeout(r, 2500);
+		button.addEventListener('blur', h);
+		tt.addEventListener('transitioncancel', r);
+		tt.addEventListener('transitionend', r);
 	}`,
 	// End of loop through all buttons
 	`}))`,
