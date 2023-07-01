@@ -1,5 +1,13 @@
 # @expressive-code/plugin-frames
 
+## 0.8.2
+
+### Patch Changes
+
+- Enable stricter TypeScript checks (exactOptionalPropertyTypes), improve types
+- Updated dependencies
+  - @expressive-code/core@0.8.1
+
 ## 0.8.1
 
 ### Patch Changes

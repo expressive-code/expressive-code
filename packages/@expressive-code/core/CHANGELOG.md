@@ -1,5 +1,11 @@
 # @expressive-code/core
 
+## 0.8.1
+
+### Patch Changes
+
+- Enable stricter TypeScript checks (exactOptionalPropertyTypes), improve types
+
 ## 0.8.0
 
 ### Minor Changes

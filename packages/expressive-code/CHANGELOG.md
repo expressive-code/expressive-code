@@ -1,5 +1,16 @@
 # expressive-code
 
+## 0.9.1
+
+### Patch Changes
+
+- Enable stricter TypeScript checks (exactOptionalPropertyTypes), improve types
+- Updated dependencies
+  - @expressive-code/plugin-text-markers@0.2.7
+  - @expressive-code/plugin-frames@0.8.2
+  - @expressive-code/core@0.8.1
+  - @expressive-code/plugin-shiki@0.3.6
+
 ## 0.9.0
 
 ## 0.8.4

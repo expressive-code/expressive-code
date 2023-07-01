@@ -1,5 +1,13 @@
 # remark-expressive-code
 
+## 0.9.1
+
+### Patch Changes
+
+- Enable stricter TypeScript checks (exactOptionalPropertyTypes), improve types
+- Updated dependencies
+  - expressive-code@0.9.1
+
 ## 0.9.0
 
 ### Minor Changes
