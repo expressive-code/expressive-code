@@ -16,7 +16,7 @@ export type RemarkExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'theme'> & 
 	 *
 	 * Defaults to the `github-dark` theme bundled with Shiki.
 	 */
-	theme?: BundledShikiTheme | ExpressiveCodeTheme
+	theme?: BundledShikiTheme | ExpressiveCodeTheme | undefined
 	/**
 	 * The number of spaces that should be used to render tabs. Defaults to 2.
 	 *
@@ -26,7 +26,7 @@ export type RemarkExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'theme'> & 
 	 *
 	 * If you want to preserve tabs in your code blocks, set this option to 0.
 	 */
-	tabWidth?: number
+	tabWidth?: number | undefined
 	/**
 	 * This optional function provides support for multi-language sites by allowing you
 	 * to customize the locale used for a given code block.
@@ -34,7 +34,7 @@ export type RemarkExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'theme'> & 
 	 * If the function returns `undefined`, the default locale provided in the
 	 * Expressive Code configuration is used.
 	 */
-	getBlockLocale?: ({ input, file }: { input: ExpressiveCodeBlockOptions; file: VFileWithOutput<null> }) => string | undefined | Promise<string | undefined>
+	getBlockLocale?: (({ input, file }: { input: ExpressiveCodeBlockOptions; file: VFileWithOutput<null> }) => string | undefined | Promise<string | undefined>) | undefined
 	/**
 	 * This optional function allows you to customize how `ExpressiveCodeBlock`
 	 * instances are created from code blocks found in the Markdown document.
@@ -46,20 +46,20 @@ export type RemarkExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'theme'> & 
 	 * The function is expected to return an `ExpressiveCodeBlock` instance
 	 * or a promise resolving to one.
 	 */
-	customCreateBlock?: ({ input, file }: { input: ExpressiveCodeBlockOptions; file: VFileWithOutput<null> }) => ExpressiveCodeBlock | Promise<ExpressiveCodeBlock>
+	customCreateBlock?: (({ input, file }: { input: ExpressiveCodeBlockOptions; file: VFileWithOutput<null> }) => ExpressiveCodeBlock | Promise<ExpressiveCodeBlock>) | undefined
 	/**
 	 * This advanced option allows you to influence the rendering process by providing
 	 * your own `ExpressiveCode` instance or processing the base styles and JS modules
 	 * added to every page.
 	 */
-	customRenderer?: RemarkExpressiveCodeRenderer
+	customRenderer?: RemarkExpressiveCodeRenderer | undefined
 }
 
 export type RemarkExpressiveCodeDocument = {
 	/**
 	 * The full path to the source file containing the code block.
 	 */
-	sourceFilePath?: string
+	sourceFilePath?: string | undefined
 }
 
 export type RemarkExpressiveCodeRenderer = {
@@ -78,7 +78,7 @@ export type RemarkExpressiveCodeRenderer = {
  * Unless you use the `customRenderer` option, the remark plugin automatically calls this function
  * once when encountering the first code block, and caches the result.
  */
-export async function createRenderer(options: RemarkExpressiveCodeOptions): Promise<RemarkExpressiveCodeRenderer> {
+export async function createRenderer(options: RemarkExpressiveCodeOptions = {}): Promise<RemarkExpressiveCodeRenderer> {
 	const { theme, ...ecOptions } = options
 
 	const mustLoadTheme = theme !== undefined && !(theme instanceof ExpressiveCodeTheme)

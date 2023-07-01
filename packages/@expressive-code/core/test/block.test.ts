@@ -488,7 +488,7 @@ describe('ExpressiveCodeBlock', () => {
 
 const defaultTestCode = '0123456'.split('').join('\n')
 
-function prepareTestBlock({ code = defaultTestCode, language = '', meta = '' }: { code?: string; language?: string; meta?: string } = {}) {
+function prepareTestBlock({ code = defaultTestCode, language = '', meta = '' }: { code?: string | undefined; language?: string | undefined; meta?: string | undefined } = {}) {
 	const block = new ExpressiveCodeBlock({ code, language, meta })
 
 	return block

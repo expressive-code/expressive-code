@@ -25,7 +25,7 @@ describe('Integration into an Astro project', () => {
 	})
 })
 
-async function buildFixture({ fixtureDir, buildCommand, buildArgs, outputDir }: { fixtureDir: string; buildCommand: string; buildArgs?: string[]; outputDir: string }) {
+async function buildFixture({ fixtureDir, buildCommand, buildArgs, outputDir }: { fixtureDir: string; buildCommand: string; buildArgs?: string[] | undefined; outputDir: string }) {
 	const fixturePath = join(__dirname, 'fixtures', fixtureDir)
 	const outputDirPath = join(fixturePath, outputDir)
 

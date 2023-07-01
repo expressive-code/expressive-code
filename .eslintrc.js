@@ -15,7 +15,7 @@ module.exports = {
   rules: {
     'prettier/prettier': 'warn',
     'no-console': 'off',
-    'no-mixed-spaces-and-tabs': 'warn',
+    'no-mixed-spaces-and-tabs': ['warn', 'smart-tabs'],
     'no-trailing-spaces': ['warn', { skipBlankLines: true, ignoreComments: true }],
     'no-empty': 'warn',
     'no-unused-vars': [
@@ -55,6 +55,7 @@ module.exports = {
       files: ['**/*.ts'],
       parser: '@typescript-eslint/parser',
       extends: ['plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-requiring-type-checking'],
+      plugins: ['redundant-undefined'],
       rules: {
         '@typescript-eslint/no-unused-vars': [
           'warn',
@@ -65,6 +66,12 @@ module.exports = {
         ],
         '@typescript-eslint/no-empty-function': 'warn',
         '@typescript-eslint/no-non-null-assertion': 'off',
+        'redundant-undefined/redundant-undefined': [
+          'error',
+          {
+            followExactOptionalPropertyTypes: true,
+          },
+        ],
       },
     },
     {

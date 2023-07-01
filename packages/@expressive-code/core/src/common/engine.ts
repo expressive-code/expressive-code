@@ -13,11 +13,11 @@ export interface ExpressiveCodeEngineConfig {
 	 *
 	 * Defaults to the `github-dark` theme bundled with Shiki.
 	 */
-	theme?: ExpressiveCodeTheme
+	theme?: ExpressiveCodeTheme | undefined
 	/**
 	 * The locale that should be used for text content. Defaults to `en-US`.
 	 */
-	defaultLocale?: string
+	defaultLocale?: string | undefined
 	/**
 	 * An optional set of style overrides that can be used to customize the appearance of
 	 * the rendered code blocks without having to write custom CSS. You can customize core
@@ -29,14 +29,14 @@ export interface ExpressiveCodeEngineConfig {
 	 * **Tip:** If your site uses CSS variables for styling, you can also use these overrides
 	 * to replace any core style with a CSS variable reference, e.g. `var(--your-css-var)`.
 	 */
-	styleOverrides?: Partial<UnresolvedCoreStyleSettings<CoreStyleSettings>>
+	styleOverrides?: Partial<UnresolvedCoreStyleSettings<CoreStyleSettings>> | undefined
 	/**
 	 * To add a plugin, import its initialization function and call it inside this array.
 	 *
 	 * If the plugin has any configuration options, you can pass them to the initialization
 	 * function as an object containing your desired property values.
 	 */
-	plugins?: (ExpressiveCodePlugin | ExpressiveCodePlugin[])[]
+	plugins?: (ExpressiveCodePlugin | ExpressiveCodePlugin[])[] | undefined
 }
 
 export class ExpressiveCodeEngine {

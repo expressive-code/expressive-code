@@ -213,17 +213,17 @@ function binarySearch({
 	 *
 	 * If undefined, the direction will not be taken into account.
 	 */
-	preferHigher?: boolean
-	tolerance?: number
-	low?: number
-	high?: number
+	preferHigher?: boolean | undefined
+	tolerance?: number | undefined
+	low?: number | undefined
+	high?: number | undefined
 	/**
 	 * If the midpoint changes less than `minChangeFactor * Math.abs(high - low)`
 	 * between iterations, the search will stop as soon as the value returned by `getValueFn`
 	 * is in the preferred direction in relation to `targetValue`.
 	 */
-	minChangeFactor?: number
-	maxIterations?: number
+	minChangeFactor?: number | undefined
+	maxIterations?: number | undefined
 }) {
 	const epsilon = minChangeFactor * Math.abs(high - low)
 	let iterations = 0

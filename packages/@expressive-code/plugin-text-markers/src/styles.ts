@@ -159,7 +159,7 @@ export function getMarkerTypeColorsForContrastCalculation({
 }: {
 	theme: ExpressiveCodeTheme
 	coreStyles: ResolvedCoreStyles
-	styleOverrides?: Partial<typeof textMarkersStyleSettings.defaultSettings>
+	styleOverrides?: Partial<typeof textMarkersStyleSettings.defaultSettings> | undefined
 }) {
 	const textMarkersStyles = textMarkersStyleSettings.resolve({
 		theme,

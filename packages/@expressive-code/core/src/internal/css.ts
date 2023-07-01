@@ -82,7 +82,9 @@ const processedStylesCache = new Map<string, string>()
 export async function processPluginStyles({ pluginStyles, configClassName }: { pluginStyles: PluginStyles[]; configClassName: string }): Promise<Set<string>> {
 	const result = new Set<string>()
 	const seenStyles = new Set<string>()
-	const postCssOptions = { from: undefined }
+	// @ts-expect-error PostCSS has incorrect types when using exactOptionalPropertyTypes
+	// eslint-disable-next-line redundant-undefined/redundant-undefined
+	const postCssOptions: { from?: string } = { from: undefined }
 
 	for (const { pluginName, styles } of pluginStyles) {
 		// Deduplicate the current set of styles

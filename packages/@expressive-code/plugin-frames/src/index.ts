@@ -10,13 +10,13 @@ export interface PluginFramesOptions {
 	 * the plugin will try to find and extract a comment line containing the code block file name
 	 * from the first 4 lines of the code.
 	 */
-	extractFileNameFromCode?: boolean
+	extractFileNameFromCode?: boolean | undefined
 	/**
 	 * If this is true (default), a "Copy to clipboard" button
 	 * will be shown for each code block.
 	 */
-	showCopyToClipboardButton?: boolean
-	styleOverrides?: Partial<typeof framesStyleSettings.defaultSettings>
+	showCopyToClipboardButton?: boolean | undefined
+	styleOverrides?: Partial<typeof framesStyleSettings.defaultSettings> | undefined
 }
 
 export const pluginFramesTexts = new PluginTexts({
@@ -150,7 +150,7 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 }
 
 export interface PluginFramesData {
-	title?: string
+	title?: string | undefined
 }
 
 export const pluginFramesData = new AttachedPluginData<PluginFramesData>(() => ({}))

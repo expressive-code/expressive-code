@@ -9,7 +9,7 @@ export type AstroExpressiveCodeOptions = RemarkExpressiveCodeOptions
 /**
  * Astro integration that adds Expressive Code support to code blocks in Markdown & MDX documents.
  */
-export function astroExpressiveCode(options: AstroExpressiveCodeOptions): AstroIntegration {
+export function astroExpressiveCode(options: AstroExpressiveCodeOptions = {}): AstroIntegration {
 	return {
 		name: 'astro-expressive-code',
 		hooks: {
