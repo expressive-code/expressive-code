@@ -262,7 +262,7 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 			}
 		}
 
-		button:focus + .feedback.show {
+		button + .feedback.show {
 			opacity: 1;
 			transform: translate3d(0, 0, 0);
 		}
