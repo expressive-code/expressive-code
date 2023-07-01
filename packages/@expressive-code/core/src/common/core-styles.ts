@@ -82,6 +82,8 @@ export function getCoreBaseStyles({ coreStyles }: { theme: ExpressiveCodeTheme; 
 		font-family: ${coreStyles.uiFontFamily};
 		font-size: ${coreStyles.uiFontSize};
 		line-height: ${coreStyles.uiLineHeight};
+		text-size-adjust: none;
+		-webkit-text-size-adjust: none;
 
 		* {
 			box-sizing: border-box;
@@ -149,6 +151,7 @@ export function getCoreBaseStyles({ coreStyles }: { theme: ExpressiveCodeTheme; 
 			--accent-margin: 0rem;
 			min-width: calc(100% - var(--accent-margin));
 			padding-inline: var(--padding-inline);
+			padding-inline-end: calc(2rem + var(--padding-inline));
 		}
 
 		/* Common style to hide elements from screen readers */

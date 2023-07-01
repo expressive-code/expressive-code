@@ -1,5 +1,16 @@
 # @expressive-code/plugin-frames
 
+## 0.8.0
+
+### Minor Changes
+
+- Improve mobile core and copy button styles
+
+### Patch Changes
+
+- Updated dependencies
+  - @expressive-code/core@0.8.0
+
 ## 0.7.0
 
 ### Minor Changes
