@@ -1,5 +1,11 @@
 # @expressive-code/core
 
+## 0.9.0
+
+### Minor Changes
+
+- 5da8685: Add RTL support (ensure that code lines are always LTR)
+
 ## 0.8.1
 
 ### Patch Changes

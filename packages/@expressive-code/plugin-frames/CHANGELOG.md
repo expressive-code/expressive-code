@@ -1,5 +1,16 @@
 # @expressive-code/plugin-frames
 
+## 0.9.0
+
+### Minor Changes
+
+- 5da8685: Add RTL support (ensure that code lines are always LTR)
+
+### Patch Changes
+
+- Updated dependencies [5da8685]
+  - @expressive-code/core@0.9.0
+
 ## 0.8.2
 
 ### Patch Changes

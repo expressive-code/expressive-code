@@ -1,6 +1,6 @@
 {
   "name": "remark-expressive-code",
-  "version": "0.9.1",
+  "version": "0.10.0",
   "description": "Remark plugin for Expressive Code, a text marking & annotation engine for presenting source code on the web.",
   "keywords": [],
   "author": "Tibor Schiemann",
@@ -35,7 +35,7 @@
     "unified": "^10.1.2"
   },
   "dependencies": {
-    "expressive-code": "workspace:^0.9.1",
+    "expressive-code": "workspace:^0.10.0",
     "hast-util-to-html": "^8.0.4",
     "unist-util-visit": "^4.1.2"
   }

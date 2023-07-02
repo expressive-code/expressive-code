@@ -1,5 +1,16 @@
 # remark-expressive-code
 
+## 0.10.0
+
+### Minor Changes
+
+- 5da8685: Add RTL support (ensure that code lines are always LTR)
+
+### Patch Changes
+
+- Updated dependencies [5da8685]
+  - expressive-code@0.10.0
+
 ## 0.9.1
 
 ### Patch Changes
