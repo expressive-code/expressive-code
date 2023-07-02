@@ -152,6 +152,10 @@ export function getCoreBaseStyles({ coreStyles }: { theme: ExpressiveCodeTheme; 
 			min-width: calc(100% - var(--accent-margin));
 			padding-inline: var(--padding-inline);
 			padding-inline-end: calc(2rem + var(--padding-inline));
+
+			/* RTL support: Code is always LTR */
+			direction: ltr;
+			unicode-bidi: isolate;
 		}
 
 		/* Common style to hide elements from screen readers */

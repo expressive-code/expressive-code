@@ -195,6 +195,11 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 		inset-block-start: calc(${coreStyles.borderWidth} + var(--button-spacing));
 		inset-inline-end: calc(${coreStyles.borderWidth} + ${coreStyles.uiPaddingInline} / 2);
 
+		/* RTL support: Code is always LTR, so the inline copy button
+		   must match this to avoid overlapping the start of lines */
+		direction: ltr;
+		unicode-bidi: isolate;
+
 		button {
 			align-self: flex-end;
 			margin: 0;
