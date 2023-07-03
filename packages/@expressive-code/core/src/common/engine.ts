@@ -69,7 +69,7 @@ export class ExpressiveCodeEngine {
 			},
 			{ includeFunctionContents: true }
 		)
-		this.configClassName = `ec-${configHash}`
+		this.configClassName = `ec.ec-${configHash}`
 	}
 
 	async render(input: RenderInput, options?: RenderOptions) {
@@ -146,7 +146,7 @@ export class ExpressiveCodeEngine {
 	 * This class name is used by Expressive Code when rendering its wrapper element
 	 * around all code block groups.
 	 *
-	 * Its format is `ec-<hash>`, where `<hash>` is calculated based on the config options
+	 * Its format is `ec.ec-<hash>`, where `<hash>` is calculated based on the config options
 	 * that were passed to the class constructor. This allows you to render multiple code blocks
 	 * with different configurations on the same page without having to worry about CSS conflicts.
 	 *

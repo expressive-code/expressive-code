@@ -86,6 +86,7 @@ export function getCoreBaseStyles({ coreStyles }: { theme: ExpressiveCodeTheme; 
 		-webkit-text-size-adjust: none;
 
 		* {
+			all: revert;
 			box-sizing: border-box;
 		}
 
