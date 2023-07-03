@@ -1,5 +1,19 @@
 # expressive-code
 
+## 0.11.0
+
+### Minor Changes
+
+- 276d221: Reduce potential of unexpected changes through site-wide CSS
+
+### Patch Changes
+
+- Updated dependencies [276d221]
+  - @expressive-code/core@0.10.0
+  - @expressive-code/plugin-frames@0.9.1
+  - @expressive-code/plugin-shiki@0.3.8
+  - @expressive-code/plugin-text-markers@0.2.9
+
 ## 0.10.0
 
 ### Minor Changes

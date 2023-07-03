@@ -1,5 +1,15 @@
 # astro-expressive-code
 
+## 0.11.0
+
+### Minor Changes
+
+- 599db8a: Add default export for `astro add` support
+
+### Patch Changes
+
+- remark-expressive-code@0.11.0
+
 ## 0.10.0
 
 ### Minor Changes

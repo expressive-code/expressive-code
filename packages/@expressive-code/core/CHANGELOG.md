@@ -1,5 +1,11 @@
 # @expressive-code/core
 
+## 0.10.0
+
+### Minor Changes
+
+- 276d221: Reduce potential of unexpected changes through site-wide CSS
+
 ## 0.9.0
 
 ### Minor Changes
