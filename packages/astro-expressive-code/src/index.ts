@@ -51,3 +51,6 @@ export function astroExpressiveCode(options: AstroExpressiveCodeOptions = {}): A
 		},
 	}
 }
+
+// Provide a default export for convenience and `astro add astro-expressive-code` compatibility
+export default astroExpressiveCode
