@@ -129,9 +129,9 @@ function validateBlockAst({
 	// Check screen reader-only title
 	expect(selectAll('figure > figcaption.header > span.sr-only', renderedGroupAst)).toHaveLength(srTitlePresent ? 1 : 0)
 
-	// Expect the figcaption to be followed by the copy button wrapper
-	expect(select('figure > figcaption + .copy', renderedGroupAst)).toBeTruthy()
+	// Expect the figcaption to be followed by the pre element
+	expect(select('figure > figcaption + pre', renderedGroupAst)).toBeTruthy()
 
-	// Expect the copy button wrapper to be followed by a pre element
-	expect(select('.copy + pre', renderedGroupAst)).toBeTruthy()
+	// Expect the pre element to be followed by the copy button wrapper
+	expect(select('pre + .copy', renderedGroupAst)).toBeTruthy()
 }

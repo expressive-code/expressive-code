@@ -190,7 +190,7 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 	const copyButtonStyles = `.copy {
 		display: flex;
 		gap: 0.25rem;
-		flex-direction: row-reverse;
+		flex-direction: row;
 		position: absolute;
 		inset-block-start: calc(${coreStyles.borderWidth} + var(--button-spacing));
 		inset-inline-end: calc(${coreStyles.borderWidth} + ${coreStyles.uiPaddingInline} / 2);
@@ -265,12 +265,13 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 				border: var(--tooltip-arrow-size) solid transparent;
 				border-inline-start-color: var(--tooltip-bg);
 			}
+
+			&.show {
+				opacity: 1;
+				transform: translate3d(0, 0, 0);
+			}
 		}
 
-		button + .feedback.show {
-			opacity: 1;
-			transform: translate3d(0, 0, 0);
-		}
 	}
 
 	@media (hover: hover) {
@@ -283,12 +284,12 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 
 		/* Reveal the non-hovered button in the following cases:
 			- when the frame is hovered
-			- when the frame is focused
-			- when the frame contains a visible feedback message
+			- when a sibling inside the frame is focused
+			- when the copy button shows a visible feedback message
 		*/
 		.frame:hover .copy button:not(:hover),
-		.frame:focus-within:has(:focus-visible) .copy button:not(:hover),
-		.frame:has(.feedback.show) .copy button:not(:hover) {
+		.frame:focus-within :focus-visible ~ .copy button:not(:hover),
+		.frame .copy .feedback.show ~ button:not(:hover) {
 			opacity: 0.75;
 		}
 	}`
