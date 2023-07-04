@@ -21,8 +21,6 @@ export const sampleCodeHtmlRegExp = new RegExp(
 		// Start of the code block
 		'<figure(| .*?)>',
 		'<figcaption(| .*?)>.*?test.js.*?</figcaption>',
-		// Allow an optional copy button
-		'(<div class="copy">.*?</div>)?',
 		'<pre(| .*?)><code(| .*?)>',
 		// Expect the code line to be marked as inserted
 		'<div class="ec-line ins">',
@@ -31,6 +29,8 @@ export const sampleCodeHtmlRegExp = new RegExp(
 		// Expect all elements to be closed
 		'</div>',
 		'</code></pre>',
+		// Allow an optional copy button
+		'(<div class="copy">.*?</div>)?',
 		'</figure>',
 		'</div>',
 	].join('\\s*')

@@ -58,11 +58,11 @@ const handleClicks = [
 		ok = domCopy(code);
 	}`,
 	// Show feedback tooltip
-	`if (ok && (!button.nextSibling || !button.nextSibling.classList.contains('feedback'))) {
+	`if (ok && !button.parentNode.querySelector('.feedback')) {
 		let tt = document.createElement('div');
 		tt.classList.add('feedback');
 		tt.append(button.dataset.copied);
-		button.after(tt);`,
+		button.before(tt);`,
 	// Use offsetWidth and requestAnimationFrame to opt out of DOM batching,
 	// which helps to ensure that the transition on 'show' works
 	`	tt.offsetWidth;

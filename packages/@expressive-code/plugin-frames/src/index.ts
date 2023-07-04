@@ -139,9 +139,10 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 					},
 					[
 						h('figcaption', { className: 'header' }, [...visibleTitle, ...screenReaderTitle]),
-						...extraElements,
 						// Render the original code block
 						renderData.blockAst,
+						// Add any extra elements (e.g. copy button)
+						...extraElements,
 					]
 				)
 			},
