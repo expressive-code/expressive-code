@@ -1,5 +1,12 @@
 # astro-expressive-code
 
+## 0.12.0
+
+### Patch Changes
+
+- Updated dependencies [e010774]
+  - remark-expressive-code@0.12.0
+
 ## 0.11.0
 
 ### Minor Changes

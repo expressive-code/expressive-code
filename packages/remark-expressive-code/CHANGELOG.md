@@ -1,5 +1,15 @@
 # remark-expressive-code
 
+## 0.12.0
+
+### Minor Changes
+
+- e010774: Fix copy button on Firefox (still missing :has() support)
+
+### Patch Changes
+
+- expressive-code@0.12.0
+
 ## 0.11.0
 
 ### Patch Changes

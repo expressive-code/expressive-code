@@ -188,7 +188,7 @@ importers:
         specifier: ^2
         version: 2.5.0
       remark-expressive-code:
-        specifier: workspace:^0.11.0
+        specifier: workspace:^0.12.0
         version: link:../remark-expressive-code
     devDependencies:
       execa:
@@ -213,7 +213,7 @@ importers:
         specifier: workspace:^0.10.0
         version: link:../@expressive-code/core
       '@expressive-code/plugin-frames':
-        specifier: workspace:^0.9.1
+        specifier: workspace:^0.10.0
         version: link:../@expressive-code/plugin-frames
       '@expressive-code/plugin-shiki':
         specifier: workspace:^0.3.8
@@ -225,7 +225,7 @@ importers:
   packages/remark-expressive-code:
     dependencies:
       expressive-code:
-        specifier: workspace:^0.11.0
+        specifier: workspace:^0.12.0
         version: link:../expressive-code
       hast-util-to-html:
         specifier: ^8.0.4
