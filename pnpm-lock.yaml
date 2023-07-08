@@ -188,7 +188,7 @@ importers:
         specifier: ^2
         version: 2.5.0
       remark-expressive-code:
-        specifier: workspace:^0.12.0
+        specifier: workspace:^0.12.1
         version: link:../remark-expressive-code
     devDependencies:
       execa:
@@ -219,13 +219,13 @@ importers:
         specifier: workspace:^0.3.8
         version: link:../@expressive-code/plugin-shiki
       '@expressive-code/plugin-text-markers':
-        specifier: workspace:^0.2.9
+        specifier: workspace:^0.2.10
         version: link:../@expressive-code/plugin-text-markers
 
   packages/remark-expressive-code:
     dependencies:
       expressive-code:
-        specifier: workspace:^0.12.0
+        specifier: workspace:^0.12.1
         version: link:../expressive-code
       hast-util-to-html:
         specifier: ^8.0.4

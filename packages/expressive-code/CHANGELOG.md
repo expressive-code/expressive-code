@@ -1,5 +1,13 @@
 # expressive-code
 
+## 0.12.1
+
+### Patch Changes
+
+- Make marked text selectable (#15). Thanks @hirasso!
+- Updated dependencies
+  - @expressive-code/plugin-text-markers@0.2.10
+
 ## 0.12.0
 
 ### Patch Changes

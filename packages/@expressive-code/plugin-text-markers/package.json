@@ -1,6 +1,6 @@
 {
   "name": "@expressive-code/plugin-text-markers",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "description": "Text marker plugin for Expressive Code, a text marking & annotation engine for presenting source code on the web.",
   "keywords": [],
   "author": "Tibor Schiemann",

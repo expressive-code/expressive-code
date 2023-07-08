@@ -1,5 +1,13 @@
 # remark-expressive-code
 
+## 0.12.1
+
+### Patch Changes
+
+- Make marked text selectable (#15). Thanks @hirasso!
+- Updated dependencies
+  - expressive-code@0.12.1
+
 ## 0.12.0
 
 ### Minor Changes
