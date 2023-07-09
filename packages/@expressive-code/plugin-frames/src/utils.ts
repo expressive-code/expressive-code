@@ -1,9 +1,33 @@
+export const frameTypes = ['code', 'terminal', 'none', 'auto'] as const
+
+export type FrameType = (typeof frameTypes)[number]
+
+/**
+ * If the given input string represents a valid frame type,
+ * converts it to a {@link FrameType} and returns it.
+ *
+ * Otherwise, returns `undefined`.
+ */
+export function frameTypeFromString(input: string) {
+	// Support an empty string as alias for "none"
+	if (input === '') input = 'none'
+
+	// Fix common mistakes
+	if (input === 'editor') input = 'code'
+	if (input === 'shell') input = 'terminal'
+
+	// Return either the converted type or undefined
+	const frameType = input as FrameType
+	return frameTypes.includes(frameType) ? frameType : undefined
+}
+
 export function isTerminalLanguage(language: string) {
 	return ['shellscript', 'shell', 'bash', 'sh', 'zsh'].includes(language)
 }
 
 const LanguageGroups = {
 	code: ['astro', 'cjs', 'htm', 'html', 'js', 'jsx', 'mjs', 'svelte', 'ts', 'tsx', 'vue'],
+	terminal: ['shellscript', 'shell', 'bash', 'sh', 'zsh'],
 	data: ['env', 'json', 'yaml', 'yml'],
 	styles: ['css', 'less', 'sass', 'scss', 'styl', 'stylus'],
 	textContent: ['markdown', 'md', 'mdx'],
@@ -15,8 +39,8 @@ const FileNameCommentRegExp = new RegExp(
 		`^`,
 		// Optional whitespace
 		`\\s*`,
-		// Mandatory comment start (`//`, `#` or `<!--`)
-		`(?://|#|<!--)`,
+		// Mandatory comment start: `//`, `#` (but not `#!`) or `<!--`
+		`(?://|#(?!!)|<!--)`,
 		// Optional whitespace
 		`\\s*`,
 		// Optional sequence of characters, followed by a Japanese colon or a regular colon (`:`),

@@ -98,6 +98,191 @@ ${exampleCode}
 	})
 })
 
+describe('Allows changing the frame type to "terminal" using meta information', () => {
+	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
+	themes.unshift(undefined)
+
+	test('Change JS block without title to frame="terminal"', async ({ meta: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: exampleCode,
+				meta: 'frame="terminal"',
+				plugins: [pluginFrames()],
+				blockValidationFn: ({ renderedGroupAst }) => {
+					validateBlockAst({
+						renderedGroupAst,
+						figureSelector: '.frame:not(.has-title).is-terminal',
+						title: '',
+						srTitlePresent: true,
+					})
+				},
+			}),
+		})
+	})
+	test('Change JS block with title to frame="terminal"', async ({ meta: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: `
+// test.config.mjs
+
+${exampleCode}
+				`.trim(),
+				meta: 'frame="terminal"',
+				plugins: [pluginFrames()],
+				blockValidationFn: ({ renderedGroupAst }) => {
+					validateBlockAst({
+						renderedGroupAst,
+						figureSelector: '.frame.has-title.is-terminal',
+						title: 'test.config.mjs',
+						srTitlePresent: false,
+					})
+				},
+			}),
+		})
+	})
+})
+
+describe('Allows changing the frame type to "code" using meta information', () => {
+	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
+	themes.unshift(undefined)
+
+	test('Change terminal block without title to frame="code"', async ({ meta: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: exampleTerminalCode,
+				meta: 'frame="code"',
+				language: 'shell',
+				plugins: [pluginFrames()],
+				blockValidationFn: ({ renderedGroupAst }) => {
+					validateBlockAst({
+						renderedGroupAst,
+						figureSelector: '.frame:not(.has-title):not(.is-terminal)',
+						srTitlePresent: false,
+					})
+				},
+			}),
+		})
+	})
+	test('Change terminal block with title to frame="code"', async ({ meta: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: `
+#!/bin/sh
+# install.sh
+${exampleTerminalCode}
+				`.trim(),
+				meta: 'frame="code"',
+				language: 'shell',
+				plugins: [pluginFrames()],
+				blockValidationFn: ({ renderedGroupAst }) => {
+					validateBlockAst({
+						renderedGroupAst,
+						figureSelector: '.frame.has-title:not(.is-terminal)',
+						title: 'install.sh',
+						srTitlePresent: false,
+					})
+				},
+			}),
+		})
+	})
+})
+
+describe('Allows changing the frame type to "none" using meta information', () => {
+	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
+	themes.unshift(undefined)
+
+	test('Change JS block without title to frame="none"', async ({ meta: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: exampleCode,
+				meta: 'frame="none"',
+				plugins: [pluginFrames()],
+				blockValidationFn: ({ renderedGroupAst }) => {
+					validateBlockAst({
+						renderedGroupAst,
+						figureSelector: '.frame:not(.has-title):not(.is-terminal)',
+						srTitlePresent: false,
+					})
+				},
+			}),
+		})
+	})
+	test('Change JS block with title to frame="none"', async ({ meta: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: `
+// test.config.mjs
+
+${exampleCode}
+				`.trim(),
+				meta: 'frame="none"',
+				plugins: [pluginFrames()],
+				blockValidationFn: ({ renderedGroupAst }) => {
+					validateBlockAst({
+						renderedGroupAst,
+						figureSelector: '.frame:not(.has-title):not(.is-terminal)',
+						srTitlePresent: false,
+					})
+				},
+			}),
+		})
+	})
+	test('Change terminal block without title to frame="none"', async ({ meta: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: exampleTerminalCode,
+				meta: 'frame="none"',
+				language: 'shell',
+				plugins: [pluginFrames()],
+				blockValidationFn: ({ renderedGroupAst }) => {
+					validateBlockAst({
+						renderedGroupAst,
+						figureSelector: '.frame:not(.has-title):not(.is-terminal)',
+						srTitlePresent: false,
+					})
+				},
+			}),
+		})
+	})
+	test('Change terminal block with title to frame="none"', async ({ meta: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: `
+#!/bin/sh
+# install.sh
+${exampleTerminalCode}
+				`.trim(),
+				meta: 'frame="none"',
+				language: 'shell',
+				plugins: [pluginFrames()],
+				blockValidationFn: ({ renderedGroupAst }) => {
+					validateBlockAst({
+						renderedGroupAst,
+						figureSelector: '.frame:not(.has-title):not(.is-terminal)',
+						srTitlePresent: false,
+					})
+				},
+			}),
+		})
+	})
+})
+
 function validateBlockAst({
 	renderedGroupAst,
 	figureSelector,
