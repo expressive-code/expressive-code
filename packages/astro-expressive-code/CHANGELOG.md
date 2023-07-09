@@ -1,5 +1,13 @@
 # astro-expressive-code
 
+## 0.12.2
+
+### Patch Changes
+
+- 66de505: Fix non-working copy buttons in dynamically loaded content
+- Updated dependencies [66de505]
+  - remark-expressive-code@0.12.2
+
 ## 0.12.1
 
 ### Patch Changes

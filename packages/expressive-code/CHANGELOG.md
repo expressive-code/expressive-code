@@ -1,5 +1,13 @@
 # expressive-code
 
+## 0.12.2
+
+### Patch Changes
+
+- 66de505: Fix non-working copy buttons in dynamically loaded content
+- Updated dependencies [66de505]
+  - @expressive-code/plugin-frames@0.10.1
+
 ## 0.12.1
 
 ### Patch Changes
