@@ -10,6 +10,8 @@
 - [Usage in markdown / MDX documents](#usage-in-markdown--mdx-documents)
 - [Configuration](#configuration)
   - [`theme`](#theme)
+  - [`useThemedScrollbars`](#usethemedscrollbars)
+  - [`useThemedSelectionColors`](#usethemedselectioncolors)
   - [`styleOverrides`](#styleoverrides)
   - [`plugins`](#plugins)
   - [`shiki`](#shiki)
@@ -185,6 +187,28 @@ The following options are available:
   You can pass the name of any theme bundled with Shiki: `dark-plus`, `dracula-soft`, `dracula`, `github-dark-dimmed`, `github-dark`, `github-light`, `hc_light`, `light-plus`, `material-theme-darker`, `material-theme-lighter`, `material-theme-ocean`, `material-theme-palenight`, `material-theme`, `min-dark`, `min-light`, `monokai`, `nord`, `one-dark-pro`, `poimandres`, `rose-pine-dawn`, `rose-pine-moon`, `rose-pine`, `slack-dark`, `slack-ochin`, `solarized-dark`, `solarized-light`, `vitesse-dark`, `vitesse-light`
 
   You can also load a custom theme. See [`ExpressiveCodeTheme`](https://github.com/expressive-code/expressive-code/blob/main/packages/%40expressive-code/core/README.md#expressivecodetheme) for more information.
+
+### `useThemedScrollbars`
+
+- Type: `boolean`
+- Default: `true`
+
+- Whether the theme is allowed to style the scrollbars.
+
+  If set to `false`, scrollbars will be rendered using the browser's default style.
+
+  Note that you can override the individual scrollbar colors defined by the theme using the `styleOverrides` option.
+
+### `useThemedSelectionColors`
+
+- Type: `boolean`
+- Default: `true`
+
+- Whether the theme is allowed to style selected text.
+
+  If set to `false`, selected text will be rendered using the browser's default style.
+
+  Note that you can override the individual selection colors defined by the theme using the `styleOverrides` option.
 
 ### `styleOverrides`
 

@@ -50,17 +50,21 @@ The full list of languages can be found in the [Shiki documentation](https://git
 
 This plugin does not have any configuration options. It automatically uses the current theme of Expressive Code, which you can select using its `theme` configuration option.
 
-As it's most likely that you are using `remark-expressive-code`, here are configuration examples on how to select a theme in some popular site generators:
+Here are configuration examples on how to select a theme in some popular site generators:
 
 ### Astro configuration example
+
+We assume that you're using our Astro integration [`astro-expressive-code`](https://www.npmjs.com/package/astro-expressive-code).
+
+In your Astro config file, you can pass options to the plugin like this:
 
 ```js
 // astro.config.mjs
 import { defineConfig } from 'astro/config'
-import remarkExpressiveCode from 'remark-expressive-code'
+import astroExpressiveCode from 'astro-expressive-code'
 
-/** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
-const remarkExpressiveCodeOptions = {
+/** @type {import('astro-expressive-code').AstroExpressiveCodeOptions} */
+const astroExpressiveCodeOptions = {
   // You can set this to any of the themes bundled with Shiki,
   // specify a path to JSON theme file, or pass an instance
   // of the `ExpressiveCodeTheme` class here:
@@ -68,13 +72,9 @@ const remarkExpressiveCodeOptions = {
 }
 
 export default defineConfig({
-  markdown: {
-    remarkPlugins: [
-      // The nested array structure is required to pass options
-      // to a remark plugin
-      [remarkExpressiveCode, remarkExpressiveCodeOptions],
-    ],
-  },
+  integrations: [
+    astroExpressiveCode(astroExpressiveCodeOptions),
+  ],
 })
 ```
 

@@ -33,7 +33,7 @@ The core package of Expressive Code, an engine for presenting source code on the
 
 Using this core package directly is **only recommended for advanced use cases**.
 
-Unless you're a plugin or integration author, you should probably use a higher-level package like `remark-expressive-code` instead of this one.
+Unless you're a plugin or integration author, you should probably use a higher-level package like [`astro-expressive-code`](https://www.npmjs.com/package/astro-expressive-code) or [`remark-expressive-code`](https://www.npmjs.com/package/remark-expressive-code) instead of this one.
 
 ## Installation
 
@@ -92,6 +92,22 @@ See above for a [usage example](#usage-example).
       Defaults to the `github-dark` theme bundled with Shiki.
 
       See [`ExpressiveCodeTheme`](#expressivecodetheme) for more information, including how to load your own themes.
+
+    - `useThemedScrollbars?: boolean`
+
+      Whether the theme is allowed to style the scrollbars. Defaults to `true`.
+
+      If set to `false`, scrollbars will be rendered using the browser's default style.
+
+      Note that you can override the individual scrollbar colors defined by the theme using the `styleOverrides` option.
+
+    - `useThemedSelectionColors?: boolean`
+
+      Whether the theme is allowed to style selected text. Defaults to `true`.
+
+      If set to `false`, selected text will be rendered using the browser's default style.
+
+      Note that you can override the individual selection colors defined by the theme using the `styleOverrides` option.
 
     - `styleOverrides: Partial<UnresolvedCoreStyleSettings<CoreStyleSettings>>`
 
