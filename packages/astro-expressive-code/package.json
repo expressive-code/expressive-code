@@ -7,6 +7,11 @@
   ],
   "author": "Tibor Schiemann",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/expressive-code/expressive-code.git",
+    "directory": "packages/astro-expressive-code"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",

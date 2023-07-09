@@ -1,4 +1,4 @@
-# astro-expressive-code
+# astro-expressive-code [![NPM version](https://img.shields.io/npm/v/astro-expressive-code.svg)](https://www.npmjs.com/package/astro-expressive-code) [![NPM downloads](https://img.shields.io/npm/dm/astro-expressive-code.svg)](https://npmjs.org/package/astro-expressive-code)
 
 ## Contents
 

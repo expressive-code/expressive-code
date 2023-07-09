@@ -1,4 +1,4 @@
-# expressive-code
+# expressive-code [![NPM version](https://img.shields.io/npm/v/expressive-code.svg)](https://www.npmjs.com/package/expressive-code) [![NPM downloads](https://img.shields.io/npm/dm/expressive-code.svg)](https://npmjs.org/package/expressive-code)
 
 ## Contents
 

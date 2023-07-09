@@ -1,4 +1,4 @@
-# remark-expressive-code
+# remark-expressive-code [![NPM version](https://img.shields.io/npm/v/remark-expressive-code.svg)](https://www.npmjs.com/package/remark-expressive-code) [![NPM downloads](https://img.shields.io/npm/dm/remark-expressive-code.svg)](https://npmjs.org/package/remark-expressive-code)
 
 ## Contents
 
