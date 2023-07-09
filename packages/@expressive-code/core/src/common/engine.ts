@@ -19,6 +19,24 @@ export interface ExpressiveCodeEngineConfig {
 	 */
 	defaultLocale?: string | undefined
 	/**
+	 * Whether the theme is allowed to style the scrollbars. Defaults to `true`.
+	 *
+	 * If set to `false`, scrollbars will be rendered using the browser's default style.
+	 *
+	 * Note that you can override the individual scrollbar colors defined by the theme
+	 * using the `styleOverrides` option.
+	 */
+	useThemedScrollbars?: boolean | undefined
+	/**
+	 * Whether the theme is allowed to style selected text. Defaults to `true`.
+	 *
+	 * If set to `false`, selected text will be rendered using the browser's default style.
+	 *
+	 * Note that you can override the individual selection colors defined by the theme
+	 * using the `styleOverrides` option.
+	 */
+	useThemedSelectionColors?: boolean | undefined
+	/**
 	 * An optional set of style overrides that can be used to customize the appearance of
 	 * the rendered code blocks without having to write custom CSS. You can customize core
 	 * colors, fonts, paddings and more.
@@ -43,6 +61,8 @@ export class ExpressiveCodeEngine {
 	constructor(config: ExpressiveCodeEngineConfig) {
 		this.theme = config.theme || new ExpressiveCodeTheme(githubDark)
 		this.defaultLocale = config.defaultLocale || 'en-US'
+		this.useThemedScrollbars = config.useThemedScrollbars ?? true
+		this.useThemedSelectionColors = config.useThemedSelectionColors ?? true
 		this.styleOverrides = {
 			...config.styleOverrides,
 		}
@@ -93,6 +113,8 @@ export class ExpressiveCodeEngine {
 			styles: getCoreBaseStyles({
 				theme: this.theme,
 				coreStyles: this.coreStyles,
+				useThemedScrollbars: this.useThemedScrollbars,
+				useThemedSelectionColors: this.useThemedSelectionColors,
 			}),
 		})
 		// Add plugin base styles
@@ -139,6 +161,8 @@ export class ExpressiveCodeEngine {
 
 	readonly theme: ExpressiveCodeTheme
 	readonly defaultLocale: string
+	readonly useThemedScrollbars: boolean
+	readonly useThemedSelectionColors: boolean
 	readonly styleOverrides: Partial<typeof coreStyleSettings.defaultSettings>
 	readonly coreStyles: ResolvedCoreStyles
 	readonly plugins: readonly ExpressiveCodePlugin[]

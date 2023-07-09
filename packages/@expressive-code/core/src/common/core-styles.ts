@@ -77,7 +77,11 @@ export type ResolvedCoreStyles = ResolvedStyleSettings<CoreStyleSettings>
 
 export const codeLineClass = 'ec-line'
 
-export function getCoreBaseStyles({ coreStyles }: { theme: ExpressiveCodeTheme; coreStyles: ResolvedCoreStyles }) {
+export function getCoreBaseStyles(options: { theme: ExpressiveCodeTheme; coreStyles: ResolvedCoreStyles; useThemedScrollbars: boolean; useThemedSelectionColors: boolean }) {
+	const { coreStyles } = options
+	const ifThemedScrollbars = (css: string) => (options.useThemedScrollbars ? css : '')
+	const ifThemedSelectionColors = (css: string) => (options.useThemedSelectionColors ? css : '')
+
 	return `
 		font-family: ${coreStyles.uiFontFamily};
 		font-size: ${coreStyles.uiFontSize};
@@ -90,10 +94,10 @@ export function getCoreBaseStyles({ coreStyles }: { theme: ExpressiveCodeTheme; 
 			box-sizing: border-box;
 		}
 
-		::selection {
+		${ifThemedSelectionColors(`::selection {
 			background: ${coreStyles.uiSelectionBackground};
 			color: ${coreStyles.uiSelectionForeground};
-		}
+		}`)}
 
 		pre {
 			display: flex;
@@ -123,12 +127,14 @@ export function getCoreBaseStyles({ coreStyles }: { theme: ExpressiveCodeTheme; 
 				--padding-inline: ${coreStyles.codePaddingInline};
 			}
 
-			::selection {
+			${ifThemedSelectionColors(`::selection {
 				background: ${coreStyles.codeSelectionBackground};
-			}
+			}`)}
 
-			/* Show minimal horizontal scrollbar if required */
+			/* Show horizontal scrollbar if required */
 			overflow-x: auto;
+
+			${ifThemedScrollbars(`
 			&::-webkit-scrollbar,
 			&::-webkit-scrollbar-track {
 				background-color: inherit;
@@ -145,6 +151,7 @@ export function getCoreBaseStyles({ coreStyles }: { theme: ExpressiveCodeTheme; 
 			&::-webkit-scrollbar-thumb:hover {
 				background-color: ${coreStyles.scrollbarThumbHoverColor};
 			}
+			`)}
 		}
 
 		/* Code lines */

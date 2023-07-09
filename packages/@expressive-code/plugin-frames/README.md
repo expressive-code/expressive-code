@@ -88,17 +88,21 @@ console.log('Hello World!')
 
 When using this plugin through higher-level integration packages, you can configure it by passing options to the higher-level package.
 
-As it's most likely that you are using `remark-expressive-code`, here are configuration examples for some popular site generators:
+Here are configuration examples for some popular site generators:
 
 ### Astro configuration example
+
+We assume that you're using our Astro integration [`astro-expressive-code`](https://www.npmjs.com/package/astro-expressive-code).
+
+In your Astro config file, you can pass options to the frames plugin like this:
 
 ```js
 // astro.config.mjs
 import { defineConfig } from 'astro/config'
-import remarkExpressiveCode from 'remark-expressive-code'
+import astroExpressiveCode from 'astro-expressive-code'
 
-/** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
-const remarkExpressiveCodeOptions = {
+/** @type {import('astro-expressive-code').AstroExpressiveCodeOptions} */
+const astroExpressiveCodeOptions = {
   // This is where you can pass your plugin options
   frames: {
     styleOverrides: {
@@ -109,13 +113,9 @@ const remarkExpressiveCodeOptions = {
 }
 
 export default defineConfig({
-  markdown: {
-    remarkPlugins: [
-      // The nested array structure is required to pass options
-      // to a remark plugin
-      [remarkExpressiveCode, remarkExpressiveCodeOptions],
-    ],
-  },
+  integrations: [
+    astroExpressiveCode(astroExpressiveCodeOptions),
+  ],
 })
 ```
 
