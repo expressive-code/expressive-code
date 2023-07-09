@@ -1,5 +1,21 @@
 # expressive-code
 
+## 0.13.0
+
+### Minor Changes
+
+- f98937c: Add config options `useThemedScrollbars` and `useThemedSelectionColors`. Thanks @Princesseuh!
+
+  Both options default to `true`. Set any of them to `false` to prevent themes from customizing their appearance and render them using the browser's default style.
+
+### Patch Changes
+
+- Updated dependencies [f98937c]
+  - @expressive-code/core@0.11.0
+  - @expressive-code/plugin-frames@0.10.2
+  - @expressive-code/plugin-shiki@0.3.9
+  - @expressive-code/plugin-text-markers@0.2.11
+
 ## 0.12.2
 
 ### Patch Changes

@@ -1,5 +1,18 @@
 # astro-expressive-code
 
+## 0.13.0
+
+### Minor Changes
+
+- f98937c: Add config options `useThemedScrollbars` and `useThemedSelectionColors`. Thanks @Princesseuh!
+
+  Both options default to `true`. Set any of them to `false` to prevent themes from customizing their appearance and render them using the browser's default style.
+
+### Patch Changes
+
+- Updated dependencies [f98937c]
+  - remark-expressive-code@0.13.0
+
 ## 0.12.2
 
 ### Patch Changes

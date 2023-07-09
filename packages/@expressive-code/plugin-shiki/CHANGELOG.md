@@ -1,5 +1,12 @@
 # @expressive-code/plugin-shiki
 
+## 0.3.9
+
+### Patch Changes
+
+- Updated dependencies [f98937c]
+  - @expressive-code/core@0.11.0
+
 ## 0.3.8
 
 ### Patch Changes

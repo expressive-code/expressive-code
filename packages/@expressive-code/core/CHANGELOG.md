@@ -1,5 +1,13 @@
 # @expressive-code/core
 
+## 0.11.0
+
+### Minor Changes
+
+- f98937c: Add config options `useThemedScrollbars` and `useThemedSelectionColors`. Thanks @Princesseuh!
+
+  Both options default to `true`. Set any of them to `false` to prevent themes from customizing their appearance and render them using the browser's default style.
+
 ## 0.10.0
 
 ### Minor Changes
