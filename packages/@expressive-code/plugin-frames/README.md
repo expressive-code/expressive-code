@@ -9,6 +9,7 @@
   - [Code editor window frames](#code-editor-window-frames)
   - [Terminal window frames](#terminal-window-frames)
   - [Adding titles (open file tab or terminal window title)](#adding-titles-open-file-tab-or-terminal-window-title)
+  - [Overriding frame types](#overriding-frame-types)
 - [Configuration](#configuration)
   - [Astro configuration example](#astro-configuration-example)
   - [Next.js configuration example using `@next/mdx`](#nextjs-configuration-example-using-nextmdx)
@@ -83,6 +84,26 @@ Unless turned off in the plugin configuration, you can also add a file name comm
 console.log('Hello World!')
 ```
 ````
+
+### Overriding frame types
+
+By default, the plugin will automatically select the frame type (code editor or terminal) based on the language identifier in your code block's opening fence.
+
+You can override this behavior and force a specific frame type by adding an optional `frame="..."` attribute after the language identifier.
+
+The supported values for this attribute are `code`, `terminal`, `none` and `auto`. The default value is `auto`.
+
+You can use this feature to render a code block using a shell language (e.g. `sh`) as a code editor instead of the default terminal window:
+
+````md
+```sh frame="code"
+#!/bin/sh
+# my-script.sh
+echo "This is a script file, not a terminal!"
+```
+````
+
+The special frame type `none` will always render a plain code block without a frame or title, and leave any file name comments in the code untouched.
 
 ## Configuration
 

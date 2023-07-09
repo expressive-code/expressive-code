@@ -178,6 +178,51 @@ import { defineConfig } from 'example/config'
 			},
 		})
 	})
+	test('When `title` attribute with empty value was found in meta string', async () => {
+		const code = `
+// test.config.mjs
+import { defineConfig } from 'example/config'
+		`
+		await expectCodeResult({
+			code,
+			language: 'js',
+			meta: 'title=""',
+			expected: {
+				extractedFileName: '',
+				code: code.trim(),
+			},
+		})
+	})
+	test('When `frame` attribute in meta string was set to `none`', async () => {
+		const code = `
+// test.config.mjs
+import { defineConfig } from 'example/config'
+		`
+		await expectCodeResult({
+			code,
+			language: 'js',
+			meta: 'frame="none"',
+			expected: {
+				extractedFileName: undefined,
+				code: code.trim(),
+			},
+		})
+	})
+	test('When `frame` attribute in meta string was set to an empty value', async () => {
+		const code = `
+// test.config.mjs
+import { defineConfig } from 'example/config'
+		`
+		await expectCodeResult({
+			code,
+			language: 'js',
+			meta: 'frame=""',
+			expected: {
+				extractedFileName: undefined,
+				code: code.trim(),
+			},
+		})
+	})
 })
 
 async function expectCodeResult({

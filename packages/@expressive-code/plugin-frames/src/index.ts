@@ -1,7 +1,7 @@
 import { AttachedPluginData, ExpressiveCodePlugin, PluginTexts, replaceDelimitedValues } from '@expressive-code/core'
 import { h, Result as HastEntity } from 'hastscript'
 import { framesStyleSettings, getFramesBaseStyles } from './styles'
-import { getFileNameFromComment, isTerminalLanguage } from './utils'
+import { FrameType, frameTypeFromString, frameTypes, getFileNameFromComment, isTerminalLanguage } from './utils'
 import { getCopyJsModule } from './copy-js-module'
 
 export interface PluginFramesOptions {
@@ -47,9 +47,21 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 				const blockData = pluginFramesData.getOrCreateFor(codeBlock)
 
 				codeBlock.meta = replaceDelimitedValues(codeBlock.meta, ({ fullMatch, key, value }) => {
-					// Handle "title" and "@title" keys in meta string
-					if (key === 'title' || key === '@title') {
+					// Handle titles in meta string
+					if (key?.match(/^@?title$/i)) {
 						blockData.title = value
+						return ''
+					}
+
+					// Handle frame types in meta string
+					if (key?.match(/^@?frame(Type)?$/i)) {
+						const frameType = frameTypeFromString(value)
+						if (frameType === undefined)
+							throw new Error(
+								`Invalid frame type \`${value}\` found in code block meta string.
+								Valid frame types are: ${frameTypes.join(', ')}.`.replace(/\s+/g, ' ')
+							)
+						blockData.frameType = frameType
 						return ''
 					}
 
@@ -63,9 +75,10 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 
 				const blockData = pluginFramesData.getOrCreateFor(codeBlock)
 
-				// If we already extracted a title from the meta information,
+				// If the block data we collected while parsing the meta information
+				// already contains a title, or if the frame type was set to "none",
 				// do not attempt to find a title inside the code
-				if (blockData.title) return
+				if (blockData.title !== undefined || blockData.frameType === 'none') return
 
 				// Attempt to find a file name comment in the first 4 lines of the code
 				const lineIdx = codeBlock.getLines(0, 4).findIndex((line) => {
@@ -89,17 +102,18 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 				const texts = pluginFramesTexts.get(locale)
 
 				// Retrieve information about the current block
-				const titleText = pluginFramesData.getOrCreateFor(codeBlock).title
-				const isTerminal = isTerminalLanguage(codeBlock.language)
+				const blockData = pluginFramesData.getOrCreateFor(codeBlock)
+				const { title: titleText, frameType = 'auto' } = blockData
+				const isTerminal = frameType === 'terminal' || (frameType === 'auto' && isTerminalLanguage(codeBlock.language))
 
 				// TODO: Improve the ability to wrap long file paths into multiple lines
 				// by inserting a line break opportunity after each slash
 				// const titleHtml = decodeURIComponent(title).replace(/([\\/])/g, '$1<wbr/>')
 
-				// If a title was given, render it as a visible span.
+				// If frameType is not "none" and a title was given, render it as a visible span.
 				// Also render a visible (but empty) span for terminals without a title
 				// to keep the same window caption line height.
-				const visibleTitle = titleText || isTerminal ? [h('span', { className: 'title' }, titleText || '')] : []
+				const visibleTitle = (frameType !== 'none' && titleText) || isTerminal ? [h('span', { className: 'title' }, titleText || '')] : []
 
 				// Otherwise, render a screen reader-only title for terminals
 				// to clarify that the code block is a terminal window
@@ -134,7 +148,7 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 							// If the code block is a terminal, add the `is-terminal` class
 							...(isTerminal ? ['is-terminal'] : []),
 							// If the code block has a title, add the `has-title` class
-							...(titleText ? ['has-title'] : []),
+							...(frameType !== 'none' && titleText ? ['has-title'] : []),
 						],
 					},
 					[
@@ -152,6 +166,7 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 
 export interface PluginFramesData {
 	title?: string | undefined
+	frameType?: FrameType | undefined
 }
 
 export const pluginFramesData = new AttachedPluginData<PluginFramesData>(() => ({}))
