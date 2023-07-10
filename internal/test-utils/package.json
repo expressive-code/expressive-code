@@ -1,6 +1,6 @@
 {
   "name": "@internal/test-utils",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "private": true,
   "description": "Internal test tools for Expressive Code packages",
   "keywords": [],
@@ -10,7 +10,7 @@
   "main": "./src/index.ts",
   "module": "./src/index.ts",
   "dependencies": {
-    "@expressive-code/core": "workspace:^0.11.0"
+    "@expressive-code/core": "workspace:^0.15.0"
   },
   "devDependencies": {
     "@types/node": "^18.15.11",

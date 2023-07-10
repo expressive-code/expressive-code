@@ -1,5 +1,16 @@
 # remark-expressive-code
 
+## 0.15.0
+
+### Minor Changes
+
+- Synchronize package versions to prevent future dependency issues
+
+### Patch Changes
+
+- Updated dependencies
+  - expressive-code@0.15.0
+
 ## 0.14.0
 
 ### Minor Changes

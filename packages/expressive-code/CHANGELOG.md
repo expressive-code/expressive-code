@@ -1,5 +1,19 @@
 # expressive-code
 
+## 0.15.0
+
+### Minor Changes
+
+- Synchronize package versions to prevent future dependency issues
+
+### Patch Changes
+
+- Updated dependencies
+  - @expressive-code/core@0.15.0
+  - @expressive-code/plugin-frames@0.15.0
+  - @expressive-code/plugin-shiki@0.15.0
+  - @expressive-code/plugin-text-markers@0.15.0
+
 ## 0.14.0
 
 ### Minor Changes

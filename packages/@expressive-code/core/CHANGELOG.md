@@ -1,5 +1,11 @@
 # @expressive-code/core
 
+## 0.15.0
+
+### Minor Changes
+
+- Synchronize package versions to prevent future dependency issues
+
 ## 0.11.0
 
 ### Minor Changes
