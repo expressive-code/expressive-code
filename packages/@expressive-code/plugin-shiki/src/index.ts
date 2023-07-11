@@ -44,8 +44,18 @@ export function pluginShiki(): ExpressiveCodePlugin {
 				}
 
 				// Run Shiki on the code (without explanations to improve performance)
-				const tokenLines = highlighter.codeToThemedTokens(code, codeBlock.language, theme.name, { includeExplanation: false })
+				const tokenLines =
+					codeBlock.language === 'ansi'
+						? highlighter.ansiToThemedTokens(code, theme.name)
+						: highlighter.codeToThemedTokens(code, codeBlock.language, theme.name, { includeExplanation: false })
+
 				tokenLines.forEach((line, lineIndex) => {
+					if (codeBlock.language === 'ansi') {
+						// Update line to trimmed version without sequence characters before adding styles
+						const trimmedLine = line.map((token) => token.content).join('')
+						codeLines[lineIndex].editText(undefined, undefined, trimmedLine)
+					}
+
 					let charIndex = 0
 					line.forEach((token) => {
 						const tokenLength = token.content.length
