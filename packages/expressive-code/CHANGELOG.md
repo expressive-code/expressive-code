@@ -1,5 +1,23 @@
 # expressive-code
 
+## 0.16.0
+
+### Minor Changes
+
+- 07012f7: Improve file type support when extracting file names from comments. Thanks @fflaten!
+
+  - Adds more file types to the `LanguageGroups` object
+  - Exports `LanguageGroups` to allow external modification
+  - Extends automatic detection of frame type to differentiate between shell scripts and terminal sessions based on file name and/or shebang (if any)
+
+### Patch Changes
+
+- Updated dependencies [07012f7]
+  - @expressive-code/plugin-frames@0.16.0
+  - @expressive-code/core@0.16.0
+  - @expressive-code/plugin-shiki@0.16.0
+  - @expressive-code/plugin-text-markers@0.16.0
+
 ## 0.15.0
 
 ### Minor Changes

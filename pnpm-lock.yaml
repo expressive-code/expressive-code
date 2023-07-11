@@ -60,7 +60,7 @@ importers:
   internal/test-utils:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.15.0
+        specifier: workspace:^0.16.0
         version: link:../../packages/@expressive-code/core
     devDependencies:
       '@types/node':
@@ -119,7 +119,7 @@ importers:
   packages/@expressive-code/plugin-frames:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.15.0
+        specifier: workspace:^0.16.0
         version: link:../core
       hastscript:
         specifier: ^7.2.0
@@ -138,7 +138,7 @@ importers:
   packages/@expressive-code/plugin-shiki:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.15.0
+        specifier: workspace:^0.16.0
         version: link:../core
       shiki:
         specifier: ^0.14.1
@@ -154,7 +154,7 @@ importers:
   packages/@expressive-code/plugin-text-markers:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.15.0
+        specifier: workspace:^0.16.0
         version: link:../core
       hastscript:
         specifier: ^7.2.0
@@ -164,7 +164,7 @@ importers:
         version: 5.1.3
     devDependencies:
       '@expressive-code/plugin-shiki':
-        specifier: workspace:^0.15.0
+        specifier: workspace:^0.16.0
         version: link:../plugin-shiki
       '@internal/test-utils':
         specifier: workspace:^
@@ -188,7 +188,7 @@ importers:
         specifier: ^2
         version: 2.5.0
       remark-expressive-code:
-        specifier: workspace:^0.15.0
+        specifier: workspace:^0.16.0
         version: link:../remark-expressive-code
     devDependencies:
       execa:
@@ -210,22 +210,22 @@ importers:
   packages/expressive-code:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.15.0
+        specifier: workspace:^0.16.0
         version: link:../@expressive-code/core
       '@expressive-code/plugin-frames':
-        specifier: workspace:^0.15.0
+        specifier: workspace:^0.16.0
         version: link:../@expressive-code/plugin-frames
       '@expressive-code/plugin-shiki':
-        specifier: workspace:^0.15.0
+        specifier: workspace:^0.16.0
         version: link:../@expressive-code/plugin-shiki
       '@expressive-code/plugin-text-markers':
-        specifier: workspace:^0.15.0
+        specifier: workspace:^0.16.0
         version: link:../@expressive-code/plugin-text-markers
 
   packages/remark-expressive-code:
     dependencies:
       expressive-code:
-        specifier: workspace:^0.15.0
+        specifier: workspace:^0.16.0
         version: link:../expressive-code
       hast-util-to-html:
         specifier: ^8.0.4

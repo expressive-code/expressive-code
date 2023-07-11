@@ -1,5 +1,11 @@
 # @internal/test-utils
 
+## 0.2.9
+
+### Patch Changes
+
+- @expressive-code/core@0.16.0
+
 ## 0.2.8
 
 ### Patch Changes
