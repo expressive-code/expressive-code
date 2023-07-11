@@ -5,52 +5,49 @@ import { FrameType } from '../src/utils'
 
 describe('Extracts file name comments from the first code lines', () => {
 	test('JS comments without prefix', async () => {
-		await expectCodeResult({
-			code: `
-// test.config.mjs
-import { defineConfig } from 'example/config'
-				`,
-			language: 'js',
-			expected: {
-				extractedFileName: 'test.config.mjs',
-				code: `import { defineConfig } from 'example/config'`,
+		await runPreprocessingTests([
+			{
+				fileName: 'test.config.mjs',
 			},
-		})
+		])
 	})
 
 	test('JS comments with prefix followed by a colon', async () => {
-		await expectCodeResult({
-			code: `
-// Example file: test.config.ts
-import { defineConfig } from 'example/config'
-				`,
-			language: 'ts',
-			expected: {
-				extractedFileName: 'test.config.ts',
-				code: `import { defineConfig } from 'example/config'`,
+		await runPreprocessingTests([
+			{
+				fileName: 'test.config.ts',
+				commentSyntax: '// Example file: {fileName}',
+				language: 'ts',
 			},
-		})
+			{
+				fileName: 'test.config.ts',
+				commentSyntax: `// Fichier d'exemple : {fileName}`,
+				language: 'ts',
+			},
+		])
 	})
 
 	test('HTML comments', async () => {
-		await expectCodeResult({
-			code: `
-<!-- Example: src/pages/stars.htm -->
-<img src="/assets/stars.png" alt="A starry night sky.">
-				`,
-			language: 'html',
-			expected: {
-				extractedFileName: 'src/pages/stars.htm',
-				code: `<img src="/assets/stars.png" alt="A starry night sky.">`,
+		const code = `<img src="/assets/stars.png" alt="A starry night sky.">`
+		await runPreprocessingTests([
+			{
+				fileName: './example.html',
+				commentSyntax: '<!-- {fileName} -->',
+				code,
+				language: 'html',
 			},
-		})
+			{
+				fileName: 'src/pages/stars.htm',
+				commentSyntax: `<!-- Example: {fileName} -->`,
+				code,
+				language: 'html',
+			},
+		])
 	})
 
 	test('YAML comments', async () => {
-		await expectCodeResult({
-			code: `
+		const code = `
 ---
-# src/pages/post/blog-post.md
 layout: ../../layouts/BaseLayout.astro
 title: My Blog Post
 draft: true
@@ -59,36 +56,110 @@ draft: true
 This is my in-progress blog post.
 
 No page will be built for this post.
-				`,
-			language: 'markdown',
-			expected: {
-				extractedFileName: 'src/pages/post/blog-post.md',
-				code: `---
-layout: ../../layouts/BaseLayout.astro
-title: My Blog Post
-draft: true
----
-
-This is my in-progress blog post.
-
-No page will be built for this post.`,
+		`.trim()
+		await runPreprocessingTests([
+			{
+				fileName: 'src/pages/post/blog-post.md',
+				commentSyntax: '# {fileName}',
+				commentLine: 2,
+				code,
+				language: 'markdown',
 			},
-		})
+		])
+	})
+
+	test('Windows file paths', async () => {
+		const fileName = 'C:\\Users\\Hippotastic\\printrunconf.ini'
+		await runPreprocessingTests([
+			{
+				fileName,
+				commentSyntax: '# {fileName}',
+				language: 'ini',
+			},
+			{
+				// Test a lowercase path & drive letter as well
+				fileName: fileName.toLowerCase(),
+				commentSyntax: '# {fileName}',
+				language: 'ini',
+			},
+			{
+				fileName,
+				// Allow the file name comment to be prefixed
+				commentSyntax: '# File: {fileName}',
+				language: 'ini',
+			},
+			{
+				// Allow the path to contain environment variables
+				fileName: '%AppData%\\npm\\npm.cmd',
+				language: 'cmd',
+				expected: { frameType: 'code' },
+			},
+			{
+				// Also accept unknown file extensions if it's an absolute path
+				fileName: 'c:\\Users\\Hippotastic\\.unknownextension',
+				commentSyntax: '# {fileName}',
+				language: 'ini',
+			},
+		])
+	})
+
+	const typicalFileNamePatterns = [
+		// File names starting with a dot
+		'.bashrc',
+		'some/path/.gitignore',
+		// File names containing path separators, but no spaces
+		'path/to/file',
+		'path\\to\\file',
+		// Relative file paths
+		'./test',
+		'.\\Temp',
+		// Absolute unix file paths
+		'/etc/hosts',
+		'~/some_file',
+		// Windows file paths
+		'\\Temp',
+		'C:\\Windows\\System32\\drivers\\etc\\hosts',
+	]
+
+	test('Typical file name patterns in standalone comments ', async () => {
+		const languages = ['sh', 'ps', 'astro']
+		const testCases = languages.flatMap((language) =>
+			typicalFileNamePatterns.map((fileName) => ({
+				fileName,
+				language,
+			}))
+		)
+		await runPreprocessingTests(
+			testCases.map((testCase) => ({
+				commentSyntax: '# {fileName}',
+				...testCase,
+			}))
+		)
+	})
+
+	test('Typical file name patterns with prefix in terminal languages', async () => {
+		const languages = ['sh', 'ps']
+		const testCases = languages.flatMap((language) =>
+			typicalFileNamePatterns.map((fileName) => ({
+				fileName,
+				language,
+			}))
+		)
+		await runPreprocessingTests(
+			testCases.map((testCase) => ({
+				commentSyntax: '# Example: {fileName}',
+				...testCase,
+			}))
+		)
 	})
 
 	test('Removes line of whitespace afterwards', async () => {
-		await expectCodeResult({
-			code: `
-// test.config.mjs
-
-import { defineConfig } from 'example/config'
-				`,
-			language: 'js',
-			expected: {
-				extractedFileName: 'test.config.mjs',
-				code: `import { defineConfig } from 'example/config'`,
+		await runPreprocessingTests([
+			{
+				fileName: 'test.js',
+				commentSyntax: '// Example file: {fileName}\n',
 			},
-		})
+		])
 	})
 })
 
@@ -113,73 +184,59 @@ describe('Differentiates between shell scripts and terminal sessions', () => {
 		{
 			fileName: 'test.ps1',
 			language: 'ps',
+			code: `function Get-Demo {\n}`,
 		},
 		{
 			fileName: 'test.psm1',
 			language: 'powershell',
+			code: `function Get-Demo {\n}`,
 		},
 		{
 			fileName: 'test.psd1',
 			language: 'powershell',
+			code: `function Get-Demo {\n}`,
 		},
 	]
 
 	test('Uses the "code" frame type for shell scripts with file name titles', async () => {
-		for (const testCase of shellScriptCases) {
-			await expectCodeResult({
-				code: `
-function Get-Demo {
-}
-					`.trim(),
-				language: testCase.language,
+		await runPreprocessingTests(
+			shellScriptCases.map((testCase) => ({
+				code: `echo "It works!"`,
+				commentSyntax: '',
 				meta: `title="${testCase.fileName}"`,
 				expected: {
-					extractedFileName: testCase.fileName,
 					frameType: 'code',
-					code: `
-function Get-Demo {
-}
-					`.trim(),
 				},
-			})
-		}
+				...testCase,
+			}))
+		)
 	})
 
 	test('Uses the "code" frame type for shell scripts with file name comments', async () => {
-		for (const testCase of shellScriptCases) {
-			await expectCodeResult({
-				code: `
-# ${testCase.fileName}
-function Get-Demo {
-}
-					`.trim(),
-				language: testCase.language,
+		await runPreprocessingTests(
+			shellScriptCases.map((testCase) => ({
+				code: `echo "It works!"`,
+				commentSyntax: '# {fileName}',
 				expected: {
-					extractedFileName: testCase.fileName,
 					frameType: 'code',
-					code: `
-function Get-Demo {
-}
-					`.trim(),
 				},
-			})
-		}
+				...testCase,
+			}))
+		)
 	})
 
 	test('Uses the "code" frame type for shell scripts starting with a shebang', async () => {
-		await expectCodeResult({
-			code: `
+		const code = `
 #!/bin/sh
 echo "Hello!"
-				`.trim(),
+		`.trim()
+		await expectCodeResult({
+			code,
 			language: 'sh',
 			expected: {
-				extractedFileName: undefined,
+				title: undefined,
 				frameType: 'code',
-				code: `
-#!/bin/sh
-echo "Hello!"
-				`.trim(),
+				code,
 			},
 		})
 	})
@@ -190,7 +247,7 @@ echo "Hello!"
 			language: 'sh',
 			meta: `title="Installation via NPM"`,
 			expected: {
-				extractedFileName: 'Installation via NPM',
+				title: 'Installation via NPM',
 				frameType: undefined,
 				code: 'npm install expressive-code',
 			},
@@ -198,19 +255,17 @@ echo "Hello!"
 	})
 
 	test('Uses regular terminal frame type for shell scripts with non-file name comments', async () => {
-		await expectCodeResult({
-			code: `
+		const code = `
 # Installation
 npm install expressive-code
-			`.trim(),
+		`.trim()
+		await expectCodeResult({
+			code,
 			language: 'sh',
 			expected: {
-				extractedFileName: undefined,
+				title: undefined,
 				frameType: undefined,
-				code: `
-# Installation
-npm install expressive-code
-				`.trim(),
+				code,
 			},
 		})
 	})
@@ -231,7 +286,7 @@ import { defineConfig } from 'example/config'
 			code,
 			language: 'js',
 			expected: {
-				extractedFileName: undefined,
+				title: undefined,
 				code: code.trim(),
 			},
 		})
@@ -246,7 +301,7 @@ import { defineConfig } from 'example/config'
 			code,
 			language: 'js',
 			expected: {
-				extractedFileName: undefined,
+				title: undefined,
 				code: code.trim(),
 			},
 		})
@@ -265,10 +320,39 @@ import { defineConfig } from 'example/config'
 			code,
 			language: 'jsx',
 			expected: {
-				extractedFileName: undefined,
+				title: undefined,
 				code: code.trim(),
 			},
 		})
+	})
+
+	test('Common comments that may be mistaken for file names', async () => {
+		const code = `console.log('The comment above is not a file name')`
+		const comments = [
+			'// v1.0',
+			'// v1.0.0-beta.3',
+			'// Version: 1.0',
+			'// me@example.com',
+			'// Copyright/Disclaimer',
+			'# Allow: /',
+			'# cat /etc/profile',
+			'/// <reference types="astro/client" />',
+		]
+		const languages = ['js', 'sh']
+		await runPreprocessingTests(
+			languages.flatMap((language) =>
+				comments.map((comment) => ({
+					fileName: '',
+					commentSyntax: comment,
+					code,
+					language,
+					expected: {
+						title: undefined,
+						code: `${comment}\n${code}`,
+					},
+				}))
+			)
+		)
 	})
 })
 
@@ -283,7 +367,7 @@ import { defineConfig } from 'example/config'
 			language: 'js',
 			options: { extractFileNameFromCode: false },
 			expected: {
-				extractedFileName: undefined,
+				title: undefined,
 				code: code.trim(),
 			},
 		})
@@ -298,7 +382,7 @@ import { defineConfig } from 'example/config'
 			language: 'js',
 			meta: 'title="something.js"',
 			expected: {
-				extractedFileName: 'something.js',
+				title: 'something.js',
 				code: code.trim(),
 			},
 		})
@@ -313,7 +397,7 @@ import { defineConfig } from 'example/config'
 			language: 'js',
 			meta: 'title=""',
 			expected: {
-				extractedFileName: '',
+				title: '',
 				code: code.trim(),
 			},
 		})
@@ -328,7 +412,7 @@ import { defineConfig } from 'example/config'
 			language: 'js',
 			meta: 'frame="none"',
 			expected: {
-				extractedFileName: undefined,
+				title: undefined,
 				frameType: 'none',
 				code: code.trim(),
 			},
@@ -344,13 +428,66 @@ import { defineConfig } from 'example/config'
 			language: 'js',
 			meta: 'frame=""',
 			expected: {
-				extractedFileName: undefined,
+				title: undefined,
 				frameType: 'none',
 				code: code.trim(),
 			},
 		})
 	})
 })
+
+async function runPreprocessingTests(
+	testCases: {
+		fileName: string
+		commentSyntax?: string | undefined
+		commentLine?: number | undefined
+		code?: string | undefined
+		language?: string | undefined
+		meta?: string | undefined
+		expected?:
+			| {
+					title?: string | undefined
+					frameType?: FrameType | undefined
+					code?: string | undefined
+			  }
+			| undefined
+	}[]
+) {
+	for (const testCase of testCases) {
+		const {
+			fileName,
+			commentSyntax = '// {fileName}',
+			commentLine = 1,
+			// Code without filename comment (defaults to some simple JS code)
+			code: codeWithoutFileNameComment = `import { defineConfig } from 'example/config'`,
+			language = 'js',
+			meta = '',
+		} = testCase
+
+		const expected = {
+			title: fileName,
+			code: codeWithoutFileNameComment,
+			...testCase.expected,
+		}
+
+		const codeLines = codeWithoutFileNameComment.split('\n')
+		if (commentSyntax.length) {
+			codeLines.splice(commentLine - 1, 0, commentSyntax.replace('{fileName}', fileName))
+		}
+		const code = codeLines.join('\n')
+
+		await expectCodeResult({
+			code,
+			language,
+			meta,
+			expected: {
+				...expected,
+				title: expected.title,
+				code: expected.code ?? codeWithoutFileNameComment,
+			},
+		})
+	}
+}
 
 async function expectCodeResult({
 	code,
@@ -364,7 +501,7 @@ async function expectCodeResult({
 	meta?: string | undefined
 	options?: PluginFramesOptions | undefined
 	expected: {
-		extractedFileName: string | undefined
+		title: string | undefined
 		frameType?: FrameType | undefined
 		code: string
 	}
@@ -382,7 +519,7 @@ async function expectCodeResult({
 	const pluginData = pluginFramesData.getOrCreateFor(codeBlock)
 
 	const actual = {
-		extractedFileName: pluginData?.title,
+		title: pluginData?.title,
 		frameType: pluginData?.frameType,
 		code: codeBlock.code,
 	}
