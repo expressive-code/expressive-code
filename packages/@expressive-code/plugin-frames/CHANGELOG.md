@@ -1,5 +1,15 @@
 # @expressive-code/plugin-frames
 
+## 0.17.0
+
+### Minor Changes
+
+- aba43e2: Add support for Windows drive letters and typical path patterns to file name comment detection. Thanks @fflaten!
+
+### Patch Changes
+
+- @expressive-code/core@0.17.0
+
 ## 0.16.0
 
 ### Minor Changes
