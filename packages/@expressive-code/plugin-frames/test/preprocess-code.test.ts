@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { ExpressiveCodeEngine } from '@expressive-code/core'
 import { pluginFrames, pluginFramesData, PluginFramesOptions } from '../src'
+import { FrameType } from '../src/utils'
 
 describe('Extracts file name comments from the first code lines', () => {
 	test('JS comments without prefix', async () => {
@@ -86,6 +87,130 @@ import { defineConfig } from 'example/config'
 			expected: {
 				extractedFileName: 'test.config.mjs',
 				code: `import { defineConfig } from 'example/config'`,
+			},
+		})
+	})
+})
+
+describe('Differentiates between shell scripts and terminal sessions', () => {
+	const shellScriptCases = [
+		{
+			fileName: '/home/user/startup.sh',
+			language: 'sh',
+		},
+		{
+			fileName: '/etc/init.d',
+			language: 'shell',
+		},
+		{
+			fileName: '/etc/profile',
+			language: 'sh',
+		},
+		{
+			fileName: '~/.bashrc',
+			language: 'shell',
+		},
+		{
+			fileName: 'test.ps1',
+			language: 'ps',
+		},
+		{
+			fileName: 'test.psm1',
+			language: 'powershell',
+		},
+		{
+			fileName: 'test.psd1',
+			language: 'powershell',
+		},
+	]
+
+	test('Uses the "code" frame type for shell scripts with file name titles', async () => {
+		for (const testCase of shellScriptCases) {
+			await expectCodeResult({
+				code: `
+function Get-Demo {
+}
+					`.trim(),
+				language: testCase.language,
+				meta: `title="${testCase.fileName}"`,
+				expected: {
+					extractedFileName: testCase.fileName,
+					frameType: 'code',
+					code: `
+function Get-Demo {
+}
+					`.trim(),
+				},
+			})
+		}
+	})
+
+	test('Uses the "code" frame type for shell scripts with file name comments', async () => {
+		for (const testCase of shellScriptCases) {
+			await expectCodeResult({
+				code: `
+# ${testCase.fileName}
+function Get-Demo {
+}
+					`.trim(),
+				language: testCase.language,
+				expected: {
+					extractedFileName: testCase.fileName,
+					frameType: 'code',
+					code: `
+function Get-Demo {
+}
+					`.trim(),
+				},
+			})
+		}
+	})
+
+	test('Uses the "code" frame type for shell scripts starting with a shebang', async () => {
+		await expectCodeResult({
+			code: `
+#!/bin/sh
+echo "Hello!"
+				`.trim(),
+			language: 'sh',
+			expected: {
+				extractedFileName: undefined,
+				frameType: 'code',
+				code: `
+#!/bin/sh
+echo "Hello!"
+				`.trim(),
+			},
+		})
+	})
+
+	test('Uses regular terminal frame type for shell scripts with non-file name titles', async () => {
+		await expectCodeResult({
+			code: 'npm install expressive-code',
+			language: 'sh',
+			meta: `title="Installation via NPM"`,
+			expected: {
+				extractedFileName: 'Installation via NPM',
+				frameType: undefined,
+				code: 'npm install expressive-code',
+			},
+		})
+	})
+
+	test('Uses regular terminal frame type for shell scripts with non-file name comments', async () => {
+		await expectCodeResult({
+			code: `
+# Installation
+npm install expressive-code
+			`.trim(),
+			language: 'sh',
+			expected: {
+				extractedFileName: undefined,
+				frameType: undefined,
+				code: `
+# Installation
+npm install expressive-code
+				`.trim(),
 			},
 		})
 	})
@@ -204,6 +329,7 @@ import { defineConfig } from 'example/config'
 			meta: 'frame="none"',
 			expected: {
 				extractedFileName: undefined,
+				frameType: 'none',
 				code: code.trim(),
 			},
 		})
@@ -219,6 +345,7 @@ import { defineConfig } from 'example/config'
 			meta: 'frame=""',
 			expected: {
 				extractedFileName: undefined,
+				frameType: 'none',
 				code: code.trim(),
 			},
 		})
@@ -238,6 +365,7 @@ async function expectCodeResult({
 	options?: PluginFramesOptions | undefined
 	expected: {
 		extractedFileName: string | undefined
+		frameType?: FrameType | undefined
 		code: string
 	}
 }) {
@@ -255,6 +383,7 @@ async function expectCodeResult({
 
 	const actual = {
 		extractedFileName: pluginData?.title,
+		frameType: pluginData?.frameType,
 		code: codeBlock.code,
 	}
 

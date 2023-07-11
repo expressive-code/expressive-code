@@ -1,7 +1,7 @@
 import { AttachedPluginData, ExpressiveCodePlugin, PluginTexts, replaceDelimitedValues } from '@expressive-code/core'
 import { h, Result as HastEntity } from 'hastscript'
 import { framesStyleSettings, getFramesBaseStyles } from './styles'
-import { FrameType, frameTypeFromString, frameTypes, getFileNameFromComment, isTerminalLanguage } from './utils'
+import { FrameType, frameTypeFromString, frameTypes, getFileNameFromComment, isTerminalLanguage, LanguageGroups } from './utils'
 import { getCopyJsModule } from './copy-js-module'
 
 export interface PluginFramesOptions {
@@ -76,24 +76,39 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 				const blockData = pluginFramesData.getOrCreateFor(codeBlock)
 
 				// If the block data we collected while parsing the meta information
-				// already contains a title, or if the frame type was set to "none",
-				// do not attempt to find a title inside the code
-				if (blockData.title !== undefined || blockData.frameType === 'none') return
+				// did not contain a title, and if the frame type wasn't set to "none",
+				// try to find a title inside the code
+				if (blockData.title === undefined && blockData.frameType !== 'none') {
+					// Check the first 4 lines of the code for a file name comment
+					const lineIdx = codeBlock.getLines(0, 4).findIndex((line) => {
+						blockData.title = getFileNameFromComment(line.text, codeBlock.language)
+						return !!blockData.title
+					})
 
-				// Attempt to find a file name comment in the first 4 lines of the code
-				const lineIdx = codeBlock.getLines(0, 4).findIndex((line) => {
-					blockData.title = getFileNameFromComment(line.text, codeBlock.language)
-					return !!blockData.title
-				})
-
-				// Was a valid file name comment line found?
-				if (blockData.title) {
-					// Yes, remove it from the code
-					codeBlock.deleteLine(lineIdx)
-
-					// If the following line is empty, remove it as well
-					if (codeBlock.getLine(lineIdx)?.text.trim().length === 0) {
+					// Was a valid file name comment line found?
+					if (blockData.title) {
+						// Yes, remove it from the code
 						codeBlock.deleteLine(lineIdx)
+
+						// If the following line is empty, remove it as well
+						if (codeBlock.getLine(lineIdx)?.text.trim().length === 0) {
+							codeBlock.deleteLine(lineIdx)
+						}
+					}
+				}
+
+				// If we're supposed to auto-detect the code block's frame type,
+				// and a terminal/shell language like "sh" or "powershell" was assigned to it,
+				// we need to perform some extra checks. There are two possible cases:
+				// - It's a script file (= to be rendered as an editor frame)
+				// - It shows an interactive shell session (= terminal window frame)
+				const { frameType = 'auto' } = blockData
+				if (frameType === 'auto' && isTerminalLanguage(codeBlock.language)) {
+					// If we found a valid file name comment or shebang,
+					// it's a script file and not a terminal session
+					const titleIsFileName = blockData.title && getFileNameFromComment(`// ${blockData.title}`, codeBlock.language)
+					if (titleIsFileName || codeBlock.getLines(0, 4).some((line) => line.text.match(/^\s*#!/))) {
+						blockData.frameType = 'code'
 					}
 				}
 			},
@@ -170,3 +185,5 @@ export interface PluginFramesData {
 }
 
 export const pluginFramesData = new AttachedPluginData<PluginFramesData>(() => ({}))
+
+export { LanguageGroups }
