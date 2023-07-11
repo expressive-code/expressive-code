@@ -1,0 +1,17 @@
+{
+	"name": "Expressive Code",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	"postCreateCommand": "pnpm install && pnpm run build",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"astro-build.astro-vscode",
+				"dbaeumer.vscode-eslint",
+				"github.vscode-github-actions",
+				"yzhang.markdown-all-in-one"
+			]
+		}
+	}
+}
