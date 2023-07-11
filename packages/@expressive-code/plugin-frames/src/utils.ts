@@ -43,15 +43,28 @@ const getFileNameCommentRegExpString = () =>
 		`(?://|#(?!!)|<!--)`,
 		// Optional whitespace
 		`\\s*`,
-		// Optional sequence of characters, followed by a Japanese colon or a regular colon (`:`),
-		// but not by `://`. Matches strings like `File name:`, but not `https://example.com/test.md`.
-		`(?:(.*?)(?:\\uff1a|:(?!//)))?`,
+		// Optional prefix before the file name:
+		// - This is intended to match strings like `File name:` or `Example :`,
+		//   but not Windows drive letters like `C:`,
+		//   or URL protocols like `https:`
+		// - We therefore expect the prefix to begin with any sequence of characters
+		//   not starting with a letter + colon (to rule out Windows drive letters)
+		// - The prefix must then be followed by:
+		//   - a Japanese colon (`\\uff1a`), or
+		//   - a regular colon (`:`) not followed by `//` (to rule out URL protocols)
+		`(?:((?![a-z]:).*?)(?:\\uff1a|:(?!//)))?`,
 		// Optional whitespace
 		`\\s*`,
+		// Capture the file name
+		`(`,
+		// Optional Windows drive letter
+		`(?:[a-z]:)?`,
 		// Optional sequence of characters allowed in file paths
-		`([\\w./~[\\]\\\\-]*`,
+		`[\\w./~%[\\]\\\\-]*`,
 		// Optional dot and supported file extension
-		`(?:\\.(?:${Object.values(LanguageGroups).flat().sort().join('|')}))?)`,
+		`(?:\\.(?:${Object.values(LanguageGroups).flat().sort().join('|')}))?`,
+		// End of file name capture
+		`)`,
 		// Optional whitespace
 		`\\s*`,
 		// Optional HTML comment end (`-->`)
@@ -73,21 +86,46 @@ let fileNameCommentRegExp: RegExp | undefined
  */
 export function getFileNameFromComment(line: string, lang: string) {
 	if (fileNameCommentRegExp === undefined) {
-		fileNameCommentRegExp = new RegExp(getFileNameCommentRegExpString())
+		fileNameCommentRegExp = new RegExp(getFileNameCommentRegExpString(), 'i')
 	}
 	const matches = fileNameCommentRegExp.exec(line)
-	const extractedFileName = matches?.[2]
-	if (!extractedFileName) return
+	const textBeforeFileName = matches?.[1] ?? ''
+	const possibleFileName = matches?.[2]
+	if (!possibleFileName) return
 
 	// Check if the syntax highlighting language is contained in our known language groups,
 	// and determine the extension of the extracted file name (if any)
 	const languageGroup = Object.values(LanguageGroups).find((group) => group.includes(lang))
-	const fileExt = extractedFileName.match(/\.([^.]+)$/)?.[1]
+	const fileNameWithoutPath = possibleFileName.replace(/^.*[/\\]/, '')
+	const fileExt = fileNameWithoutPath.match(/\.([^.]+)$/)?.[1]
 
-	// If we're in the terminal language group, allow any file names (even without extensions)
-	// as long as they start with something that looks like the beginning of a path
-	if (languageGroup === LanguageGroups.terminal && extractedFileName.match(/^(\/|\\|\.|~)/)) {
-		return extractedFileName
+	// Check if the file name has one or more typical file name patterns:
+	// - It begins with any of these and is followed by at least one more character:
+	//   - `/` (Unix path separator)
+	//   - `\` (Windows path separator)
+	//   - `./` or `.\`) (current directory)
+	//   - `~` (home directory)
+	//   - `[a-z]:` (Windows drive letter)
+	// - It has a file name part starting with a dot (e.g. `some/path/.gitignore`)
+	// - It looks like a separated path (see below for details)
+	const hasTypicalFileNameBeginning = possibleFileName.match(/^(\/|\\|\.[/\\]|~|[a-z]:).+/i)
+	const hasFileNameStartingWithDot = fileNameWithoutPath.startsWith('.')
+	const looksLikeSeparatedPath =
+		// Contains path separators
+		possibleFileName.match(/[/\\]/) &&
+		// Also contains other characters (except path separators, numbers and dots)
+		possibleFileName.match(/[^/\\0-9.]/) &&
+		// Does not contain spaces
+		!possibleFileName.match(/\s/) &&
+		// Is all lowercase
+		possibleFileName === possibleFileName.toLowerCase()
+	const hasTypicalFileNamePattern = hasTypicalFileNameBeginning || hasFileNameStartingWithDot || looksLikeSeparatedPath
+
+	// Accept anything that looks like a file name if at least one of these conditions is true:
+	// - the file name is the only text in the comment
+	// - we're in the terminal language group (where extensions are often missing or unknown)
+	if (hasTypicalFileNamePattern && (!textBeforeFileName.length || languageGroup === LanguageGroups.terminal)) {
+		return possibleFileName
 	}
 
 	// Ignore the extracted file name if it doesn't have an extension,
@@ -95,5 +133,5 @@ export function getFileNameFromComment(line: string, lang: string) {
 	// (e.g. JS code containing a CSS file name in a comment)
 	if (!fileExt || (languageGroup && !languageGroup.includes(fileExt))) return
 
-	return extractedFileName
+	return possibleFileName
 }
