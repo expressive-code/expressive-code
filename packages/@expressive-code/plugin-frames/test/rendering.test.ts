@@ -98,6 +98,56 @@ ${exampleCode}
 	})
 })
 
+describe('Differentiates between terminal and code editor frames', () => {
+	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
+	themes.unshift(undefined)
+
+	test('Renders a shell script with shebang as frame="code"', async ({ meta: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: `
+#!/bin/sh
+${exampleTerminalCode}
+				`.trim(),
+				language: 'shell',
+				plugins: [pluginFrames()],
+				blockValidationFn: ({ renderedGroupAst }) => {
+					validateBlockAst({
+						renderedGroupAst,
+						figureSelector: '.frame:not(.has-title):not(.is-terminal)',
+						srTitlePresent: false,
+					})
+				},
+			}),
+		})
+	})
+
+	test('Renders a shell script with file name comment as frame="code"', async ({ meta: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: `
+# install.sh
+${exampleTerminalCode}
+				`.trim(),
+				language: 'shell',
+				plugins: [pluginFrames()],
+				blockValidationFn: ({ renderedGroupAst }) => {
+					validateBlockAst({
+						renderedGroupAst,
+						figureSelector: '.frame.has-title:not(.is-terminal)',
+						title: 'install.sh',
+						srTitlePresent: false,
+					})
+				},
+			}),
+		})
+	})
+})
+
 describe('Allows changing the frame type to "terminal" using meta information', () => {
 	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
 	themes.unshift(undefined)
@@ -144,6 +194,30 @@ ${exampleCode}
 			}),
 		})
 	})
+	test('Change shell script block with title to frame="terminal"', async ({ meta: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: `
+#!/bin/sh
+# install.sh
+${exampleTerminalCode}
+				`.trim(),
+				meta: 'frame="terminal"',
+				language: 'shell',
+				plugins: [pluginFrames()],
+				blockValidationFn: ({ renderedGroupAst }) => {
+					validateBlockAst({
+						renderedGroupAst,
+						figureSelector: '.frame.has-title.is-terminal',
+						title: 'install.sh',
+						srTitlePresent: false,
+					})
+				},
+			}),
+		})
+	})
 })
 
 describe('Allows changing the frame type to "code" using meta information', () => {
@@ -163,30 +237,6 @@ describe('Allows changing the frame type to "code" using meta information', () =
 					validateBlockAst({
 						renderedGroupAst,
 						figureSelector: '.frame:not(.has-title):not(.is-terminal)',
-						srTitlePresent: false,
-					})
-				},
-			}),
-		})
-	})
-	test('Change terminal block with title to frame="code"', async ({ meta: { name: testName } }) => {
-		await renderAndOutputHtmlSnapshot({
-			testName,
-			testBaseDir: __dirname,
-			fixtures: buildThemeFixtures(themes, {
-				code: `
-#!/bin/sh
-# install.sh
-${exampleTerminalCode}
-				`.trim(),
-				meta: 'frame="code"',
-				language: 'shell',
-				plugins: [pluginFrames()],
-				blockValidationFn: ({ renderedGroupAst }) => {
-					validateBlockAst({
-						renderedGroupAst,
-						figureSelector: '.frame.has-title:not(.is-terminal)',
-						title: 'install.sh',
 						srTitlePresent: false,
 					})
 				},
