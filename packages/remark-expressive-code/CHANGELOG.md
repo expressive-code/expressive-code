@@ -1,5 +1,18 @@
 # remark-expressive-code
 
+## 0.18.0
+
+### Minor Changes
+
+- 4e26180: Add support for ANSI formatted code blocks. Thanks @fflaten!
+
+  You can now use the new language `ansi` to render code blocks containing ANSI escape sequences. This allows you to render colorful terminal output.
+
+### Patch Changes
+
+- Updated dependencies [4e26180]
+  - expressive-code@0.18.0
+
 ## 0.17.0
 
 ### Patch Changes

@@ -1,5 +1,17 @@
 # @expressive-code/plugin-frames
 
+## 0.18.0
+
+### Minor Changes
+
+- 4e26180: Add support for ANSI formatted code blocks. Thanks @fflaten!
+
+  You can now use the new language `ansi` to render code blocks containing ANSI escape sequences. This allows you to render colorful terminal output.
+
+### Patch Changes
+
+- @expressive-code/core@0.18.0
+
 ## 0.17.0
 
 ### Minor Changes
