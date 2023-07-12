@@ -16,8 +16,9 @@ Expressive Code is split into multiple packages, allowing you to include only th
 
 ### Main packages
 
-- [expressive-code](packages/expressive-code/README.md) - The main package that provides convenient access to the Expressive Code engine and all default plugins.
-- [remark-expressive-code](packages/remark-expressive-code/README.md) - A remark plugin that processes all code blocks in markdown and MDX files with Expressive Code.
+- [expressive-code](packages/expressive-code/README.md) [![NPM version](https://img.shields.io/npm/v/expressive-code.svg)](https://www.npmjs.com/package/expressive-code) - The main package that provides convenient access to the Expressive Code engine and all default plugins.
+- [remark-expressive-code](packages/remark-expressive-code/README.md) [![NPM version](https://img.shields.io/npm/v/remark-expressive-code.svg)](https://www.npmjs.com/package/remark-expressive-code) - A remark plugin that processes all code blocks in markdown and MDX files with Expressive Code.
+- [astro-expressive-code](packages/astro-expressive-code/README.md) [![NPM version](https://img.shields.io/npm/v/astro-expressive-code.svg)](https://www.npmjs.com/package/astro-expressive-code) - An Astro integration to automatically render code blocks in any markdown / MDX content on your site with Expressive Code.
 
 ### Internal packages
 
@@ -26,38 +27,15 @@ Expressive Code is split into multiple packages, allowing you to include only th
 - [@expressive-code/plugin-shiki](packages/@expressive-code/plugin-shiki/README.md) - A plugin that adds syntax highlighting to your code blocks, using the same engine as VS Code.
 - [@expressive-code/plugin-text-markers](packages/@expressive-code/plugin-text-markers/README.md) - A plugin that allows you to add text markers to your code blocks, highlighting specific parts of the code or indicating additions or removals.
 
-## Installation
+## Installation, Configuration & Usage
 
-Until we've finished developing integrations into popular site generators like Astro (which will be available soon), you'll most likely want to install our remark plugin:
+You will most likely want to install one of our high-level integrations, depending on your site's setup.
 
-```bash
-npm install remark-expressive-code
-```
+Please have a look at the documentation of those packages for more information:
 
-## Usage
+- [remark-expressive-code](packages/remark-expressive-code/README.md)
+- [astro-expressive-code](packages/astro-expressive-code/README.md)
 
-You can then import it into the file that contains your site's markdown configuration.
+## Contributing
 
-Here's an example of how to do that in an Astro project:
-
-```js
-// astro.config.mjs
-import { defineConfig } from 'astro/config'
-import remarkExpressiveCode from 'remark-expressive-code'
-
-/** @type import('remark-expressive-code').RemarkExpressiveCodeOptions */
-const remarkExpressiveCodeOptions = {
-  // See below for all available options
-  theme: 'dracula',
-}
-
-export default defineConfig({
-  markdown: {
-    remarkPlugins: [[remarkExpressiveCode, remarkExpressiveCodeOptions]],
-  },
-})
-```
-
-## Options
-
-TODO
+We welcome all contributions! Please read our [contributing guide](CONTRIBUTING.md) to learn about our development process and how to propose bugfixes and improvements.
