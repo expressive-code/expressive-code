@@ -37,7 +37,7 @@ const ansiTestCode = `
 `.trim()
 
 // eslint-disable-next-line no-control-regex
-const ansiEscapeCode = /\u001b\[\d+m/gmu
+const ansiEscapeCode = /\u001b\[\d+m/gu
 
 describe('Renders syntax highlighting', () => {
 	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
@@ -82,8 +82,10 @@ describe('Renders syntax highlighting', () => {
 	)
 
 	test(
-		'Supports ansi',
+		'Supports ansi highlighting',
 		async ({ meta: { name: testName } }) => {
+			let colorAssertionExecuted = false
+
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,
@@ -92,12 +94,20 @@ describe('Renders syntax highlighting', () => {
 					language: 'ansi',
 					meta: '',
 					plugins: [pluginShiki()],
-					blockValidationFn: ({ renderedGroupAst }) => {
+					blockValidationFn: ({ renderedGroupAst, theme }) => {
 						const html = toHtml(renderedGroupAst)
 						expect(html).not.toMatch(ansiEscapeCode)
+
+						if (theme.name === 'github-dark') {
+							expect(html).toContain('<span style="color:#56d4dd"> Context Testing ANSI</span>')
+							expect(html).toContain('<span style="color:#fafbfc">Tests Passed: 1 </span>')
+							colorAssertionExecuted = true
+						}
 					},
 				}),
 			})
+
+			expect(colorAssertionExecuted).toBe(true)
 		},
 		{ timeout: 5 * 1000 }
 	)
