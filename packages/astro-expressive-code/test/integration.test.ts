@@ -23,6 +23,10 @@ describe('Integration into an Astro project', () => {
 	test('MDX files', () => {
 		expect(fixture?.readFile('mdx-page/index.html')).toMatch(sampleCodeHtmlRegExp)
 	})
+
+	test('Code component', () => {
+		expect(fixture?.readFile('code-component/index.html')).toMatch(sampleCodeHtmlRegExp)
+	})
 })
 
 async function buildFixture({ fixtureDir, buildCommand, buildArgs, outputDir }: { fixtureDir: string; buildCommand: string; buildArgs?: string[] | undefined; outputDir: string }) {
