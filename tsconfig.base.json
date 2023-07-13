@@ -13,6 +13,7 @@
     "moduleResolution": "node",
     "module": "ESNext",
     "target": "ESNext",
+    "jsx": "react-jsx",
     "paths": {
       "@expressive-code/core": ["./packages/@expressive-code/core/src"],
       "@expressive-code/plugin-frames": ["./packages/@expressive-code/plugin-frames/src"],
