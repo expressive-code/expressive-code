@@ -2,6 +2,8 @@ import type { AstroIntegration } from 'astro'
 import type { RemarkExpressiveCodeOptions } from 'remark-expressive-code'
 import remarkExpressiveCode, { createRenderer } from 'remark-expressive-code'
 
+export { default as Code } from './components/Code.astro'
+
 export * from 'remark-expressive-code'
 
 export type AstroExpressiveCodeOptions = RemarkExpressiveCodeOptions
