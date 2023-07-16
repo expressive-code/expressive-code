@@ -1,5 +1,12 @@
 # @expressive-code/plugin-frames
 
+## 0.18.1
+
+### Patch Changes
+
+- ccc727e: Fix possible `querySelectorAll is not a function` issue on page content changes
+  - @expressive-code/core@0.18.1
+
 ## 0.18.0
 
 ### Minor Changes
