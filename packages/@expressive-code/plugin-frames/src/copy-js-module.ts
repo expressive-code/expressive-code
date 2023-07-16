@@ -94,8 +94,9 @@ const clickHandler = [
  * (e.g. when the page dynamically loads more content or replaces existing content).
  */
 const attachHandlers = [
-	// Define a function that searches a parent node for matching buttons and initializes them
-	`let initButtons = el => el.querySelectorAll('[SELECTOR]').forEach(btn =>
+	// Define a function that searches a node for matching buttons and initializes them
+	// unless the node does not support querySelectorAll (e.g. a text node)
+	`let initButtons = n => !n.querySelectorAll || n.querySelectorAll('[SELECTOR]').forEach(btn =>
 		btn.addEventListener('click', clickHandler)
 	);`,
 	// Use the function to initialize all buttons that exist right now
