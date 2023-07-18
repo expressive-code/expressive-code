@@ -6,6 +6,7 @@ import { pluginShiki } from '@expressive-code/plugin-shiki'
 import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures, TestFixture } from '@internal/test-utils'
 import { pluginTextMarkers } from '../src'
 import { MarkerType, MarkerTypeOrder } from '../src/marker-types'
+import { actualDiff, indentedJsCodeWithDiffMarkers, jsCodeWithDiffMarkers } from './data/diff-examples'
 
 const lineMarkerTestText = `
 import { defineConfig } from 'astro/config';
@@ -42,9 +43,9 @@ describe('Renders text markers', () => {
 					blockValidationFn: buildMarkerValidationFn([
 						{ fullLine: true, markerType: 'mark', text: `import { defineConfig } from 'astro/config';` },
 						{ fullLine: true, markerType: 'mark', text: '' },
-						{ fullLine: true, markerType: 'del', text: 'extendDefaultPlugins: false,' },
-						{ fullLine: true, markerType: 'ins', text: 'smartypants: false,' },
-						{ fullLine: true, markerType: 'ins', text: 'gfm: false,' },
+						{ fullLine: true, markerType: 'del', text: '    extendDefaultPlugins: false,' },
+						{ fullLine: true, markerType: 'ins', text: '    smartypants: false,' },
+						{ fullLine: true, markerType: 'ins', text: '    gfm: false,' },
 					]),
 				}),
 			})
@@ -61,9 +62,9 @@ describe('Renders text markers', () => {
 					blockValidationFn: buildMarkerValidationFn([
 						{ fullLine: true, markerType: 'mark', text: `import { defineConfig } from 'astro/config';` },
 						{ fullLine: true, markerType: 'mark', text: '' },
-						{ fullLine: true, markerType: 'del', text: 'extendDefaultPlugins: false,' },
-						{ fullLine: true, markerType: 'ins', text: 'smartypants: false,' },
-						{ fullLine: true, markerType: 'ins', text: 'gfm: false,' },
+						{ fullLine: true, markerType: 'del', text: '    extendDefaultPlugins: false,' },
+						{ fullLine: true, markerType: 'ins', text: '    smartypants: false,' },
+						{ fullLine: true, markerType: 'ins', text: '    gfm: false,' },
 					]),
 				}),
 			})
@@ -377,6 +378,72 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 		})
 	})
 
+	describe('Diff language', () => {
+		test(`Converts diff syntax to line-level markers`, async ({ meta: { name: testName } }) => {
+			const code = jsCodeWithDiffMarkers
+			const expectedCode = code
+				.split('\n')
+				.map((line) => line.replace(/^[-+]/, ''))
+				.join('\n')
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code,
+					language: 'diff',
+					plugins: [pluginTextMarkers()],
+					blockValidationFn: buildMarkerValidationFn(
+						[
+							{ fullLine: true, markerType: 'del', text: '  integrations: [vue(), lit()]' },
+							{ fullLine: true, markerType: 'ins', text: '  integrations: [lit(), vue()]' },
+						],
+						expectedCode
+					),
+				}),
+			})
+		})
+		test(`Removes common minimum indentation level`, async ({ meta: { name: testName } }) => {
+			const code = indentedJsCodeWithDiffMarkers
+			const expectedCode = code
+				.split('\n')
+				.map((line) => line.slice(2))
+				.join('\n')
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code,
+					language: 'diff',
+					plugins: [pluginTextMarkers()],
+					blockValidationFn: buildMarkerValidationFn(
+						[
+							{ fullLine: true, markerType: 'del', text: '  integrations: [vue(), lit()]' },
+							{ fullLine: true, markerType: 'ins', text: '  integrations: [lit(), vue()]' },
+						],
+						expectedCode
+					),
+				}),
+			})
+		})
+		test(
+			`Does not modify actual diff content`,
+			async ({ meta: { name: testName } }) => {
+				const code = actualDiff
+				await renderAndOutputHtmlSnapshot({
+					testName,
+					testBaseDir: __dirname,
+					fixtures: buildThemeFixtures(themes, {
+						code,
+						language: 'diff',
+						plugins: [pluginTextMarkers(), pluginShiki()],
+						blockValidationFn: buildMarkerValidationFn([], code),
+					}),
+				})
+			},
+			{ timeout: 5 * 1000 }
+		)
+	})
+
 	test(`Combined line and inline plaintext markers`, async ({ meta: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
 			testName,
@@ -408,7 +475,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 ---
 layout: ../../layouts/BaseLayout.astro
 title: 'My first MDX post'
-publishDate: '21 September 2022'
++publishDate: '21 September 2022'
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
@@ -420,13 +487,14 @@ function fancyJsHelper() {
   Welcome to my new Astro blog, using MDX!
 </BaseLayout>
 					`.trim(),
-					language: 'mdx',
-					meta: `title="src/pages/posts/first-post.mdx" ins={6} mark={9} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/`,
+					language: 'diff',
+					meta: `lang="mdx" title="src/pages/posts/first-post.mdx" ins={6} mark={9} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/`,
 					plugins: [pluginTextMarkers(), pluginShiki()],
 					blockValidationFn: buildMarkerValidationFn([
 						{ fullLine: true, markerType: 'del', text: `layout: ../../layouts/BaseLayout.astro` },
+						{ fullLine: true, markerType: 'ins', text: `publishDate: '21 September 2022'` },
 						{ fullLine: true, markerType: 'ins', text: `import BaseLayout from '../../layouts/BaseLayout.astro';` },
-						{ fullLine: true, markerType: 'mark', text: ` return "Try doing that with YAML!";` },
+						{ fullLine: true, markerType: 'mark', text: `  return "Try doing that with YAML!";` },
 						{ markerType: 'mark', text: `<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>` },
 						{ markerType: 'mark', text: `</BaseLayout>` },
 					]),
@@ -442,7 +510,8 @@ function buildMeta(markers: { markerType?: string | undefined; text: string }[])
 }
 
 function buildMarkerValidationFn(
-	expectedMarkers: { fullLine?: boolean | undefined; markerType: MarkerType; text: string; classNames?: string[] | undefined }[]
+	expectedMarkers: { fullLine?: boolean | undefined; markerType: MarkerType; text: string; classNames?: string[] | undefined }[],
+	expectedCode?: string
 ): NonNullable<TestFixture['blockValidationFn']> {
 	return ({ renderedGroupAst }) => {
 		const lineMarkerSelectors = MarkerTypeOrder.map((markerType) => `.${markerType}`)
@@ -450,7 +519,8 @@ function buildMarkerValidationFn(
 		const allMarkersSelector = [...lineMarkerSelectors, ...inlineMarkerSelectors].join(',')
 		const matchingElements = selectAll(allMarkersSelector, renderedGroupAst)
 		const actualMarkers = matchingElements.map((marker) => {
-			const text = toText(marker)
+			let text = toText(marker, { whitespace: 'pre' })
+			if (text === '\n') text = ''
 			const classNames = marker.properties?.className?.toString().split(' ') || []
 			if (MarkerTypeOrder.includes(marker.tagName as MarkerType)) {
 				return {
@@ -478,6 +548,18 @@ function buildMarkerValidationFn(
 			...marker,
 		}))
 		expect(actualMarkers).toMatchObject(expectedMarkersWithDefaults)
+
+		// Expect that the correct code was rendered
+		if (expectedCode !== undefined) {
+			const matchingElements = selectAll(`div.ec-line`, renderedGroupAst)
+			const actualCode = matchingElements
+				.map((line) => {
+					const text = toText(line, { whitespace: 'pre' })
+					return text === '\n' ? '' : text
+				})
+				.join('\n')
+			expect(actualCode).toEqual(expectedCode)
+		}
 	}
 }
 
