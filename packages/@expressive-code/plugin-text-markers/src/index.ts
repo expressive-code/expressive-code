@@ -1,4 +1,13 @@
-import { ExpressiveCodePlugin, AttachedPluginData, replaceDelimitedValues, onBackground, ensureColorContrastOnBackground } from '@expressive-code/core'
+import {
+	AttachedPluginData,
+	ensureColorContrastOnBackground,
+	ExpressiveCodeBlock,
+	ExpressiveCodePlugin,
+	ExpressiveCodeTheme,
+	onBackground,
+	replaceDelimitedValues,
+	ResolvedCoreStyles,
+} from '@expressive-code/core'
 import rangeParser from 'parse-numeric-range'
 import { visitParents } from 'unist-util-visit-parents'
 import { MarkerType, markerTypeFromString } from './marker-types'
@@ -16,16 +25,19 @@ export function pluginTextMarkers(options: PluginTextMarkersOptions = {}): Expre
 		baseStyles: ({ theme, coreStyles }) => getTextMarkersBaseStyles(theme, coreStyles, options.styleOverrides || {}),
 		hooks: {
 			preprocessMetadata: ({ codeBlock, theme, coreStyles }) => {
-				const markerTypeColors = getMarkerTypeColorsForContrastCalculation({
-					theme,
-					coreStyles,
-					styleOverrides: options.styleOverrides,
-				})
-				const blockData = pluginTextMarkersData.getOrCreateFor(codeBlock)
+				const { blockData, markerTypeColors } = getBlockDataAndMarkerTypeColors(codeBlock, theme, coreStyles, options)
 
 				codeBlock.meta = replaceDelimitedValues(
 					codeBlock.meta,
 					({ fullMatch, key, value, valueStartDelimiter }) => {
+						// If we found a "lang" key and the code block's language is "diff",
+						// use the "lang" value as the new syntax highlighting language instead
+						if (key === 'lang' && codeBlock.language === 'diff') {
+							codeBlock.language = value
+							blockData.originalLanguage = 'diff'
+							return ''
+						}
+
 						// Try to identify the marker type from the key
 						const markerType = markerTypeFromString(key || 'mark')
 
@@ -81,13 +93,64 @@ export function pluginTextMarkers(options: PluginTextMarkersOptions = {}): Expre
 					}
 				)
 			},
+			preprocessCode: ({ codeBlock, theme, coreStyles }) => {
+				const { blockData, markerTypeColors } = getBlockDataAndMarkerTypeColors(codeBlock, theme, coreStyles, options)
+
+				// Perform special handling of code marked with the language "diff":
+				// - This language is often used as a widely supported format for highlighting
+				//   changes to code. In this case, the code is not actually a diff,
+				//   but another language with some lines prefixed by `+` or `-`.
+				// - We try to detect this case and convert the prefixed lines to annotations
+				// - To prevent modifying actual diff files (which would make them invalid),
+				//   we ensure that the code does not begin like a real diff:
+				//   - The first lines must not start with `*** `, `+++ `, `--- `, `@@ `,
+				//     or the default mode location syntax (e.g. `0a1`, `1,2c1,2`, `1,2d1`).
+				if ((blockData.originalLanguage ?? codeBlock.language) === 'diff') {
+					const lines = codeBlock.getLines()
+
+					// Ensure that the first lines do not look like actual diff output
+					const couldBeRealDiffFile = lines.slice(0, 4).some((line) => line.text.match(/^([*+-]{3}\s|@@\s|[0-9,]+[acd][0-9,]+\s*$)/))
+					if (!couldBeRealDiffFile) {
+						let minIndentation = Infinity
+						const parsedLines = lines.map((line) => {
+							const [, indentation, marker, content] = line.text.match(/^(([+-](?![+-]))?\s*)(.*)$/) || []
+							const markerType: MarkerType | undefined = marker === '+' ? 'ins' : marker === '-' ? 'del' : undefined
+
+							// As it's common to indent unchanged lines to match the indentation
+							// of changed lines, and we don't want extra whitespace in the output,
+							// we remember the minimum indentation of all non-empty lines
+							if (content.trim().length > 0 && indentation.length < minIndentation) minIndentation = indentation.length
+
+							return {
+								line,
+								markerType,
+							}
+						})
+
+						parsedLines.forEach(({ line, markerType }) => {
+							// Remove line prefixes:
+							// - If minIndentation is > 0, we remove minIndentation
+							// - Otherwise, if the current line starts with a marker character,
+							//   we remove this single character
+							const colsToRemove = minIndentation || (markerType ? 1 : 0)
+							if (colsToRemove > 0) line.editText(0, colsToRemove, '')
+
+							// If we found a diff marker, add a line annotation
+							if (markerType) {
+								line.addAnnotation(
+									new TextMarkerAnnotation({
+										markerType,
+										backgroundColor: markerTypeColors[markerType],
+									})
+								)
+							}
+						})
+					}
+				}
+			},
 			annotateCode: ({ codeBlock, theme, coreStyles }) => {
-				const markerTypeColors = getMarkerTypeColorsForContrastCalculation({
-					theme,
-					coreStyles,
-					styleOverrides: options.styleOverrides,
-				})
-				const blockData = pluginTextMarkersData.getOrCreateFor(codeBlock)
+				const { blockData, markerTypeColors } = getBlockDataAndMarkerTypeColors(codeBlock, theme, coreStyles, options)
+
 				codeBlock.getLines().forEach((line) => {
 					// Check the line text for search term matches and collect their ranges
 					const markerRanges = getInlineSearchTermMatches(line.text, blockData)
@@ -137,9 +200,23 @@ export function pluginTextMarkers(options: PluginTextMarkersOptions = {}): Expre
 	}
 }
 
+function getBlockDataAndMarkerTypeColors(codeBlock: ExpressiveCodeBlock, theme: ExpressiveCodeTheme, coreStyles: ResolvedCoreStyles, options: PluginTextMarkersOptions) {
+	const blockData = pluginTextMarkersData.getOrCreateFor(codeBlock)
+	if (!blockData.markerTypeColors) {
+		blockData.markerTypeColors = getMarkerTypeColorsForContrastCalculation({
+			theme,
+			coreStyles,
+			styleOverrides: options.styleOverrides,
+		})
+	}
+	return { blockData, markerTypeColors: blockData.markerTypeColors }
+}
+
 export interface PluginTextMarkersData {
 	plaintextTerms: { markerType: MarkerType; text: string }[]
 	regExpTerms: { markerType: MarkerType; regExp: RegExp }[]
+	markerTypeColors?: ReturnType<typeof getMarkerTypeColorsForContrastCalculation> | undefined
+	originalLanguage?: string | undefined
 }
 
 export const pluginTextMarkersData = new AttachedPluginData<PluginTextMarkersData>(() => ({ plaintextTerms: [], regExpTerms: [] }))

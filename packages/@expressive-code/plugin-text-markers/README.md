@@ -11,6 +11,7 @@
     - [Plaintext search strings](#plaintext-search-strings)
     - [Regular expressions](#regular-expressions)
   - [Selecting marker types (`mark`, `ins`, `del`)](#selecting-marker-types-mark-ins-del)
+  - [Support for `diff`-like syntax](#support-for-diff-like-syntax)
 - [Configuration](#configuration)
   - [Astro configuration example](#astro-configuration-example)
   - [Next.js configuration example using `@next/mdx`](#nextjs-configuration-example-using-nextmdx)
@@ -115,6 +116,56 @@ You can also combine many different markers in a single code block:
 //    ^^^^^^^^^ ^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^
 //    deleted   inserted        inserted           deleted
 //    lines     line            text               text
+```
+````
+
+### Support for `diff`-like syntax
+
+Instead of adding line numbers to the opening code fence as shown above, you can also use the `diff` language, which is supported on many platforms (e.g. GitHub). Set the language in the opening code fence to `diff` and add a `+` or `-` marker to the first column of any line:
+
+````md
+```diff
++this line will be marked as inserted
+-this line will be marked as deleted
+this is a regular line
+```
+````
+
+To make the raw contents in your markdown / MDX document more readable, you can add whitespace after the `+` or `-` marker (not before), and align unchanged lines with the changed ones. This additional whitespace will be automatically detected and removed from the rendered code block:
+
+````md
+```diff
++ this line will be marked as inserted
+- this line will be marked as deleted
+  this is a regular line
+```
+````
+
+To avoid unexpected modifications of actual diff files (which would make them unusable), this plugin will automatically detect diff content based on its common metadata lines. It will detect unified and context mode diff syntax like `***`, `+++`, `---`, `@@`, as well as the default mode location syntax (e.g. `0a1`, `1,2c1,2`, `1,2d1`):
+
+````md
+```diff
+--- a/README.md
++++ b/README.md
+@@ -1,3 +1,4 @@
++this is an actual diff file
+-all contents will remain unmodified
+ no whitespace will be removed either
+```
+````
+
+#### Combining syntax highlighting with `diff`-like syntax
+
+Usually, a downside of using the `diff` language is that you lose syntax highlighting of the actual code's language. To work around this, this plugin allows you to specify a second language identifier by adding a `lang="..."` attribute to the opening code fence. The value of this attribute will then be used for syntax highlighting, while the `diff`-like syntax can be used for marking lines:
+
+````md
+```diff lang="js"
+  function thisIsJavaScript() {
+    // This entire block gets highlighted as JavaScript,
+    // and we can still add diff markers to it!
+-   console.log('Old code to be removed')
++   console.log('New and shiny code!')
+  }
 ```
 ````
 
