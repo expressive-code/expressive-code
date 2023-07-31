@@ -166,10 +166,13 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 					content: '';
 					background-color: ${framesStyles.terminalTitlebarDotsForeground};
 					-webkit-mask-image: ${terminalTitlebarDots};
+					-webkit-mask-repeat: no-repeat;
 					mask-image: ${terminalTitlebarDots};
+					mask-repeat: no-repeat;
 					position: absolute;
 					left: ${coreStyles.uiPaddingInline};
 					width: 2.1rem;
+					height: ${(2.1 / 60) * 16}rem;
 					line-height: 0;
 				}
 				/* Display a border below the header */
