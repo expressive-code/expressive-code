@@ -93,6 +93,8 @@ To select the package you want to run tests for, you have two options:
 
 Tests output HTML files to `test/__html_snapshots__/` directories. You can open these files in a browser after running tests to see the impact of your changes.
 
+You can even combine live reloading tests (see above) with VS Code's [Live Preview](https://marketplace.visualstudio.com/items?itemName=ms-vscode.live-server) extension, which adds a `Show Preview` context menu item to all HTML files. Run the `test-watch` command, open a preview of any of the generated HTML snapshots, and the effects of your code changes will be visible in a live-updating preview right in your editor.
+
 ## Changesets
 
 We use [Changesets](https://github.com/changesets/changesets) to manage our releases. Unless your changes only affect the documentation or internal packages, please make sure to add a changeset for your changes before submitting a pull request:
