@@ -163,6 +163,7 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 
 				/* Display three dots at the left side of the header */
 				&::before {
+					content: '';
 					background-color: ${framesStyles.terminalTitlebarDotsForeground};
 					-webkit-mask-image: ${terminalTitlebarDots};
 					mask-image: ${terminalTitlebarDots};
