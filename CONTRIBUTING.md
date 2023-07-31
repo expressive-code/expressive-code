@@ -52,6 +52,36 @@ The root package includes a helpful shortcut that you can use to build all packa
 pnpm validate
 ```
 
+### Filtering tests
+
+You can run tests for a specific package using a [PNPM `--filter` flag](https://pnpm.io/filtering):
+
+```sh
+pnpm --filter $PACKAGE_NAME test
+```
+
+For example to only run tests for the frames plugin:
+
+```sh
+pnpm --filter plugin-frames test
+```
+
+### Live reloading tests
+
+You can use the `test-watch` command to start a live reloading dev process that re-runs tests each time code changes. This also works with the `--filter` flag to only run tests for a specific package:
+
+```sh
+# Run tests for all packages and watch for changes:
+pnpm -r test-watch
+
+# Run tests for frames plugin and watch for changes:
+pnpm --filter plugin-frames test-watch
+```
+
+### Visualizing changes
+
+Tests output HTML files to `test/__html_snapshots__/` directories. You can open these files in a browser after running tests to see the impact of your changes.
+
 ## Changesets
 
 We use [Changesets](https://github.com/changesets/changesets) to manage our releases. Unless your changes only affect the documentation or internal packages, please make sure to add a changeset for your changes before submitting a pull request:
