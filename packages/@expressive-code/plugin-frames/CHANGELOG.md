@@ -1,5 +1,12 @@
 # @expressive-code/plugin-frames
 
+## 0.19.1
+
+### Patch Changes
+
+- 6da5008: Add support for CSS variables to option `styleOverrides.terminalTitlebarDotsForeground`. Thanks @delucis!
+  - @expressive-code/core@0.19.1
+
 ## 0.19.0
 
 ### Patch Changes
