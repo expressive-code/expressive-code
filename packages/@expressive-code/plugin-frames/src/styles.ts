@@ -36,9 +36,8 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 		styleOverrides: options.styleOverrides,
 	})
 
-	const dotsColor = toRgbaString(framesStyles.terminalTitlebarDotsForeground)
 	const dotsSvg = [
-		`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 16' preserveAspectRatio='xMidYMid meet' fill='${dotsColor}'>`,
+		`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 16' preserveAspectRatio='xMidYMid meet'>`,
 		`<circle cx='8' cy='8' r='8'/>`,
 		`<circle cx='30' cy='8' r='8'/>`,
 		`<circle cx='52' cy='8' r='8'/>`,
@@ -164,7 +163,9 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 
 				/* Display three dots at the left side of the header */
 				&::before {
-					content: ${terminalTitlebarDots};
+					background-color: ${framesStyles.terminalTitlebarDotsForeground};
+					-webkit-mask-image: ${terminalTitlebarDots};
+					mask-image: ${terminalTitlebarDots};
 					position: absolute;
 					left: ${coreStyles.uiPaddingInline};
 					width: 2.1rem;
