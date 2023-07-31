@@ -52,6 +52,49 @@ The root package includes a helpful shortcut that you can use to build all packa
 pnpm validate
 ```
 
+### Filtering tests
+
+You can run tests for a specific package using a [PNPM `--filter` flag](https://pnpm.io/filtering):
+
+```sh
+pnpm --filter $PACKAGE_NAME test
+```
+
+For example to only run tests for the frames plugin:
+
+```sh
+pnpm --filter plugin-frames test
+```
+
+### Live reloading tests
+
+You can use the `test-watch` command provided by the individual packages to start a live reloading dev process that re-runs tests each time code changes.
+
+To select the package you want to run tests for, you have two options:
+
+- Change your working directory to one of the packages and run the command directly:
+
+  ```sh
+  # Change to the frames plugin directory:
+  cd packages/@expressive-code/plugin-frames
+
+  # Run tests for the current package and watch for changes:
+  pnpm test-watch
+  ```
+
+- Alternatively, stay in the repository root and use the `--filter` flag to run tests for a specific package:
+
+  ```sh
+  # Run tests for the frames plugin and watch for changes:
+  pnpm --filter plugin-frames test-watch
+  ```
+
+### Visualizing changes
+
+Tests output HTML files to `test/__html_snapshots__/` directories. You can open these files in a browser after running tests to see the impact of your changes.
+
+You can even combine live reloading tests (see above) with VS Code's [Live Preview](https://marketplace.visualstudio.com/items?itemName=ms-vscode.live-server) extension, which adds a `Show Preview` context menu item to all HTML files. Run the `test-watch` command, open a preview of any of the generated HTML snapshots, and the effects of your code changes will be visible in a live-updating preview right in your editor.
+
 ## Changesets
 
 We use [Changesets](https://github.com/changesets/changesets) to manage our releases. Unless your changes only affect the documentation or internal packages, please make sure to add a changeset for your changes before submitting a pull request:
