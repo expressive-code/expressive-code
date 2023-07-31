@@ -68,15 +68,26 @@ pnpm --filter plugin-frames test
 
 ### Live reloading tests
 
-You can use the `test-watch` command to start a live reloading dev process that re-runs tests each time code changes. This also works with the `--filter` flag to only run tests for a specific package:
+You can use the `test-watch` command provided by the individual packages to start a live reloading dev process that re-runs tests each time code changes.
 
-```sh
-# Run tests for all packages and watch for changes:
-pnpm -r test-watch
+To select the package you want to run tests for, you have two options:
 
-# Run tests for frames plugin and watch for changes:
-pnpm --filter plugin-frames test-watch
-```
+- Change your working directory to one of the packages and run the command directly:
+
+  ```sh
+  # Change to the frames plugin directory:
+  cd packages/@expressive-code/plugin-frames
+
+  # Run tests for the current package and watch for changes:
+  pnpm test-watch
+  ```
+
+- Alternatively, stay in the repository root and use the `--filter` flag to run tests for a specific package:
+
+  ```sh
+  # Run tests for the frames plugin and watch for changes:
+  pnpm --filter plugin-frames test-watch
+  ```
 
 ### Visualizing changes
 
