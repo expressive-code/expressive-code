@@ -10,7 +10,7 @@ concurrency: ${{ github.workflow }}-${{ github.ref }}
 jobs:
   release:
     name: Release
-    if: ${{ github.repository_owner == 'expressive-code' }}
+    if: github.repository_owner == 'expressive-code'
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
@@ -32,14 +32,15 @@ jobs:
       
       - name: Check for unreleased changesets
         id: has-changesets
-        continue-on-error: true
-        run: pnpm changeset status
+        uses: andstor/file-existence-action@v2
+        with:
+          files: ".changeset/!(README).md"
       
       # Run changesets action either if there are unreleased changesets (= a PR must be created)
       # or if the commit message starts with "Release" (= new versions must be published to NPM)
       - name: Create changesets PR or publish to NPM
         id: changesets
-        if: ${{ steps.has-changesets.outcome == 'success' || startsWith(github.event.head_commit.message, 'Release') }}
+        if: steps.has-changesets.outputs.files_exists == 'true' || startsWith(github.event.head_commit.message, 'Release')
         uses: changesets/action@v1
         with:
           title: 'Release'
