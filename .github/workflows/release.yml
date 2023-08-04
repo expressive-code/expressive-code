@@ -37,13 +37,14 @@ jobs:
           files: ".changeset/!(README).md"
       
       # Run changesets action either if there are unreleased changesets (= a PR must be created)
-      # or if the commit message starts with "Release" (= new versions must be published to NPM)
+      # or if the commit message matches the release PR (= new versions must be published to NPM)
       - name: Create changesets PR or publish to NPM
         id: changesets
-        if: steps.has-changesets.outputs.files_exists == 'true' || startsWith(github.event.head_commit.message, 'Release')
+        if: steps.has-changesets.outputs.files_exists == 'true' || startsWith(github.event.head_commit.message, '[CI] Release')
         uses: changesets/action@v1
         with:
-          title: 'Release'
+          title: '[CI] Release'
+          commit: '[CI] Release'
           version: 'pnpm ci-version'
           publish: 'pnpm ci-publish'
         env:
