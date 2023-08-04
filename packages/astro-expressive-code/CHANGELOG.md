@@ -1,5 +1,12 @@
 # astro-expressive-code
 
+## 0.19.2
+
+### Patch Changes
+
+- f39ac56: Add support for Astro 3.0.0 incl. prereleases
+  - remark-expressive-code@0.19.2
+
 ## 0.19.1
 
 ### Patch Changes
