@@ -12,7 +12,7 @@
     "bump": "changeset version && pnpm i",
     "release": "pnpm validate && pnpm bump && changeset publish",
     "ci-version": "changeset version && pnpm install --no-frozen-lockfile",
-    "ci-publish": "pnpm build && changeset publish"
+    "ci-publish": "pnpm build && pnpm test && pnpm lint && changeset publish"
   },
   "workspaces": [
     "packages/@expressive-code/*",
