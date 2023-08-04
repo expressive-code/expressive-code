@@ -185,7 +185,7 @@ importers:
   packages/astro-expressive-code:
     dependencies:
       astro:
-        specifier: ^2
+        specifier: ^2.0.0 || ^3.0.0-beta
         version: 2.5.0
       remark-expressive-code:
         specifier: workspace:^0.19.1
