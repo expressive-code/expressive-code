@@ -33,7 +33,7 @@
     "watch": "pnpm build --watch src"
   },
   "peerDependencies": {
-    "astro": "^2"
+    "astro": "^2.0.0 || ^3.0.0-beta"
   },
   "dependencies": {
     "remark-expressive-code": "workspace:^0.19.1"
