@@ -187,6 +187,16 @@ You can pass the following options to the plugin:
 
   If `true` (which is the default), and no title was found in the code block's meta string, the plugin will try to find and extract a comment line containing the code block file name from the first 4 lines of the code.
 
+- `showCopyToClipboardButton: boolean`
+
+  If `true` (which is the default), a "Copy to clipboard" button will be shown for each code block.
+
+- `removeCommentsWhenCopyingTerminalFrames: boolean`
+
+  If `true` (which is the default), the "Copy to clipboard" button of terminal window frames will remove comment lines starting with `#` from the copied text.
+  
+  This is useful to reduce the copied text to the actual commands users need to run, instead of also copying explanatory comments or instructions.
+
 - `styleOverrides`
 
   Allows overriding the plugin's default styles using an object with named properties.
