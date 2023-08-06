@@ -16,6 +16,14 @@ export interface PluginFramesOptions {
 	 * will be shown for each code block.
 	 */
 	showCopyToClipboardButton?: boolean | undefined
+	/**
+	 * If this is true (default), the "Copy to clipboard" button of terminal window frames
+	 * will remove comment lines starting with `#` from the copied text.
+	 *
+	 * This is useful to reduce the copied text to the actual commands users need to run,
+	 * instead of also copying explanatory comments or instructions.
+	 */
+	removeCommentsWhenCopyingTerminalFrames?: boolean | undefined
 	styleOverrides?: Partial<typeof framesStyleSettings.defaultSettings> | undefined
 }
 
@@ -36,6 +44,7 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 	options = {
 		extractFileNameFromCode: true,
 		showCopyToClipboardButton: true,
+		removeCommentsWhenCopyingTerminalFrames: true,
 		...options,
 	}
 	return {
@@ -138,10 +147,17 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 
 				// If enabled, create a button to copy the code to the clipboard
 				if (options.showCopyToClipboardButton) {
+					let codeToCopy = codeBlock.code
+
+					// If enabled, remove comment lines starting with `#` from terminal frames
+					if (options.removeCommentsWhenCopyingTerminalFrames && isTerminal) {
+						codeToCopy = codeToCopy.replace(/(?<=^|\n)\s*#.*($|\n+)/g, '').trim()
+					}
+
 					// Replace all line breaks with a special character
 					// because HAST does not encode them in attribute values
 					// (which seems to work, but looks ugly in the HTML source)
-					const codeToCopy = codeBlock.code.replace(/\n/g, '\u007f')
+					codeToCopy = codeToCopy.replace(/\n/g, '\u007f')
 
 					extraElements.push(
 						h('div', { className: 'copy' }, [
