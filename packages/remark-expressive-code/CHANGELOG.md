@@ -1,5 +1,20 @@
 # remark-expressive-code
 
+## 0.20.0
+
+### Minor Changes
+
+- 7c5c3c7: Add `removeCommentsWhenCopyingTerminalFrames` config option to `plugin-frames`. Thanks @AkashRajpurohit!
+
+  If `true` (which is the default), the "Copy to clipboard" button of terminal window frames will remove comment lines starting with `#` from the copied text.
+
+  This is useful to reduce the copied text to the actual commands users need to run, instead of also copying explanatory comments or instructions.
+
+### Patch Changes
+
+- Updated dependencies [7c5c3c7]
+  - expressive-code@0.20.0
+
 ## 0.19.2
 
 ### Patch Changes
