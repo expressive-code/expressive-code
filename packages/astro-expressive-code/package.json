@@ -1,6 +1,6 @@
 {
   "name": "astro-expressive-code",
-  "version": "0.20.0",
+  "version": "0.21.0",
   "description": "Astro integration for Expressive Code, a text marking & annotation engine for presenting source code on the web.",
   "keywords": [
     "astro-integration"
@@ -36,7 +36,7 @@
     "astro": "^2.0.0 || ^3.0.0-beta"
   },
   "dependencies": {
-    "remark-expressive-code": "workspace:^0.20.0"
+    "remark-expressive-code": "workspace:^0.21.0"
   },
   "devDependencies": {
     "execa": "^7.1.1"
