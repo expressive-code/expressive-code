@@ -1,6 +1,6 @@
 import type { AstroIntegration } from 'astro'
 import type { RemarkExpressiveCodeOptions } from 'remark-expressive-code'
-import remarkExpressiveCode, { createRenderer } from 'remark-expressive-code'
+import remarkExpressiveCode, { createRenderers } from 'remark-expressive-code'
 
 export * from 'remark-expressive-code'
 
@@ -14,7 +14,7 @@ export function astroExpressiveCode(options: AstroExpressiveCodeOptions = {}): A
 		name: 'astro-expressive-code',
 		hooks: {
 			'astro:config:setup': async ({ config, updateConfig, injectScript }) => {
-				const { customRenderer } = options ?? {}
+				const { customCreateRenderers } = options ?? {}
 
 				// Validate Astro configuration
 				const ownPosition = config.integrations.findIndex((integration) => integration.name === 'astro-expressive-code')
@@ -27,16 +27,19 @@ export function astroExpressiveCode(options: AstroExpressiveCodeOptions = {}): A
 					)
 				}
 
-				// Prepare the renderer
-				const renderer = customRenderer ?? (await createRenderer(options))
+				// Prepare the renderers
+				const renderers = await (customCreateRenderers ?? createRenderers)(options)
 
-				// Extract JS modules from the renderer as we will handle them ourselves
-				const jsModules = renderer.jsModules ?? []
-				renderer.jsModules = []
+				// Extract deduplicated JS modules from the renderers as we handle them ourselves
+				const jsModules = new Set<string>()
+				renderers.forEach((renderer) => {
+					renderer.jsModules.forEach((jsModule) => jsModules.add(jsModule))
+					renderer.jsModules = []
+				})
 
 				const remarkExpressiveCodeOptions: RemarkExpressiveCodeOptions = {
 					...options,
-					customRenderer: renderer,
+					customCreateRenderers: () => renderers,
 				}
 
 				updateConfig({

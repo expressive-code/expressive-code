@@ -90,6 +90,15 @@ export class ExpressiveCodeEngine {
 			{ includeFunctionContents: true }
 		)
 		this.configClassName = `ec.ec-${configHash}`
+
+		// Generate a theme-based class name for the wrapper element
+		const kebabCase = (str: string) =>
+			str
+				.trim()
+				.replace(/([a-z])([A-Z])/g, '$1-$2')
+				.replace(/[\s_]+/g, '-')
+				.toLowerCase()
+		this.themeClassName = this.theme.name?.length ? `.ec-theme-${kebabCase(this.theme.name)}` : ''
 	}
 
 	async render(input: RenderInput, options?: RenderOptions) {
@@ -102,6 +111,7 @@ export class ExpressiveCodeEngine {
 			coreStyles: this.coreStyles,
 			plugins: this.plugins,
 			configClassName: this.configClassName,
+			themeClassName: this.themeClassName,
 		})
 	}
 
@@ -182,4 +192,12 @@ export class ExpressiveCodeEngine {
 	 * regardless of the config options.
 	 */
 	readonly configClassName: string
+	/**
+	 * This class name is used by Expressive Code when rendering its wrapper element
+	 * around all code block groups.
+	 *
+	 * Its format is `ec-theme-<name>`, where `<name>` is the kebab-cased name of the theme
+	 * that was passed to the class constructor.
+	 */
+	readonly themeClassName: string
 }

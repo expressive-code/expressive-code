@@ -4,6 +4,19 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width">
 		<title>Astro</title>
+		<style is:inline>
+			.ec-theme-github-dark {
+				display: none;
+			}
+			@media (prefers-color-scheme: dark) {
+				.ec-theme-github-dark {
+					display: block;
+				}
+				.ec-theme-solarized-light {
+					display: none;
+				}
+			}
+		</style>
 	</head>
 	<body>
 		<slot />

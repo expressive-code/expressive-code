@@ -17,13 +17,26 @@ describe('Integration into an Astro project', () => {
 	}, 20 * 1000)
 
 	test('Regular Markdown files', () => {
-		expect(fixture?.readFile('index.html')).toMatch(sampleCodeHtmlRegExp)
+		const html = fixture?.readFile('index.html') ?? ''
+		validateHtml(html)
 	})
 
 	test('MDX files', () => {
-		expect(fixture?.readFile('mdx-page/index.html')).toMatch(sampleCodeHtmlRegExp)
+		const html = fixture?.readFile('mdx-page/index.html') ?? ''
+		validateHtml(html)
 	})
 })
+
+function validateHtml(html: string) {
+	expect(html).toMatch(sampleCodeHtmlRegExp)
+	// Collect the class names of all code blocks
+	const codeBlockClassNames = [...html.matchAll(/<div class="expressive-code (.*?)">/g)].map((match) => match[1])
+	// Expect two code blocks in total (because two themes were configured)
+	expect(codeBlockClassNames).toHaveLength(2)
+	// Validate theme class names
+	const themeClassNames = codeBlockClassNames?.map((className) => className.match(/(^|\s)(ec-theme-.*?)(\s|$)/)?.[2])
+	expect(themeClassNames).toEqual(['ec-theme-github-dark', 'ec-theme-solarized-light'])
+}
 
 async function buildFixture({ fixtureDir, buildCommand, buildArgs, outputDir }: { fixtureDir: string; buildCommand: string; buildArgs?: string[] | undefined; outputDir: string }) {
 	const fixturePath = join(__dirname, 'fixtures', fixtureDir)
