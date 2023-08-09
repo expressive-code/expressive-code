@@ -203,7 +203,7 @@ The following options are available:
 
 ### `theme`
 
-- Type: `BundledShikiTheme | ExpressiveCodeTheme`
+- Type: `BundledShikiTheme | ExpressiveCodeTheme | (BundledShikiTheme | ExpressiveCodeTheme)[]`
 - Default: `github-dark`
 
 - The color theme that should be used when rendering.
@@ -211,6 +211,10 @@ The following options are available:
   You can pass the name of any theme bundled with Shiki: `dark-plus`, `dracula-soft`, `dracula`, `github-dark-dimmed`, `github-dark`, `github-light`, `hc_light`, `light-plus`, `material-theme-darker`, `material-theme-lighter`, `material-theme-ocean`, `material-theme-palenight`, `material-theme`, `min-dark`, `min-light`, `monokai`, `nord`, `one-dark-pro`, `poimandres`, `rose-pine-dawn`, `rose-pine-moon`, `rose-pine`, `slack-dark`, `slack-ochin`, `solarized-dark`, `solarized-light`, `vitesse-dark`, `vitesse-light`
 
   You can also load a custom theme. See [`ExpressiveCodeTheme`](https://github.com/expressive-code/expressive-code/blob/main/packages/%40expressive-code/core/README.md#expressivecodetheme) for more information.
+
+- **Note**: You can pass an array of themes to this option to render each code block in your markdown/MDX documents using multiple themes. In this case, you will also need to add custom CSS code to your site to ensure that only one theme is visible at any time.
+
+  To allow targeting all code blocks of a given theme through CSS, the theme property `name` is used to generate kebap-cased class names in the format `ec-theme-${name}`. For example, `theme: ['monokai', 'slack-ochin']` will render every code block twice, once with the class `ec-theme-monokai`, and once with `ec-theme-slack-ochin`.
 
 ### `useThemedScrollbars`
 

@@ -1,3 +1,6 @@
+---
+layout: ../layouts/MainLayout.astro
+---
 # Sample code
 
 ```js ins={2}

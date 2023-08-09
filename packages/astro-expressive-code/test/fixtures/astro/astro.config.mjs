@@ -5,7 +5,7 @@ import { astroExpressiveCode } from 'astro-expressive-code'
 
 /** @type {import('astro-expressive-code').AstroExpressiveCodeOptions} */
 const astroExpressiveCodeOptions = {
-	theme: 'solarized-light',
+	theme: ['github-dark', 'solarized-light'],
 }
 
 // https://astro.build/config
