@@ -4,7 +4,7 @@ export const collapsibleSectionClass = 'ec-section'
 
 export const collapsibleSectionsStyleSettings = new StyleSettings({
 	closedBorderWidth: '0px',
-	closedPadding: '4px 0 4px calc(var(--padding-inline) + var(--indentation) * 1ch)',
+	closedPadding: '4px 0 4px var(--padding-inline)',
 	closedMargin: '0rem',
 	closedTextColor: '',
 	closedBackgroundColor: 'rgb(84 174 255 / 20%)',
@@ -28,10 +28,6 @@ export function getCollapsibleSectionsBaseStyles(
 	})
 	const result = `
 		.${collapsibleSectionClass} {
-			/* overwritten by each section to the number of spaces the first line starts with */
-			/* this is just a default */
-			--indentation: 0;
-
 			& summary {
 				/* hide the default <details> marker */
 				&::marker {
