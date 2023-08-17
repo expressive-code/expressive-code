@@ -140,6 +140,9 @@ importers:
       '@types/hast':
         specifier: ^2.3.4
         version: 2.3.4
+      hast-util-to-text:
+        specifier: ^3.1.2
+        version: 3.1.2
 
   packages/@expressive-code/plugin-frames:
     dependencies:

@@ -39,6 +39,7 @@
     "@expressive-code/plugin-shiki": "workspace:^0.21.0",
     "@expressive-code/plugin-text-markers": "workspace:^0.21.0",
     "@internal/test-utils": "workspace:^",
+    "hast-util-to-text": "^3.1.2",
     "@types/hast": "^2.3.4"
   }
 }
