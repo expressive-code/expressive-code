@@ -15,7 +15,7 @@ export function parseSections(value: string): Section[] {
 			if (isNaN(from) || isNaN(to)) return
 
 			// skip any entries that aren't increasing
-			if (from >= to) return
+			if (from > to) return
 
 			// skip any entries that overlap existing sections, since our <details>-based approach can't overlap
 			for (const { from: existingFrom, to: existingTo } of sections) {

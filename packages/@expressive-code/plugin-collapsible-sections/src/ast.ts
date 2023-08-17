@@ -26,8 +26,8 @@ export function sectionizeAst({
 	;[...sections]
 		.sort((a, b) => b.to - a.to)
 		.forEach(({ from, to }) => {
-			const count = to - from
-			const $details = h('details', [h('summary', [text.replace(/\{count\}/g, `${count}`)]), ...lines.slice(from - 1, to - 1)])
+			const count = to - from + 1
+			const $details = h('details', [h('summary', [text.replace(/\{count\}/g, `${count}`)]), ...lines.slice(from - 1, to)])
 			outp.splice(from - 1, count, $details)
 		})
 

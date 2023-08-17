@@ -4,6 +4,8 @@ import { describe, test, expect } from 'vitest'
 import { ExpressiveCodeTheme } from '@expressive-code/core'
 import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures, TestFixture } from '@internal/test-utils'
 import { pluginShiki } from '@expressive-code/plugin-shiki'
+import { pluginTextMarkers } from '@expressive-code/plugin-text-markers'
+import { select } from 'hast-util-select'
 import { pluginCollapsibleSections } from '../src'
 import { Section } from '../src/utils'
 
@@ -32,7 +34,7 @@ describe('Renders collapsed sections', () => {
 					code: lineMarkerTestText,
 					meta: `collapse={1-4}`,
 					plugins: [pluginShiki(), pluginCollapsibleSections()],
-					blockValidationFn: buildMarkerValidationFn([{ from: 1, to: 2 }]),
+					blockValidationFn: buildMarkerValidationFn([{ from: 1, to: 4 }]),
 				}),
 			})
 		})
@@ -43,17 +45,40 @@ describe('Renders collapsed sections', () => {
 				testBaseDir: __dirname,
 				fixtures: buildThemeFixtures(themes, {
 					code: `\n\t\n  \n${lineMarkerTestText}`,
-					meta: `del={5} ins={6-7} mark={1,2}`,
-					plugins: [pluginShiki(), pluginCollapsibleSections()],
-					blockValidationFn: buildMarkerValidationFn([]),
+					meta: `del={5} ins={6-7} mark={1,2} collapse={2-2, 5-7}`,
+					plugins: [pluginShiki(), pluginTextMarkers(), pluginCollapsibleSections()],
+					blockValidationFn: buildMarkerValidationFn([
+						{ from: 2, to: 2 },
+						{ from: 5, to: 7 },
+					]),
 				}),
 			})
 		})
 	})
 })
 
-function buildMarkerValidationFn(expectedSections: Section[], expectedCode?: string): NonNullable<TestFixture['blockValidationFn']> {
+function buildMarkerValidationFn(expectedSections: Section[]): NonNullable<TestFixture['blockValidationFn']> {
 	return ({ renderedGroupAst }) => {
-		return true
+		const codeAst = select('pre > code', renderedGroupAst)
+		if (!codeAst) throw new Error("Couldn't find code AST when validating collapsed sections")
+
+		const actualSections: Section[] = []
+		let i = 0
+		codeAst.children.forEach((child) => {
+			if ('tagName' in child && child.tagName.toLowerCase() === 'details') {
+				// child is a section, containing <summary> and a number of lines
+				if (!select('summary', child)) throw new Error(`Couldn't find summary in section at index ${i}`)
+
+				const numLines = child.children.length - 1
+				const from = i + 1
+				actualSections.push({ from, to: from + numLines - 1 })
+
+				i += numLines
+			} else {
+				++i
+			}
+		})
+
+		expect(actualSections).toMatchObject(expectedSections)
 	}
 }

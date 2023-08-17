@@ -36,9 +36,9 @@ If you are using the core package directly (e.g. because you are writing an inte
 
 ## Usage in markdown / MDX documents
 
-To mark a section as collapsible, you need to add **meta information** to your code blocks. This is done by appending `collapsed={X-Y}` to your opening code fence:
+To mark a section as collapsible, you need to add **meta information** to your code blocks. This is done by appending `collapse={X-Y}` to your opening code fence, indicating a collapsed section from line `X` to (and including) line `Y`:
 
-```js collapsed={4-8, 12-15}
+```js collapse={4-8, 12-15}
 //    ^^^^^^^^^^^^^^^^^^^^^^
 //    This is the meta information of this code block.
 //    It describes 2 collapsed sections, one from line

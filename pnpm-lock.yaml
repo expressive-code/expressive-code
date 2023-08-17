@@ -131,6 +131,9 @@ importers:
       '@expressive-code/plugin-shiki':
         specifier: workspace:^0.21.0
         version: link:../plugin-shiki
+      '@expressive-code/plugin-text-markers':
+        specifier: workspace:^0.21.0
+        version: link:../plugin-text-markers
       '@internal/test-utils':
         specifier: workspace:^
         version: link:../../../internal/test-utils
