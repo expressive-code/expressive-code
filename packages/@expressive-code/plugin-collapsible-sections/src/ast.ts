@@ -1,6 +1,7 @@
 import { type ElementContent } from 'hast'
 import { Section } from './utils'
 import { h } from 'hastscript'
+import { collapsibleSectionClass } from './styles'
 
 /**
  * Text to display in the <summary> of a collapsed section
@@ -27,7 +28,7 @@ export function sectionizeAst({
 		.sort((a, b) => b.to - a.to)
 		.forEach(({ from, to }) => {
 			const targetLines = lines.slice(from - 1, to)
-			const $details = h('details', [h('summary', [text.replace(/\{count\}/g, `${targetLines.length}`)]), ...targetLines])
+			const $details = h('details', { class: collapsibleSectionClass }, [h('summary', [text.replace(/\{count\}/g, `${targetLines.length}`)]), ...targetLines])
 			outp.splice(from - 1, targetLines.length, $details)
 		})
 

@@ -2,14 +2,16 @@ import { AttachedPluginData, ExpressiveCodePlugin, replaceDelimitedValues } from
 import { Section, parseSections } from './utils'
 import { select } from 'hast-util-select'
 import { sectionizeAst } from './ast'
+import { collapsibleSectionsStyleSettings, getCollapsibleSectionsBaseStyles } from './styles'
 
 export interface PluginCollapsibleSectionsOptions {
-	todo?: 'expand' | undefined
+	styleOverrides?: Partial<typeof collapsibleSectionsStyleSettings.defaultSettings> | undefined
 }
 
-export function pluginCollapsibleSections(_: PluginCollapsibleSectionsOptions = {}): ExpressiveCodePlugin {
+export function pluginCollapsibleSections(options: PluginCollapsibleSectionsOptions = {}): ExpressiveCodePlugin {
 	return {
 		name: 'Collapsible sections',
+		baseStyles: ({ theme, coreStyles }) => getCollapsibleSectionsBaseStyles(theme, coreStyles, options.styleOverrides || {}),
 		hooks: {
 			preprocessMetadata: ({ codeBlock }) => {
 				codeBlock.meta = replaceDelimitedValues(
