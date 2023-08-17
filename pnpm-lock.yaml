@@ -116,6 +116,28 @@ importers:
         specifier: ^5.0.0
         version: 5.0.0
 
+  packages/@expressive-code/plugin-collapsible-sections:
+    dependencies:
+      '@expressive-code/core':
+        specifier: workspace:^0.21.0
+        version: link:../core
+      hast-util-select:
+        specifier: ^5.0.5
+        version: 5.0.5
+      hastscript:
+        specifier: ^7.2.0
+        version: 7.2.0
+    devDependencies:
+      '@expressive-code/plugin-shiki':
+        specifier: workspace:^0.21.0
+        version: link:../plugin-shiki
+      '@internal/test-utils':
+        specifier: workspace:^
+        version: link:../../../internal/test-utils
+      '@types/hast':
+        specifier: ^2.3.4
+        version: 2.3.4
+
   packages/@expressive-code/plugin-frames:
     dependencies:
       '@expressive-code/core':
@@ -1944,7 +1966,6 @@ packages:
 
   /bcp-47-match@2.0.3:
     resolution: {integrity: sha512-JtTezzbAibu8G0R9op9zb3vcWZd9JF6M0xOYGPn0fNCd7wOpRB1mU2mH9T8gaBGbAAyIIVgB2G7xG0GP98zMAQ==}
-    dev: true
 
   /better-path-resolve@1.0.0:
     resolution: {integrity: sha512-pbnl5XzGBdrFU/wT4jqmJVPn2B6UHPBOhzMQkY/SPUPB6QtUXtmBHBIwCbXJol93mOpGMnQyP/+BB19q04xj7g==}
@@ -1967,7 +1988,6 @@ packages:
 
   /boolbase@1.0.0:
     resolution: {integrity: sha512-JZOSA7Mo9sNGB8+UjSgzdLtokWAky1zbztM3WRLCbZ70/3cTANmQmOdR7y2g+J0e2WXywy1yS468tY+IruqEww==}
-    dev: true
 
   /boxen@6.2.1:
     resolution: {integrity: sha512-H4PEsJXfFI/Pt8sjDWbHlQPx4zL/bvSQjcilJmaulGt5mLDorHOHpmdXAJcBcmru7PhYSp/cDMWRko4ZUMFkSw==}
@@ -2295,7 +2315,6 @@ packages:
 
   /css-selector-parser@1.4.1:
     resolution: {integrity: sha512-HYPSb7y/Z7BNDCOrakL4raGO2zltZkbeXyAd6Tg9obzix6QhzxCotdBl6VT0Dv4vZfJGVz3WL/xaEI9Ly3ul0g==}
-    dev: true
 
   /css.escape@1.5.1:
     resolution: {integrity: sha512-YUifsXXuknHlUsmlgyY0PKzgPOr7/FjCePfHNt0jxm83wHZi44VDMQ7/fGNkjY3/jV1MC+1CmZbaHzugyeRtpg==}
@@ -2424,7 +2443,6 @@ packages:
   /direction@2.0.1:
     resolution: {integrity: sha512-9S6m9Sukh1cZNknO1CWAr2QAWsbKLafQiyM5gZ7VgXHeuaoUwffKN4q6NC4A/Mf9iiPlOXQEKW/Mv/mh9/3YFA==}
     hasBin: true
-    dev: true
 
   /djb2a@2.0.0:
     resolution: {integrity: sha512-mSkCTNSJRGjNUADzWx1ubTGxJh2IVY9uoc/WGozUIu0mgBUEvIyBn9uTs9jqFBbJxQthJMF3uDx0cnpdlAUo4Q==}
@@ -3314,7 +3332,6 @@ packages:
 
   /hast-util-has-property@2.0.1:
     resolution: {integrity: sha512-X2+RwZIMTMKpXUzlotatPzWj8bspCymtXH3cfG3iQKV+wPF53Vgaqxi/eLqGck0wKq1kS9nvoB1wchbCPEL8sg==}
-    dev: true
 
   /hast-util-is-element@2.1.3:
     resolution: {integrity: sha512-O1bKah6mhgEq2WtVMk+Ta5K7pPMqsBBlmzysLdcwKVrqzZQ0CHqUPiIVspNhAG1rvxpvJjtGee17XfauZYKqVA==}
@@ -3367,7 +3384,6 @@ packages:
       space-separated-tokens: 2.0.2
       unist-util-visit: 4.1.2
       zwitch: 2.0.4
-    dev: true
 
   /hast-util-to-estree@2.3.3:
     resolution: {integrity: sha512-ihhPIUPxN0v0w6M5+IiAZZrn0LH2uZomeWwhn7uP7avZC6TE7lIiEh2yBMPr5+zi1aUCXq6VoYRgs2Bw9xmycQ==}
@@ -3420,7 +3436,6 @@ packages:
     resolution: {integrity: sha512-02AQ3vLhuH3FisaMM+i/9sm4OXGSq1UhOOCpTLLQtHdL3tZt7qil69r8M8iDkZYyC0HCFylcYoP+8IO7ddta1A==}
     dependencies:
       '@types/hast': 2.3.4
-    dev: true
 
   /hast-util-to-text@3.1.2:
     resolution: {integrity: sha512-tcllLfp23dJJ+ju5wCCZHVpzsQQ43+moJbqVX3jNWPB7z/KFC4FyZD6R7y94cHL6MQ33YtMZL8Z0aIXXI4XFTw==}
@@ -4746,7 +4761,6 @@ packages:
 
   /not@0.1.0:
     resolution: {integrity: sha512-5PDmaAsVfnWUgTUbJ3ERwn7u79Z0dYxN9ErxCpVJJqe2RK0PJ3z+iFUxuqjwtlDDegXvtWoxD/3Fzxox7tFGWA==}
-    dev: true
 
   /npm-run-path@4.0.1:
     resolution: {integrity: sha512-S48WzZW777zhNIrn7gxOlISNAqi9ZC/uQFnRdbeIHhZhCA6UqpkOT8T1G7BvfdgP4Er8gF4sUbaS0i7QvIfCWw==}
@@ -4765,7 +4779,6 @@ packages:
     resolution: {integrity: sha512-lqjrjmaOoAnWfMmBPL+XNnynZh2+swxiX3WUE0s4yEHI6m+AwrK2UZOimIRl3X/4QctVqS8AiZjFqyOGrMXb/w==}
     dependencies:
       boolbase: 1.0.0
-    dev: true
 
   /object-assign@4.1.1:
     resolution: {integrity: sha512-rJgTQnkUnH1sFw8yT6VSU3zD3sWmu6sZhIseY8VX+GRu3P6F7Fu+JNDoXfklElbLJSnc3FUQHVe4cU5hj+BcUg==}
