@@ -1,4 +1,4 @@
-import { StyleSettings, ExpressiveCodeTheme, ResolvedCoreStyles, codeLineClass, toHexColor } from '@expressive-code/core'
+import { StyleSettings, ExpressiveCodeTheme, ResolvedCoreStyles } from '@expressive-code/core'
 
 export const collapsibleSectionClass = 'ec-section'
 
