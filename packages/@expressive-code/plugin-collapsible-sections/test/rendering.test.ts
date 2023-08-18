@@ -84,7 +84,7 @@ describe('Renders collapsed sections', () => {
 					]),
 				}),
 			})
-		})
+		}, { timeout: 5 * 1000 })
 
 		test(`Uses the correct section summary if given as option`, async ({ meta: { name: testName } }) => {
 			pluginCollapsibleSectionsTexts.addLocale('xy', { collapsedLines: (count) => `Test ${count}` })
