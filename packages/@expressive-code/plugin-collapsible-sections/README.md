@@ -4,19 +4,16 @@
 
 - [What is this?](#what-is-this)
 - [When should I use this?](#when-should-i-use-this)
-- [Installation (not required)](#installation-not-required)
+- [Installation](#installation)
 - [Usage in markdown / MDX documents](#usage-in-markdown--mdx-documents)
 - [Configuration](#configuration)
   - [Astro configuration example](#astro-configuration-example)
   - [Next.js configuration example using `@next/mdx`](#nextjs-configuration-example-using-nextmdx)
   - [Available plugin options](#available-plugin-options)
-- [Advanced use cases](#advanced-use-cases)
-  - [Manual installation](#manual-installation)
-  - [Manual usage from the core package](#manual-usage-from-the-core-package)
 
 ## What is this?
 
-A default plugin of Expressive Code, an engine for presenting source code on the web.
+A plugin of Expressive Code, an engine for presenting source code on the web.
 
 It allows code sections to be marked as collapsed. The lines in collapsed sections will be hidden by default, replaced by a "X collapsed lines" line. When clicked, the collapsed section will be expanded, showing the previously hidden lines.
 
@@ -24,13 +21,42 @@ It allows code sections to be marked as collapsed. The lines in collapsed sectio
 
 You can use this plugin to cut down long code examples to only their relevant parts, while still allowing users to read the full code if they want to. For more information, see the [usage examples](#usage-in-markdown--mdx-documents) below.
 
-This plugin is **installed by default** by our higher-level packages like `remark-expressive-code`, so you can start using it in markdown / MDX documents without having to install it first.
+This plugin is **not installed by default** by our higher-level packages like `remark-expressive-code`, so you have to manually enable it before you can use it in markdown / MDX documents.
 
-## Installation (not required)
+## Installation
 
-No installation is required. This package is **installed by default** by our higher-level packages.
+1. Add the package to your site's dependencies:
 
-If you are using the core package directly (e.g. because you are writing an integration), see the [Advanced use cases](#advanced-use-cases) section for more information.
+    ```bash
+    # When using npm
+    npm install @expressive-code/plugin-collapsible-sections
+
+    # When using pnpm
+    pnpm install @expressive-code/plugin-collapsible-sections
+
+    # When using yarn
+    yarn add @expressive-code/plugin-collapsible-sections
+    ```
+
+2. Add the integration to your site's configuration by passing it in the `plugins` list.  
+   For example, if using our Astro integration [`astro-expressive-code`](https://www.npmjs.com/package/astro-expressive-code):
+
+    ```js
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config'
+    import astroExpressiveCode from 'astro-expressive-code'
+    import ecCollapsibleSections from '@expressive-code/plugin-collapsible-sections'
+
+    export default defineConfig({
+      integrations: [
+        astroExpressiveCode({
+          plugins: [
+            ecCollapsibleSections({ /* options */ }),
+          ]
+        }),
+      ],
+    })
+    ```
 
 ## Usage in markdown / MDX documents
 
@@ -47,7 +73,7 @@ To mark a section as collapsible, you need to add **meta information** to your c
 
 ## Configuration
 
-When using this plugin through higher-level integration packages, you can configure it by passing options to the higher-level package.
+You can configure it by passing an options to its initializer function.
 
 Here are configuration examples for some popular site generators:
 
@@ -61,16 +87,18 @@ In your Astro config file, you can pass options to the collapsible sections plug
 // astro.config.mjs
 import { defineConfig } from 'astro/config'
 import astroExpressiveCode from 'astro-expressive-code'
+import ecCollapsibleSections from '@expressive-code/plugin-collapsible-sections'
 
 /** @type {import('astro-expressive-code').AstroExpressiveCodeOptions} */
 const astroExpressiveCodeOptions = {
-  // This is where you can pass your plugin options
-  collapsibleSections: {
-    styleOverrides: {
-      closedBackgroundColor: 'none'
-    },
-    summary: 'Click to show {count} hidden lines'
-  },
+  plugins: [
+    ecCollapsibleSections({
+      // This is where you can pass your plugin options
+      styleOverrides: {
+        closedBackgroundColor: 'red',
+      },
+    }),
+  ]
 }
 
 export default defineConfig({
@@ -86,18 +114,18 @@ export default defineConfig({
 // next.config.mjs
 import createMDX from '@next/mdx'
 import remarkExpressiveCode from 'remark-expressive-code'
+import ecCollapsibleSections from '@expressive-code/plugin-collapsible-sections'
 
 /** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
 const remarkExpressiveCodeOptions = {
-  // This is where you can pass your plugin options
-  collapsibleSections: {
-    styleOverrides: {
+  plugins: [
+    ecCollapsibleSections({
+      // This is where you can pass your plugin options
       styleOverrides: {
-        closedBackgroundColor: 'none'
+        closedBackgroundColor: 'red',
       },
-      summary: 'Click to show {count} hidden lines'
-    },
-  },
+    }),
+  ]
 }
 
 /** @type {import('next').NextConfig} */
@@ -125,7 +153,6 @@ export default withMDX(nextConfig)
 
 You can pass the following options to the plugin:
 
-
 - `styleOverrides`
 
   Allows overriding the plugin's default styles using an object with named properties.
@@ -143,54 +170,3 @@ You can pass the following options to the plugin:
 
   - Styles applying to the section when open:
     `openBorderWidth`, `openBorderColor`, `openPadding`, `openMargin`, `openBackgroundColor`
-
-- `summary`
-  
-  The text to show when the section is collapsed. Can contain the placeholder string `{count}`, which will be replaced by the number of lines the section contains.
-
-## Advanced use cases
-
-### Manual installation
-
-You only need to install this plugin if you are using the core package `@expressive-code/core` directly. In this case, you can install the plugin like this:
-
-```bash
-# Note: This is an advanced usage example!
-# You normally don't need to install this package manually,
-# it is installed by default by our higher-level packages.
-npm install @expressive-code/plugin-collapsible-sections
-```
-
-### Manual usage from the core package
-
-> **Warning**:
-> **This is an advanced usage example!** You normally don't need to use the core package directly, or manually add this plugin to the configuration.
-
-```js
-import { ExpressiveCodeEngine } from '@expressive-code/core'
-import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
-
-const ec = new ExpressiveCodeEngine({
-  plugins: [
-    // Note: If you want to configure the plugin,
-    //       you can pass options like this:
-    // pluginCollapsibleSections({ ...your options here... })
-    pluginCollapsibleSections(),
-  ],
-})
-
-const code = `
-// my-test-file.js
-const hello = 'World!'
-const foo = 'bar'
-`
-
-const renderResult = await ec.render({
-  code: code.trim(),
-  language: 'js',
-  meta: `collapsed={1-2}`
-})
-
-// If you were to render the returned AST to HTML now,
-// the first two lines would be wrapped in a <details>
-```
