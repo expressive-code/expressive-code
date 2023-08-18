@@ -1,13 +1,20 @@
-import { AttachedPluginData, ExpressiveCodePlugin, replaceDelimitedValues } from '@expressive-code/core'
+import { AttachedPluginData, ExpressiveCodePlugin, PluginTexts, replaceDelimitedValues } from '@expressive-code/core'
 import { Section, parseSections } from './utils'
 import { select } from 'hast-util-select'
-import { SectionText, sectionizeAst } from './ast'
+import { sectionizeAst } from './ast'
 import { collapsibleSectionsStyleSettings, getCollapsibleSectionsBaseStyles } from './styles'
 
 export interface PluginCollapsibleSectionsOptions {
 	styleOverrides?: Partial<typeof collapsibleSectionsStyleSettings.defaultSettings> | undefined
-	summary?: SectionText | undefined
 }
+
+export const pluginCollapsibleSectionsTexts = new PluginTexts({
+	collapsedLines: (count: number) => `${count} collapsed line${count === 1 ? '' : 's'}`,
+})
+
+pluginCollapsibleSectionsTexts.addLocale('de', {
+	collapsedLines: (count: number) => `${count} ausgeblendete Zeile${count === 1 ? '' : 'n'}`,
+})
 
 export function pluginCollapsibleSections(options: PluginCollapsibleSectionsOptions = {}): ExpressiveCodePlugin {
 	return {
@@ -33,16 +40,16 @@ export function pluginCollapsibleSections(options: PluginCollapsibleSectionsOpti
 					}
 				)
 			},
-			postprocessRenderedBlock: ({ codeBlock, renderData }) => {
+			postprocessRenderedBlock: ({ codeBlock, renderData, locale }) => {
 				const data = pluginCollapsibleSectionsData.getOrCreateFor(codeBlock)
+				if (!data.sections.length) return
 				const codeAst = select('pre > code', renderData.blockAst)
-				if (codeAst) {
-					codeAst.children = sectionizeAst({
-						lines: codeAst.children,
-						sections: data.sections,
-						text: options.summary,
-					})
-				}
+				if (!codeAst) return
+				codeAst.children = sectionizeAst({
+					lines: codeAst.children,
+					sections: data.sections,
+					text: pluginCollapsibleSectionsTexts.get(locale).collapsedLines,
+				})
 			},
 		},
 	}

@@ -4,23 +4,9 @@ import { h, s } from 'hastscript'
 import { collapsibleSectionClass } from './styles'
 
 /**
- * Text to display in the <summary> of a collapsed section
- * Can contain the placeholder '{count}'
- */
-export type SectionText = string
-
-/**
  * Transforms a list of line ASTs into one containing the provided collapsible sections
  */
-export function sectionizeAst({
-	lines,
-	sections,
-	text = '{count} collapsed lines',
-}: {
-	lines: ElementContent[]
-	sections: Section[]
-	text?: SectionText | undefined
-}): ElementContent[] {
+export function sectionizeAst({ lines, sections, text }: { lines: ElementContent[]; sections: Section[]; text: (count: number) => string }): ElementContent[] {
 	const outp = [...lines]
 
 	// icon yoinked from octicons (MIT licensed)
@@ -43,7 +29,7 @@ export function sectionizeAst({
 							style: `d:path("${collapsedIconD}");`,
 						}),
 					]),
-					text.replace(/\{count\}/g, `${targetLines.length}`),
+					text(targetLines.length),
 				]),
 				...targetLines,
 			])

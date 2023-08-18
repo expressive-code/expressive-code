@@ -1,6 +1,4 @@
 import { describe, test, expect } from 'vitest'
-// import { selectAll } from 'hast-util-select'
-// import { toText } from 'hast-util-to-text'
 import { ExpressiveCodeTheme } from '@expressive-code/core'
 import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures, TestFixture } from '@internal/test-utils'
 import { pluginShiki } from '@expressive-code/plugin-shiki'
@@ -52,7 +50,7 @@ describe('Renders collapsed sections', () => {
 					meta: `collapse={2-2, 5-7}`,
 					plugins: [pluginCollapsibleSections()],
 					blockValidationFn: buildMarkerValidationFn([
-						{ from: 2, to: 2, text: '1 collapsed lines' },
+						{ from: 2, to: 2, text: '1 collapsed line' },
 						{ from: 5, to: 7, text: '3 collapsed lines' },
 					]),
 				}),
@@ -81,7 +79,7 @@ describe('Renders collapsed sections', () => {
 					meta: `del={5} ins={6-7} mark={1,2} collapse={2-2, 5-7}`,
 					plugins: [pluginShiki(), pluginTextMarkers(), pluginCollapsibleSections()],
 					blockValidationFn: buildMarkerValidationFn([
-						{ from: 2, to: 2, text: '1 collapsed lines' },
+						{ from: 2, to: 2, text: '1 collapsed line' },
 						{ from: 5, to: 7, text: '3 collapsed lines' },
 					]),
 				}),
