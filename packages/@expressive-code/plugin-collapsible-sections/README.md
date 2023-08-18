@@ -20,7 +20,7 @@
 
 A default plugin of Expressive Code, an engine for presenting source code on the web.
 
-It allows code sections to be marked as collapsed. The lines in collapsed sections will be hidden by default, replaced by a "X lines hidden" line. When clicked, the collapsed section will be expanded, showing the previously hidden lines.
+It allows code sections to be marked as collapsed. The lines in collapsed sections will be hidden by default, replaced by a "X collapsed lines" line. When clicked, the collapsed section will be expanded, showing the previously hidden lines.
 
 ## When should I use this?
 
@@ -67,8 +67,9 @@ const astroExpressiveCodeOptions = {
   // This is where you can pass your plugin options
   collapsibleSections: {
     styleOverrides: {
-      // TODO: give examples
+      closedBackgroundColor: 'none'
     },
+    summary: 'Click to show {count} hidden lines'
   },
 }
 
@@ -91,7 +92,10 @@ const remarkExpressiveCodeOptions = {
   // This is where you can pass your plugin options
   collapsibleSections: {
     styleOverrides: {
-      // TODO: give examples
+      styleOverrides: {
+        closedBackgroundColor: 'none'
+      },
+      summary: 'Click to show {count} hidden lines'
     },
   },
 }
@@ -121,7 +125,28 @@ export default withMDX(nextConfig)
 
 You can pass the following options to the plugin:
 
-- TODO: expand on options
+
+- `styleOverrides`
+
+  Allows overriding the plugin's default styles using an object with named properties.
+
+  The property values can either be a string, or a function that returns a string. If a function is used, it will be called with the following arguments:
+
+  - `theme`: An ExpressiveCodeTheme object containing the current theme's colors and other properties.
+  - `coreStyles`: An object containing the ExpressiveCodeEngine core styles.
+  - `resolveSetting`: A function that can be used to resolve another style setting. It takes a style property name, and returns its resolved value.
+
+  The following properties are available:
+
+  - Styles applying to the section when collapsed:
+    `closedBorderWidth`, `closedBorderColor`, `closedPadding`, `closedMargin`, `closedTextColor`, `closedBackgroundColor`,
+
+  - Styles applying to the section when open:
+    `openBorderWidth`, `openBorderColor`, `openPadding`, `openMargin`, `openBackgroundColor`
+
+- `summary`
+  
+  The text to show when the section is collapsed. Can contain the placeholder string `{count}`, which will be replaced by the number of lines the section contains.
 
 ## Advanced use cases
 
