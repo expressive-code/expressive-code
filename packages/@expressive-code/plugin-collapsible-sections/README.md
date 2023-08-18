@@ -2,19 +2,17 @@
 
 ## Contents
 
-- [@expressive-code/plugin-collapsible-sections](#expressive-codeplugin-collapsible-sections)
-  - [Contents](#contents)
-  - [What is this?](#what-is-this)
-  - [When should I use this?](#when-should-i-use-this)
-  - [Installation (not required)](#installation-not-required)
-  - [Usage in markdown / MDX documents](#usage-in-markdown--mdx-documents)
-  - [Configuration](#configuration)
-    - [Astro configuration example](#astro-configuration-example)
-    - [Next.js configuration example using `@next/mdx`](#nextjs-configuration-example-using-nextmdx)
-    - [Available plugin options](#available-plugin-options)
-  - [Advanced use cases](#advanced-use-cases)
-    - [Manual installation](#manual-installation)
-    - [Manual usage from the core package](#manual-usage-from-the-core-package)
+- [What is this?](#what-is-this)
+- [When should I use this?](#when-should-i-use-this)
+- [Installation (not required)](#installation-not-required)
+- [Usage in markdown / MDX documents](#usage-in-markdown--mdx-documents)
+- [Configuration](#configuration)
+  - [Astro configuration example](#astro-configuration-example)
+  - [Next.js configuration example using `@next/mdx`](#nextjs-configuration-example-using-nextmdx)
+  - [Available plugin options](#available-plugin-options)
+- [Advanced use cases](#advanced-use-cases)
+  - [Manual installation](#manual-installation)
+  - [Manual usage from the core package](#manual-usage-from-the-core-package)
 
 ## What is this?
 
