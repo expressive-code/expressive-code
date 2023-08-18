@@ -5,7 +5,7 @@ import { pluginShiki } from '@expressive-code/plugin-shiki'
 import { pluginTextMarkers } from '@expressive-code/plugin-text-markers'
 import { select } from 'hast-util-select'
 import { toText } from 'hast-util-to-text'
-import { pluginCollapsibleSections } from '../src'
+import { pluginCollapsibleSections, pluginCollapsibleSectionsTexts } from '../src'
 import { Section } from '../src/utils'
 
 const lineMarkerTestText = `
@@ -87,13 +87,15 @@ describe('Renders collapsed sections', () => {
 		})
 
 		test(`Uses the correct section summary if given as option`, async ({ meta: { name: testName } }) => {
+			pluginCollapsibleSectionsTexts.addLocale('xy', { collapsedLines: (count) => `Test ${count}` })
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,
 				fixtures: buildThemeFixtures(themes, {
+					engineOptions: { defaultLocale: 'xy' },
 					code: lineMarkerTestText,
 					meta: `collapse={5-7,1-4}`,
-					plugins: [pluginCollapsibleSections({ summary: 'Test {count}' })],
+					plugins: [pluginCollapsibleSections()],
 					blockValidationFn: buildMarkerValidationFn([
 						{ from: 1, to: 4, text: 'Test 4' },
 						{ from: 5, to: 7, text: 'Test 3' },
