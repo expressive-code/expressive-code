@@ -1,19 +1,22 @@
-import { StyleSettings, ExpressiveCodeTheme, ResolvedCoreStyles } from '@expressive-code/core'
+import { StyleSettings, ExpressiveCodeTheme, ResolvedCoreStyles, setAlpha } from '@expressive-code/core'
 
 export const collapsibleSectionClass = 'ec-section'
 
 export const collapsibleSectionsStyleSettings = new StyleSettings({
-	closedBorderWidth: '0px',
+	closedBorderWidth: '0',
 	closedPadding: '4px 0 4px var(--padding-inline)',
-	closedMargin: '0rem',
-	closedTextColor: '',
-	closedBackgroundColor: 'rgb(84 174 255 / 20%)',
-	closedBorderColor: 'rgb(84 174 255 / 50%)',
+	closedMargin: '0',
+	closedFontFamily: 'inherit',
+	closedFontSize: 'inherit',
+	closedLineHeight: 'inherit',
+	closedTextColor: 'inherit',
+	closedBackgroundColor: ({ theme }) => setAlpha(theme.colors['editor.foldBackground'], 0.2) || 'rgb(84 174 255 / 20%)',
+	closedBorderColor: ({ theme }) => setAlpha(theme.colors['editor.foldBackground'], 0.5) || 'rgb(84 174 255 / 50%)',
 	openBorderWidth: '1px',
-	openPadding: '0rem',
-	openMargin: '0rem',
-	openBackgroundColor: 'rgb(246 248 250 / 7.5%)',
-	openBorderColor: 'rgb(216 222 228 / 10%)',
+	openPadding: '0',
+	openMargin: '0',
+	openBackgroundColor: 'transparent',
+	openBorderColor: 'transparent',
 })
 
 export function getCollapsibleSectionsBaseStyles(
@@ -43,6 +46,12 @@ export function getCollapsibleSectionsBaseStyles(
 					margin-right: 1em;
 					opacity: 0.75;
 				}
+
+				font-family: ${styles.closedFontFamily};
+				font-size: ${styles.closedFontSize};
+				line-height: ${styles.closedLineHeight};
+				user-select: none;
+				-webkit-user-select: none;
 
 				cursor: pointer;
 				color: ${styles.closedTextColor};
