@@ -87,6 +87,22 @@ describe('Renders collapsed sections', () => {
 				}),
 			})
 		})
+
+		test(`Uses the correct section summary if given as option`, async ({ meta: { name: testName } }) => {
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code: lineMarkerTestText,
+					meta: `collapse={5-7,1-4}`,
+					plugins: [pluginCollapsibleSections({ summary: 'Test {count}' })],
+					blockValidationFn: buildMarkerValidationFn([
+						{ from: 1, to: 4, text: 'Test 4' },
+						{ from: 5, to: 7, text: 'Test 3' },
+					]),
+				}),
+			})
+		})
 	})
 })
 

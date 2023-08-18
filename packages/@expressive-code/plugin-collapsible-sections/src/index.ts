@@ -1,11 +1,12 @@
 import { AttachedPluginData, ExpressiveCodePlugin, replaceDelimitedValues } from '@expressive-code/core'
 import { Section, parseSections } from './utils'
 import { select } from 'hast-util-select'
-import { sectionizeAst } from './ast'
+import { SectionText, sectionizeAst } from './ast'
 import { collapsibleSectionsStyleSettings, getCollapsibleSectionsBaseStyles } from './styles'
 
 export interface PluginCollapsibleSectionsOptions {
 	styleOverrides?: Partial<typeof collapsibleSectionsStyleSettings.defaultSettings> | undefined
+	summary?: SectionText | undefined
 }
 
 export function pluginCollapsibleSections(options: PluginCollapsibleSectionsOptions = {}): ExpressiveCodePlugin {
@@ -39,6 +40,7 @@ export function pluginCollapsibleSections(options: PluginCollapsibleSectionsOpti
 					codeAst.children = sectionizeAst({
 						lines: codeAst.children,
 						sections: data.sections,
+						text: options.summary,
 					})
 				}
 			},

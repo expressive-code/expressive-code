@@ -7,7 +7,7 @@ import { collapsibleSectionClass } from './styles'
  * Text to display in the <summary> of a collapsed section
  * Can contain the placeholder '{count}'
  */
-type SectionText = string
+export type SectionText = string
 
 /**
  * Transforms a list of line ASTs into one containing the provided collapsible sections
