@@ -20,15 +20,7 @@ export function sectionizeAst({ lines, sections, text }: { lines: ElementContent
 			const targetLines = lines.slice(from - 1, to)
 			const $details = h('details', { class: collapsibleSectionClass }, [
 				h('summary', [
-					// icon yoinked from octicons (MIT licensed)
-					s('svg', { xmlns: 'http://www.w3.org/2000/svg', 'aria-hidden': 'true', viewBox: '0 0 16 16', width: '16', height: '16' }, [
-						s('path', {
-							d: collapsedIconD,
-							// unfortunately the `* { all: revert }` rule from the core library overwrites the d="..." of SVG paths
-							// this re-adds the path data as a CSS style, to overwrite it back
-							style: `d:path("${collapsedIconD}");`,
-						}),
-					]),
+					s('svg', { xmlns: 'http://www.w3.org/2000/svg', 'aria-hidden': 'true', viewBox: '0 0 16 16', width: '16', height: '16' }, [s('path', { d: collapsedIconD })]),
 					text(targetLines.length),
 				]),
 				...targetLines,

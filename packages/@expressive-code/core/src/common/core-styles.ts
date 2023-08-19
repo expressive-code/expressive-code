@@ -89,7 +89,7 @@ export function getCoreBaseStyles(options: { theme: ExpressiveCodeTheme; coreSty
 		text-size-adjust: none;
 		-webkit-text-size-adjust: none;
 
-		* {
+		*:not(path) {
 			all: revert;
 			box-sizing: border-box;
 		}
