@@ -14,18 +14,35 @@ No matter if you’re writing a blog, guide, or a full documentation website, Ex
 
 Expressive Code is split into multiple packages, allowing you to include only the functionality you need for your site. Click on any of the packages below to learn more about them:
 
-### Main packages
+### High-level integration packages
 
-- [expressive-code](packages/expressive-code/README.md) [![NPM version](https://img.shields.io/npm/v/expressive-code.svg)](https://www.npmjs.com/package/expressive-code) - The main package that provides convenient access to the Expressive Code engine and all default plugins.
+You will most likely want to install one of these packages to get started with Expressive Code. Pick the one that matches your site's setup:
+
 - [remark-expressive-code](packages/remark-expressive-code/README.md) [![NPM version](https://img.shields.io/npm/v/remark-expressive-code.svg)](https://www.npmjs.com/package/remark-expressive-code) - A remark plugin that processes all code blocks in markdown and MDX files with Expressive Code.
 - [astro-expressive-code](packages/astro-expressive-code/README.md) [![NPM version](https://img.shields.io/npm/v/astro-expressive-code.svg)](https://www.npmjs.com/package/astro-expressive-code) - An Astro integration to automatically render code blocks in any markdown / MDX content on your site with Expressive Code.
 
-### Internal packages
+### Default plugins
 
-- [@expressive-code/core](packages/@expressive-code/core/README.md) - The core package that powers Expressive Code.
-- [@expressive-code/plugin-frames](packages/@expressive-code/plugin-frames/README.md) - A plugin that surrounds your code blocks with code editor or terminal window frames, depending on the code's language.
-- [@expressive-code/plugin-shiki](packages/@expressive-code/plugin-shiki/README.md) - A plugin that adds syntax highlighting to your code blocks, using the same engine as VS Code.
-- [@expressive-code/plugin-text-markers](packages/@expressive-code/plugin-text-markers/README.md) - A plugin that allows you to add text markers to your code blocks, highlighting specific parts of the code or indicating additions or removals.
+These plugins are automatically installed by the high-level integration packages above. You normally don't need to install them manually.
+
+- [@expressive-code/plugin-frames](packages/@expressive-code/plugin-frames/README.md) - Surrounds your code blocks with code editor or terminal window frames, depending on the code's language.
+- [@expressive-code/plugin-shiki](packages/@expressive-code/plugin-shiki/README.md) - Adds syntax highlighting to your code blocks, using the same engine as VS Code.
+- [@expressive-code/plugin-text-markers](packages/@expressive-code/plugin-text-markers/README.md) - Allows adding text markers to your code blocks, highlighting specific parts of the code or indicating additions or removals.
+
+### Additional plugins
+
+These plugins provide more features that may be useful for your site. You can install them manually if you need them:
+
+- [@expressive-code/plugin-collapsible-sections](packages/@expressive-code/plugin-collapsible-sections/README.md) - Allows marking code sections as collapsed. The lines in collapsed sections will be hidden by default, replaced by a "X collapsed lines" line. When clicked, the collapsed section will be expanded, showing the previously hidden lines.
+
+### Low-level packages for integration authors
+
+These packages are used by the high-level integration packages. You normally don't need to install them directly.
+
+In advanced use cases, e.g. if you want to develop your own integration into a framework that is not supported by Expressive Code yet, you can use these packages to get started:
+
+- [expressive-code](packages/expressive-code/README.md) [![NPM version](https://img.shields.io/npm/v/expressive-code.svg)](https://www.npmjs.com/package/expressive-code) - This bundle package provides convenient access to the Expressive Code core engine and all default plugins.
+- [@expressive-code/core](packages/@expressive-code/core/README.md) - The core engine that powers Expressive Code.
 
 ## Installation, Configuration & Usage
 
