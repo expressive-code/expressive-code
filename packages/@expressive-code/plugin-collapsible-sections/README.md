@@ -13,7 +13,7 @@
 
 ## What is this?
 
-A plugin of Expressive Code, an engine for presenting source code on the web.
+A plugin for Expressive Code, an engine for presenting source code on the web.
 
 It allows code sections to be marked as collapsed. The lines in collapsed sections will be hidden by default, replaced by a "X collapsed lines" line. When clicked, the collapsed section will be expanded, showing the previously hidden lines.
 
@@ -166,7 +166,7 @@ You can pass the following options to the plugin:
   The following properties are available:
 
   - Styles applying to the section when collapsed:
-    `closedBorderWidth`, `closedBorderColor`, `closedPadding`, `closedMargin`, `closedTextColor`, `closedBackgroundColor`,
+    `closedBackgroundColor`, `closedBorderWidth`, `closedBorderColor`, `closedFontFamily`, `closedFontSize`, `closedLineHeight`, `closedMargin`, `closedPadding`, `closedTextColor`
 
   - Styles applying to the section when open:
-    `openBorderWidth`, `openBorderColor`, `openPadding`, `openMargin`, `openBackgroundColor`
+    `openBackgroundColor`, `openBorderColor`, `openBorderWidth`, `openMargin`, `openPadding`

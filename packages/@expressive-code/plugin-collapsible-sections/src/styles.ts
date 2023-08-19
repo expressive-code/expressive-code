@@ -58,9 +58,7 @@ export function getCollapsibleSectionsBaseStyles(
 				background-color: ${styles.closedBackgroundColor};
 				--border-color: ${styles.closedBorderColor};
 				--border-width: ${styles.closedBorderWidth};
-				box-shadow:
-					inset 0 calc(-1 * var(--border-width)) var(--border-color),
-					inset 0 var(--border-width) var(--border-color);
+				box-shadow: inset 0 calc(-1 * var(--border-width)) var(--border-color), inset 0 var(--border-width) var(--border-color);
 				padding: ${styles.closedPadding};
 				margin: ${styles.closedMargin};
 			}
@@ -74,9 +72,7 @@ export function getCollapsibleSectionsBaseStyles(
 				background-color: ${styles.openBackgroundColor};
 				--border-color: ${styles.openBorderColor};
 				--border-width: ${styles.openBorderWidth};
-				box-shadow:
-					inset 0 calc(-1 * var(--border-width)) var(--border-color),
-					inset 0 var(--border-width) var(--border-color);
+				box-shadow: inset 0 calc(-1 * var(--border-width)) var(--border-color), inset 0 var(--border-width) var(--border-color);
 				padding-inline: ${styles.openPadding};
 				margin-inline: ${styles.openMargin};
 			}
