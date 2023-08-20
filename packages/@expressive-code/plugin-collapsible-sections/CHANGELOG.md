@@ -1,5 +1,12 @@
 # @expressive-code/plugin-collapsible-sections
 
+## 0.22.2
+
+### Patch Changes
+
+- 1916338: Hide summary marker on Safari for collapsible section
+  - @expressive-code/core@0.22.2
+
 ## 0.22.1
 
 ### Patch Changes
