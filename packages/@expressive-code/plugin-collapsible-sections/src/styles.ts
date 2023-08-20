@@ -40,6 +40,11 @@ export function getCollapsibleSectionsBaseStyles(
 					height: 16px;
 				}
 
+				/* workaround - ::marker does not support content on safari */
+				&::-webkit-details-marker {
+					display: none;
+				}
+
 				svg {
 					vertical-align: text-bottom;
 					fill: currentColor;
