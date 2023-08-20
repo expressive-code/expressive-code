@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@astrojs/mdx": "^0.19.7",
+    "@expressive-code/plugin-collapsible-sections": "workspace:^",
     "astro": "^2.5.0",
     "astro-expressive-code": "workspace:^"
   },

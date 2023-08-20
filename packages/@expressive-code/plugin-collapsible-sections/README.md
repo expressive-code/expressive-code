@@ -45,13 +45,13 @@ This plugin is **not installed by default** by our higher-level packages like `r
     // astro.config.mjs
     import { defineConfig } from 'astro/config'
     import astroExpressiveCode from 'astro-expressive-code'
-    import ecCollapsibleSections from '@expressive-code/plugin-collapsible-sections'
+    import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
 
     export default defineConfig({
       integrations: [
         astroExpressiveCode({
           plugins: [
-            ecCollapsibleSections({ /* options */ }),
+            pluginCollapsibleSections({ /* options */ }),
           ]
         }),
       ],
@@ -87,12 +87,12 @@ In your Astro config file, you can pass options to the collapsible sections plug
 // astro.config.mjs
 import { defineConfig } from 'astro/config'
 import astroExpressiveCode from 'astro-expressive-code'
-import ecCollapsibleSections from '@expressive-code/plugin-collapsible-sections'
+import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
 
 /** @type {import('astro-expressive-code').AstroExpressiveCodeOptions} */
 const astroExpressiveCodeOptions = {
   plugins: [
-    ecCollapsibleSections({
+    pluginCollapsibleSections({
       // This is where you can pass your plugin options
       styleOverrides: {
         closedBackgroundColor: 'red',
@@ -114,12 +114,12 @@ export default defineConfig({
 // next.config.mjs
 import createMDX from '@next/mdx'
 import remarkExpressiveCode from 'remark-expressive-code'
-import ecCollapsibleSections from '@expressive-code/plugin-collapsible-sections'
+import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
 
 /** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
 const remarkExpressiveCodeOptions = {
   plugins: [
-    ecCollapsibleSections({
+    pluginCollapsibleSections({
       // This is where you can pass your plugin options
       styleOverrides: {
         closedBackgroundColor: 'red',

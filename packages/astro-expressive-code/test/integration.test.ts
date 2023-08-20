@@ -2,7 +2,23 @@ import { describe, test, expect, beforeAll } from 'vitest'
 import { existsSync, rmSync, readFileSync } from 'fs'
 import { join } from 'path'
 import { execa } from 'execa'
-import { sampleCodeHtmlRegExp } from '../../remark-expressive-code/test/utils'
+import { buildSampleCodeHtmlRegExp } from '../../remark-expressive-code/test/utils'
+
+const complexHtmlRegExp = buildSampleCodeHtmlRegExp({
+	title: 'src/layouts/BaseLayout.astro',
+	codeContents: [
+		// Expect the code to start with a collapsible section
+		'<details(| .*?)>.*?</details>',
+		'.*?',
+		// Expect at least one code line that is marked as inserted
+		'<div class="ec-line ins">',
+		// Expect Shiki highlighting colors inside
+		'.*?color:#.*?',
+		// Expect all elements to be closed
+		'</div>',
+		'.*?',
+	],
+})
 
 describe('Integration into an Astro project', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
@@ -28,7 +44,7 @@ describe('Integration into an Astro project', () => {
 })
 
 function validateHtml(html: string) {
-	expect(html).toMatch(sampleCodeHtmlRegExp)
+	expect(html).toMatch(complexHtmlRegExp)
 	// Collect the class names of all code blocks
 	const codeBlockClassNames = [...html.matchAll(/<div class="expressive-code (.*?)">/g)].map((match) => match[1])
 	// Expect two code blocks in total (because two themes were configured)

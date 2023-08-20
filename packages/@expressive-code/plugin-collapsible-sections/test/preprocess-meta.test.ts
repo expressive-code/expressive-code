@@ -32,7 +32,7 @@ const myFavoritePokemon = [/* ... */];
 
 type ExpectedMetaResult = {
 	meta: string
-	sections: Section[]
+	sections: Omit<Section, 'lines'>[]
 }
 
 /** Tests that a given input meta-string gets transformed into the expected meta-string and a corresponding sections data on the codeblock */
@@ -62,7 +62,7 @@ const expectMetaResult = async (input: string, expected: Partial<ExpectedMetaRes
 		sections: pluginCollapsibleSectionsData.getOrCreateFor(codeBlock)?.sections,
 	}
 
-	expect(actual).toEqual(expectedResult)
+	expect(actual).toMatchObject(expectedResult)
 }
 
 describe('Leaves unknown contents untouched', () => {

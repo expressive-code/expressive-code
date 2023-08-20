@@ -1,4 +1,6 @@
-export type Section = { from: number; to: number }
+import { ExpressiveCodeLine } from '@expressive-code/core'
+
+export type Section = { from: number; to: number; lines: ExpressiveCodeLine[] }
 
 /** Transforms a meta string of sections (e.g. '1-2, 4-8') into a list of section objects */
 export function parseSections(value: string): Section[] {
@@ -23,7 +25,7 @@ export function parseSections(value: string): Section[] {
 				if (to >= existingFrom && to <= existingTo) return
 			}
 
-			sections.push({ from, to })
+			sections.push({ from, to, lines: [] })
 		})
 	return sections
 }
