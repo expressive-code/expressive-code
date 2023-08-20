@@ -1,5 +1,12 @@
 # @expressive-code/plugin-collapsible-sections
 
+## 0.22.1
+
+### Patch Changes
+
+- 401b61a: Fix shifted collapsible sections when other plugins add or remove lines
+  - @expressive-code/core@0.22.1
+
 ## 0.22.0
 
 ### Minor Changes
