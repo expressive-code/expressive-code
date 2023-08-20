@@ -25,11 +25,15 @@ export function pluginCollapsibleSections(options: PluginCollapsibleSectionsOpti
 				codeBlock.meta = replaceDelimitedValues(
 					codeBlock.meta,
 					({ fullMatch, key, value }) => {
-						// if we aren't interested in the entry, just return it as-is
+						// If we aren't interested in the entry, just return it as-is
 						if (key !== 'collapse') return fullMatch
 
-						// otherwise add our parsed data to the codeblock, so we can later modify the AST
+						// Parse the given sections and store references to the targeted lines,
+						// allowing us to react to potential line number changes
 						const sections = parseSections(value)
+						sections.forEach((section) => {
+							section.lines.push(...codeBlock.getLines(section.from - 1, section.to))
+						})
 						const data = pluginCollapsibleSectionsData.getOrCreateFor(codeBlock)
 						data.sections = sections
 						return ''
@@ -39,6 +43,23 @@ export function pluginCollapsibleSections(options: PluginCollapsibleSectionsOpti
 						keyValueSeparator: '=',
 					}
 				)
+			},
+			annotateCode: ({ codeBlock }) => {
+				const data = pluginCollapsibleSectionsData.getOrCreateFor(codeBlock)
+				if (!data.sections.length) return
+				// Update from/to line numbers to account for any line number changes
+				const lines = codeBlock.getLines()
+				for (let i = data.sections.length - 1; i >= 0; i--) {
+					const section = data.sections[i]
+					const indices = section.lines.map((line) => lines.indexOf(line)).filter((index) => index > -1)
+					// If no more lines are present, remove the section
+					if (!indices.length) {
+						data.sections.splice(i, 1)
+						continue
+					}
+					section.from = Math.min(...indices) + 1
+					section.to = Math.max(...indices) + 1
+				}
 			},
 			postprocessRenderedBlock: ({ codeBlock, renderData, locale }) => {
 				const data = pluginCollapsibleSectionsData.getOrCreateFor(codeBlock)

@@ -228,6 +228,9 @@ importers:
       '@astrojs/mdx':
         specifier: ^0.19.7
         version: 0.19.7(astro@2.5.0)
+      '@expressive-code/plugin-collapsible-sections':
+        specifier: workspace:^
+        version: link:../../../../@expressive-code/plugin-collapsible-sections
       astro:
         specifier: ^2.5.0
         version: 2.5.0

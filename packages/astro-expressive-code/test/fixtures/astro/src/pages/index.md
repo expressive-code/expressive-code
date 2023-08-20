@@ -3,7 +3,30 @@ layout: ../layouts/MainLayout.astro
 ---
 # Sample code
 
-```js ins={2}
-// test.js
-const a = 1
+```astro ins={19} collapse={2-7, 10-14}
+// src/layouts/BaseLayout.astro
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+const pageTitle = "Home Page";
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{pageTitle}</title>
+  </head>
+  <body>
+    <Header />
+    <h1>{pageTitle}</h1>
+    <slot />
+    <Footer />
+    <script>
+      import "../scripts/menu.js";
+    </script>
+  </body>
+</html>
 ```

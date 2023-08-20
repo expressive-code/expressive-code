@@ -110,7 +110,7 @@ describe('Renders collapsed sections', () => {
 	})
 })
 
-type ExpectedSection = Section & {
+type ExpectedSection = Omit<Section, 'lines'> & {
 	text: string
 }
 
