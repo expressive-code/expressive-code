@@ -1,8 +1,8 @@
 import type { Plugin, Transformer, VFileWithOutput } from 'unified'
-import type { Root, Parent, Code, HTML } from 'mdast'
-import { visit } from 'unist-util-visit'
-import { BundledShikiTheme, loadShikiTheme, ExpressiveCode, ExpressiveCodeConfig, ExpressiveCodeTheme, ExpressiveCodeBlockOptions, ExpressiveCodeBlock } from 'expressive-code'
-import { toHtml } from 'hast-util-to-html'
+import type { Root } from 'mdast'
+import { BundledShikiTheme, ExpressiveCodeConfig, ExpressiveCodeTheme, ExpressiveCodeBlockOptions, ExpressiveCodeBlock } from 'expressive-code'
+import { RemarkExpressiveCodeDocument, collectCodeNodes, groupCodeNodes, replaceNodesWithRenderedHtml } from './document'
+import { RemarkExpressiveCodeRenderer, createRenderer, createRenderers, prepareGroupRenderInput, renderGroupToHtml } from './rendering'
 
 export * from 'expressive-code'
 
@@ -85,72 +85,8 @@ export type SingleThemeRemarkExpressiveCodeOptions = Omit<RemarkExpressiveCodeOp
 	theme?: BundledShikiTheme | ExpressiveCodeTheme | undefined
 }
 
-export type RemarkExpressiveCodeDocument = {
-	/**
-	 * The full path to the source file containing the code block.
-	 */
-	sourceFilePath?: string | undefined
-}
-
-export type RemarkExpressiveCodeRenderer = {
-	ec: ExpressiveCode
-	baseStyles: string
-	jsModules: string[]
-}
-
-/**
- * Creates all required `ExpressiveCode` instances to render code blocks using the given `options`.
- *
- * If multiple themes were passed to the `theme` option, a separate `ExpressiveCode` instance
- * will be created for each theme.
- *
- * Renderers are created by either calling the `customCreateRenderer` function (if provided),
- * or the exported `createRenderer` function.
- *
- * The remark plugin automatically calls this function once when encountering the first code block,
- * and caches the result.
- */
-export async function createRenderers(options: RemarkExpressiveCodeOptions): Promise<RemarkExpressiveCodeRenderer[]> {
-	const renderers: RemarkExpressiveCodeRenderer[] = []
-
-	const themes = Array.isArray(options.theme) ? options.theme : [options.theme]
-	for (const theme of themes) {
-		const renderer = await (options.customCreateRenderer ?? createRenderer)({ ...options, theme })
-		renderers.push(renderer)
-	}
-
-	return renderers
-}
-
-/**
- * Creates a single `ExpressiveCode` instance using the given `options`,
- * including support to load a theme bundled with Shiki by name.
- *
- * Note that this function only supports a single theme. If multiple themes were passed
- * to the `theme` option, you must call this function once for each theme. To avoid implementing
- * this logic yourself, you can use the `createRenderers()` function instead.
- *
- * Returns the created `ExpressiveCode` instance together with the base styles and JS modules
- * that should be added to every page.
- */
-export async function createRenderer(options: SingleThemeRemarkExpressiveCodeOptions = {}): Promise<RemarkExpressiveCodeRenderer> {
-	const { theme, ...ecOptions } = options
-
-	const mustLoadTheme = theme !== undefined && !(theme instanceof ExpressiveCodeTheme)
-	const optLoadedTheme = mustLoadTheme ? new ExpressiveCodeTheme(await loadShikiTheme(theme)) : theme
-	const ec = new ExpressiveCode({
-		theme: optLoadedTheme,
-		...ecOptions,
-	})
-	const baseStyles = await ec.getBaseStyles()
-	const jsModules = await ec.getJsModules()
-
-	return {
-		ec,
-		baseStyles,
-		jsModules,
-	}
-}
+export type { RemarkExpressiveCodeDocument, RemarkExpressiveCodeRenderer }
+export { createRenderer, createRenderers }
 
 const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Root> = (...settings) => {
 	const options: RemarkExpressiveCodeOptions = settings[0] ?? {}
@@ -158,82 +94,17 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 
 	let asyncRenderers: Promise<RemarkExpressiveCodeRenderer[]> | RemarkExpressiveCodeRenderer[] | undefined
 
-	const renderBlockToHtml = async ({
-		codeBlock,
-		renderer,
-		addedStyles,
-		addedJsModules,
-	}: {
-		codeBlock: ExpressiveCodeBlock
-		renderer: RemarkExpressiveCodeRenderer
-		addedStyles: Set<string>
-		addedJsModules: Set<string>
-	}): Promise<string> => {
-		const { ec, baseStyles, jsModules } = renderer
-
-		// Try to render the current code block
-		const { renderedGroupAst, styles } = await ec.render(codeBlock)
-
-		// Collect any style and script elements that we need to add to the output
-		type HastElement = Extract<(typeof renderedGroupAst.children)[number], { type: 'element' }>
-		const extraElements: HastElement[] = []
-		const stylesToPrepend: string[] = []
-
-		// Add base styles if we haven't added them yet
-		if (baseStyles && !addedStyles.has(baseStyles)) {
-			addedStyles.add(baseStyles)
-			stylesToPrepend.push(baseStyles)
-		}
-		// Add any group-level styles we haven't added yet
-		for (const style of styles) {
-			if (addedStyles.has(style)) continue
-			addedStyles.add(style)
-			stylesToPrepend.push(style)
-		}
-		// Combine all styles we collected (if any) into a single style element
-		if (stylesToPrepend.length) {
-			extraElements.push({
-				type: 'element',
-				tagName: 'style',
-				children: [{ type: 'text', value: [...stylesToPrepend].join('') }],
-			})
-		}
-
-		// Create script elements for all JS modules we haven't added yet
-		jsModules.forEach((moduleCode) => {
-			if (addedJsModules.has(moduleCode)) return
-			addedJsModules.add(moduleCode)
-			extraElements.push({
-				type: 'element',
-				tagName: 'script',
-				properties: { type: 'module' },
-				children: [{ type: 'text', value: moduleCode }],
-			})
-		})
-
-		// Prepend any extra elements to the children of the renderedGroupAst wrapper,
-		// which keeps them inside the wrapper and reduces the chance of CSS issues
-		// caused by selectors like `* + *` on the parent level
-		renderedGroupAst.children.unshift(...extraElements)
-
-		// Render the group AST to HTML
-		const htmlContent = toHtml(renderedGroupAst)
-
-		return htmlContent
-	}
-
 	const transformer: Transformer<Root, Root> = async (tree, file) => {
-		const nodesToProcess: [Parent, Code][] = []
+		// Collect all code nodes in the document,
+		// and ensure that we found at least one
+		const ungroupedCodeNodes = collectCodeNodes(tree)
+		if (!ungroupedCodeNodes.length) return
 
-		visit(tree, 'code', (code, index, parent) => {
-			if (index === null || parent === null) return
-			nodesToProcess.push([parent, code])
-		})
+		// Group nodes that should be rendered together based on
+		// code fence meta tags and adjacency in the document
+		const nodeGroups = groupCodeNodes(ungroupedCodeNodes)
 
-		if (nodesToProcess.length === 0) return
-
-		// We found at least one code node, so we need to ensure our renderers are available
-		// and wait for their initialization if necessary
+		// Ensure that our renderers are available and ready to use
 		if (asyncRenderers === undefined) {
 			asyncRenderers = (customCreateRenderers ?? createRenderers)(options)
 		}
@@ -245,45 +116,40 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 		const addedStyles = new Set<string>()
 		const addedJsModules = new Set<string>()
 
-		for (const [parent, code] of nodesToProcess) {
-			// Normalize the code coming from the Markdown/MDX document
-			let normalizedCode = code.value
-			if (tabWidth > 0) normalizedCode = normalizedCode.replace(/\t/g, ' '.repeat(tabWidth))
+		// Now go through all groups of code nodes and render them
+		for (const nodeGroup of nodeGroups) {
+			if (!nodeGroup.length) continue
 
-			// Build the ExpressiveCodeBlockOptions object that we will pass either
-			// to the ExpressiveCodeBlock constructor or the customCreateBlock function
-			const baseInput: ExpressiveCodeBlockOptions = {
-				code: normalizedCode,
-				language: code.lang || '',
-				meta: code.meta || '',
+			// Transform the node group into an array of ExpressiveCodeBlockOptions
+			// that can be used as common input for all renderers
+			const groupRenderInput = await prepareGroupRenderInput({
+				nodeGroup,
 				parentDocument,
-			}
+				tabWidth,
+				getBlockLocale,
+				file,
+			})
 
-			// Allow the user to customize the locale for this code block
-			if (getBlockLocale) {
-				baseInput.locale = await getBlockLocale({ input: baseInput, file })
-			}
-
-			// Render the input using all renderers
+			// Render the group using all renderers
 			const renderedBlocks: string[] = []
 			for (const renderer of renderers) {
-				// Clone the input to prevent any modifications during instance creation
-				// from affecting other renderers
-				const input = { ...baseInput }
-
-				// Allow the user to customize the ExpressiveCodeBlock instance
-				const codeBlock = customCreateBlock ? await customCreateBlock({ input, file }) : new ExpressiveCodeBlock(input)
-
-				// Render the code block to HTML
-				renderedBlocks.push(await renderBlockToHtml({ codeBlock, renderer, addedStyles, addedJsModules }))
+				renderedBlocks.push(
+					await renderGroupToHtml({
+						groupRenderInput,
+						renderer,
+						customCreateBlock,
+						file,
+						// Keep track of added styles and JS modules
+						// across all rendered blocks to avoid duplicates
+						addedStyles,
+						addedJsModules,
+					})
+				)
 			}
 
-			// Replace current node with a new HTML node that contains all rendered blocks
-			const html: HTML = {
-				type: 'html',
-				value: renderedBlocks.join(''),
-			}
-			parent.children.splice(parent.children.indexOf(code), 1, html)
+			// Finally, replace the document nodes with the rendered HTML
+			const html = renderedBlocks.join('')
+			replaceNodesWithRenderedHtml(nodeGroup, html)
 		}
 	}
 
