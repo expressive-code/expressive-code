@@ -8,14 +8,20 @@ import { ExpressiveCodeTheme } from '../src/common/theme'
 
 describe('ExpressiveCodeTheme', () => {
 	describe('Throws on invalid themes', () => {
-		test('Empty color value', () => {
-			expect(() => loadThemeFromJsonFile('invalid-1.json')).toThrow()
-		})
 		test('Invalid color value', () => {
 			expect(() => loadThemeFromJsonFile('invalid-2.json')).toThrow()
 		})
 		test('Unsupported CSS theme', () => {
 			expect(() => loadThemeFromJsonFile('css.json')).toThrow()
+		})
+	})
+
+	describe('Ignores invalid values in themes', () => {
+		// VS Code seems to be able to load themes with empty strings as color values
+		test('Empty color value', () => {
+			const emptyValueTheme = loadThemeFromJsonFile('invalid-1.json')
+			// Expect the correct default color to be set
+			expect(emptyValueTheme.colors['editor.background']).toBe('#1e1e1e')
 		})
 	})
 

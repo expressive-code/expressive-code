@@ -27,9 +27,15 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 			themeType = guessThemeTypeFromEditorColors(theme.colors)
 		}
 
+		// Fix invalid themes by removing empty entries from theme colors
+		const themeColors: typeof theme.colors = { ...theme.colors }
+		for (const key in themeColors) {
+			if (!themeColors[key]) delete themeColors[key]
+		}
+
 		this.name = theme.name || ''
 		this.type = themeType
-		this.colors = resolveVSCodeWorkbenchColors(theme.colors, this.type)
+		this.colors = resolveVSCodeWorkbenchColors(themeColors, this.type)
 		this.fg = theme.fg || this.colors['editor.foreground']
 		this.bg = theme.bg || this.colors['editor.background']
 		this.semanticHighlighting = theme.semanticHighlighting || false
