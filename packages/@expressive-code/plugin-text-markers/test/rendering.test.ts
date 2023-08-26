@@ -2,7 +2,7 @@ import { describe, test, expect } from 'vitest'
 import { selectAll } from 'hast-util-select'
 import { toText } from 'hast-util-to-text'
 import { AnnotationRenderPhase, ExpressiveCodePlugin, ExpressiveCodeTheme, InlineStyleAnnotation } from '@expressive-code/core'
-import { pluginShiki } from '@expressive-code/plugin-shiki'
+import { pluginShiki, loadShikiTheme } from '@expressive-code/plugin-shiki'
 import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures, TestFixture } from '@internal/test-utils'
 import { pluginTextMarkers } from '../src'
 import { MarkerType, MarkerTypeOrder } from '../src/marker-types'
@@ -27,8 +27,13 @@ const { greeting = "Hello", name = "Astronaut" } = Astro.props;
 <h2>{greeting}, punymighty {name}!</h2>
 `.trim()
 
-describe('Renders text markers', () => {
+describe('Renders text markers', async () => {
 	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
+
+	// Add two shiki themes
+	themes.unshift(await loadShikiTheme('dracula'))
+	themes.unshift(await loadShikiTheme('material-theme'))
+	// Add the default theme
 	themes.unshift(undefined)
 
 	describe('Line-level markers', () => {

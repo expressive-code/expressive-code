@@ -3,6 +3,7 @@ import { Parent } from 'hast-util-to-html/lib/types'
 import { matches, select, selectAll } from 'hast-util-select'
 import { ExpressiveCodeTheme } from '@expressive-code/core'
 import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures } from '@internal/test-utils'
+import { loadShikiTheme } from '@expressive-code/plugin-shiki'
 import { pluginFrames } from '../src'
 
 const exampleCode = `
@@ -14,8 +15,13 @@ const exampleTerminalCode = `
 pnpm i --save-dev expressive-code some-other-package yet-another-package 
 `.trim()
 
-describe('Renders frames around the code', () => {
+describe('Renders frames around the code', async () => {
 	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
+
+	// Add two shiki themes
+	themes.unshift(await loadShikiTheme('dracula'))
+	themes.unshift(await loadShikiTheme('material-theme'))
+	// Add the default theme
 	themes.unshift(undefined)
 
 	test('Single JS block without title', async ({ meta: { name: testName } }) => {
