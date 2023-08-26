@@ -6,8 +6,52 @@ import {
 	getColorContrastOnBackground,
 	multiplyAlpha,
 	setLuminance,
+	toHexColor,
 } from '../src/helpers/color-transforms'
 import { ColorInput, TinyColor } from '@ctrl/tinycolor'
+import { rgbaToLab, rgbaToLchab } from '../src/internal/color-spaces'
+
+describe('Color Space Support', () => {
+	const expectAllToBeClose = (actual: { [key: string]: number | undefined }, expected: { [key: string]: number | undefined }, numDigits = 1) => {
+		for (const [key, value] of Object.entries(expected)) {
+			expect(actual[key], `Component "${key}"`).toBeCloseTo(value ?? NaN, numDigits)
+		}
+	}
+
+	describe('LAB', () => {
+		test('Can convert LAB colors to RGB', () => {
+			expect(toHexColor({ l: 0, a: 0, b: 0 })).toEqual('#000000')
+			expect(toHexColor({ l: 50, a: 0, b: 0 })).toEqual('#777777')
+			expect(toHexColor({ l: 100, a: 0, b: 0 })).toEqual('#ffffff')
+			expect(toHexColor(`lab(20.83 6.64 -33.68)`)).toEqual('#003264')
+			expect(toHexColor(`lab(54.72 18.79 -70.92)`)).toEqual('#0080ff')
+		})
+		test('Can convert RGB colors to LAB', () => {
+			expectAllToBeClose(rgbaToLab({ r: 0, g: 0, b: 0 }), { l: 0, a: 0, b: 0 })
+			expectAllToBeClose(rgbaToLab({ r: 119, g: 119, b: 119 }), { l: 50, a: 0, b: 0 })
+			expectAllToBeClose(rgbaToLab({ r: 255, g: 255, b: 255 }), { l: 100, a: 0, b: 0 })
+			expectAllToBeClose(rgbaToLab({ r: 0, g: 50, b: 100 }), { l: 20.83, a: 6.64, b: -33.68 })
+			expectAllToBeClose(rgbaToLab({ r: 0, g: 128, b: 255 }), { l: 54.72, a: 18.79, b: -70.92 })
+		})
+	})
+
+	describe('LCH(ab)', () => {
+		test('Can convert LCH(ab) colors to RGB', () => {
+			expect(toHexColor({ l: 0, c: 0, h: 0 })).toEqual('#000000')
+			expect(toHexColor({ l: 50, c: 0, h: 0 })).toEqual('#777777')
+			expect(toHexColor({ l: 100, c: 0, h: 0 })).toEqual('#ffffff')
+			expect(toHexColor({ l: 20.83195, c: 34.32489, h: 281.15674 })).toEqual('#003264')
+			expect(toHexColor(`lch(54.72 73.36 284.84)`)).toEqual('#0080ff')
+		})
+		test('Can convert RGB colors to LCH(ab)', () => {
+			expectAllToBeClose(rgbaToLchab({ r: 0, g: 0, b: 0 }), { l: 0, c: 0 })
+			expectAllToBeClose(rgbaToLchab({ r: 119, g: 119, b: 119 }), { l: 50, c: 0 })
+			expectAllToBeClose(rgbaToLchab({ r: 255, g: 255, b: 255 }), { l: 100, c: 0 })
+			expectAllToBeClose(rgbaToLchab({ r: 0, g: 50, b: 100 }), { l: 20.83195, c: 34.32489, h: 281.15674 })
+			expectAllToBeClose(rgbaToLchab({ r: 0, g: 128, b: 255 }), { l: 54.72, c: 73.36, h: 284.84 })
+		})
+	})
+})
 
 describe('Color Transforms', () => {
 	describe('multiplyAlpha()', () => {

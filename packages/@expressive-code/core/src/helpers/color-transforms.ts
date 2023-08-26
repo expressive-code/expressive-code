@@ -1,5 +1,6 @@
 import { ColorInput, TinyColor, readability } from '@ctrl/tinycolor'
-import { LabColor, LchColor, labToRgba, lchToRgba, parseCssLabColor, parseCssLchColor } from '../internal/color-spaces'
+import { LabColor, LchColor, labToRgba, lchabToRgba, parseCssLabColor, parseCssLchColor } from '../internal/color-spaces'
+import { binarySearch } from '../internal/binary-search'
 
 export type ColorValue = ColorInput | LabColor | LchColor
 
@@ -194,64 +195,6 @@ export function changeAlphaToReachColorContrast(input: ColorValue, background: C
 	return setAlpha(color, newAlpha)
 }
 
-function binarySearch({
-	getValueFn,
-	targetValue,
-	preferHigher,
-	tolerance = 0.1,
-	low = 0,
-	high = 1,
-	minChangeFactor = 0.001,
-	maxIterations = 25,
-}: {
-	getValueFn: (mid: number) => number
-	targetValue: number
-	/**
-	 * Determines the preferred direction in relation to `targetValue`. Will be used in two cases:
-	 * - The calculated value is within `tolerance` of `targetValue`.
-	 * - The midpoint does not change enough between iterations anymore (see `minChangeFactor`).
-	 *
-	 * If undefined, the direction will not be taken into account.
-	 */
-	preferHigher?: boolean | undefined
-	tolerance?: number | undefined
-	low?: number | undefined
-	high?: number | undefined
-	/**
-	 * If the midpoint changes less than `minChangeFactor * Math.abs(high - low)`
-	 * between iterations, the search will stop as soon as the value returned by `getValueFn`
-	 * is in the preferred direction in relation to `targetValue`.
-	 */
-	minChangeFactor?: number | undefined
-	maxIterations?: number | undefined
-}) {
-	const epsilon = minChangeFactor * Math.abs(high - low)
-	let iterations = 0
-	let mid: number
-	let lastMid: number | undefined
-
-	while (((mid = (low + high) / 2), iterations < maxIterations)) {
-		const currentValue = getValueFn(mid)
-
-		const resultIsWithinTolerance = Math.abs(currentValue - targetValue) <= tolerance
-		const resultIsInPreferredDirection = preferHigher === undefined ? true : preferHigher ? currentValue > targetValue : currentValue < targetValue
-		const midChangedLessThanEpsilon = lastMid !== undefined && Math.abs(lastMid - mid) < epsilon
-
-		if (resultIsInPreferredDirection && (resultIsWithinTolerance || midChangedLessThanEpsilon)) {
-			return mid
-		} else if (currentValue < targetValue) {
-			low = mid
-		} else {
-			high = mid
-		}
-
-		iterations++
-		lastMid = mid
-	}
-
-	return mid
-}
-
 function withParsedColor(input: ColorValue, transform: (color: TinyColor) => string, fallback?: ColorValue) {
 	const color = toTinyColor(input)
 	if (!color.isValid) {
@@ -277,7 +220,7 @@ function toTinyColor(input: ColorValue) {
 		// as this color space is not supported by TinyColor yet
 		const lchColor = parseCssLchColor(input)
 		if (lchColor) {
-			return new TinyColor(lchToRgba(lchColor))
+			return new TinyColor(lchabToRgba(lchColor))
 		}
 	}
 	if (typeof input === 'object') {
@@ -287,7 +230,7 @@ function toTinyColor(input: ColorValue) {
 		}
 		// Detect lch color objects
 		if ('l' in input && 'c' in input && 'h' in input) {
-			return new TinyColor(lchToRgba(input))
+			return new TinyColor(lchabToRgba(input))
 		}
 	}
 	return new TinyColor(input)
