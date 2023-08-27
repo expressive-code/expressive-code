@@ -33,6 +33,7 @@ describe('Renders text markers', async () => {
 	// Add two shiki themes
 	themes.unshift(await loadShikiTheme('dracula'))
 	themes.unshift(await loadShikiTheme('material-theme'))
+	themes.unshift(await loadShikiTheme('github-light'))
 	// Add the default theme
 	themes.unshift(undefined)
 
