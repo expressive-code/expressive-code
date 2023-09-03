@@ -1,3 +1,6 @@
+import { Rgb, Hsl, Oklch, convertHslToRgb, convertRgbToHsl, convertLchToLab, convertLabToLch, convertOklabToRgb, convertRgbToOklab } from 'culori/fn'
+import { bisect } from './search-algorithms'
+
 /**
  * RGBA color space, with all color channels ranging from 0 to 255,
  * and alpha ranging from 0 to 1.
@@ -23,9 +26,11 @@ export type LabColor = {
 export type LchColor = {
 	l: number
 	c: number
-	h: number
+	h: number | undefined
 	alpha?: number | undefined
 }
+
+export { Hsl, Oklch }
 
 // White point constants
 export const D65 = [0.3127 / 0.329, 1, (1 - 0.3127 - 0.329) / 0.329]
@@ -112,8 +117,8 @@ function labToXyz(lab: { l: number; a: number; b: number }, illuminant: number[]
 function lchabToLab(lch: LchColor): LabColor {
 	return {
 		l: lch.l,
-		a: lch.c * Math.cos((lch.h * Math.PI) / 180),
-		b: lch.c * Math.sin((lch.h * Math.PI) / 180),
+		a: lch.c * Math.cos(((lch.h ?? 0) * Math.PI) / 180),
+		b: lch.c * Math.sin(((lch.h ?? 0) * Math.PI) / 180),
 		alpha: lch.alpha,
 	}
 }
@@ -151,6 +156,75 @@ export function lchabToRgba(lch: LchColor, illuminant: number[] = D65): RgbaColo
 	return labToRgba(lchabToLab(lch), illuminant)
 }
 
+function rgbaToCulori(rgba: RgbaColor): Rgb {
+	const { r, g, b, a } = rgba
+	return {
+		mode: 'rgb',
+		r: r / 255,
+		g: g / 255,
+		b: b / 255,
+		...(a !== undefined && { alpha: a }),
+	}
+}
+
+function rgbaFromCulori(culoriRgb: Rgb): RgbaColor {
+	const { r, g, b, alpha } = culoriRgb
+	return {
+		r: r * 255,
+		g: g * 255,
+		b: b * 255,
+		a: alpha,
+	}
+}
+
+export function rgbaToHsl(input: RgbaColor): Hsl {
+	return convertRgbToHsl(rgbaToCulori(input))
+}
+
+export function hslToRgba(input: Hsl): RgbaColor {
+	return rgbaFromCulori(convertHslToRgb(input))
+}
+
+export function rgbaToOklch(input: RgbaColor): Oklch {
+	const oklab = convertRgbToOklab(rgbaToCulori(input))
+	return convertLabToLch(oklab, 'oklch')
+}
+
+export function oklchToRgba(input: Oklch, clampChroma = true): RgbaColor {
+	const convert = (oklch: Oklch) => {
+		// @ts-expect-error Types are missing the `mode` argument
+		const oklab = convertLchToLab(oklch, 'oklab')
+		const rgb = convertOklabToRgb(oklab)
+		const minChannel = Math.min(rgb.r, rgb.g, rgb.b)
+		const maxChannel = Math.max(rgb.r, rgb.g, rgb.b)
+		const inGamut = minChannel >= 0 && maxChannel <= 1
+		return {
+			rgb,
+			c: oklch.c,
+			inGamut,
+		}
+	}
+	let result = convert(input)
+	// If the resulting RGB color is out of gamut (exceeds the RGB color space),
+	// try to get it into gamut by reducing the chroma
+	if (!result.inGamut && clampChroma) {
+		// Check if the color can be brought into gamut by reducing the chroma
+		result = convert({ ...input, c: 0 })
+		if (result.inGamut) {
+			// Yes, so perform the bisect method to find the maximum chroma
+			// that is still in gamut
+			const maxChromaInGamut = bisect({
+				checkFn: (c) => convert({ ...input, c }).inGamut,
+				low: 0,
+				high: input.c,
+				minChangeFactor: 0.0001,
+			})
+			result = convert({ ...input, c: maxChromaInGamut ?? 0 })
+		}
+	}
+	return rgbaFromCulori(result.rgb)
+}
+
 function normalizeAngle(angle: number): number {
 	angle %= 360
 	return angle < 0 ? angle + 360 : angle
@@ -171,10 +245,10 @@ export function parseCssLabColor(labString: string): LabColor | undefined {
 	const [, l, a, b, alpha] = match
 
 	return {
-		l: parseCssValue(l, 0, 100, 1),
-		a: parseCssValue(a, -125, 125, 1.25),
-		b: parseCssValue(b, -125, 125, 1.25),
-		alpha: alpha !== undefined ? parseCssValue(alpha, 0, 1, 0.01) : undefined,
+		l: parseCssValue(l, 0, 100),
+		a: parseCssValue(a, -125, 125),
+		b: parseCssValue(b, -125, 125),
+		alpha: alpha !== undefined ? parseCssValue(alpha, 0, 1) : undefined,
 	}
 }
 
@@ -188,16 +262,34 @@ export function parseCssLchColor(lchString: string): LchColor | undefined {
 	const [, l, c, h, alpha] = match
 
 	return {
-		l: parseCssValue(l, 0, 100, 1),
-		c: parseCssValue(c, 0, 150, 1.5),
+		l: parseCssValue(l, 0, 100),
+		c: parseCssValue(c, 0, 150),
 		h: parseAngle(h),
-		alpha: alpha !== undefined ? parseCssValue(alpha, 0, 1, 0.01) : undefined,
+		alpha: alpha !== undefined ? parseCssValue(alpha, 0, 1) : undefined,
 	}
 }
 
-function parseCssValue(value: string, min: number, max: number, percentageScale: number): number {
+export function parseCssOklchColor(oklchString: string): Oklch | undefined {
+	const match = oklchString.match(/^oklch\(\s*([\d.]+%?)\s+([\d.]+%?)\s+([\d.]+(?:deg)?)(?:\s*\/\s*([\d.]+%?))?\s*\)$/i)
+
+	if (!match) {
+		return undefined
+	}
+
+	const [, l, c, h, alpha] = match
+
+	return {
+		mode: 'oklch',
+		l: parseCssValue(l, 0, 1),
+		c: parseCssValue(c, 0, 0.5, 0.4),
+		h: parseAngle(h),
+		...(alpha !== undefined && { alpha: parseCssValue(alpha, 0, 1) }),
+	}
+}
+
+function parseCssValue(value: string, min: number, max: number, valueFor100Percent?: number): number {
 	const isPercentage = value.endsWith('%')
 	const floatValue = parseFloat(value)
-	const convertedValue = isPercentage ? floatValue * percentageScale : floatValue
+	const convertedValue = isPercentage ? (floatValue * (valueFor100Percent ?? max)) / 100 : floatValue
 	return Math.max(min, Math.min(max, convertedValue))
 }

@@ -55,3 +55,58 @@ export function binarySearch({
 
 	return mid
 }
+
+/**
+ * Searches the range between `low` and `high` to find the value closest to `high`
+ * that `checkFn` returns `true` for.
+ *
+ * Returns `undefined` if no such value was found.
+ */
+export function bisect({
+	checkFn,
+	low = 0,
+	high = 1,
+	/**
+	 * If the midpoint changes less than `minChangeFactor * Math.abs(high - low)`
+	 * between iterations, the search will stop and return the highest value
+	 * that `checkFn` returned `true` for.
+	 */
+	minChangeFactor = 0.001,
+	maxIterations = 25,
+}: {
+	checkFn: (mid: number) => boolean
+	low?: number | undefined
+	high?: number | undefined
+	/**
+	 * If the midpoint changes less than `minChangeFactor * Math.abs(high - low)`
+	 * between iterations, the search will stop and return the last value that `checkFn`
+	 * returned `true` for.
+	 */
+	minChangeFactor?: number | undefined
+	maxIterations?: number | undefined
+}) {
+	const epsilon = minChangeFactor * Math.abs(high - low)
+	let iterations = 0
+	let highestValid: number | undefined
+	let mid: number
+	let lastMid: number | undefined
+
+	while (((mid = (low + high) / 2), iterations < maxIterations)) {
+		const isValid = checkFn(mid)
+
+		if (isValid) {
+			highestValid = mid
+			low = mid
+		} else {
+			high = mid
+		}
+
+		const midChangedLessThanEpsilon = lastMid !== undefined && Math.abs(lastMid - mid) < epsilon
+		if (midChangedLessThanEpsilon) return highestValid
+
+		iterations++
+		lastMid = mid
+	}
+
+	return highestValid
+}
