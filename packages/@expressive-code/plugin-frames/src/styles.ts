@@ -17,9 +17,10 @@ export const framesStyleSettings = new StyleSettings({
 	editorTabBarBorderBottom: ({ theme }) => theme.colors['editorGroupHeader.tabsBorder'] || 'transparent',
 	editorBackground: ({ coreStyles }) => coreStyles.codeBackground,
 	terminalTitlebarDotsForeground: ({ theme }) => (theme.type === 'dark' ? '#ffffff26' : '#00000026'),
-	terminalTitlebarBackground: ({ theme }) => theme.colors['editorGroupHeader.tabsBackground'],
+	terminalTitlebarBackground: ({ theme }) => theme.colors['titleBar.activeBackground'] || theme.colors['editorGroupHeader.tabsBackground'],
 	terminalTitlebarForeground: ({ theme }) => theme.colors['titleBar.activeForeground'],
-	terminalTitlebarBorderBottom: ({ theme, coreStyles }) => onBackground(coreStyles.borderColor, theme.type === 'dark' ? '#000000bf' : '#ffffffbf'),
+	terminalTitlebarBorderBottom: ({ theme, coreStyles }) =>
+		theme.colors['titleBar.border'] || onBackground(coreStyles.borderColor, theme.type === 'dark' ? '#000000bf' : '#ffffffbf'),
 	terminalBackground: ({ theme }) => theme.colors['terminal.background'],
 	inlineButtonForeground: ({ coreStyles }) => coreStyles.codeForeground,
 	inlineButtonBorder: ({ resolveSetting }) => setAlpha(resolveSetting('inlineButtonForeground'), 0.4),
