@@ -7,11 +7,12 @@ import toHtml from 'rehype-stringify'
 import remarkExpressiveCode, { RemarkExpressiveCodeOptions } from '../src'
 import { sampleCodeHtmlRegExp, sampleCodeMarkdown } from './utils'
 
-const regexCodeBg = /.ec-\w+? pre{(?:[^}]*?;)*background:(.*?)[;}]/
-const regexCodeColor = /.ec-\w+? pre\s*>\s*code{(?:[^}]*?;)*color:(.*?)[;}]/
-const regexCodeSelectionBg = /.ec-\w+? pre\s+::selection{(?:[^}]*?;)*background:(.*?)[;}]/
-const regexScrollbarThumbColor = /.ec-\w+? pre::-webkit-scrollbar-thumb{(?:[^}]*?;)*background-color:(.*?)[;}]/
-const regexScrollbarHoverColor = /.ec-\w+? pre::-webkit-scrollbar-thumb:hover{(?:[^}]*?;)*background-color:(.*?)[;}]/
+const regexCodeBg = /.ec-\w+? pre{(?:[^}]*?;)*background:(.*?)[;}]/g
+const regexCodeColor = /.ec-\w+? pre\s*>\s*code{(?:[^}]*?;)*color:(.*?)[;}]/g
+const regexCodeSelectionBg = /.ec-\w+? pre\s+::selection{(?:[^}]*?;)*background:(.*?)[;}]/g
+const regexScrollbarThumbColor = /.ec-\w+? pre::-webkit-scrollbar-thumb{(?:[^}]*?;)*background-color:(.*?)[;}]/g
+const regexScrollbarHoverColor = /.ec-\w+? pre::-webkit-scrollbar-thumb:hover{(?:[^}]*?;)*background-color:(.*?)[;}]/g
+const regexThemeClassNames = /<div class="expressive-code .*?(ec-theme-[\w-]+?)(| .*?)">/g
 
 describe('Usage inside unified/remark', () => {
 	test('Works without any options', async () => {
@@ -20,99 +21,86 @@ describe('Usage inside unified/remark', () => {
 		expect(result.value).toMatch(sampleCodeHtmlRegExp)
 	})
 	test('Can load themes bundled with Shiki by name', async () => {
-		const testCases: {
-			theme: RemarkExpressiveCodeOptions['theme']
-			bgColor: string
-			textColor: string
-		}[] = [
-			{ theme: 'light-plus', bgColor: '#ffffff', textColor: '#000000' },
-			{ theme: 'material-theme', bgColor: '#263238', textColor: '#eeffff' },
-		]
-		await Promise.all(
-			testCases.map(async ({ theme, bgColor, textColor }) => {
-				const processor = createRemarkProcessor({ theme })
-				const result = await processor.process(sampleCodeMarkdown)
-				const html = result.value.toString()
-				const actualBgColor = html.match(regexCodeBg)?.[1]
-				const actualTextColor = html.match(regexCodeColor)?.[1]
-				expect(html).toMatch(sampleCodeHtmlRegExp)
-				expect(actualBgColor).toEqual(bgColor)
-				expect(actualTextColor).toEqual(textColor)
-			})
-		)
+		await runThemeTests({
+			testCases: [
+				{ theme: 'light-plus', bgColor: ['#ffffff'], textColor: ['#000000'] },
+				{ theme: 'material-theme', bgColor: ['#263238'], textColor: ['#eeffff'] },
+			],
+		})
+	})
+	test('Can load multiple themes', async () => {
+		await runThemeTests({
+			testCases: [
+				{
+					// Provide multiple themes by name
+					theme: ['light-plus', 'material-theme'],
+					// Expect two matches per code block, each with a different theme
+					bgColor: ['#ffffff', '#263238'],
+					textColor: ['#000000', '#eeffff'],
+				},
+			],
+		})
+	})
+	test('Adds CSS class names based on the theme names by default', async () => {
+		await runThemeTests({
+			testCases: [
+				{
+					// Provide multiple themes by name
+					theme: ['light-plus', 'material-theme'],
+					themeClassNames: ['ec-theme-light-plus', 'ec-theme-material-theme'],
+				},
+			],
+		})
+	})
+	test('Can use the `customizeTheme` option to change CSS class names', async () => {
+		await runThemeTests({
+			testCases: [
+				{
+					// Provide multiple themes by name
+					theme: ['light-plus', 'material-theme'],
+					themeClassNames: ['ec-theme-light', 'ec-theme-dark'],
+				},
+			],
+			config: {
+				customizeTheme: (theme) => {
+					theme.name = theme.type
+				},
+			},
+		})
 	})
 	test('Allows the theme to customize the scrollbar by default', async () => {
-		const testCases: {
-			theme: RemarkExpressiveCodeOptions['theme']
-			thumbColor: string
-			hoverColor: string
-		}[] = [
-			{ theme: 'light-plus', thumbColor: '#64646466', hoverColor: '#646464b2' },
-			{ theme: 'material-theme', thumbColor: '#eeffff20', hoverColor: '#eeffff4b' },
-		]
-		await Promise.all(
-			testCases.map(async ({ theme, thumbColor, hoverColor }) => {
-				const processor = createRemarkProcessor({ theme })
-				const result = await processor.process(sampleCodeMarkdown)
-				const html = result.value.toString()
-				const actualThumbColor = html.match(regexScrollbarThumbColor)?.[1]
-				const actualHoverColor = html.match(regexScrollbarHoverColor)?.[1]
-				expect(html).toMatch(sampleCodeHtmlRegExp)
-				expect(actualThumbColor).toEqual(thumbColor)
-				expect(actualHoverColor).toEqual(hoverColor)
-			})
-		)
+		await runThemeTests({
+			testCases: [
+				{ theme: 'light-plus', thumbColor: ['#64646466'], hoverColor: ['#646464b2'] },
+				{ theme: 'material-theme', thumbColor: ['#eeffff20'], hoverColor: ['#eeffff4b'] },
+			],
+		})
 	})
 	test('Does not customize the scrollbar if `useThemedScrollbars` is false', async () => {
-		const testCases: {
-			theme: RemarkExpressiveCodeOptions['theme']
-		}[] = [{ theme: 'light-plus' }, { theme: 'material-theme' }]
-		await Promise.all(
-			testCases.map(async ({ theme }) => {
-				const processor = createRemarkProcessor({ theme, useThemedScrollbars: false })
-				const result = await processor.process(sampleCodeMarkdown)
-				const html = result.value.toString()
-				const actualThumbColor = html.match(regexScrollbarThumbColor)?.[1]
-				const actualHoverColor = html.match(regexScrollbarHoverColor)?.[1]
-				expect(html).toMatch(sampleCodeHtmlRegExp)
-				expect(actualThumbColor).toBeUndefined()
-				expect(actualHoverColor).toBeUndefined()
-			})
-		)
+		await runThemeTests({
+			testCases: [
+				{ theme: 'light-plus', thumbColor: [], hoverColor: [] },
+				{ theme: 'material-theme', thumbColor: [], hoverColor: [] },
+			],
+			config: { useThemedScrollbars: false },
+		})
 	})
 	test('Allows the theme to customize selection colors by default', async () => {
-		const testCases: {
-			theme: RemarkExpressiveCodeOptions['theme']
-			codeSelectionBg: string
-		}[] = [
-			{ theme: 'light-plus', codeSelectionBg: '#add6ff' },
-			{ theme: 'material-theme', codeSelectionBg: '#80cbc420' },
-		]
-		await Promise.all(
-			testCases.map(async ({ theme, codeSelectionBg }) => {
-				const processor = createRemarkProcessor({ theme })
-				const result = await processor.process(sampleCodeMarkdown)
-				const html = result.value.toString()
-				const actualBg = html.match(regexCodeSelectionBg)?.[1]
-				expect(html).toMatch(sampleCodeHtmlRegExp)
-				expect(actualBg).toEqual(codeSelectionBg)
-			})
-		)
+		await runThemeTests({
+			testCases: [
+				{ theme: 'light-plus', codeSelectionBg: ['#add6ff'] },
+				{ theme: 'material-theme', codeSelectionBg: ['#80cbc420'] },
+			],
+		})
 	})
 	test('Does not customize selection colors if `useThemedSelectionColors` is false', async () => {
-		const testCases: {
-			theme: RemarkExpressiveCodeOptions['theme']
-		}[] = [{ theme: 'light-plus' }, { theme: 'material-theme' }]
-		await Promise.all(
-			testCases.map(async ({ theme }) => {
-				const processor = createRemarkProcessor({ theme, useThemedSelectionColors: false })
-				const result = await processor.process(sampleCodeMarkdown)
-				const html = result.value.toString()
-				const actualBg = html.match(regexCodeSelectionBg)?.[1]
-				expect(html).toMatch(sampleCodeHtmlRegExp)
-				expect(actualBg).toBeUndefined()
-			})
-		)
+		await runThemeTests({
+			testCases: [
+				{ theme: 'light-plus', codeSelectionBg: [] },
+				{ theme: 'material-theme', codeSelectionBg: [] },
+			],
+			config: { useThemedSelectionColors: false },
+		})
 	})
 	test('Adds JS modules provided by plugins before the first code block', async () => {
 		const processor = createRemarkProcessor({
@@ -175,6 +163,47 @@ function test() {
 		})
 	})
 })
+
+async function runThemeTests({
+	testCases,
+	config,
+}: {
+	testCases: {
+		theme: RemarkExpressiveCodeOptions['theme']
+		bgColor?: string[] | undefined
+		textColor?: string[] | undefined
+		thumbColor?: string[] | undefined
+		hoverColor?: string[] | undefined
+		codeSelectionBg?: string[] | undefined
+		themeClassNames?: string[] | undefined
+	}[]
+	config?: RemarkExpressiveCodeOptions | undefined
+}) {
+	await Promise.all(
+		testCases.map(async (testCase) => {
+			const processor = createRemarkProcessor({ theme: testCase.theme, ...config })
+			const result = await processor.process(sampleCodeMarkdown)
+			const html = result.value.toString()
+			expect(html).toMatch(sampleCodeHtmlRegExp)
+
+			// Perform individual tests specified in the test case
+			let performedTests = 0
+			const performRegexTest = (expected: string[] | undefined, regex: RegExp) => {
+				if (!expected) return
+				const actual = [...html.matchAll(regex)].map((match) => match[1])
+				expect(actual).toEqual(expected)
+				performedTests++
+			}
+			performRegexTest(testCase.bgColor, regexCodeBg)
+			performRegexTest(testCase.textColor, regexCodeColor)
+			performRegexTest(testCase.thumbColor, regexScrollbarThumbColor)
+			performRegexTest(testCase.hoverColor, regexScrollbarHoverColor)
+			performRegexTest(testCase.codeSelectionBg, regexCodeSelectionBg)
+			performRegexTest(testCase.themeClassNames, regexThemeClassNames)
+			expect(performedTests).toBeGreaterThan(0)
+		})
+	)
+}
 
 function createRemarkProcessor(options?: RemarkExpressiveCodeOptions) {
 	const processor = unified()

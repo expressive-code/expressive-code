@@ -19,6 +19,20 @@ export interface ExpressiveCodeEngineConfig {
 	 */
 	defaultLocale?: string | undefined
 	/**
+	 * This optional function is called once per theme during engine initialization
+	 * with the loaded theme as its only argument.
+	 *
+	 * It allows customizing the loaded theme and can be used for various purposes:
+	 * - You can change a theme's `name` property to influence its generated CSS class name
+	 *   (e.g. `theme.name = 'dark'` will result in code blocks having the class `ec-theme-dark`).
+	 * - You can create color variations of themes by using `theme.applyHueAndChromaAdjustments()`.
+	 *
+	 * You can optionally return an `ExpressiveCodeTheme` instance from this function to replace
+	 * the theme provided in the configuration. This allows you to create a copy of the theme
+	 * and modify it without affecting the original instance.
+	 */
+	customizeTheme?: ((theme: ExpressiveCodeTheme) => ExpressiveCodeTheme | void) | undefined
+	/**
 	 * Whether the theme is allowed to style the scrollbars. Defaults to `true`.
 	 *
 	 * If set to `false`, scrollbars will be rendered using the browser's default style.
@@ -68,7 +82,13 @@ export class ExpressiveCodeEngine {
 		}
 		this.plugins = config.plugins?.flat() || []
 
-		// Resolve core styles based on the given theme and style overrides
+		// Allow customizing the loaded theme
+		if (config.customizeTheme) {
+			const newTheme = config.customizeTheme(this.theme)
+			if (newTheme) this.theme = newTheme
+		}
+
+		// Resolve core styles based on the theme and style overrides
 		this.coreStyles = coreStyleSettings.resolve({
 			theme: this.theme,
 			styleOverrides: this.styleOverrides,

@@ -5,6 +5,7 @@ import { loadTheme as shikiLoadTheme } from 'shiki'
 import dracula from 'shiki/themes/dracula.json'
 import githubLight from 'shiki/themes/github-light.json'
 import { ExpressiveCodeTheme } from '../src/common/theme'
+import { ExpressiveCodeEngine } from '../src/common/engine'
 
 describe('ExpressiveCodeTheme', () => {
 	describe('Throws on invalid themes', () => {
@@ -151,6 +152,88 @@ describe('ExpressiveCodeTheme', () => {
 			expect(theme.colors['editor.background']).toBe(dracula.colors?.['editor.background'].toLowerCase())
 			expect(theme.colors['editor.foreground']).toBe(dracula.colors?.['editor.foreground'].toLowerCase())
 			expect(theme.colors['tab.activeBorderTop']).toBe(dracula.colors?.['tab.activeBorderTop'].toLowerCase())
+		})
+	})
+
+	describe('Can be copied by passing an existing instance', () => {
+		test('Properties are copied correctly', async () => {
+			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('themes/dracula.json'))
+			const copy = new ExpressiveCodeTheme(theme)
+
+			// Expect the copied theme to have the same main properties
+			expect(copy.name).toBe(theme.name)
+			expect(copy.type).toBe(theme.type)
+
+			// Expect the copied theme to have the same colors and settings
+			expect(copy.colors).toEqual(theme.colors)
+			expect(copy.settings).toEqual(theme.settings)
+		})
+		test('Copy can be modified without affecting the original', async () => {
+			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('themes/dracula.json'))
+			const copy = new ExpressiveCodeTheme(theme)
+
+			// Expect the copied theme to have the same colors
+			expect(copy.colors).toEqual(theme.colors)
+
+			// Modify the copied colors and expect the original to be unaffected
+			copy.colors['editor.background'] = '#ffffff'
+			expect(copy.colors['editor.background']).toBe('#ffffff')
+			expect(theme.colors['editor.background']).toBe('#282a36')
+
+			// Modify the copied settings and expect the original to be unaffected
+			type ThemeSettings = { scope: string | string[]; settings: { [key: string]: string } }[]
+			const findMarkupInsertedEntry = (settings: ThemeSettings) => settings.find((s) => Array.isArray(s.scope) && s.scope.includes('markup.inserted'))
+			const copyMarkupInserted = findMarkupInsertedEntry(copy.settings as ThemeSettings)
+			copyMarkupInserted!.settings.foreground = '#0ab0c0'
+			expect(copyMarkupInserted!.settings.foreground).toBe('#0ab0c0')
+			const themeMarkupInserted = findMarkupInsertedEntry(theme.settings as ThemeSettings)
+			expect(themeMarkupInserted!.settings.foreground).toBe('#50FA7B')
+		})
+	})
+
+	describe('Can apply color adjustments to themes', () => {
+		test('Can adjust colors of "github-dark"', async () => {
+			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('themes/github-dark.json'))
+			theme.applyHueAndChromaAdjustments({
+				backgrounds: '#3b82f6',
+				accents: '#a3e635',
+				custom: [{ themeColorKeys: ['panel.background', 'panel.border'], targetHueAndChroma: '#823bf6' }],
+			})
+
+			// Expect background colors to be adjusted
+			// - Original github-dark color: #24292e
+			expect(theme.colors['editor.background']).toBe('#04255a')
+
+			// Expect accent colors to be adjusted
+			// - Original github-dark color: #3392ff44
+			expect(theme.colors['editor.selectionBackground']).toBe('#73a42344')
+
+			// Expect custom colors to be adjusted
+			// - Original github-dark color: #1b1f23
+			expect(theme.colors['panel.border']).toBe('#250451')
+
+			// Expect custom colors to override other adjustments
+			// - Original github-dark color: #1b1f23
+			// - Recolored by `backgrounds`: #032050
+			expect(theme.colors['panel.background']).toBe('#2a065b')
+		})
+		test('Can use the "customizeTheme" option to adjust colors', () => {
+			const engine = new ExpressiveCodeEngine({
+				customizeTheme: (theme) => {
+					theme.applyHueAndChromaAdjustments({
+						backgrounds: '#3b82f6',
+						accents: '#a3e635',
+						custom: [{ themeColorKeys: ['panel.background', 'panel.border'], targetHueAndChroma: '#823bf6' }],
+					})
+				},
+			})
+
+			// Expect background colors to be adjusted
+			// - Original github-dark color: #24292e
+			expect(engine.theme.colors['editor.background']).toBe('#04255a')
+
+			// Also expect resolved core styles to have picked up the adjusted colors
+			expect(engine.coreStyles.codeBackground).toBe('#04255a')
 		})
 	})
 })

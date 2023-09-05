@@ -214,6 +214,32 @@ export type VSCodeDefaultColorKey =
 	| 'editor.snippetTabstopHighlightBackground'
 	| 'editor.snippetFinalTabstopHighlightBorder'
 
+export const groupedDefaultWorkbenchColorKeys = {
+	backgrounds: [
+		'editor.background',
+		'editorGroupHeader.tabsBackground',
+		'editorGroupHeader.tabsBorder',
+		'panel.background',
+		'tab.activeBackground',
+		'tab.activeBorderTop',
+		'tab.activeBorder',
+		'terminal.background',
+		'widget.shadow',
+	],
+	accents: [
+		'focusBorder',
+		'editor.selectionBackground',
+		'textBlockQuote.border',
+		'textLink.activeForeground',
+		'textLink.foreground',
+		'editorLink.activeForeground',
+		'tab.activeForeground',
+		'tab.inactiveForeground',
+		'tab.unfocusedActiveForeground',
+		'tab.unfocusedInactiveForeground',
+	],
+} satisfies { [key in string]: readonly VSCodeDefaultColorKey[] }
+
 const defaultEditorBackgroundColors: [string, string] = ['#1e1e1e', '#ffffff']
 const defaultEditorForegroundColors: [string, string] = ['#bbbbbb', '#333333']
 
