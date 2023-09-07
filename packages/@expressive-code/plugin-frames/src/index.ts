@@ -161,11 +161,15 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 
 					extraElements.push(
 						h('div', { className: 'copy' }, [
-							h('button', {
-								title: texts.copyButtonTooltip,
-								'data-copied': texts.copyButtonCopied,
-								'data-code': codeToCopy,
-							}),
+							h(
+								'button',
+								{
+									title: texts.copyButtonTooltip,
+									'data-copied': texts.copyButtonCopied,
+									'data-code': codeToCopy,
+								},
+								[h('div')]
+							),
 						])
 					)
 				}

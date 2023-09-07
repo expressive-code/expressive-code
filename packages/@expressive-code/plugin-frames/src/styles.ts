@@ -1,4 +1,4 @@
-import { StyleSettings, multiplyAlpha, ExpressiveCodeTheme, ResolvedCoreStyles, onBackground, toRgbaString, setAlpha } from '@expressive-code/core'
+import { StyleSettings, multiplyAlpha, ExpressiveCodeTheme, ResolvedCoreStyles, onBackground, toRgbaString, setLuminance, setAlpha } from '@expressive-code/core'
 import { PluginFramesOptions } from '.'
 
 export const framesStyleSettings = new StyleSettings({
@@ -16,17 +16,21 @@ export const framesStyleSettings = new StyleSettings({
 	editorTabBarBorderColor: ({ coreStyles }) => coreStyles.borderColor,
 	editorTabBarBorderBottom: ({ theme }) => theme.colors['editorGroupHeader.tabsBorder'] || 'transparent',
 	editorBackground: ({ coreStyles }) => coreStyles.codeBackground,
-	terminalTitlebarDotsForeground: ({ theme }) => (theme.type === 'dark' ? '#ffffff26' : '#00000026'),
+	terminalTitlebarDotsForeground: ({ resolveSetting }) => resolveSetting('terminalTitlebarForeground'),
+	terminalTitlebarDotsOpacity: '0.15',
 	terminalTitlebarBackground: ({ theme }) => theme.colors['titleBar.activeBackground'] || theme.colors['editorGroupHeader.tabsBackground'],
 	terminalTitlebarForeground: ({ theme }) => theme.colors['titleBar.activeForeground'],
 	terminalTitlebarBorderBottom: ({ theme, coreStyles }) =>
 		theme.colors['titleBar.border'] || onBackground(coreStyles.borderColor, theme.type === 'dark' ? '#000000bf' : '#ffffffbf'),
 	terminalBackground: ({ theme }) => theme.colors['terminal.background'],
+	inlineButtonBackground: ({ resolveSetting }) => resolveSetting('inlineButtonForeground'),
+	inlineButtonBackgroundIdleOpacity: '0',
+	inlineButtonBackgroundHoverOrFocusOpacity: '0.2',
+	inlineButtonBackgroundActiveOpacity: '0.3',
 	inlineButtonForeground: ({ coreStyles }) => coreStyles.codeForeground,
-	inlineButtonBorder: ({ resolveSetting }) => setAlpha(resolveSetting('inlineButtonForeground'), 0.4),
-	inlineButtonHoverOrFocusBackground: ({ resolveSetting }) => setAlpha(resolveSetting('inlineButtonForeground'), 0.2),
-	inlineButtonActiveBackground: ({ resolveSetting }) => setAlpha(resolveSetting('inlineButtonForeground'), 0.3),
-	tooltipSuccessBackground: '#177d07',
+	inlineButtonBorder: ({ resolveSetting }) => resolveSetting('inlineButtonForeground'),
+	inlineButtonBorderOpacity: '0.4',
+	tooltipSuccessBackground: ({ theme }) => setLuminance(theme.colors['terminal.ansiGreen'] || '#0dbc79', 0.18),
 	tooltipSuccessForeground: 'white',
 })
 
@@ -166,6 +170,7 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 				&::before {
 					content: '';
 					background-color: ${framesStyles.terminalTitlebarDotsForeground};
+					opacity: ${framesStyles.terminalTitlebarDotsOpacity};
 					-webkit-mask-image: ${terminalTitlebarDots};
 					-webkit-mask-repeat: no-repeat;
 					mask-image: ${terminalTitlebarDots};
@@ -207,14 +212,16 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 		unicode-bidi: isolate;
 
 		button {
+			position: relative;
 			align-self: flex-end;
 			margin: 0;
-			padding: 0.4rem;
+			padding: 0;
+			border: none;
 			border-radius: 0.2rem;
 			z-index: 1;
 			cursor: pointer;
 
-			transition-property: opacity, background, border-color, box-shadow;
+			transition-property: opacity, background, border-color;
 			transition-duration: 0.2s;
 			transition-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 
@@ -222,24 +229,54 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 			width: 2.5rem;
 			height: 2.5rem;
 			background: var(--code-background);
-			border: ${coreStyles.borderWidth} solid ${framesStyles.inlineButtonBorder};
 			opacity: 0.75;
 
-			/* On hover or focus, make the button fully opaque */
-			&:hover, &:focus:focus-visible {
-				opacity: 1;
-				box-shadow: inset 0 0 0 2.5rem ${framesStyles.inlineButtonHoverOrFocusBackground};
-			}
+			div {
+				position: absolute;
+				inset: 0;
+				border-radius: inherit;
 
-			/* On press, also make the background more prominent */
-			&:active {
-				opacity: 1;
-				box-shadow: inset 0 0 0 2.5rem ${framesStyles.inlineButtonActiveBackground};
+				background: ${framesStyles.inlineButtonBackground};
+				opacity: ${framesStyles.inlineButtonBackgroundIdleOpacity};
+
+				transition-property: inherit;
+				transition-duration: inherit;
+				transition-timing-function: inherit;
 			}
 
 			&::before {
+				content: '';
+				position: absolute;
+				inset: 0;
+				border-radius: inherit;
+				border: ${coreStyles.borderWidth} solid ${framesStyles.inlineButtonBorder};
+				opacity: ${framesStyles.inlineButtonBorderOpacity};
+			}
+			
+			&::after {
 				content: ${copyToClipboard};
-				line-height: 0;
+				position: absolute;
+				inset: 0;
+				padding: 0.475rem;
+			}
+
+			/*
+				On hover or focus, make the button fully opaque
+				and set hover/focus background opacity
+			*/
+			&:hover, &:focus:focus-visible {
+				opacity: 1;
+				div {
+					opacity: ${framesStyles.inlineButtonBackgroundHoverOrFocusOpacity};
+				}
+			}
+
+			/* On press, set active background opacity */
+			&:active {
+				opacity: 1;
+				div {
+					opacity: ${framesStyles.inlineButtonBackgroundActiveOpacity};
+				}
 			}
 		}
 
