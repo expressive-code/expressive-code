@@ -158,7 +158,12 @@ export class ExpressiveCodeEngine {
 			})
 		}
 		// Process styles (scoping, minifying, etc.)
-		const processedStyles = await processPluginStyles({ pluginStyles, configClassName: this.configClassName })
+		const processedStyles = await processPluginStyles({
+			pluginStyles,
+			plugins: this.plugins,
+			theme: this.theme,
+			configClassName: this.configClassName,
+		})
 		return [...processedStyles].join('')
 	}
 
