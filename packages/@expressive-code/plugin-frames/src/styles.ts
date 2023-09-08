@@ -120,6 +120,7 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 				color: ${framesStyles.editorActiveTabForeground};
 				background: ${activeTabBackground};
 				background-clip: padding-box;
+				background-repeat: no-repeat;
 				margin-block-start: ${framesStyles.editorActiveTabMarginBlockStart};
 				padding: ${coreStyles.uiPaddingBlock} ${coreStyles.uiPaddingInline};
 				border-radius: ${framesStyles.editorTabBorderRadius} ${framesStyles.editorTabBorderRadius} 0 0;
