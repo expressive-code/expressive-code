@@ -4,7 +4,7 @@ import { PluginStyles } from '../internal/css'
 import { GroupContents, RenderedGroupContents } from '../internal/render-group'
 import { ExpressiveCodeBlock } from './block'
 import { ExpressiveCodeLine } from './line'
-import { ExpressiveCodePlugin } from './plugin'
+import { ExpressiveCodePlugin, ResolverContext } from './plugin'
 import { ExpressiveCodeTheme } from './theme'
 import { ResolvedCoreStyles } from './core-styles'
 
@@ -63,24 +63,20 @@ export interface PostprocessRenderedBlockGroupContext {
 
 export type ExpressiveCodeHook<ContextType = ExpressiveCodeHookContext> = (context: ContextType) => void | Promise<void>
 
-export interface PostprocessStylesHookContext {
-	theme: ExpressiveCodeTheme
+export interface PostprocessStylesHookContext extends ResolverContext {
 	/**
-	 * The class name that was used to scope the CSS styles.
+	 * The PostCSS root node of the parsed CSS styles that were added by {@link stylesAddedBy},
+	 * after scoping them and resolving any SASS-like nesting, and before applying minifications.
+	 *
+	 * See the PostCSS documentation for details on how to work with the root node object.
+	 * It provides methods for walking through CSS rules with their selectors (see `walkRules` and
+	 * `walkAtRules`), or through declarations with their properties and values (see `walkDecls`).
 	 */
-	configClassName: string
+	styles: Root
 	/**
 	 * The name of the plugin that added the styles, or `core` for core styles.
 	 */
 	stylesAddedBy: string
-	/**
-	 * The PostCSS root node of the parsed CSS styles that were added by `pluginName`,
-	 * after scoping them and resolving any SASS-like nesting, and before applying minifications.
-	 *
-	 * See the PostCSS documentation for details on how to work with the root node object.
-	 * Especially its `walkRules` and `walkAtRules` methods are useful for plugins.
-	 */
-	parsedStyles: Root
 }
 
 export interface ExpressiveCodePluginHooks_Global {
@@ -98,7 +94,8 @@ export interface ExpressiveCodePluginHooks_Global {
 	 * and resolving any SASS-like nesting.
 	 *
 	 * See the PostCSS documentation for details on how to work with the root node object.
-	 * Especially its `walkRules` and `walkAtRules` methods are useful for plugins.
+	 * It provides methods for walking through CSS rules with their selectors (see `walkRules` and
+	 * `walkAtRules`), or through declarations with their properties and values (see `walkDecls`).
 	 *
 	 * After this hook, the styles will be minified, deduplicated, and finally returned
 	 * to the integration that called the engine's `getBaseStyles` or `render` function.

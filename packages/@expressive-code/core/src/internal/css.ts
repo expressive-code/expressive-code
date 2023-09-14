@@ -1,8 +1,7 @@
 import postcss, { Root } from 'postcss'
 import postcssNested from 'postcss-nested'
 import { escapeRegExp } from './escaping'
-import { ExpressiveCodeTheme } from '../common/theme'
-import { runHooks } from '../common/plugin-hooks'
+import { PostprocessStylesHookContext, runHooks } from '../common/plugin-hooks'
 import { ExpressiveCodePlugin } from '../common/plugin'
 
 export const groupWrapperElement = 'div'
@@ -11,11 +10,8 @@ export const groupWrapperClassName = 'expressive-code'
 // Support attaching processing data to root nodes
 const processingData = new WeakMap<
 	Root,
-	{
+	Omit<PostprocessStylesHookContext, 'styles'> & {
 		plugins: readonly ExpressiveCodePlugin[]
-		stylesAddedBy: string
-		theme: ExpressiveCodeTheme
-		configClassName: string
 	}
 >()
 const getScopeSelector = (root: Root): string => `.${processingData.get(root)?.configClassName || groupWrapperClassName}`
@@ -51,13 +47,15 @@ const processor = postcss([
 	async (root: Root) => {
 		const data = processingData.get(root)
 		if (!data) return
-		const { plugins, stylesAddedBy, theme, configClassName } = data
+		const { plugins, stylesAddedBy, theme, coreStyles, configClassName, themeClassName } = data
 		await runHooks('postprocessStyles', plugins, async ({ hookFn }) => {
 			await hookFn({
-				theme,
-				configClassName,
+				styles: root,
 				stylesAddedBy,
-				parsedStyles: root,
+				theme,
+				coreStyles,
+				configClassName,
+				themeClassName,
 			})
 		})
 	},
@@ -108,13 +106,13 @@ export async function processPluginStyles({
 	pluginStyles,
 	plugins,
 	theme,
+	coreStyles,
 	configClassName,
+	themeClassName,
 }: {
 	pluginStyles: PluginStyles[]
 	plugins: readonly ExpressiveCodePlugin[]
-	theme: ExpressiveCodeTheme
-	configClassName: string
-}): Promise<Set<string>> {
+} & Omit<PostprocessStylesHookContext, 'styles' | 'stylesAddedBy'>): Promise<Set<string>> {
 	const result = new Set<string>()
 	const seenStyles = new Set<string>()
 	// @ts-expect-error PostCSS has incorrect types when using exactOptionalPropertyTypes
@@ -139,7 +137,7 @@ export async function processPluginStyles({
 		try {
 			// Parse the styles and attach processing data to the root node for use by plugins
 			const root = postcss.parse(`.${configClassName}{${styles}}`, postCssOptions)
-			processingData.set(root, { plugins, stylesAddedBy: pluginName, theme, configClassName })
+			processingData.set(root, { plugins, stylesAddedBy: pluginName, theme, coreStyles, configClassName, themeClassName })
 
 			// Preprocess the parsed root node
 			const preprocessedStyles = await preprocessor.process(root, postCssOptions)

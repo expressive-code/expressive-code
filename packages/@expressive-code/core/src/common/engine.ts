@@ -1,5 +1,5 @@
 import githubDark from 'shiki/themes/github-dark.json'
-import { ExpressiveCodePlugin } from './plugin'
+import { ExpressiveCodePlugin, ResolverContext } from './plugin'
 import { renderGroup, RenderInput, RenderOptions } from '../internal/render-group'
 import { ExpressiveCodeTheme } from './theme'
 import { PluginStyles, processPluginStyles } from '../internal/css'
@@ -118,20 +118,17 @@ export class ExpressiveCodeEngine {
 				.replace(/([a-z])([A-Z])/g, '$1-$2')
 				.replace(/[\s_]+/g, '-')
 				.toLowerCase()
-		this.themeClassName = this.theme.name?.length ? `.ec-theme-${kebabCase(this.theme.name)}` : ''
+		this.themeClassName = this.theme.name?.length ? `ec-theme-${kebabCase(this.theme.name)}` : ''
 	}
 
 	async render(input: RenderInput, options?: RenderOptions) {
 		return await renderGroup({
 			input,
 			options,
-			theme: this.theme,
 			defaultLocale: this.defaultLocale,
-			// Also pass resolved core styles in case plugins need them
-			coreStyles: this.coreStyles,
 			plugins: this.plugins,
-			configClassName: this.configClassName,
-			themeClassName: this.themeClassName,
+			// Also pass resolved core styles in case plugins need them
+			...this.getResolverContext(),
 		})
 	}
 
@@ -150,7 +147,7 @@ export class ExpressiveCodeEngine {
 		// Add plugin base styles
 		for (const plugin of this.plugins) {
 			if (!plugin.baseStyles) continue
-			const resolvedStyles = typeof plugin.baseStyles === 'function' ? await plugin.baseStyles({ theme: this.theme, coreStyles: this.coreStyles }) : plugin.baseStyles
+			const resolvedStyles = typeof plugin.baseStyles === 'function' ? await plugin.baseStyles(this.getResolverContext()) : plugin.baseStyles
 			if (!resolvedStyles) continue
 			pluginStyles.push({
 				pluginName: plugin.name,
@@ -159,10 +156,9 @@ export class ExpressiveCodeEngine {
 		}
 		// Process styles (scoping, minifying, etc.)
 		const processedStyles = await processPluginStyles({
+			...this.getResolverContext(),
 			pluginStyles,
 			plugins: this.plugins,
-			theme: this.theme,
-			configClassName: this.configClassName,
 		})
 		return [...processedStyles].join('')
 	}
@@ -182,16 +178,22 @@ export class ExpressiveCodeEngine {
 	async getJsModules(): Promise<string[]> {
 		const jsModules = new Set<string>()
 		for (const plugin of this.plugins) {
-			const pluginModules =
-				typeof plugin.jsModules === 'function'
-					? await plugin.jsModules({ theme: this.theme, coreStyles: this.coreStyles, configClassName: this.configClassName })
-					: plugin.jsModules
+			const pluginModules = typeof plugin.jsModules === 'function' ? await plugin.jsModules(this.getResolverContext()) : plugin.jsModules
 			pluginModules?.forEach((moduleCode) => {
 				moduleCode = moduleCode.trim()
 				if (moduleCode) jsModules.add(moduleCode)
 			})
 		}
 		return [...jsModules]
+	}
+
+	private getResolverContext(): ResolverContext {
+		return {
+			theme: this.theme,
+			coreStyles: this.coreStyles,
+			configClassName: this.configClassName,
+			themeClassName: this.themeClassName,
+		}
 	}
 
 	readonly theme: ExpressiveCodeTheme

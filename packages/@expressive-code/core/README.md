@@ -742,9 +742,9 @@ These hooks are not directly related to rendering individual code blocks and are
 
   This hook is called multiple times during the engine's `getBaseStyles` and `render` functions: Once for the engine's core styles, once for each plugin's `baseStyles`, and once per call to `addStyles`. Processing results are cached to speed up subsequent calls.
 
-  The `parsedStyles` property provided in the hook context contains the PostCSS root node representing the parsed styles, after scoping them to Expressive Code's `configClassName` and resolving any SASS-like nesting.
+  The `styles` property provided in the hook context contains the PostCSS root node representing the parsed styles, after scoping them to Expressive Code's `configClassName` and resolving any SASS-like nesting.
 
-  See the PostCSS documentation for details on how to work with the root node object. Especially its `walkRules` and `walkAtRules` methods are useful for plugins.
+  See the PostCSS documentation for details on how to work with the root node object. It provides methods for walking through CSS rules with their selectors (see `walkRules` and `walkAtRules`), or through declarations with their properties and values (see `walkDecls`).
 
   After this hook, the styles will be minified, deduplicated, and finally returned to the integration that called the engine's `getBaseStyles` or `render` function.
 
