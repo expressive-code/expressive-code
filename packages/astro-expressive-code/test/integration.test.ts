@@ -20,12 +20,35 @@ const complexHtmlRegExp = buildSampleCodeHtmlRegExp({
 	],
 })
 
-describe('Integration into an Astro project', () => {
+describe('Integration into an Astro ^2.5.0 project', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	beforeAll(async () => {
 		fixture = await buildFixture({
-			fixtureDir: 'astro',
+			fixtureDir: 'astro-2.5.0',
+			buildCommand: 'pnpm',
+			buildArgs: ['astro', 'build'],
+			outputDir: 'dist',
+		})
+	}, 20 * 1000)
+
+	test('Regular Markdown files', () => {
+		const html = fixture?.readFile('index.html') ?? ''
+		validateHtml(html)
+	})
+
+	test('MDX files', () => {
+		const html = fixture?.readFile('mdx-page/index.html') ?? ''
+		validateHtml(html)
+	})
+})
+
+describe('Integration into an Astro ^3.0.0 project', () => {
+	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
+
+	beforeAll(async () => {
+		fixture = await buildFixture({
+			fixtureDir: 'astro-3.0.0',
 			buildCommand: 'pnpm',
 			buildArgs: ['astro', 'build'],
 			outputDir: 'dist',

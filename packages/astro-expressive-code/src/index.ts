@@ -9,11 +9,17 @@ export type AstroExpressiveCodeOptions = RemarkExpressiveCodeOptions
 /**
  * Astro integration that adds Expressive Code support to code blocks in Markdown & MDX documents.
  */
-export function astroExpressiveCode(options: AstroExpressiveCodeOptions = {}): AstroIntegration {
-	return {
+export function astroExpressiveCode(options: AstroExpressiveCodeOptions = {}) {
+	// As the arguments of the `astro:config:setup` hook are incompatible between Astro 2 and 3,
+	// we just access this type internally and accept `unknown` args externally to prevent
+	// version-specific types from being included in the build output
+	type ConfigSetupHookArgs = Parameters<NonNullable<AstroIntegration['hooks']['astro:config:setup']>>[0]
+
+	const integration = {
 		name: 'astro-expressive-code',
 		hooks: {
-			'astro:config:setup': async ({ config, updateConfig, injectScript }) => {
+			'astro:config:setup': async (args: unknown) => {
+				const { config, updateConfig, injectScript } = args as ConfigSetupHookArgs
 				const { customCreateRenderers } = options ?? {}
 
 				// Validate Astro configuration
@@ -52,7 +58,9 @@ export function astroExpressiveCode(options: AstroExpressiveCodeOptions = {}): A
 				jsModules.forEach((moduleCode) => injectScript('page', moduleCode))
 			},
 		},
-	}
+	} satisfies AstroIntegration
+
+	return integration
 }
 
 // Provide a default export for convenience and `astro add astro-expressive-code` compatibility

@@ -1,0 +1,16 @@
+{
+  "name": "astro-3-0-0-fixture",
+  "version": "0.0.1",
+  "private": true,
+  "dependencies": {
+    "@astrojs/mdx": "^1.0.3",
+    "@expressive-code/plugin-collapsible-sections": "workspace:^",
+    "astro": "^3.0.13",
+    "astro-expressive-code": "workspace:^"
+  },
+  "engines": {
+    "node": "^14.15.0 || >=16.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@8.0.0"
+}
