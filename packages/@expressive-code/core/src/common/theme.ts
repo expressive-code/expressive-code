@@ -2,6 +2,7 @@ import { groupedDefaultWorkbenchColorKeys, guessThemeTypeFromEditorColors, resol
 import stripJsonComments from 'strip-json-comments'
 import type { IShikiTheme } from 'shiki'
 import { chromaticRecolor, ChromaticRecolorTarget } from '../helpers/color-transforms'
+import { ExpressiveCodePluginHooks } from './plugin-hooks'
 
 export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'> {
 	name: string
@@ -12,6 +13,7 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 	semanticHighlighting: boolean
 	tokenColors: unknown
 	settings: ThemeSetting[]
+	hooks: Partial<Pick<ExpressiveCodePluginHooks, 'postprocessStyles'>>
 
 	/**
 	 * Loads the given theme for use with Expressive Code. Supports both Shiki and VS Code themes.
@@ -24,7 +26,14 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 	 * and pass the result to this constructor.
 	 */
 	constructor(
-		theme: Partial<ExpressiveCodeTheme> | (Partial<IShikiTheme> & { semanticHighlighting?: boolean | undefined; tokenColors?: unknown | undefined; index?: number | undefined })
+		theme:
+			| Partial<ExpressiveCodeTheme>
+			| (Partial<IShikiTheme> & {
+					semanticHighlighting?: boolean | undefined
+					tokenColors?: unknown | undefined
+					index?: number | undefined
+					hooks?: Partial<Pick<ExpressiveCodePluginHooks, 'postprocessStyles'>> | undefined
+			  })
 	) {
 		let themeType = theme.type
 		if (themeType === 'css') throw new Error('Theme type "css" is not supported.')
@@ -46,6 +55,7 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 		this.semanticHighlighting = theme.semanticHighlighting || false
 		this.tokenColors = theme.tokenColors
 		this.settings = this.parseThemeSettings(theme.settings)
+		this.hooks = theme.hooks ?? {}
 	}
 
 	/**

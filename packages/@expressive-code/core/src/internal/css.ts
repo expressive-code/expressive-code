@@ -43,21 +43,20 @@ const processor = postcss([
 			rule.selectors = rule.selectors.map((selector) => selector.replace(regExpScopedTopLevel, '$1'))
 		})
 	},
-	// Allow plugins to process the root node before minification
+	// Allow hooks to process the root node before minification
 	async (root: Root) => {
 		const data = processingData.get(root)
 		if (!data) return
 		const { plugins, stylesAddedBy, theme, coreStyles, configClassName, themeClassName } = data
+		const hookContext = { styles: root, stylesAddedBy, theme, coreStyles, configClassName, themeClassName }
+		// Allow plugins to process the styles
 		await runHooks('postprocessStyles', plugins, async ({ hookFn }) => {
-			await hookFn({
-				styles: root,
-				stylesAddedBy,
-				theme,
-				coreStyles,
-				configClassName,
-				themeClassName,
-			})
+			await hookFn({ ...hookContext })
 		})
+		// Allow the theme to process the styles
+		if (theme.hooks?.postprocessStyles) {
+			await theme.hooks.postprocessStyles({ ...hookContext })
+		}
 	},
 	// Apply some simple minifications
 	(root: Root) => {
