@@ -769,7 +769,7 @@ This interface defines the structure of a plugin object.
   > **Note**:
   > You can set `baseStyles` to a function if you need to [access theme and style settings](#accessing-theme-and-style-settings-from-plugins) to generate your base styles.
 
-- ##### `hooks: ExpressiveCodePluginHooks`
+- ##### `hooks?: ExpressiveCodePluginHooks`
 
   The plugin's hook functions that should be called by the engine during rendering.
 

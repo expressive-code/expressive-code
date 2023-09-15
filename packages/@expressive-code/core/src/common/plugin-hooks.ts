@@ -215,7 +215,7 @@ export async function runHooks<HookType extends keyof ExpressiveCodePluginHooks>
 	runner: (hook: { hookName: HookType; hookFn: NonNullable<ExpressiveCodePluginHooks[HookType]>; plugin: ExpressiveCodePlugin }) => void | Promise<void>
 ) {
 	for (const plugin of plugins) {
-		const hookFn = plugin.hooks[key]
+		const hookFn = plugin.hooks?.[key]
 		if (!hookFn) continue
 
 		try {

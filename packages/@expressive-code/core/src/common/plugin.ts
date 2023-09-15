@@ -67,5 +67,5 @@ export interface ExpressiveCodePlugin {
 	 * into inline `<script type="module">` elements.
 	 */
 	jsModules?: string[] | JsModulesResolverFn | undefined
-	hooks: ExpressiveCodePluginHooks
+	hooks?: ExpressiveCodePluginHooks | undefined
 }
