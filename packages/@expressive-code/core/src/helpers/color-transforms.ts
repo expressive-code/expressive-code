@@ -106,10 +106,14 @@ export function mix(input: string, mixinInput: string, amount: number) {
  * Computes how the first color would look on top of the second color.
  */
 export function onBackground(input: string, background: string) {
-	return withParsedColor(input, (color) => {
-		const backgroundColor = toTinyColor(background)
-		return toHexColor(color.onBackground(backgroundColor))
-	})
+	return withParsedColor(
+		input,
+		(color) => {
+			const backgroundColor = toTinyColor(background)
+			return toHexColor(color.onBackground(backgroundColor))
+		},
+		background
+	)
 }
 
 export function getColorContrast(color1: string, color2: string) {
@@ -297,10 +301,10 @@ export function chromaticRecolor(input: string, target: string | ChromaticRecolo
 }
 
 function withParsedColor(input: string, transform: (color: TinyColor) => string, fallback?: string) {
-	const color = toTinyColor(input)
-	if (!color.isValid) {
+	const color = input && toTinyColor(input)
+	if (!color || !color.isValid) {
 		const fallbackOrInput = fallback !== undefined ? fallback : input
-		return fallbackOrInput === undefined || typeof fallbackOrInput === 'string' ? fallbackOrInput : toHexColor(fallbackOrInput)
+		return !fallbackOrInput || typeof fallbackOrInput === 'string' ? fallbackOrInput : toHexColor(fallbackOrInput)
 	}
 	return transform(color)
 }

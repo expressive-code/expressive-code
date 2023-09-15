@@ -8,6 +8,7 @@ import {
 	getColorContrastOnBackground,
 	getLuminance,
 	multiplyAlpha,
+	onBackground,
 	setLuminance,
 	toHexColor,
 } from '../src/helpers/color-transforms'
@@ -126,6 +127,21 @@ describe('Color Transforms', () => {
 				expect(newColor, `Failed case (newColor): ${JSON.stringify({ ...testCase, newColor, newLuminance })}`).toBe(expected)
 			})
 		}
+	})
+
+	describe('onBackground()', () => {
+		test('Uses the alpha channel of the input color', () => {
+			expect(onBackground('#ffffff', '#000000')).toBe('#ffffff')
+			expect(onBackground('#ffffff80', '#000000')).toBe('#808080')
+			expect(onBackground('#ffffff00', '#000000')).toBe('#000000')
+			expect(onBackground('transparent', '#000000')).toBe('#000000')
+		})
+		test('Returns the background if the input color cannot be parsed', () => {
+			expect(onBackground(null as unknown as string, '#00f000')).toBe('#00f000')
+			expect(onBackground(undefined as unknown as string, '#00f000')).toBe('#00f000')
+			expect(onBackground('', '#00f000')).toBe('#00f000')
+			expect(onBackground('var(--unknown)', '#00f000')).toBe('#00f000')
+		})
 	})
 
 	describe('changeAlphaToReachColorContrast()', () => {
