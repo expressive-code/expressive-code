@@ -3,8 +3,7 @@ import { ExpressiveCodePlugin, ResolverContext } from './plugin'
 import { renderGroup, RenderInput, RenderOptions } from '../internal/render-group'
 import { ExpressiveCodeTheme } from './theme'
 import { PluginStyles, processPluginStyles } from '../internal/css'
-import { CoreStyleSettings, coreStyleSettings, getCoreBaseStyles, ResolvedCoreStyles } from './core-styles'
-import { UnresolvedCoreStyleSettings } from '../helpers/style-settings'
+import { coreStyleSettings, getCoreBaseStyles, ResolvedCoreStyles, StyleOverrides } from './core-styles'
 import { getStableObjectHash } from '../helpers/objects'
 
 export interface ExpressiveCodeEngineConfig {
@@ -52,16 +51,19 @@ export interface ExpressiveCodeEngineConfig {
 	useThemedSelectionColors?: boolean | undefined
 	/**
 	 * An optional set of style overrides that can be used to customize the appearance of
-	 * the rendered code blocks without having to write custom CSS. You can customize core
-	 * colors, fonts, paddings and more.
+	 * the rendered code blocks without having to write custom CSS.
 	 *
-	 * If any of the settings are not given, default values will be used or derived from the theme,
-	 * as seen in the exported `coreStyleSettings` object.
+	 * The root level of this nested object contains core styles like colors, fonts, paddings
+	 * and more. Plugins can contribute their own style settings to this object as well.
+	 * For example, if the `frames` plugin is enabled, you can override its `shadowColor` by
+	 * setting `styleOverrides.frames.shadowColor` to a color value.
+	 *
+	 * If any of the settings are not given, default values will be used or derived from the theme.
 	 *
 	 * **Tip:** If your site uses CSS variables for styling, you can also use these overrides
 	 * to replace any core style with a CSS variable reference, e.g. `var(--your-css-var)`.
 	 */
-	styleOverrides?: Partial<UnresolvedCoreStyleSettings<CoreStyleSettings>> | undefined
+	styleOverrides?: Partial<StyleOverrides> | undefined
 	/**
 	 * To add a plugin, import its initialization function and call it inside this array.
 	 *
@@ -92,6 +94,7 @@ export class ExpressiveCodeEngine {
 		this.coreStyles = coreStyleSettings.resolve({
 			theme: this.theme,
 			styleOverrides: this.styleOverrides,
+			themeStyleOverrides: this.theme.styleOverrides,
 			// @ts-expect-error We have no resolved core styles here as we are just resolving them.
 			// Attempts to access them at this point are a programming error, so we pass `null`
 			// to ensure an error will be thrown if anyone tries to. As `ExpressiveCodeConfig`

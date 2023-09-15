@@ -34,11 +34,18 @@ export const framesStyleSettings = new StyleSettings({
 	tooltipSuccessForeground: 'white',
 })
 
+declare module '@expressive-code/core' {
+	export interface StyleOverrides {
+		frames: Partial<typeof framesStyleSettings.defaultSettings>
+	}
+}
+
 export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: ResolvedCoreStyles, options: PluginFramesOptions) {
 	const framesStyles = framesStyleSettings.resolve({
 		theme,
 		coreStyles,
 		styleOverrides: options.styleOverrides,
+		themeStyleOverrides: theme.styleOverrides.frames,
 	})
 
 	const dotsSvg = [
@@ -50,14 +57,13 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 	].join('')
 	const escapedDotsSvg = dotsSvg.replace(/</g, '%3C').replace(/>/g, '%3E')
 	const terminalTitlebarDots = `url("data:image/svg+xml,${escapedDotsSvg}")`
-	const inlineButtonFg = toRgbaString(framesStyles.inlineButtonForeground)
+
 	const copySvg = [
-		`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='${inlineButtonFg}' stroke-width='1.75'>`,
+		`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75'>`,
 		`<path d='M3 19a2 2 0 0 1-1-2V2a2 2 0 0 1 1-1h13a2 2 0 0 1 2 1'/>`,
 		`<rect x='6' y='5' width='16' height='18' rx='1.5' ry='1.5'/>`,
 		`</svg>`,
 	].join('')
-
 	const escapedCopySvg = copySvg.replace(/</g, '%3C').replace(/>/g, '%3E')
 	const copyToClipboard = `url("data:image/svg+xml,${escapedCopySvg}")`
 
@@ -255,10 +261,16 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 			}
 			
 			&::after {
-				content: ${copyToClipboard};
+				content: '';
+				background-color: ${framesStyles.inlineButtonForeground};
+				-webkit-mask-image: ${copyToClipboard};
+				-webkit-mask-repeat: no-repeat;
+				mask-image: ${copyToClipboard};
+				mask-repeat: no-repeat;
 				position: absolute;
 				inset: 0;
-				padding: 0.475rem;
+				margin: 0.475rem;
+				line-height: 0;
 			}
 
 			/*

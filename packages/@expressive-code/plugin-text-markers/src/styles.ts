@@ -34,6 +34,12 @@ export const textMarkersStyleSettings = new StyleSettings({
 	delDiffIndicatorColor: '',
 })
 
+declare module '@expressive-code/core' {
+	export interface StyleOverrides {
+		textMarkers: Partial<typeof textMarkersStyleSettings.defaultSettings>
+	}
+}
+
 setDefaults('markHue', 'markBackground', 'markBorderColor')
 setDefaults('insHue', 'insBackground', 'insBorderColor', 'insDiffIndicatorColor')
 setDefaults('delHue', 'delBackground', 'delBorderColor', 'delDiffIndicatorColor')
@@ -43,6 +49,7 @@ export function getTextMarkersBaseStyles(theme: ExpressiveCodeTheme, coreStyles:
 		theme,
 		coreStyles,
 		styleOverrides,
+		themeStyleOverrides: theme.styleOverrides.textMarkers,
 	})
 	const result = `
 		.${codeLineClass} {

@@ -19,6 +19,12 @@ export const collapsibleSectionsStyleSettings = new StyleSettings({
 	openBorderColor: 'transparent',
 })
 
+declare module '@expressive-code/core' {
+	export interface StyleOverrides {
+		collapsibleSections: Partial<typeof collapsibleSectionsStyleSettings.defaultSettings>
+	}
+}
+
 export function getCollapsibleSectionsBaseStyles(
 	theme: ExpressiveCodeTheme,
 	coreStyles: ResolvedCoreStyles,
@@ -28,6 +34,7 @@ export function getCollapsibleSectionsBaseStyles(
 		theme,
 		coreStyles,
 		styleOverrides,
+		themeStyleOverrides: theme.styleOverrides.collapsibleSections,
 	})
 	const result = `
 		.${collapsibleSectionClass} {

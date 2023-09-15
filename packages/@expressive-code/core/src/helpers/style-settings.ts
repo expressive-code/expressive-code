@@ -60,10 +60,12 @@ export class StyleSettings<T extends string> {
 		theme,
 		coreStyles,
 		styleOverrides,
+		themeStyleOverrides,
 	}: {
 		theme: ExpressiveCodeTheme
 		coreStyles: ResolvedCoreStyles
 		styleOverrides?: Partial<UnresolvedStyleSettings<T>> | undefined
+		themeStyleOverrides?: Partial<UnresolvedStyleSettings<T>> | undefined
 	}): ResolvedStyleSettings<T> {
 		const attemptedToResolve = new Set<T>()
 		const resolvedSettings = {} as ResolvedStyleSettings<T>
@@ -76,7 +78,7 @@ export class StyleSettings<T extends string> {
 				if (attemptedToResolve.has(propertyName)) throw new Error(`Circular dependency detected while resolving style setting '${propertyName}'`)
 				attemptedToResolve.add(propertyName)
 
-				const valueOrResolver = styleOverrides?.[propertyName] || defaultSettings[propertyName]
+				const valueOrResolver = themeStyleOverrides?.[propertyName] || styleOverrides?.[propertyName] || defaultSettings[propertyName]
 				const resolvedDefinition: ColorDefinition = typeof valueOrResolver === 'function' ? valueOrResolver(resolverArgs) : valueOrResolver
 				result = Array.isArray(resolvedDefinition) ? resolvedDefinition[theme.type === 'dark' ? 0 : 1] : resolvedDefinition
 

@@ -73,6 +73,9 @@ export const coreStyleSettings = new StyleSettings<CoreStyleSettings>({
 		ensureColorContrastOnBackground(theme.colors['scrollbarSlider.hoverBackground'], resolveSetting('codeBackground'), 2.5, 3.5),
 } satisfies UnresolvedCoreStyleSettings<CoreStyleSettings>)
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface StyleOverrides extends Partial<UnresolvedCoreStyleSettings<CoreStyleSettings>> {}
+
 export type ResolvedCoreStyles = ResolvedStyleSettings<CoreStyleSettings>
 
 export const codeLineClass = 'ec-line'

@@ -3,6 +3,7 @@ import stripJsonComments from 'strip-json-comments'
 import type { IShikiTheme } from 'shiki'
 import { chromaticRecolor, ChromaticRecolorTarget } from '../helpers/color-transforms'
 import { ExpressiveCodePluginHooks } from './plugin-hooks'
+import { StyleOverrides } from './core-styles'
 
 export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'> {
 	name: string
@@ -13,6 +14,7 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 	semanticHighlighting: boolean
 	tokenColors: unknown
 	settings: ThemeSetting[]
+	styleOverrides: Partial<StyleOverrides>
 	hooks: Partial<Pick<ExpressiveCodePluginHooks, 'postprocessStyles'>>
 
 	/**
@@ -32,6 +34,7 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 					semanticHighlighting?: boolean | undefined
 					tokenColors?: unknown | undefined
 					index?: number | undefined
+					styleOverrides?: Partial<StyleOverrides> | undefined
 					hooks?: Partial<Pick<ExpressiveCodePluginHooks, 'postprocessStyles'>> | undefined
 			  })
 	) {
@@ -55,6 +58,7 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 		this.semanticHighlighting = theme.semanticHighlighting || false
 		this.tokenColors = theme.tokenColors
 		this.settings = this.parseThemeSettings(theme.settings)
+		this.styleOverrides = theme.styleOverrides ?? {}
 		this.hooks = theme.hooks ?? {}
 	}
 
