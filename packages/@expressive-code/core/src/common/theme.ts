@@ -44,10 +44,10 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 			themeType = guessThemeTypeFromEditorColors(theme.colors)
 		}
 
-		// Fix invalid themes by removing empty entries from theme colors
+		// Fix invalid themes by removing unsupported entries from theme colors
 		const themeColors: typeof theme.colors = { ...theme.colors }
 		for (const key in themeColors) {
-			if (!themeColors[key]) delete themeColors[key]
+			if (typeof themeColors[key] !== 'string' || !themeColors[key].trim().length) delete themeColors[key]
 		}
 
 		this.name = theme.name || ''

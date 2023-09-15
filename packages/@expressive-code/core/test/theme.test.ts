@@ -24,6 +24,11 @@ describe('ExpressiveCodeTheme', () => {
 			// Expect the correct default color to be set
 			expect(emptyValueTheme.colors['editor.background']).toBe('#1e1e1e')
 		})
+		test('Non-string color value', () => {
+			const emptyValueTheme = loadThemeFromJsonFile('invalid-3.json')
+			// Expect the correct default color to be set
+			expect(emptyValueTheme.colors['editor.background']).toBe('#1e1e1e')
+		})
 	})
 
 	describe('Can load local themes', () => {
