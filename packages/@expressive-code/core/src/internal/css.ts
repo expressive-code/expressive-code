@@ -1,8 +1,7 @@
 import postcss, { Root } from 'postcss'
 import postcssNested from 'postcss-nested'
 import { escapeRegExp } from './escaping'
-import { PostprocessStylesHookContext, runHooks } from '../common/plugin-hooks'
-import { ExpressiveCodePlugin } from '../common/plugin'
+import { ExpressiveCodePlugin, ResolverContext } from '../common/plugin'
 
 export const groupWrapperElement = 'div'
 export const groupWrapperClassName = 'expressive-code'
@@ -10,7 +9,7 @@ export const groupWrapperClassName = 'expressive-code'
 // Support attaching processing data to root nodes
 const processingData = new WeakMap<
 	Root,
-	Omit<PostprocessStylesHookContext, 'styles'> & {
+	ResolverContext & {
 		plugins: readonly ExpressiveCodePlugin[]
 	}
 >()
@@ -42,21 +41,6 @@ const processor = postcss([
 		root.walkRules((rule) => {
 			rule.selectors = rule.selectors.map((selector) => selector.replace(regExpScopedTopLevel, '$1'))
 		})
-	},
-	// Allow hooks to process the root node before minification
-	async (root: Root) => {
-		const data = processingData.get(root)
-		if (!data) return
-		const { plugins, stylesAddedBy, theme, coreStyles, configClassName, themeClassName } = data
-		const hookContext = { styles: root, stylesAddedBy, theme, coreStyles, configClassName, themeClassName }
-		// Allow plugins to process the styles
-		await runHooks('postprocessStyles', plugins, async ({ hookFn }) => {
-			await hookFn({ ...hookContext })
-		})
-		// Allow the theme to process the styles
-		if (theme.hooks?.postprocessStyles) {
-			await theme.hooks.postprocessStyles({ ...hookContext })
-		}
 	},
 	// Apply some simple minifications
 	(root: Root) => {
@@ -111,7 +95,7 @@ export async function processPluginStyles({
 }: {
 	pluginStyles: PluginStyles[]
 	plugins: readonly ExpressiveCodePlugin[]
-} & Omit<PostprocessStylesHookContext, 'styles' | 'stylesAddedBy'>): Promise<Set<string>> {
+} & ResolverContext): Promise<Set<string>> {
 	const result = new Set<string>()
 	const seenStyles = new Set<string>()
 	// @ts-expect-error PostCSS has incorrect types when using exactOptionalPropertyTypes
@@ -136,7 +120,7 @@ export async function processPluginStyles({
 		try {
 			// Parse the styles and attach processing data to the root node for use by plugins
 			const root = postcss.parse(`.${configClassName}{${styles}}`, postCssOptions)
-			processingData.set(root, { plugins, stylesAddedBy: pluginName, theme, coreStyles, configClassName, themeClassName })
+			processingData.set(root, { plugins, theme, coreStyles, configClassName, themeClassName })
 
 			// Preprocess the parsed root node
 			const preprocessedStyles = await preprocessor.process(root, postCssOptions)

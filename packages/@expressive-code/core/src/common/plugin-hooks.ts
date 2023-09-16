@@ -1,10 +1,9 @@
 import type { Element, Parent } from 'hast-util-to-html/lib/types'
-import type { Root } from 'postcss'
 import { PluginStyles } from '../internal/css'
 import { GroupContents, RenderedGroupContents } from '../internal/render-group'
 import { ExpressiveCodeBlock } from './block'
 import { ExpressiveCodeLine } from './line'
-import { ExpressiveCodePlugin, ResolverContext } from './plugin'
+import { ExpressiveCodePlugin } from './plugin'
 import { ExpressiveCodeTheme } from './theme'
 import { ResolvedCoreStyles } from './core-styles'
 
@@ -62,46 +61,6 @@ export interface PostprocessRenderedBlockGroupContext {
 }
 
 export type ExpressiveCodeHook<ContextType = ExpressiveCodeHookContext> = (context: ContextType) => void | Promise<void>
-
-export interface PostprocessStylesHookContext extends ResolverContext {
-	/**
-	 * The PostCSS root node of the parsed CSS styles that were added by {@link stylesAddedBy},
-	 * after scoping them and resolving any SASS-like nesting, and before applying minifications.
-	 *
-	 * See the PostCSS documentation for details on how to work with the root node object.
-	 * It provides methods for walking through CSS rules with their selectors (see `walkRules` and
-	 * `walkAtRules`), or through declarations with their properties and values (see `walkDecls`).
-	 */
-	styles: Root
-	/**
-	 * The name of the plugin that added the styles, or `core` for core styles.
-	 */
-	stylesAddedBy: string
-}
-
-export interface ExpressiveCodePluginHooks_Global {
-	/**
-	 * Allows postprocessing CSS styles that were added by the engine core or any plugin
-	 * (either through the plugin's `baseStyles` property, or by calling `addStyles` from a hook).
-	 *
-	 * Processing of CSS styles happens during the engine's `getBaseStyles` and `render` functions,
-	 * and is performed individually per set of styles. This means that this hook will be called
-	 * multiple times (for the engine's core styles, for each plugin's `baseStyles`, and for each
-	 * call to `addStyles`). Processing results are cached to speed up subsequent calls.
-	 *
-	 * The `parsedStyles` property provided in the hook context contains the PostCSS root node
-	 * representing the parsed styles, after scoping them to Expressive Code's `configClassName`
-	 * and resolving any SASS-like nesting.
-	 *
-	 * See the PostCSS documentation for details on how to work with the root node object.
-	 * It provides methods for walking through CSS rules with their selectors (see `walkRules` and
-	 * `walkAtRules`), or through declarations with their properties and values (see `walkDecls`).
-	 *
-	 * After this hook, the styles will be minified, deduplicated, and finally returned
-	 * to the integration that called the engine's `getBaseStyles` or `render` function.
-	 */
-	postprocessStyles?: ((context: PostprocessStylesHookContext) => void | Promise<void>) | undefined
-}
 
 export interface ExpressiveCodePluginHooks_BeforeRendering {
 	/**
@@ -195,7 +154,7 @@ export interface ExpressiveCodePluginHooks_Rendering {
 	postprocessRenderedBlockGroup?: ExpressiveCodeHook<PostprocessRenderedBlockGroupContext> | undefined
 }
 
-export interface ExpressiveCodePluginHooks extends ExpressiveCodePluginHooks_Global, ExpressiveCodePluginHooks_BeforeRendering, ExpressiveCodePluginHooks_Rendering {}
+export interface ExpressiveCodePluginHooks extends ExpressiveCodePluginHooks_BeforeRendering, ExpressiveCodePluginHooks_Rendering {}
 
 export type ExpressiveCodePluginHookName = keyof ExpressiveCodePluginHooks
 

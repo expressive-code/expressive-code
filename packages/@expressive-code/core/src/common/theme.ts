@@ -2,7 +2,6 @@ import { groupedDefaultWorkbenchColorKeys, guessThemeTypeFromEditorColors, resol
 import stripJsonComments from 'strip-json-comments'
 import type { IShikiTheme } from 'shiki'
 import { chromaticRecolor, ChromaticRecolorTarget } from '../helpers/color-transforms'
-import { ExpressiveCodePluginHooks } from './plugin-hooks'
 import { StyleOverrides } from './core-styles'
 
 export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'> {
@@ -15,7 +14,6 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 	tokenColors: unknown
 	settings: ThemeSetting[]
 	styleOverrides: Partial<StyleOverrides>
-	hooks: Partial<Pick<ExpressiveCodePluginHooks, 'postprocessStyles'>>
 
 	/**
 	 * Loads the given theme for use with Expressive Code. Supports both Shiki and VS Code themes.
@@ -35,7 +33,6 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 					tokenColors?: unknown | undefined
 					index?: number | undefined
 					styleOverrides?: Partial<StyleOverrides> | undefined
-					hooks?: Partial<Pick<ExpressiveCodePluginHooks, 'postprocessStyles'>> | undefined
 			  })
 	) {
 		let themeType = theme.type
@@ -59,7 +56,6 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 		this.tokenColors = theme.tokenColors
 		this.settings = this.parseThemeSettings(theme.settings)
 		this.styleOverrides = theme.styleOverrides ?? {}
-		this.hooks = theme.hooks ?? {}
 	}
 
 	/**

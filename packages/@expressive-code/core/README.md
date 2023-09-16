@@ -22,7 +22,6 @@
   - [Accessing theme and style settings from plugins](#accessing-theme-and-style-settings-from-plugins)
   - [Plugin hooks called before rendering](#plugin-hooks-called-before-rendering)
   - [Plugin hooks called during rendering](#plugin-hooks-called-during-rendering)
-  - [Non-rendering hooks](#non-rendering-hooks)
   - [`ExpressiveCodePlugin`](#expressivecodeplugin)
   - [`AttachedPluginData`](#attachedplugindata)
 
@@ -731,22 +730,6 @@ Afterwards, it calls a series of hooks that allow plugins to modify the resultin
 
   > **Note**:
   > Even if a code block is not part of any group, this hook will still be called. Standalone code blocks are treated like a group containing only a single block.
-
-### Non-rendering hooks
-
-These hooks are not directly related to rendering individual code blocks and are called at other times during the engine's lifecycle.
-
-- #### `postprocessStyles`
-
-  Allows postprocessing of CSS styles that were added by the engine core or any plugin (either through the plugin's `baseStyles` property, or by calling `addStyles` from a hook).
-
-  This hook is called multiple times during the engine's `getBaseStyles` and `render` functions: Once for the engine's core styles, once for each plugin's `baseStyles`, and once per call to `addStyles`. Processing results are cached to speed up subsequent calls.
-
-  The `styles` property provided in the hook context contains the PostCSS root node representing the parsed styles, after scoping them to Expressive Code's `configClassName` and resolving any SASS-like nesting.
-
-  See the PostCSS documentation for details on how to work with the root node object. It provides methods for walking through CSS rules with their selectors (see `walkRules` and `walkAtRules`), or through declarations with their properties and values (see `walkDecls`).
-
-  After this hook, the styles will be minified, deduplicated, and finally returned to the integration that called the engine's `getBaseStyles` or `render` function.
 
 ---
 

@@ -1,4 +1,4 @@
-import { StyleSettings, multiplyAlpha, ExpressiveCodeTheme, ResolvedCoreStyles, onBackground, toRgbaString, setLuminance } from '@expressive-code/core'
+import { StyleSettings, multiplyAlpha, ExpressiveCodeTheme, ResolvedCoreStyles, onBackground, setLuminance } from '@expressive-code/core'
 import { PluginFramesOptions } from '.'
 
 export const framesStyleSettings = new StyleSettings({
