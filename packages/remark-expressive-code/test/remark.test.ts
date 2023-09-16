@@ -5,7 +5,7 @@ import remarkRehype from 'remark-rehype'
 import rehypeRaw from 'rehype-raw'
 import toHtml from 'rehype-stringify'
 import remarkExpressiveCode, { RemarkExpressiveCodeOptions } from '../src'
-import { sampleCodeHtmlRegExp, sampleCodeMarkdown } from './utils'
+import { multiThemeSampleCodeHtmlRegExp, sampleCodeHtmlRegExp, sampleCodeMarkdown } from './utils'
 
 const regexCodeBg = /.ec-\w+? pre{(?:[^}]*?;)*background:(.*?)[;}]/g
 const regexCodeColor = /.ec-\w+? pre\s*>\s*code{(?:[^}]*?;)*color:(.*?)[;}]/g
@@ -184,7 +184,11 @@ async function runThemeTests({
 			const processor = createRemarkProcessor({ theme: testCase.theme, ...config })
 			const result = await processor.process(sampleCodeMarkdown)
 			const html = result.value.toString()
-			expect(html).toMatch(sampleCodeHtmlRegExp)
+			if (Array.isArray(testCase.theme) && testCase.theme.length > 1) {
+				expect(html).toMatch(multiThemeSampleCodeHtmlRegExp)
+			} else {
+				expect(html).toMatch(sampleCodeHtmlRegExp)
+			}
 
 			// Perform individual tests specified in the test case
 			let performedTests = 0

@@ -152,9 +152,12 @@ export async function createRenderer(options: SingleThemeRemarkExpressiveCodeOpt
 	}
 }
 
+export const multiThemeWrapperClass = 'ec-themes-wrapper'
+
 const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Root> = (...settings) => {
 	const options: RemarkExpressiveCodeOptions = settings[0] ?? {}
-	const { tabWidth = 2, getBlockLocale, customCreateRenderers, customCreateBlock } = options
+	const { tabWidth = 2, getBlockLocale, customCreateRenderers, customCreateBlock, theme } = options
+	const multiThemeWrapperCss = Array.isArray(theme) && theme.length > 1 && `.${multiThemeWrapperClass}>.ec{all:revert;box-sizing:border-box}`
 
 	let asyncRenderers: Promise<RemarkExpressiveCodeRenderer[]> | RemarkExpressiveCodeRenderer[] | undefined
 
@@ -179,12 +182,18 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 		const extraElements: HastElement[] = []
 		const stylesToPrepend: string[] = []
 
-		// Add base styles if we haven't added them yet
+		// Add any styles that we haven't added yet
+		// - Multi-theme wrapper styles
+		if (multiThemeWrapperCss && !addedStyles.has(multiThemeWrapperCss)) {
+			addedStyles.add(multiThemeWrapperCss)
+			stylesToPrepend.push(multiThemeWrapperCss)
+		}
+		// - Base styles
 		if (baseStyles && !addedStyles.has(baseStyles)) {
 			addedStyles.add(baseStyles)
 			stylesToPrepend.push(baseStyles)
 		}
-		// Add any group-level styles we haven't added yet
+		// - Group-level styles
 		for (const style of styles) {
 			if (addedStyles.has(style)) continue
 			addedStyles.add(style)
@@ -279,9 +288,10 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 			}
 
 			// Replace current node with a new HTML node that contains all rendered blocks
+			const allBlocks = renderedBlocks.join('')
 			const html: HTML = {
 				type: 'html',
-				value: renderedBlocks.join(''),
+				value: multiThemeWrapperCss ? `<div class="${multiThemeWrapperClass}">${allBlocks}</div>` : allBlocks,
 			}
 			parent.children.splice(parent.children.indexOf(code), 1, html)
 		}

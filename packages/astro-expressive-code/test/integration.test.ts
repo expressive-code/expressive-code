@@ -18,6 +18,7 @@ const complexHtmlRegExp = buildSampleCodeHtmlRegExp({
 		'</div>',
 		'.*?',
 	],
+	expectMultiThemeWrapper: true,
 })
 
 describe('Integration into an Astro ^2.5.0 project', () => {
