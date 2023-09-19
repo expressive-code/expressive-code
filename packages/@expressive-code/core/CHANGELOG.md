@@ -1,5 +1,36 @@
 # @expressive-code/core
 
+## 0.23.0
+
+### Minor Changes
+
+- bfed62a: Add config option `customizeTheme`.
+
+  This optional function is called once per theme during engine initialization with the loaded theme as its only argument.
+
+  It allows customizing the loaded theme and can be used for various purposes:
+
+  - You can change a theme's `name` property to influence its generated CSS class name (e.g. `theme.name = 'dark'` will result in code blocks having the class `ec-theme-dark`).
+  - You can create color variations of themes by using `theme.applyHueAndChromaAdjustments()`.
+
+- bfed62a: Add plugin styles to the `styleOverrides` config option.
+
+  So far, this object only contained core styles like colors, fonts, paddings and more. Now, plugins also contribute their own style settings to this object.
+
+  For example, if the `frames` plugin is installed, you can now override its `shadowColor` by setting `styleOverrides.frames.shadowColor` to a color value.
+
+- bfed62a: Add `applyHueAndChromaAdjustments` function to `ExpressiveCodeTheme`.
+
+  You can now apply chromatic adjustments to entire groups of theme colors while keeping their relative lightness and alpha components intact. This can be used to quickly create theme variants that fit the color scheme of any website or brand.
+
+  Adjustments can either be defined as hue and chroma values in the OKLCH color space (range 0–360 for hue, 0–0.4 for chroma), or these values can be extracted from hex color strings (e.g. `#3b82f6`).
+
+  You can target predefined groups of theme colors (e.g. `backgrounds`, `accents`) and/or use the `custom` property to define your own groups of theme colors to be adjusted.
+
+- bfed62a: Add `styleOverrides` to `ExpressiveCodeTheme`.
+
+  Themes can now provide their own `styleOverrides`, which take precedence over global `styleOverrides` and the default styles.
+
 ## 0.22.2
 
 ## 0.22.1
