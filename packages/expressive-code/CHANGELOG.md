@@ -1,5 +1,19 @@
 # expressive-code
 
+## 0.23.0
+
+### Patch Changes
+
+- Updated dependencies [bfed62a]
+- Updated dependencies [bfed62a]
+- Updated dependencies [bfed62a]
+- Updated dependencies [bfed62a]
+- Updated dependencies [bfed62a]
+  - @expressive-code/core@0.23.0
+  - @expressive-code/plugin-frames@0.23.0
+  - @expressive-code/plugin-shiki@0.23.0
+  - @expressive-code/plugin-text-markers@0.23.0
+
 ## 0.22.2
 
 ### Patch Changes

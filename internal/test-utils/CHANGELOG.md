@@ -1,5 +1,15 @@
 # @internal/test-utils
 
+## 0.2.16
+
+### Patch Changes
+
+- Updated dependencies [bfed62a]
+- Updated dependencies [bfed62a]
+- Updated dependencies [bfed62a]
+- Updated dependencies [bfed62a]
+  - @expressive-code/core@0.23.0
+
 ## 0.2.15
 
 ### Patch Changes
