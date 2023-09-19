@@ -9,11 +9,11 @@ export interface PluginCollapsibleSectionsOptions {
 }
 
 export const pluginCollapsibleSectionsTexts = new PluginTexts({
-	collapsedLines: (count: number) => `${count} collapsed line${count === 1 ? '' : 's'}`,
+	collapsedLines: '{lineCount} collapsed {lineCount;1=line;lines}',
 })
 
 pluginCollapsibleSectionsTexts.addLocale('de', {
-	collapsedLines: (count: number) => `${count} ausgeblendete Zeile${count === 1 ? '' : 'n'}`,
+	collapsedLines: '{lineCount} ausgeblendete {lineCount;1=Zeile;Zeilen}',
 })
 
 export function pluginCollapsibleSections(options: PluginCollapsibleSectionsOptions = {}): ExpressiveCodePlugin {
