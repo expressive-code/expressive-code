@@ -1,12 +1,18 @@
 import postcss, { Root } from 'postcss'
 import postcssNested from 'postcss-nested'
 import { escapeRegExp } from './escaping'
+import { ExpressiveCodePlugin, ResolverContext } from '../common/plugin'
 
 export const groupWrapperElement = 'div'
 export const groupWrapperClassName = 'expressive-code'
 
 // Support attaching processing data to root nodes
-const processingData = new WeakMap<Root, { configClassName: string }>()
+const processingData = new WeakMap<
+	Root,
+	ResolverContext & {
+		plugins: readonly ExpressiveCodePlugin[]
+	}
+>()
 const getScopeSelector = (root: Root): string => `.${processingData.get(root)?.configClassName || groupWrapperClassName}`
 
 const preprocessor = postcss([
@@ -79,7 +85,17 @@ const processedStylesCache = new Map<string, string>()
  * - Ensures that all selectors are scoped, unless they target the root element, html or body.
  * - Minifies the CSS.
  */
-export async function processPluginStyles({ pluginStyles, configClassName }: { pluginStyles: PluginStyles[]; configClassName: string }): Promise<Set<string>> {
+export async function processPluginStyles({
+	pluginStyles,
+	plugins,
+	theme,
+	coreStyles,
+	configClassName,
+	themeClassName,
+}: {
+	pluginStyles: PluginStyles[]
+	plugins: readonly ExpressiveCodePlugin[]
+} & ResolverContext): Promise<Set<string>> {
 	const result = new Set<string>()
 	const seenStyles = new Set<string>()
 	// @ts-expect-error PostCSS has incorrect types when using exactOptionalPropertyTypes
@@ -104,7 +120,7 @@ export async function processPluginStyles({ pluginStyles, configClassName }: { p
 		try {
 			// Parse the styles and attach processing data to the root node for use by plugins
 			const root = postcss.parse(`.${configClassName}{${styles}}`, postCssOptions)
-			processingData.set(root, { configClassName })
+			processingData.set(root, { plugins, theme, coreStyles, configClassName, themeClassName })
 
 			// Preprocess the parsed root node
 			const preprocessedStyles = await preprocessor.process(root, postCssOptions)

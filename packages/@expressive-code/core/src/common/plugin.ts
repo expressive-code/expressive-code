@@ -3,15 +3,31 @@ import { ResolvedCoreStyles } from './core-styles'
 import { ExpressiveCodePluginHooks } from './plugin-hooks'
 import { ExpressiveCodeTheme } from './theme'
 
-export type JsModulesResolverFn = ({
-	theme,
-	coreStyles,
-	configClassName,
-}: {
+export type ResolverContext = {
 	theme: ExpressiveCodeTheme
 	coreStyles: ResolvedCoreStyles
+	/**
+	 * This class name is used by Expressive Code when rendering its wrapper element
+	 * around all code block groups.
+	 *
+	 * Its format is `ec.ec-<hash>`, where `<hash>` is calculated based on the config options
+	 * that were passed to the class constructor. This allows you to render multiple code blocks
+	 * with different configurations on the same page without having to worry about CSS conflicts.
+	 *
+	 * Non-global CSS styles returned by the `getBaseStyles` and `render` methods
+	 * are scoped automatically using this class name.
+	 */
 	configClassName: string
-}) => string[] | Promise<string[]>
+	/**
+	 * This class name is used by Expressive Code when rendering its wrapper element
+	 * around all code block groups.
+	 *
+	 * Its format is `ec-theme-<name>`, where `<name>` is the kebab-cased theme name.
+	 */
+	themeClassName: string
+}
+
+export type JsModulesResolverFn = (context: ResolverContext) => string[] | Promise<string[]>
 
 export interface ExpressiveCodePlugin {
 	name: string
@@ -51,5 +67,5 @@ export interface ExpressiveCodePlugin {
 	 * into inline `<script type="module">` elements.
 	 */
 	jsModules?: string[] | JsModulesResolverFn | undefined
-	hooks: ExpressiveCodePluginHooks
+	hooks?: ExpressiveCodePluginHooks | undefined
 }

@@ -6,8 +6,8 @@
   "scripts": {
     "build": "pnpm -r --stream build",
     "lint": "eslint . && markdownlint **/*.md --ignore **/node_modules/**/*.md",
-    "coverage": "pnpm -r --no-bail --stream coverage",
-    "test": "pnpm -r --no-bail test-short",
+    "coverage": "pnpm -r --no-bail --workspace-concurrency 1 coverage",
+    "test": "pnpm -r --no-bail --workspace-concurrency 1 test-short",
     "validate": "pnpm i && pnpm build && pnpm test && pnpm lint",
     "bump": "changeset version && pnpm i",
     "release": "pnpm validate && pnpm bump && changeset publish",

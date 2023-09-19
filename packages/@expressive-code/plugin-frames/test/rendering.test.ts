@@ -3,6 +3,7 @@ import { Parent } from 'hast-util-to-html/lib/types'
 import { matches, select, selectAll } from 'hast-util-select'
 import { ExpressiveCodeTheme } from '@expressive-code/core'
 import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures } from '@internal/test-utils'
+import { pluginShiki, loadShikiTheme } from '@expressive-code/plugin-shiki'
 import { pluginFrames } from '../src'
 
 const exampleCode = `
@@ -14,8 +15,14 @@ const exampleTerminalCode = `
 pnpm i --save-dev expressive-code some-other-package yet-another-package 
 `.trim()
 
-describe('Renders frames around the code', () => {
+describe('Renders frames around the code', async () => {
 	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
+
+	// Add two shiki themes
+	themes.unshift(await loadShikiTheme('dracula'))
+	themes.unshift(await loadShikiTheme('material-theme'))
+	themes.unshift(await loadShikiTheme('github-light'))
+	// Add the default theme
 	themes.unshift(undefined)
 
 	test('Single JS block without title', async ({ meta: { name: testName } }) => {
@@ -35,28 +42,32 @@ describe('Renders frames around the code', () => {
 			}),
 		})
 	})
-	test('Single JS block with title', async ({ meta: { name: testName } }) => {
-		await renderAndOutputHtmlSnapshot({
-			testName,
-			testBaseDir: __dirname,
-			fixtures: buildThemeFixtures(themes, {
-				code: `
+	test(
+		'Single JS block with title',
+		async ({ meta: { name: testName } }) => {
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code: `
 // test.config.mjs
 
 ${exampleCode}
 				`.trim(),
-				plugins: [pluginFrames()],
-				blockValidationFn: ({ renderedGroupAst }) => {
-					validateBlockAst({
-						renderedGroupAst,
-						figureSelector: '.frame.has-title:not(.is-terminal)',
-						title: 'test.config.mjs',
-						srTitlePresent: false,
-					})
-				},
-			}),
-		})
-	})
+					plugins: [pluginShiki(), pluginFrames()],
+					blockValidationFn: ({ renderedGroupAst }) => {
+						validateBlockAst({
+							renderedGroupAst,
+							figureSelector: '.frame.has-title:not(.is-terminal)',
+							title: 'test.config.mjs',
+							srTitlePresent: false,
+						})
+					},
+				}),
+			})
+		},
+		{ timeout: 5 * 1000 }
+	)
 	test('Single terminal block without title', async ({ meta: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
 			testName,
@@ -76,26 +87,30 @@ ${exampleCode}
 			}),
 		})
 	})
-	test('Single terminal block with title', async ({ meta: { name: testName } }) => {
-		await renderAndOutputHtmlSnapshot({
-			testName,
-			testBaseDir: __dirname,
-			fixtures: buildThemeFixtures(themes, {
-				code: exampleTerminalCode,
-				language: 'shell',
-				meta: 'title="Installing Expressive Code"',
-				plugins: [pluginFrames()],
-				blockValidationFn: ({ renderedGroupAst }) => {
-					validateBlockAst({
-						renderedGroupAst,
-						figureSelector: '.frame.has-title.is-terminal',
-						title: 'Installing Expressive Code',
-						srTitlePresent: false,
-					})
-				},
-			}),
-		})
-	})
+	test(
+		'Single terminal block with title',
+		async ({ meta: { name: testName } }) => {
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code: exampleTerminalCode,
+					language: 'shell',
+					meta: 'title="Installing Expressive Code"',
+					plugins: [pluginShiki(), pluginFrames()],
+					blockValidationFn: ({ renderedGroupAst }) => {
+						validateBlockAst({
+							renderedGroupAst,
+							figureSelector: '.frame.has-title.is-terminal',
+							title: 'Installing Expressive Code',
+							srTitlePresent: false,
+						})
+					},
+				}),
+			})
+		},
+		{ timeout: 5 * 1000 }
+	)
 })
 
 describe('Differentiates between terminal and code editor frames', () => {

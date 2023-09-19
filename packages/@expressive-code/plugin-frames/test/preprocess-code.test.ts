@@ -68,6 +68,23 @@ No page will be built for this post.
 		])
 	})
 
+	test('CSS comments', async () => {
+		const code = `
+:root {
+  --sl-content-width: 50rem;
+  --sl-text-5xl: 3.5rem;
+}
+		`.trim()
+		await runPreprocessingTests([
+			{
+				fileName: 'src/styles/custom.css',
+				commentSyntax: '/* {fileName} */',
+				code,
+				language: 'css',
+			},
+		])
+	})
+
 	test('Windows file paths', async () => {
 		const fileName = 'C:\\Users\\Hippotastic\\printrunconf.ini'
 		await runPreprocessingTests([

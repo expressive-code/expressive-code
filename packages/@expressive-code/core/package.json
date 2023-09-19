@@ -38,7 +38,9 @@
     "postcss-nested": "^6.0.1"
   },
   "devDependencies": {
+    "@types/culori": "^2.0.0",
     "@types/html-escaper": "^3.0.0",
+    "culori": "^3.2.0",
     "djb2a": "^2.0.0",
     "hast-util-sanitize": "^4.1.0",
     "html-escaper": "^3.0.3",

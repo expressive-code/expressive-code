@@ -31,7 +31,7 @@ export const coreStyleSettings = new StyleSettings<CoreStyleSettings>({
 	// Outer container
 	borderRadius: '0.3rem',
 	borderWidth: '1.5px',
-	borderColor: ({ theme }) => lighten(theme.colors['editor.background'], theme.type === 'dark' ? 0.5 : -0.15) || 'transparent',
+	borderColor: ({ theme }) => theme.colors['titleBar.border'] || lighten(theme.colors['editor.background'], theme.type === 'dark' ? 0.5 : -0.15) || 'transparent',
 	// Code editor content
 	codeFontFamily: [
 		`'IBM Plex Mono'`,
@@ -72,6 +72,9 @@ export const coreStyleSettings = new StyleSettings<CoreStyleSettings>({
 	scrollbarThumbHoverColor: ({ theme, resolveSetting }) =>
 		ensureColorContrastOnBackground(theme.colors['scrollbarSlider.hoverBackground'], resolveSetting('codeBackground'), 2.5, 3.5),
 } satisfies UnresolvedCoreStyleSettings<CoreStyleSettings>)
+
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface StyleOverrides extends Partial<UnresolvedCoreStyleSettings<CoreStyleSettings>> {}
 
 export type ResolvedCoreStyles = ResolvedStyleSettings<CoreStyleSettings>
 

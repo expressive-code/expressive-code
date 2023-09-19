@@ -39,8 +39,8 @@ const getFileNameCommentRegExpString = () =>
 		`^`,
 		// Optional whitespace
 		`\\s*`,
-		// Mandatory comment start: `//`, `#` (but not `#!`) or `<!--`
-		`(?://|#(?!!)|<!--)`,
+		// Mandatory comment start: `//`, `#` (but not `#!`), `<!--` or `/*`
+		`(?://|#(?!!)|<!--|/\\*)`,
 		// Optional whitespace
 		`\\s*`,
 		// Optional prefix before the file name:
@@ -67,8 +67,8 @@ const getFileNameCommentRegExpString = () =>
 		`)`,
 		// Optional whitespace
 		`\\s*`,
-		// Optional HTML comment end (`-->`)
-		`(?:-->)?`,
+		// Optional HTML or JS/CSS comment end (`-->` or `*/`)
+		`(?:-->|\\*/)?`,
 		// Optional whitespace
 		`\\s*`,
 		// End of line

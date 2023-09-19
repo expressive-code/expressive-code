@@ -219,10 +219,13 @@ You can pass the following options to the plugin:
   - General styles: `shadowColor`, `frameBoxShadowCssValue`
 
   - Editor styles:
-    `editorActiveTabBackground`, `editorActiveTabForeground`, `editorActiveTabBorder`, `editorActiveTabBorderTop`, `editorActiveTabBorderBottom`, `editorTabBorderRadius`, `editorTabBarBackground`, `editorTabBarBorderColor`, `editorTabBarBorderBottom`, `editorBackground`
+    `editorActiveTabBackground`, `editorActiveTabForeground`, `editorActiveTabBorder`, `editorActiveTabBorderTop`, `editorActiveTabBorderBottom`, `editorActiveTabMarginInlineStart`, `editorActiveTabMarginBlockStart`, `editorTabBorderRadius`, `editorTabBarBackground`, `editorTabBarBorderColor`, `editorTabBarBorderBottom`, `editorBackground`
 
   - Terminal styles:
-    `terminalTitlebarDotsForeground`, `terminalTitlebarBackground`, `terminalTitlebarForeground`, `terminalTitlebarBorderBottom`, `terminalBackground`
+    `terminalTitlebarDotsForeground`, `terminalTitlebarDotsOpacity`, `terminalTitlebarBackground`, `terminalTitlebarForeground`, `terminalTitlebarBorderBottom`, `terminalBackground`
+
+  - Copy button styles:
+    `inlineButtonBackground`, `inlineButtonBackgroundIdleOpacity`, `inlineButtonBackgroundHoverOrFocusOpacity`, `inlineButtonBackgroundActiveOpacity`, `inlineButtonForeground`, `inlineButtonBorder`, `inlineButtonBorderOpacity`, `tooltipSuccessBackground`, `tooltipSuccessForeground`
 
 ## Advanced use cases
 

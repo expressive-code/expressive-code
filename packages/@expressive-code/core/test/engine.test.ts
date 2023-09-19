@@ -91,7 +91,7 @@ describe('ExpressiveCodeEngine', () => {
 		})
 		describe('Allows plugin hooks to access theme colors', () => {
 			test('Default theme (github-dark)', async () => {
-				let extractedTheme: ExpressiveCodeTheme | undefined
+				let extractedTheme: Omit<ExpressiveCodeTheme, 'applyHueAndChromaAdjustments'> | undefined
 				await getHookTestResult('annotateCode', ({ theme }) => {
 					extractedTheme = { ...theme }
 				})

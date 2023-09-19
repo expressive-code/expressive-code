@@ -1,4 +1,4 @@
-import { Element, Parent } from 'hast-util-to-html/lib/types'
+import type { Element, Parent } from 'hast-util-to-html/lib/types'
 import { PluginStyles } from '../internal/css'
 import { GroupContents, RenderedGroupContents } from '../internal/render-group'
 import { ExpressiveCodeBlock } from './block'
@@ -174,7 +174,7 @@ export async function runHooks<HookType extends keyof ExpressiveCodePluginHooks>
 	runner: (hook: { hookName: HookType; hookFn: NonNullable<ExpressiveCodePluginHooks[HookType]>; plugin: ExpressiveCodePlugin }) => void | Promise<void>
 ) {
 	for (const plugin of plugins) {
-		const hookFn = plugin.hooks[key]
+		const hookFn = plugin.hooks?.[key]
 		if (!hookFn) continue
 
 		try {

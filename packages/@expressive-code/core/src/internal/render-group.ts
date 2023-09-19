@@ -1,10 +1,8 @@
 import { Parent, Element } from 'hast-util-to-html/lib/types'
 import { h } from 'hastscript'
 import { ExpressiveCodeBlock, ExpressiveCodeBlockOptions } from '../common/block'
-import { ResolvedCoreStyles } from '../common/core-styles'
-import { ExpressiveCodePlugin } from '../common/plugin'
+import { ExpressiveCodePlugin, ResolverContext } from '../common/plugin'
 import { runHooks } from '../common/plugin-hooks'
-import { ExpressiveCodeTheme } from '../common/theme'
 import { groupWrapperClassName, groupWrapperElement, PluginStyles, processPluginStyles } from './css'
 import { renderBlock } from './render-block'
 import { isHastParent, newTypeError } from './type-checks'
@@ -41,13 +39,9 @@ export async function renderGroup({
 }: {
 	input: RenderInput
 	options?: RenderOptions | undefined
-	theme: ExpressiveCodeTheme
 	defaultLocale: string
-	coreStyles: ResolvedCoreStyles
 	plugins: readonly ExpressiveCodePlugin[]
-	configClassName: string
-	themeClassName: string
-}) {
+} & ResolverContext) {
 	// Ensure that the input is an array
 	const inputArray = Array.isArray(input) ? input : [input]
 
@@ -110,7 +104,14 @@ export async function renderGroup({
 	return {
 		renderedGroupAst: addWrapperAroundGroupAst({ groupAst: groupRenderData.groupAst, configClassName, themeClassName }),
 		renderedGroupContents,
-		styles: await processPluginStyles({ pluginStyles, configClassName }),
+		styles: await processPluginStyles({
+			pluginStyles,
+			plugins,
+			theme,
+			coreStyles,
+			configClassName,
+			themeClassName,
+		}),
 	}
 }
 
@@ -119,5 +120,5 @@ export async function renderGroup({
  * allowing us to scope CSS styles that are added by plugins.
  */
 function addWrapperAroundGroupAst({ groupAst, configClassName, themeClassName }: { groupAst: Parent; configClassName: string; themeClassName: string }): Parent {
-	return h(`${groupWrapperElement}.${groupWrapperClassName}.${configClassName}${themeClassName}`, groupAst)
+	return h(`${groupWrapperElement}.${groupWrapperClassName}.${configClassName}${themeClassName ? `.${themeClassName}` : ''}`, groupAst)
 }

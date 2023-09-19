@@ -3,18 +3,81 @@ import { toHtml } from 'hast-util-to-html'
 import { ExpressiveCodeTheme } from '@expressive-code/core'
 import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures } from '@internal/test-utils'
 // import dracula from 'shiki/themes/dracula.json'
-import { pluginShiki } from '../src'
+import { loadShikiTheme, pluginShiki } from '../src'
 
 const jsTestCode = `
 import { defineConfig } from 'astro/config';
 
+/**
+ * Some JSDoc test.
+ */
+export async function test(a, b, c) {
+  let x = true
+  let y = a.toString()
+  const z = \`hello\${a === true ? 'x' : 'y'}\`
+  const fn = () => "test\\nanother line"
+}
+
+// Single-line comment
+var v = 300
+test(1, Math.min(6, 2), defineConfig.someProp || v)
+
 export default defineConfig({
   markdown: {
-    extendDefaultPlugins: false,
+    'some.example': 2048,
     smartypants: false,
     gfm: false,
   }
 });
+`.trim()
+
+const cssTestCode = `
+@media (min-width: 50em) {
+  :root {
+    --min-spacing-inline: calc(0.5vw - 1.5rem);
+    color: blue;
+  }
+  body, html, .test[data-size="large"], #id {
+    background: linear-gradient(to top, #80f 1px, rgb(30, 90, 130) 50%);
+  }
+  .frame:focus-within :focus-visible ~ .copy button:not(:hover) {
+    content: 'Hello \\000026 welcome!';
+    opacity: 0.75;
+  }
+}
+`.trim()
+
+const astroTestCode = `
+---
+import Header from './Header.astro';
+import Logo from './Logo.astro';
+import Footer from './Footer.astro';
+
+const { title } = Astro.props
+---
+<div id="content-wrapper" class="test">
+  <Header />
+  <Logo size="large"/>
+  <h1>{title} &amp; some text</h1>
+  <slot />  <!-- children will go here -->
+  <Footer />
+</div>
+`.trim()
+
+const pythonTestCode = `
+import time
+
+# Define a countdown function
+def countdown(time_sec):
+  while time_sec:
+    mins, secs = divmod(time_sec, 60)
+    timeformat = '{:02d}:{:02d}'.format(mins, secs)
+    print(timeformat, end='\\r')
+    time.sleep(1)
+    time_sec -= 1
+  print("stop")
+
+countdown(5)
 `.trim()
 
 const shellTestCode = `
@@ -39,12 +102,18 @@ const ansiTestCode = `
 // eslint-disable-next-line no-control-regex
 const ansiEscapeCode = /\u001b\[\d+m/gu
 
-describe('Renders syntax highlighting', () => {
+describe('Renders syntax highlighting', async () => {
 	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
+
+	// Add two shiki themes
+	themes.unshift(await loadShikiTheme('dracula'))
+	themes.unshift(await loadShikiTheme('material-theme'))
+	themes.unshift(await loadShikiTheme('github-light'))
+	// Add the default theme
 	themes.unshift(undefined)
 
 	test(
-		'Supports themes in editor',
+		'Supports themes in JS code',
 		async ({ meta: { name: testName } }) => {
 			await renderAndOutputHtmlSnapshot({
 				testName,
@@ -52,6 +121,57 @@ describe('Renders syntax highlighting', () => {
 				fixtures: buildThemeFixtures(themes, {
 					code: jsTestCode,
 					language: 'js',
+					meta: '',
+					plugins: [pluginShiki()],
+				}),
+			})
+		},
+		{ timeout: 5 * 1000 }
+	)
+
+	test(
+		'Supports themes in Astro code',
+		async ({ meta: { name: testName } }) => {
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code: astroTestCode,
+					language: 'astro',
+					meta: '',
+					plugins: [pluginShiki()],
+				}),
+			})
+		},
+		{ timeout: 5 * 1000 }
+	)
+
+	test(
+		'Supports themes in Python code',
+		async ({ meta: { name: testName } }) => {
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code: pythonTestCode,
+					language: 'python',
+					meta: '',
+					plugins: [pluginShiki()],
+				}),
+			})
+		},
+		{ timeout: 5 * 1000 }
+	)
+
+	test(
+		'Supports themes in CSS code',
+		async ({ meta: { name: testName } }) => {
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code: cssTestCode,
+					language: 'css',
 					meta: '',
 					plugins: [pluginShiki()],
 				}),

@@ -1,5 +1,4 @@
-import { TinyColor } from '@ctrl/tinycolor'
-import { multiplyAlpha, lighten, darken } from '../helpers/color-transforms'
+import { multiplyAlpha, lighten, darken, getLuminance } from '../helpers/color-transforms'
 
 export type VSCodeDefaultColorTransform =
 	| ['transparent', VSCodeDefaultColorKey, number]
@@ -214,6 +213,32 @@ export type VSCodeDefaultColorKey =
 	// Snippet placeholder colors
 	| 'editor.snippetTabstopHighlightBackground'
 	| 'editor.snippetFinalTabstopHighlightBorder'
+
+export const groupedDefaultWorkbenchColorKeys = {
+	backgrounds: [
+		'editor.background',
+		'editorGroupHeader.tabsBackground',
+		'editorGroupHeader.tabsBorder',
+		'panel.background',
+		'tab.activeBackground',
+		'tab.activeBorderTop',
+		'tab.activeBorder',
+		'terminal.background',
+		'widget.shadow',
+	],
+	accents: [
+		'focusBorder',
+		'editor.selectionBackground',
+		'textBlockQuote.border',
+		'textLink.activeForeground',
+		'textLink.foreground',
+		'editorLink.activeForeground',
+		'tab.activeForeground',
+		'tab.inactiveForeground',
+		'tab.unfocusedActiveForeground',
+		'tab.unfocusedInactiveForeground',
+	],
+} satisfies { [key in string]: readonly VSCodeDefaultColorKey[] }
 
 const defaultEditorBackgroundColors: [string, string] = ['#1e1e1e', '#ffffff']
 const defaultEditorForegroundColors: [string, string] = ['#bbbbbb', '#333333']
@@ -534,24 +559,22 @@ export function resolveVSCodeWorkbenchColors(colors: { [key: string]: string } |
 			const hexFrom = resolveColor(colorKey)
 			/* c8 ignore next */
 			if (hexFrom === null) return null
-			const from = new TinyColor(hexFrom)
 
 			const hexBackground = resolveColor(backgroundKey)
 			/* c8 ignore next */
-			if (hexBackground === null) return multiplyAlpha(from, factor * transparency)
-			const background = new TinyColor(hexBackground)
+			if (hexBackground === null) return multiplyAlpha(hexFrom, factor * transparency)
 
-			const fromLum = from.getLuminance()
-			const bgLum = background.getLuminance()
+			const fromLum = getLuminance(hexFrom)
+			const bgLum = getLuminance(hexBackground)
 			/* c8 ignore next */
 			let combinedFactor = factor ? factor : 0.5
 			if (fromLum < bgLum) {
 				combinedFactor *= (bgLum - fromLum) / bgLum
-				const lightened = lighten(from, combinedFactor)
+				const lightened = lighten(hexFrom, combinedFactor)
 				return multiplyAlpha(lightened, transparency)
 			} else {
 				combinedFactor *= (fromLum - bgLum) / fromLum
-				const darkened = darken(from, combinedFactor)
+				const darkened = darken(hexFrom, combinedFactor)
 				return multiplyAlpha(darkened, transparency)
 			}
 		}
@@ -613,7 +636,7 @@ export function resolveVSCodeWorkbenchColors(colors: { [key: string]: string } |
  * we assume the theme is a dark theme.
  */
 export function guessThemeTypeFromEditorColors(colors: { [key: string]: string } | undefined) {
-	const background = new TinyColor(colors?.['editor.background'] || defaultEditorBackgroundColors[0])
-	const foreground = new TinyColor(colors?.['editor.foreground'] || defaultEditorForegroundColors[0])
-	return background.getLuminance() < foreground.getLuminance() ? 'dark' : 'light'
+	const bgLuminance = getLuminance(colors?.['editor.background'] || defaultEditorBackgroundColors[0])
+	const fgLuminance = getLuminance(colors?.['editor.foreground'] || defaultEditorForegroundColors[0])
+	return bgLuminance < fgLuminance ? 'dark' : 'light'
 }
