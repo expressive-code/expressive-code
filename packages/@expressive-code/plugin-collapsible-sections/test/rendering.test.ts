@@ -91,7 +91,7 @@ describe('Renders collapsed sections', () => {
 		)
 
 		test(`Uses the correct section summary if given as option`, async ({ meta: { name: testName } }) => {
-			pluginCollapsibleSectionsTexts.addLocale('xy', { collapsedLines: (count) => `Test ${count}` })
+			pluginCollapsibleSectionsTexts.addLocale('xy', { collapsedLines: 'Test {lineCount}' })
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,

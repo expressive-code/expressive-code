@@ -2,11 +2,12 @@ import { type ElementContent } from 'hast'
 import { Section } from './utils'
 import { h, s } from 'hastscript'
 import { collapsibleSectionClass } from './styles'
+import { formatTemplate } from '@expressive-code/core'
 
 /**
  * Transforms a list of line ASTs into one containing the provided collapsible sections
  */
-export function sectionizeAst({ lines, sections, text }: { lines: ElementContent[]; sections: Section[]; text: (count: number) => string }): ElementContent[] {
+export function sectionizeAst({ lines, sections, text }: { lines: ElementContent[]; sections: Section[]; text: string }): ElementContent[] {
 	const outp = [...lines]
 
 	// icon yoinked from octicons (MIT licensed)
@@ -21,7 +22,7 @@ export function sectionizeAst({ lines, sections, text }: { lines: ElementContent
 			const $details = h('details', { class: collapsibleSectionClass }, [
 				h('summary', [
 					s('svg', { xmlns: 'http://www.w3.org/2000/svg', 'aria-hidden': 'true', viewBox: '0 0 16 16', width: '16', height: '16' }, [s('path', { d: collapsedIconD })]),
-					text(targetLines.length),
+					formatTemplate(text, { lineCount: targetLines.length }),
 				]),
 				...targetLines,
 			])
