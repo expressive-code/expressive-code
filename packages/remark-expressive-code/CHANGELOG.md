@@ -1,5 +1,25 @@
 # remark-expressive-code
 
+## 0.24.0
+
+### Minor Changes
+
+- af3171b: Render frame borders on top of background, add `editorActiveTabHighlightHeight` style setting.
+
+  Previously, borders were rendered around the editor / terminal window, which could lead to unwanted empty margins between the window background and the drop shadow (e.g. in theme `nord`). Now, the border is rendered on top of the background to resolve this issue, making fully transparent borders act like padding instead.
+
+  Additionally, the `editorActiveTabHighlightHeight` style setting was introduced, which allows customizing the colorful line that highlights the active editor tab. It defaults to `borderWidth`.
+
+### Patch Changes
+
+- af3171b: Pass global `styleOverrides` to plugin style resolver functions.
+
+  This allows plugins to access their individual `styleOverrides` extensions even when values were defined at the global config level.
+
+- Updated dependencies [af3171b]
+- Updated dependencies [af3171b]
+  - expressive-code@0.24.0
+
 ## 0.23.0
 
 ### Minor Changes
