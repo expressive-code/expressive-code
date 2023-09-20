@@ -48,7 +48,7 @@ export async function renderAndOutputHtmlSnapshot({ testName, testBaseDir, fixtu
 				styles,
 				theme: engine.theme,
 				foreground: engine.theme.type === 'dark' ? '#fff' : '#000',
-				background: engine.theme.type === 'dark' ? '#000' : '#fff',
+				background: engine.theme.type === 'dark' ? '#248' : '#eee',
 				blockValidationFn,
 			}
 		})

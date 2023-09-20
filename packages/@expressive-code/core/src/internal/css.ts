@@ -90,6 +90,7 @@ export async function processPluginStyles({
 	plugins,
 	theme,
 	coreStyles,
+	styleOverrides,
 	configClassName,
 	themeClassName,
 }: {
@@ -120,7 +121,7 @@ export async function processPluginStyles({
 		try {
 			// Parse the styles and attach processing data to the root node for use by plugins
 			const root = postcss.parse(`.${configClassName}{${styles}}`, postCssOptions)
-			processingData.set(root, { plugins, theme, coreStyles, configClassName, themeClassName })
+			processingData.set(root, { plugins, theme, coreStyles, styleOverrides, configClassName, themeClassName })
 
 			// Preprocess the parsed root node
 			const preprocessedStyles = await preprocessor.process(root, postCssOptions)

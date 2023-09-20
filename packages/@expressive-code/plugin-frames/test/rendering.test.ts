@@ -18,7 +18,8 @@ pnpm i --save-dev expressive-code some-other-package yet-another-package
 describe('Renders frames around the code', async () => {
 	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
 
-	// Add two shiki themes
+	// Add a few shiki themes
+	themes.unshift(await loadShikiTheme('nord'))
 	themes.unshift(await loadShikiTheme('dracula'))
 	themes.unshift(await loadShikiTheme('material-theme'))
 	themes.unshift(await loadShikiTheme('github-light'))

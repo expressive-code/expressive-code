@@ -1,11 +1,12 @@
 import { BaseStylesResolverFn } from '../helpers/style-settings'
-import { ResolvedCoreStyles } from './core-styles'
+import { ResolvedCoreStyles, StyleOverrides } from './core-styles'
 import { ExpressiveCodePluginHooks } from './plugin-hooks'
 import { ExpressiveCodeTheme } from './theme'
 
 export type ResolverContext = {
 	theme: ExpressiveCodeTheme
 	coreStyles: ResolvedCoreStyles
+	styleOverrides: Partial<StyleOverrides>
 	/**
 	 * This class name is used by Expressive Code when rendering its wrapper element
 	 * around all code block groups.

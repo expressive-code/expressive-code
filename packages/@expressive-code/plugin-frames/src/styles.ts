@@ -40,11 +40,16 @@ declare module '@expressive-code/core' {
 	}
 }
 
-export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: ResolvedCoreStyles, options: PluginFramesOptions) {
+export function getFramesBaseStyles(
+	theme: ExpressiveCodeTheme,
+	coreStyles: ResolvedCoreStyles,
+	styleOverrides: Partial<typeof framesStyleSettings.defaultSettings>,
+	options: PluginFramesOptions
+) {
 	const framesStyles = framesStyleSettings.resolve({
 		theme,
 		coreStyles,
-		styleOverrides: options.styleOverrides,
+		styleOverrides,
 		themeStyleOverrides: theme.styleOverrides.frames,
 	})
 

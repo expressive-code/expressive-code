@@ -22,7 +22,7 @@ export interface PluginTextMarkersOptions {
 export function pluginTextMarkers(options: PluginTextMarkersOptions = {}): ExpressiveCodePlugin {
 	return {
 		name: 'TextMarkers',
-		baseStyles: ({ theme, coreStyles }) => getTextMarkersBaseStyles(theme, coreStyles, options.styleOverrides || {}),
+		baseStyles: ({ theme, coreStyles, styleOverrides }) => getTextMarkersBaseStyles(theme, coreStyles, { ...styleOverrides.textMarkers, ...options.styleOverrides }),
 		hooks: {
 			preprocessMetadata: ({ codeBlock, theme, coreStyles }) => {
 				const { blockData, markerTypeColors } = getBlockDataAndMarkerTypeColors(codeBlock, theme, coreStyles, options)

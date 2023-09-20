@@ -194,6 +194,7 @@ export class ExpressiveCodeEngine {
 		return {
 			theme: this.theme,
 			coreStyles: this.coreStyles,
+			styleOverrides: this.styleOverrides,
 			configClassName: this.configClassName,
 			themeClassName: this.themeClassName,
 		}
@@ -203,7 +204,7 @@ export class ExpressiveCodeEngine {
 	readonly defaultLocale: string
 	readonly useThemedScrollbars: boolean
 	readonly useThemedSelectionColors: boolean
-	readonly styleOverrides: Partial<typeof coreStyleSettings.defaultSettings>
+	readonly styleOverrides: Partial<StyleOverrides>
 	readonly coreStyles: ResolvedCoreStyles
 	readonly plugins: readonly ExpressiveCodePlugin[]
 	/**
