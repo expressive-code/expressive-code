@@ -30,7 +30,8 @@ const { greeting = "Hello", name = "Astronaut" } = Astro.props;
 describe('Renders text markers', async () => {
 	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
 
-	// Add two shiki themes
+	// Add a few shiki themes
+	themes.unshift(await loadShikiTheme('nord'))
 	themes.unshift(await loadShikiTheme('dracula'))
 	themes.unshift(await loadShikiTheme('material-theme'))
 	themes.unshift(await loadShikiTheme('github-light'))

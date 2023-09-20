@@ -19,7 +19,8 @@ pluginCollapsibleSectionsTexts.addLocale('de', {
 export function pluginCollapsibleSections(options: PluginCollapsibleSectionsOptions = {}): ExpressiveCodePlugin {
 	return {
 		name: 'Collapsible sections',
-		baseStyles: ({ theme, coreStyles }) => getCollapsibleSectionsBaseStyles(theme, coreStyles, options.styleOverrides || {}),
+		baseStyles: ({ theme, coreStyles, styleOverrides }) =>
+			getCollapsibleSectionsBaseStyles(theme, coreStyles, { ...styleOverrides.collapsibleSections, ...options.styleOverrides }),
 		hooks: {
 			preprocessMetadata: ({ codeBlock }) => {
 				codeBlock.meta = replaceDelimitedValues(

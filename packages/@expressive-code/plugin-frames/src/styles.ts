@@ -7,6 +7,7 @@ export const framesStyleSettings = new StyleSettings({
 	editorActiveTabBackground: ({ theme }) => theme.colors['tab.activeBackground'],
 	editorActiveTabForeground: ({ theme }) => theme.colors['tab.activeForeground'],
 	editorActiveTabBorder: 'transparent',
+	editorActiveTabHighlightHeight: ({ coreStyles }) => coreStyles.borderWidth,
 	editorActiveTabBorderTop: ({ theme }) => theme.colors['tab.activeBorderTop'],
 	editorActiveTabBorderBottom: ({ theme }) => theme.colors['tab.activeBorder'],
 	editorActiveTabMarginInlineStart: '0',
@@ -40,11 +41,16 @@ declare module '@expressive-code/core' {
 	}
 }
 
-export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: ResolvedCoreStyles, options: PluginFramesOptions) {
+export function getFramesBaseStyles(
+	theme: ExpressiveCodeTheme,
+	coreStyles: ResolvedCoreStyles,
+	styleOverrides: Partial<typeof framesStyleSettings.defaultSettings>,
+	options: PluginFramesOptions
+) {
 	const framesStyles = framesStyleSettings.resolve({
 		theme,
 		coreStyles,
-		styleOverrides: options.styleOverrides,
+		styleOverrides,
 		themeStyleOverrides: theme.styleOverrides.frames,
 	})
 
@@ -69,10 +75,14 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 
 	const activeTabBackgrounds: string[] = []
 	if (framesStyles.editorActiveTabBorderTop) {
-		activeTabBackgrounds.push(`linear-gradient(to bottom, ${framesStyles.editorActiveTabBorderTop} ${coreStyles.borderWidth}, transparent ${coreStyles.borderWidth})`)
+		activeTabBackgrounds.push(
+			`linear-gradient(to bottom, ${framesStyles.editorActiveTabBorderTop} ${framesStyles.editorActiveTabHighlightHeight}, transparent ${framesStyles.editorActiveTabHighlightHeight})`
+		)
 	}
 	if (framesStyles.editorActiveTabBorderBottom) {
-		activeTabBackgrounds.push(`linear-gradient(to top, ${framesStyles.editorActiveTabBorderBottom} ${coreStyles.borderWidth}, transparent ${coreStyles.borderWidth})`)
+		activeTabBackgrounds.push(
+			`linear-gradient(to top, ${framesStyles.editorActiveTabBorderBottom} ${framesStyles.editorActiveTabHighlightHeight}, transparent ${framesStyles.editorActiveTabHighlightHeight})`
+		)
 	}
 	if (activeTabBackgrounds.length) {
 		activeTabBackgrounds.push(`linear-gradient(${framesStyles.editorActiveTabBackground}, ${framesStyles.editorActiveTabBackground})`)
@@ -81,11 +91,17 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 	}
 	const activeTabBackground = activeTabBackgrounds.join(',')
 
+	const tabBarBackground = [
+		`linear-gradient(to top, ${framesStyles.editorTabBarBorderBottom} ${coreStyles.borderWidth}, transparent ${coreStyles.borderWidth})`,
+		`linear-gradient(${framesStyles.editorTabBarBackground}, ${framesStyles.editorTabBarBackground})`,
+	].join(',')
+
 	const frameStyles = `.frame {
 		all: unset;
 		position: relative;
 		display: block;
 		--header-border-radius: calc(${coreStyles.borderRadius} + ${coreStyles.borderWidth});
+		--tab-border-radius: calc(${framesStyles.editorTabBorderRadius} + ${coreStyles.borderWidth});
 		--button-spacing: 0.4rem;
 		--code-background: ${framesStyles.editorBackground};
 		border-radius: var(--header-border-radius);
@@ -96,16 +112,12 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 			z-index: 1;
 			position: relative;
 
-			border: ${coreStyles.borderWidth} solid ${coreStyles.borderColor};
-			border-bottom: none;
 			border-radius: var(--header-border-radius) var(--header-border-radius) 0 0;
 		}
 
 		/* Styles to apply if we have a title bar or tab bar */
 		&.has-title,
 		&.is-terminal {
-			--button-spacing: 2.4rem;
-
 			& pre, & code {
 				border-top: none;
 				border-top-left-radius: 0;
@@ -120,6 +132,8 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 
 		/* Editor tab bar */
 		&.has-title:not(.is-terminal) {
+			--button-spacing: calc(1.9rem + 2 * (${coreStyles.uiPaddingBlock} + ${framesStyles.editorActiveTabHighlightHeight}));
+
 			/* Active editor tab */
 			& .title {
 				position: relative;
@@ -128,34 +142,35 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 				background-clip: padding-box;
 				background-repeat: no-repeat;
 				margin-block-start: ${framesStyles.editorActiveTabMarginBlockStart};
-				padding: ${coreStyles.uiPaddingBlock} ${coreStyles.uiPaddingInline};
-				border-radius: ${framesStyles.editorTabBorderRadius} ${framesStyles.editorTabBorderRadius} 0 0;
+				padding: calc(${coreStyles.uiPaddingBlock} + ${framesStyles.editorActiveTabHighlightHeight}) ${coreStyles.uiPaddingInline};
 				border: ${coreStyles.borderWidth} solid ${framesStyles.editorActiveTabBorder};
+				border-radius: var(--tab-border-radius) var(--tab-border-radius) 0 0;
 				border-bottom: none;
 			}
 
 			/* Tab bar background */
 			& .header {
-				border-color: ${framesStyles.editorTabBarBorderColor};
 				display: flex;
-				background: ${framesStyles.editorTabBarBackground};
-				background-clip: padding-box;
-				&::before {
-					padding-inline-start: ${framesStyles.editorActiveTabMarginInlineStart};
-				}
-				&::after {
-					flex-grow: 1;
-				}
-				&::before,
+
+				background: ${tabBarBackground};
+				background-repeat: no-repeat;
+
+				padding-inline-start: ${framesStyles.editorActiveTabMarginInlineStart};
+
 				&::after {
 					content: '';
-					border-bottom: ${coreStyles.borderWidth} solid ${framesStyles.editorTabBarBorderBottom};
+					position: absolute;
+					inset: 0;
+					border: ${coreStyles.borderWidth} solid ${framesStyles.editorTabBarBorderColor};
+					border-radius: inherit;
+					border-bottom: none;
 				}
 			}
 		}
 
 		/* Terminal window */
 		&.is-terminal {
+			--button-spacing: calc(1.9rem + ${coreStyles.borderWidth} + 2 * ${coreStyles.uiPaddingBlock});
 			--code-background: ${framesStyles.terminalBackground};
 
 			/* Terminal title bar */
@@ -164,6 +179,7 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 				align-items: center;
 				justify-content: center;
 				padding-block: ${coreStyles.uiPaddingBlock};
+				padding-block-end: calc(${coreStyles.uiPaddingBlock} + ${coreStyles.borderWidth});
 				position: relative;
 
 				font-weight: 500;
@@ -171,7 +187,8 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 
 				color: ${framesStyles.terminalTitlebarForeground};
 				background: ${framesStyles.terminalTitlebarBackground};
-				background-clip: padding-box;
+				border: ${coreStyles.borderWidth} solid ${coreStyles.borderColor};
+				border-bottom: none;
 
 				/* Display three dots at the left side of the header */
 				&::before {
@@ -201,7 +218,6 @@ export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: Reso
 		/* Code */
 		& pre {
 			background: var(--code-background);
-			background-clip: padding-box;
 		}
 	}`
 
