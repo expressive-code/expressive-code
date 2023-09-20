@@ -1,5 +1,17 @@
 # @expressive-code/plugin-shiki
 
+## 0.24.0
+
+### Patch Changes
+
+- af3171b: Pass global `styleOverrides` to plugin style resolver functions.
+
+  This allows plugins to access their individual `styleOverrides` extensions even when values were defined at the global config level.
+
+- Updated dependencies [af3171b]
+- Updated dependencies [2c375b1]
+  - @expressive-code/core@0.24.0
+
 ## 0.23.0
 
 ### Patch Changes
