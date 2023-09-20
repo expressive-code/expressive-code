@@ -109,7 +109,6 @@ export function getCoreBaseStyles(options: { theme: ExpressiveCodeTheme; coreSty
 			border: ${coreStyles.borderWidth} solid ${coreStyles.borderColor};
 			border-radius: calc(${coreStyles.borderRadius} + ${coreStyles.borderWidth});
 			background: ${coreStyles.codeBackground};
-			background-clip: padding-box;
 
 			&:focus-visible {
 				outline: 3px solid ${coreStyles.focusBorder};
