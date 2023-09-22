@@ -1,5 +1,17 @@
 # @expressive-code/core
 
+## 0.26.0
+
+### Minor Changes
+
+- d2277ba: Themed selection now keeps the code foreground color intact (like VS Code).
+
+  Color overlays no longer prevent text from being selectable.
+
+### Patch Changes
+
+- d2277ba: Make code blocks accessible by keyboard
+
 ## 0.25.0
 
 ### Minor Changes

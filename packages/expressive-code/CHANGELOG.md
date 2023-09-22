@@ -1,5 +1,23 @@
 # expressive-code
 
+## 0.26.0
+
+### Minor Changes
+
+- d2277ba: Themed selection now keeps the code foreground color intact (like VS Code).
+
+  Color overlays no longer prevent text from being selectable.
+
+### Patch Changes
+
+- Updated dependencies [d2277ba]
+- Updated dependencies [d2277ba]
+- Updated dependencies [ef93adf]
+  - @expressive-code/core@0.26.0
+  - @expressive-code/plugin-text-markers@0.26.0
+  - @expressive-code/plugin-frames@0.26.0
+  - @expressive-code/plugin-shiki@0.26.0
+
 ## 0.25.0
 
 ### Patch Changes

@@ -1,5 +1,14 @@
 # @expressive-code/plugin-shiki
 
+## 0.26.0
+
+### Patch Changes
+
+- ef93adf: Improve caching logic to respect theme contents in addition to name
+- Updated dependencies [d2277ba]
+- Updated dependencies [d2277ba]
+  - @expressive-code/core@0.26.0
+
 ## 0.25.0
 
 ### Patch Changes
