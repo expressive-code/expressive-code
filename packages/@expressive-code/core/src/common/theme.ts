@@ -11,7 +11,6 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 	fg: string
 	bg: string
 	semanticHighlighting: boolean
-	tokenColors: unknown
 	settings: ThemeSetting[]
 	styleOverrides: Partial<StyleOverrides>
 
@@ -25,16 +24,7 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 	 * function yourself, use it to load its bundled theme (e.g. `themes/dracula.json`),
 	 * and pass the result to this constructor.
 	 */
-	constructor(
-		theme:
-			| Partial<ExpressiveCodeTheme>
-			| (Partial<IShikiTheme> & {
-					semanticHighlighting?: boolean | undefined
-					tokenColors?: unknown | undefined
-					index?: number | undefined
-					styleOverrides?: Partial<StyleOverrides> | undefined
-			  })
-	) {
+	constructor(theme: ExpressiveCodeThemeInput) {
 		let themeType = theme.type
 		if (themeType === 'css') throw new Error('Theme type "css" is not supported.')
 		if (themeType !== 'dark' && themeType !== 'light') {
@@ -48,13 +38,17 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 		}
 
 		this.name = theme.name || ''
-		this.type = themeType
+		this.type = themeType as VSCodeThemeType
 		this.colors = resolveVSCodeWorkbenchColors(themeColors, this.type)
 		this.fg = theme.fg || this.colors['editor.foreground']
 		this.bg = theme.bg || this.colors['editor.background']
 		this.semanticHighlighting = theme.semanticHighlighting || false
-		this.tokenColors = theme.tokenColors
-		this.settings = this.parseThemeSettings(theme.settings)
+		// Shiki uses the `settings` property for theme tokens, VS Code uses `tokenColors`.
+		// To allow passing both types of themes to this constructor, and to also allow passing
+		// an ExpressiveCodeTheme instance directly to Shiki, we mimic Shiki's theme loader
+		// and automatically migrate `tokenColors` (if defined) to `settings`.
+		const themeTokenSettings = (theme.tokenColors as unknown[]) || theme.settings
+		this.settings = this.parseThemeSettings(themeTokenSettings)
 		this.styleOverrides = theme.styleOverrides ?? {}
 	}
 
@@ -73,6 +67,8 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 	 * theme color keys (e.g. `['panel.background', 'panel.border']`) and a `targetHueAndChroma`
 	 * property that accepts the same adjustment target values as `backgrounds` and `accents`.
 	 * Custom groups will be applied in the order they are defined.
+	 *
+	 * Returns the same `ExpressiveCodeTheme` instance to allow chaining.
 	 */
 	applyHueAndChromaAdjustments(adjustments: {
 		backgrounds?: string | ChromaticRecolorTarget | undefined
@@ -98,6 +94,8 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 			})
 		}
 		Object.assign(this.colors, adjustedColors)
+
+		return this
 	}
 
 	/**
@@ -133,6 +131,13 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 	static fromJSONString(json: string) {
 		return new ExpressiveCodeTheme(JSON.parse(stripJsonComments(json, { trailingCommas: true })) as Partial<ExpressiveCodeTheme>)
 	}
+}
+
+export type ExpressiveCodeThemeInput = Partial<Omit<ExpressiveCodeTheme | IShikiTheme, 'type'>> & {
+	type?: VSCodeThemeType | string | undefined
+	tokenColors?: unknown | undefined
+	semanticHighlighting?: boolean | undefined
+	styleOverrides?: Partial<StyleOverrides> | undefined
 }
 
 export type ThemeSetting = {

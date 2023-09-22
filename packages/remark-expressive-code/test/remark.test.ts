@@ -4,7 +4,8 @@ import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
 import rehypeRaw from 'rehype-raw'
 import toHtml from 'rehype-stringify'
-import remarkExpressiveCode, { RemarkExpressiveCodeOptions } from '../src'
+import dracula from 'shiki/themes/dracula.json'
+import remarkExpressiveCode, { ExpressiveCodeTheme, RemarkExpressiveCodeOptions } from '../src'
 import { multiThemeSampleCodeHtmlRegExp, sampleCodeHtmlRegExp, sampleCodeMarkdown } from './utils'
 
 const regexCodeBg = /.ec-\w+? pre{(?:[^}]*?;)*background:(.*?)[;}]/g
@@ -20,25 +21,68 @@ describe('Usage inside unified/remark', () => {
 		const result = await processor.process(sampleCodeMarkdown)
 		expect(result.value).toMatch(sampleCodeHtmlRegExp)
 	})
-	test('Can load themes bundled with Shiki by name', async () => {
-		await runThemeTests({
-			testCases: [
-				{ theme: 'light-plus', bgColor: ['#ffffff'], textColor: ['#000000'] },
-				{ theme: 'material-theme', bgColor: ['#263238'], textColor: ['#eeffff'] },
-			],
+	describe('Supported inputs of the `theme` option', () => {
+		const draculaBg = dracula.colors?.['editor.background'].toLowerCase()
+		const draculaFg = dracula.colors?.['editor.foreground'].toLowerCase()
+
+		test('Bundled Shiki theme names', async () => {
+			await runThemeTests({
+				testCases: [
+					{ theme: 'light-plus', bgColor: ['#ffffff'], textColor: ['#000000'] },
+					{ theme: 'material-theme', bgColor: ['#263238'], textColor: ['#eeffff'] },
+				],
+			})
 		})
-	})
-	test('Can load multiple themes', async () => {
-		await runThemeTests({
-			testCases: [
-				{
-					// Provide multiple themes by name
-					theme: ['light-plus', 'material-theme'],
-					// Expect two matches per code block, each with a different theme
-					bgColor: ['#ffffff', '#263238'],
-					textColor: ['#000000', '#eeffff'],
-				},
-			],
+		test('JSON themes imported from NPM packages', async () => {
+			await runThemeTests({
+				testCases: [
+					{
+						theme: dracula,
+						bgColor: [draculaBg],
+						textColor: [draculaFg],
+					},
+				],
+			})
+		})
+		test('ExpressiveCodeTheme instances', async () => {
+			await runThemeTests({
+				testCases: [
+					{
+						theme: new ExpressiveCodeTheme(dracula),
+						bgColor: [draculaBg],
+						textColor: [draculaFg],
+					},
+				],
+			})
+		})
+		test('Multiple themes in an array', async () => {
+			await runThemeTests({
+				testCases: [
+					{
+						// Provide multiple themes by name
+						theme: ['light-plus', 'material-theme'],
+						// Expect two matches per code block, each with a different theme
+						bgColor: ['#ffffff', '#263238'],
+						textColor: ['#000000', '#eeffff'],
+					},
+					{
+						// Mix and match theme names, JSON themes, and ExpressiveCodeTheme instances
+						theme: [
+							'light-plus',
+							dracula,
+							new ExpressiveCodeTheme({
+								name: 'test',
+								colors: {
+									'editor.background': '#006000',
+									'editor.foreground': '#ffa040',
+								},
+							}),
+						],
+						bgColor: ['#ffffff', draculaBg, '#006000'],
+						textColor: ['#000000', draculaFg, '#ffa040'],
+					},
+				],
+			})
 		})
 	})
 	test('Adds CSS class names based on the theme names by default', async () => {
