@@ -134,13 +134,13 @@ export function getTextMarkersBaseStyles(theme: ExpressiveCodeTheme, coreStyles:
 				}
 				&::before {
 					content: '';
-					display: inline-block;
 					position: absolute;
+					pointer-events: none;
+					display: inline-block;
 					inset: 0;
 					border-radius: var(--radius-l) var(--radius-r) var(--radius-r) var(--radius-l);
 					border: var(--border) solid var(--inline-marker-border-color);
 					border-inline-width: var(--border-l) var(--border-r);
-					pointer-events: none;
 				}
 			}
 		}

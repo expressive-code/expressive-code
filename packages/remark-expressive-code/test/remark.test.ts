@@ -266,6 +266,6 @@ function createRemarkProcessor(options?: RemarkExpressiveCodeOptions) {
 }
 
 function getCodePlaintextFromHtml(html: string) {
-	const blockHtml = html.match(/<pre><code>(.*?)<\/code><\/pre>/)?.[1] || ''
+	const blockHtml = html.match(/<pre(?:|\s[^>]+)><code>(.*?)<\/code><\/pre>/)?.[1] || ''
 	return blockHtml.replace(/<span.*?>(.*?)<\/span>/g, '$1').replace(/<div class="ec-line.*?>(.*?)<\/div>/g, '$1\n')
 }

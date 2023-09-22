@@ -117,7 +117,7 @@ export async function renderBlock({
 }
 
 function buildCodeBlockAstFromRenderedLines(renderedLines: Element[]) {
-	return h('pre', h('code', renderedLines))
+	return h('pre', { tabindex: 0 }, h('code', renderedLines))
 }
 
 export interface ExpressiveCodeProcessingState {

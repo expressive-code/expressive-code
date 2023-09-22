@@ -67,7 +67,7 @@ describe('ExpressiveCodeEngine', () => {
 			test('Plain code block', async () => {
 				const { renderedBlockAst } = await getMultiPluginTestResult({ plugins: [] })
 				const html = toHtml(sanitize(renderedBlockAst, {}))
-				expect(html).toEqual('<pre><code><div>Example code...</div><div>...with two lines!</div></code></pre>')
+				expect(html).toMatch(new RegExp('<pre(|\\s[^>]+)><code><div>Example code...</div><div>...with two lines!</div></code></pre>'))
 			})
 			test('Code block with inline annotation', async () => {
 				const searchTerm = 'two '
@@ -86,7 +86,7 @@ describe('ExpressiveCodeEngine', () => {
 					)
 				})
 				const html = toHtml(sanitize(renderedBlockAst, {}))
-				expect(html).toEqual('<pre><code><div>Example code...</div><div>...with <del>two </del>lines!</div></code></pre>')
+				expect(html).toMatch(new RegExp('<pre(|\\s[^>]+)><code><div>Example code...</div><div>...with <del>two </del>lines!</div></code></pre>'))
 			})
 		})
 		describe('Allows plugin hooks to access theme colors', () => {
