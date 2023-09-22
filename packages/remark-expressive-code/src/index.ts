@@ -1,23 +1,33 @@
 import type { Plugin, Transformer, VFileWithOutput } from 'unified'
 import type { Root, Parent, Code, HTML } from 'mdast'
 import { visit } from 'unist-util-visit'
-import { BundledShikiTheme, loadShikiTheme, ExpressiveCode, ExpressiveCodeConfig, ExpressiveCodeTheme, ExpressiveCodeBlockOptions, ExpressiveCodeBlock } from 'expressive-code'
+import {
+	BundledShikiTheme,
+	loadShikiTheme,
+	ExpressiveCode,
+	ExpressiveCodeConfig,
+	ExpressiveCodeTheme,
+	ExpressiveCodeBlockOptions,
+	ExpressiveCodeBlock,
+	ExpressiveCodeThemeInput,
+} from 'expressive-code'
 import { toHtml } from 'hast-util-to-html'
 
 export * from 'expressive-code'
 
 export type RemarkExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'theme'> & {
 	/**
-	 * The color theme(s) that should be used when rendering. You can either reference any
-	 * theme bundled with Shiki by name or load an ExpressiveCodeTheme and pass it here.
-	 *
-	 * If you want to load a custom JSON theme file yourself, you can load its contents
-	 * into a string and pass it to `ExpressiveCodeTheme.fromJSONString()`.
+	 * The color theme(s) that should be used when rendering. Supported value types:
+	 * - any theme name bundled with Shiki (e.g. `dracula`)
+	 * - any theme object compatible with VS Code or Shiki (e.g. imported from an NPM theme package)
+	 * - any ExpressiveCodeTheme instance (e.g. using `ExpressiveCodeTheme.fromJSONString(...)`
+	 *   to load a custom JSON/JSONC theme file yourself)
+	 * - any combination of the above in an array
 	 *
 	 * Defaults to the `github-dark` theme bundled with Shiki.
 	 *
-	 * **Note**: You can pass an array of themes to this option to render each code block
-	 * in your markdown/MDX documents using multiple themes. In this case, you will also need
+	 * **Note**: If you pass an array of themes to this option, each code block in your
+	 * markdown/MDX documents will be rendered using all themes. In this case, you will also need
 	 * to add custom CSS code to your site to ensure that only one theme is visible at any time.
 	 *
 	 * To allow targeting all code blocks of a given theme through CSS, the theme property `name`
@@ -25,7 +35,7 @@ export type RemarkExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'theme'> & 
 	 * For example, `theme: ['monokai', 'slack-ochin']` will render every code block twice,
 	 * once with the class `ec-theme-monokai`, and once with `ec-theme-slack-ochin`.
 	 */
-	theme?: BundledShikiTheme | ExpressiveCodeTheme | (BundledShikiTheme | ExpressiveCodeTheme)[] | undefined
+	theme?: ThemeObjectOrShikiThemeName | ThemeObjectOrShikiThemeName[] | undefined
 	/**
 	 * The number of spaces that should be used to render tabs. Defaults to 2.
 	 *
@@ -82,8 +92,10 @@ export type RemarkExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'theme'> & 
 }
 
 export type SingleThemeRemarkExpressiveCodeOptions = Omit<RemarkExpressiveCodeOptions, 'theme'> & {
-	theme?: BundledShikiTheme | ExpressiveCodeTheme | undefined
+	theme?: ThemeObjectOrShikiThemeName | undefined
 }
+
+export type ThemeObjectOrShikiThemeName = BundledShikiTheme | ExpressiveCodeTheme | ExpressiveCodeThemeInput
 
 export type RemarkExpressiveCodeDocument = {
 	/**
@@ -137,7 +149,7 @@ export async function createRenderer(options: SingleThemeRemarkExpressiveCodeOpt
 	const { theme, ...ecOptions } = options
 
 	const mustLoadTheme = theme !== undefined && !(theme instanceof ExpressiveCodeTheme)
-	const optLoadedTheme = mustLoadTheme ? new ExpressiveCodeTheme(await loadShikiTheme(theme)) : theme
+	const optLoadedTheme = mustLoadTheme ? new ExpressiveCodeTheme(typeof theme === 'string' ? await loadShikiTheme(theme) : theme) : theme
 	const ec = new ExpressiveCode({
 		theme: optLoadedTheme,
 		...ecOptions,

@@ -121,7 +121,8 @@ export class ExpressiveCodeEngine {
 				.replace(/([a-z])([A-Z])/g, '$1-$2')
 				.replace(/[\s_]+/g, '-')
 				.toLowerCase()
-		this.themeClassName = this.theme.name?.length ? `ec-theme-${kebabCase(this.theme.name)}` : ''
+		const themeNameOrHash = this.theme.name?.length ? this.theme.name : `hash-${getStableObjectHash(this.theme)}`
+		this.themeClassName = `ec-theme-${kebabCase(themeNameOrHash)}`
 	}
 
 	async render(input: RenderInput, options?: RenderOptions) {

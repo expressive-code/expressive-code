@@ -75,7 +75,7 @@ function validateHtml(html: string) {
 	expect(codeBlockClassNames).toHaveLength(2)
 	// Validate theme class names
 	const themeClassNames = codeBlockClassNames?.map((className) => className.match(/(^|\s)(ec-theme-.*?)(\s|$)/)?.[2])
-	expect(themeClassNames).toEqual(['ec-theme-github-dark', 'ec-theme-solarized-light'])
+	expect(themeClassNames).toEqual(['ec-theme-hash-jhsoa', 'ec-theme-solarized-light'])
 }
 
 async function buildFixture({ fixtureDir, buildCommand, buildArgs, outputDir }: { fixtureDir: string; buildCommand: string; buildArgs?: string[] | undefined; outputDir: string }) {

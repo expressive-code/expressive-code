@@ -219,6 +219,8 @@ export const groupedDefaultWorkbenchColorKeys = {
 		'editor.background',
 		'editorGroupHeader.tabsBackground',
 		'editorGroupHeader.tabsBorder',
+		'titleBar.activeBackground',
+		'titleBar.border',
 		'panel.background',
 		'tab.activeBackground',
 		'tab.activeBorderTop',
