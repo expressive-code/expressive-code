@@ -160,6 +160,7 @@ export function getFramesBaseStyles(
 				&::after {
 					content: '';
 					position: absolute;
+					pointer-events: none;
 					inset: 0;
 					border: ${coreStyles.borderWidth} solid ${framesStyles.editorTabBarBorderColor};
 					border-radius: inherit;
@@ -193,22 +194,24 @@ export function getFramesBaseStyles(
 				/* Display three dots at the left side of the header */
 				&::before {
 					content: '';
+					position: absolute;
+					pointer-events: none;
+					left: ${coreStyles.uiPaddingInline};
+					width: 2.1rem;
+					height: ${(2.1 / 60) * 16}rem;
+					line-height: 0;
 					background-color: ${framesStyles.terminalTitlebarDotsForeground};
 					opacity: ${framesStyles.terminalTitlebarDotsOpacity};
 					-webkit-mask-image: ${terminalTitlebarDots};
 					-webkit-mask-repeat: no-repeat;
 					mask-image: ${terminalTitlebarDots};
 					mask-repeat: no-repeat;
-					position: absolute;
-					left: ${coreStyles.uiPaddingInline};
-					width: 2.1rem;
-					height: ${(2.1 / 60) * 16}rem;
-					line-height: 0;
 				}
 				/* Display a border below the header */
 				&::after {
 					content: '';
 					position: absolute;
+					pointer-events: none;
 					inset: 0;
 					border-bottom: ${coreStyles.borderWidth} solid ${framesStyles.terminalTitlebarBorderBottom};
 				}
@@ -270,6 +273,7 @@ export function getFramesBaseStyles(
 			&::before {
 				content: '';
 				position: absolute;
+				pointer-events: none;
 				inset: 0;
 				border-radius: inherit;
 				border: ${coreStyles.borderWidth} solid ${framesStyles.inlineButtonBorder};
@@ -278,13 +282,14 @@ export function getFramesBaseStyles(
 			
 			&::after {
 				content: '';
+				position: absolute;
+				pointer-events: none;
+				inset: 0;
 				background-color: ${framesStyles.inlineButtonForeground};
 				-webkit-mask-image: ${copyToClipboard};
 				-webkit-mask-repeat: no-repeat;
 				mask-image: ${copyToClipboard};
 				mask-repeat: no-repeat;
-				position: absolute;
-				inset: 0;
 				margin: 0.475rem;
 				line-height: 0;
 			}
@@ -330,8 +335,9 @@ export function getFramesBaseStyles(
 			transform: translate3d(0, 0.25rem, 0);
 
 			&::after {
-				position: absolute;
 				content: '';
+				position: absolute;
+				pointer-events: none;
 				top: calc(50% - var(--tooltip-arrow-size));
 				inset-inline-end: calc(-2 * (var(--tooltip-arrow-size) - 0.5px));
 				border: var(--tooltip-arrow-size) solid transparent;

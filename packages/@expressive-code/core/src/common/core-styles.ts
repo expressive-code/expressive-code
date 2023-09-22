@@ -131,6 +131,7 @@ export function getCoreBaseStyles(options: { theme: ExpressiveCodeTheme; coreSty
 
 			${ifThemedSelectionColors(`::selection {
 				background: ${coreStyles.codeSelectionBackground};
+				color: inherit;
 			}`)}
 
 			/* Show horizontal scrollbar if required */
