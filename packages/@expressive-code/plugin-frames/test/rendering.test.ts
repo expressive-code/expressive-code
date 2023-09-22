@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { Parent } from 'hast-util-to-html/lib/types'
 import { matches, select, selectAll } from 'hast-util-select'
-import { ExpressiveCodeTheme } from '@expressive-code/core'
+import { ExpressiveCodeTheme, StyleOverrides } from '@expressive-code/core'
 import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures } from '@internal/test-utils'
 import { pluginShiki, loadShikiTheme } from '@expressive-code/plugin-shiki'
 import { pluginFrames } from '../src'
@@ -112,6 +112,52 @@ ${exampleCode}
 		},
 		{ timeout: 5 * 1000 }
 	)
+
+	describe('Allows customizing the frame using styleOverrides', () => {
+		const runStyleOverridesTest = async (testName: string, styleOverrides: Partial<StyleOverrides>) => {
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code: `
+// test.config.mjs
+
+${exampleCode}
+					`.trim(),
+					plugins: [pluginFrames()],
+					engineOptions: {
+						styleOverrides,
+					},
+					blockValidationFn: ({ renderedGroupAst }) => {
+						validateBlockAst({
+							renderedGroupAst,
+							figureSelector: '.frame.has-title:not(.is-terminal)',
+							title: 'test.config.mjs',
+							srTitlePresent: false,
+						})
+					},
+				}),
+			})
+		}
+
+		test('Style with thick borders', async ({ meta: { name: testName } }) => {
+			await runStyleOverridesTest(testName, {
+				borderWidth: '3px',
+			})
+		})
+
+		test('Style without tab bar background', async ({ meta: { name: testName } }) => {
+			await runStyleOverridesTest(testName, {
+				frames: {
+					editorTabBarBackground: 'transparent',
+					editorTabBarBorderColor: 'transparent',
+					editorTabBarBorderBottom: ({ coreStyles }) => coreStyles.borderColor,
+					editorActiveTabBorder: ({ coreStyles }) => coreStyles.borderColor,
+					shadowColor: 'transparent',
+				},
+			})
+		})
+	})
 })
 
 describe('Differentiates between terminal and code editor frames', () => {

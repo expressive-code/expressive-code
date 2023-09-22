@@ -73,23 +73,9 @@ export function getFramesBaseStyles(
 	const escapedCopySvg = copySvg.replace(/</g, '%3C').replace(/>/g, '%3E')
 	const copyToClipboard = `url("data:image/svg+xml,${escapedCopySvg}")`
 
-	const activeTabBackgrounds: string[] = []
-	if (framesStyles.editorActiveTabBorderTop) {
-		activeTabBackgrounds.push(
-			`linear-gradient(to bottom, ${framesStyles.editorActiveTabBorderTop} ${framesStyles.editorActiveTabHighlightHeight}, transparent ${framesStyles.editorActiveTabHighlightHeight})`
-		)
-	}
-	if (framesStyles.editorActiveTabBorderBottom) {
-		activeTabBackgrounds.push(
-			`linear-gradient(to top, ${framesStyles.editorActiveTabBorderBottom} ${framesStyles.editorActiveTabHighlightHeight}, transparent ${framesStyles.editorActiveTabHighlightHeight})`
-		)
-	}
-	if (activeTabBackgrounds.length) {
-		activeTabBackgrounds.push(`linear-gradient(${framesStyles.editorActiveTabBackground}, ${framesStyles.editorActiveTabBackground})`)
-	} else {
-		activeTabBackgrounds.push(framesStyles.editorActiveTabBackground)
-	}
-	const activeTabBackground = activeTabBackgrounds.join(',')
+	const getBorderColor = (color: string) => (color && ['transparent', 'none'].indexOf(color) === -1 ? color : undefined)
+	const editorActiveTabBorderTop = getBorderColor(framesStyles.editorActiveTabBorderTop)
+	const editorActiveTabBorderBottom = getBorderColor(framesStyles.editorActiveTabBorderBottom)
 
 	const tabBarBackground = [
 		`linear-gradient(to top, ${framesStyles.editorTabBarBorderBottom} ${coreStyles.borderWidth}, transparent ${coreStyles.borderWidth})`,
@@ -138,14 +124,23 @@ export function getFramesBaseStyles(
 			& .title {
 				position: relative;
 				color: ${framesStyles.editorActiveTabForeground};
-				background: ${activeTabBackground};
+				background: ${framesStyles.editorActiveTabBackground};
 				background-clip: padding-box;
-				background-repeat: no-repeat;
 				margin-block-start: ${framesStyles.editorActiveTabMarginBlockStart};
 				padding: calc(${coreStyles.uiPaddingBlock} + ${framesStyles.editorActiveTabHighlightHeight}) ${coreStyles.uiPaddingInline};
 				border: ${coreStyles.borderWidth} solid ${framesStyles.editorActiveTabBorder};
 				border-radius: var(--tab-border-radius) var(--tab-border-radius) 0 0;
 				border-bottom: none;
+				overflow: hidden;
+
+				&::after {
+					content: '';
+					position: absolute;
+					pointer-events: none;
+					inset: 0;
+					${editorActiveTabBorderTop ? `border-top: ${framesStyles.editorActiveTabHighlightHeight} solid ${editorActiveTabBorderTop};` : ''}
+					${editorActiveTabBorderBottom ? `border-bottom: ${framesStyles.editorActiveTabHighlightHeight} solid ${editorActiveTabBorderBottom};` : ''}
+				}
 			}
 
 			/* Tab bar background */
@@ -157,7 +152,7 @@ export function getFramesBaseStyles(
 
 				padding-inline-start: ${framesStyles.editorActiveTabMarginInlineStart};
 
-				&::after {
+				&::before {
 					content: '';
 					position: absolute;
 					pointer-events: none;
