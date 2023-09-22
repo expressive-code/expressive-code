@@ -1,5 +1,5 @@
 import { ExpressiveCodeLine, ExpressiveCodePlugin, ExpressiveCodeTheme, InlineStyleAnnotation } from '@expressive-code/core'
-import { getCachedHighlighter } from './cache'
+import { getCachedHighlighter, getThemeCacheKey } from './cache'
 import { BUNDLED_THEMES, loadTheme, FontStyle, IThemedToken } from 'shiki'
 
 /**
@@ -30,7 +30,8 @@ export function pluginShiki(): ExpressiveCodePlugin {
 		name: 'Shiki',
 		hooks: {
 			performSyntaxAnalysis: async ({ codeBlock, theme }) => {
-				const highlighter = await getCachedHighlighter({ theme })
+				const cacheKey = getThemeCacheKey(theme)
+				const highlighter = await getCachedHighlighter({ theme, cacheKey })
 				const codeLines = codeBlock.getLines()
 				let code = codeBlock.code
 
@@ -46,8 +47,8 @@ export function pluginShiki(): ExpressiveCodePlugin {
 				// Run Shiki on the code (without explanations to improve performance)
 				const tokenLines =
 					codeBlock.language === 'ansi'
-						? highlighter.ansiToThemedTokens(code, theme.name)
-						: highlighter.codeToThemedTokens(code, codeBlock.language, theme.name, { includeExplanation: false })
+						? highlighter.ansiToThemedTokens(code, cacheKey)
+						: highlighter.codeToThemedTokens(code, codeBlock.language, cacheKey, { includeExplanation: false })
 
 				tokenLines.forEach((line, lineIndex) => {
 					if (codeBlock.language === 'ansi') removeAnsiSequencesFromCodeLine(codeLines[lineIndex], line)
