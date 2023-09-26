@@ -1,5 +1,12 @@
 # @expressive-code/plugin-frames
 
+## 0.26.1
+
+### Patch Changes
+
+- 3e0e8c4: Re-initialize copy to clipboard buttons after Astro view transitions.
+  - @expressive-code/core@0.26.1
+
 ## 0.26.0
 
 ### Minor Changes
