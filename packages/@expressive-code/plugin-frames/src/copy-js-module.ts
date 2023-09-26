@@ -110,6 +110,8 @@ const attachHandlers = [
 		)
 	);
 	obs.observe(document.body, { childList: true, subtree: true });`,
+	// Also re-initialize all buttons after view transitions initiated by popular frameworks
+	`document.addEventListener('astro:page-load', () => initButtons(document));`,
 ]
 
 export const getCopyJsModule = (buttonSelector: string) => {
