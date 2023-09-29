@@ -4,6 +4,18 @@ import { ExpressiveCodeEngine, ExpressiveCodeEngineConfig, ExpressiveCodePlugin,
 import { Parent } from 'hast-util-to-html/lib/types'
 import { toHtml } from 'hast-util-to-html'
 
+export type BlockValidationFn = ({
+	renderedGroupAst,
+	theme,
+	coreStyles,
+	baseStyles,
+}: {
+	renderedGroupAst: Parent
+	theme: ExpressiveCodeTheme
+	coreStyles: ExpressiveCodeEngine['coreStyles']
+	baseStyles: string
+}) => void
+
 export type TestFixture = {
 	fixtureName: string
 	code: string
@@ -12,7 +24,7 @@ export type TestFixture = {
 	theme?: ExpressiveCodeTheme | undefined
 	plugins: ExpressiveCodePlugin[]
 	engineOptions?: Partial<ExpressiveCodeEngineConfig> | undefined
-	blockValidationFn?: (({ renderedGroupAst, theme }: { renderedGroupAst: Parent; theme: ExpressiveCodeTheme }) => void) | undefined
+	blockValidationFn?: BlockValidationFn | undefined
 }
 
 export function buildThemeFixtures(themes: (ExpressiveCodeTheme | undefined)[], fixtureContents: Omit<TestFixture, 'fixtureName' | 'theme'>) {
@@ -47,6 +59,7 @@ export async function renderAndOutputHtmlSnapshot({ testName, testBaseDir, fixtu
 				jsModules,
 				styles,
 				theme: engine.theme,
+				coreStyles: engine.coreStyles,
 				foreground: engine.theme.type === 'dark' ? '#fff' : '#000',
 				background: engine.theme.type === 'dark' ? '#248' : '#eee',
 				blockValidationFn,
@@ -60,9 +73,9 @@ export async function renderAndOutputHtmlSnapshot({ testName, testBaseDir, fixtu
 		renderResults,
 	})
 
-	renderResults.forEach(({ renderedGroupAst, theme, blockValidationFn }) => {
+	renderResults.forEach(({ renderedGroupAst, theme, coreStyles, baseStyles, blockValidationFn }) => {
 		if (!blockValidationFn) return
-		blockValidationFn({ renderedGroupAst, theme })
+		blockValidationFn({ renderedGroupAst, theme, coreStyles, baseStyles })
 	})
 }
 

@@ -1,37 +1,70 @@
 import { StyleSettings, ExpressiveCodeTheme, ResolvedCoreStyles, codeLineClass, toHexColor } from '@expressive-code/core'
 import { MarkerType } from './marker-types'
+import { StyleOverrides } from '@expressive-code/core'
 
-export const textMarkersStyleSettings = new StyleSettings({
-	lineMarkerAccentMargin: '0rem',
-	lineMarkerAccentWidth: '0.15rem',
-	lineDiffIndicatorMarginLeft: '0.5rem',
-	inlineMarkerBorderWidth: '1.5px',
-	inlineMarkerBorderRadius: '0.2rem',
-	inlineMarkerPadding: '0.15rem',
-	// Define base colors for all markers in the LCH color space,
-	// which leads to consistent perceived brightness independent of hue
-	markHue: '284',
-	insHue: '136',
-	delHue: '33',
-	defaultChroma: '40',
-	defaultLuminance: ['32%', '75%'],
-	backgroundOpacity: '50%',
-	borderLuminance: '48%',
-	borderOpacity: '81.6%',
-	indicatorLuminance: ['67%', '40%'],
-	indicatorOpacity: '81.6%',
-	// You can use these to override the diff indicator content
-	insDiffIndicatorContent: "'+'",
-	delDiffIndicatorContent: "'-'",
-	// The settings below will be calculated by setDefaults()
-	markBackground: '',
-	markBorderColor: '',
-	insBackground: '',
-	insBorderColor: '',
-	insDiffIndicatorColor: '',
-	delBackground: '',
-	delBorderColor: '',
-	delDiffIndicatorColor: '',
+export interface TextMarkersStyleSettings {
+	lineMarkerAccentMargin: string
+	lineMarkerAccentWidth: string
+	lineDiffIndicatorMarginLeft: string
+	inlineMarkerBorderWidth: string
+	inlineMarkerBorderRadius: string
+	inlineMarkerPadding: string
+	markHue: string
+	insHue: string
+	delHue: string
+	defaultChroma: string
+	defaultLuminance: string
+	backgroundOpacity: string
+	borderLuminance: string
+	borderOpacity: string
+	indicatorLuminance: string
+	indicatorOpacity: string
+	insDiffIndicatorContent: string
+	delDiffIndicatorContent: string
+	markBackground: string
+	markBorderColor: string
+	insBackground: string
+	insBorderColor: string
+	insDiffIndicatorColor: string
+	delBackground: string
+	delBorderColor: string
+	delDiffIndicatorColor: string
+}
+
+export const textMarkersStyleSettings = new StyleSettings<TextMarkersStyleSettings>({
+	styleOverridesSubpath: 'textMarkers',
+	defaultSettings: {
+		lineMarkerAccentMargin: '0rem',
+		lineMarkerAccentWidth: '0.15rem',
+		lineDiffIndicatorMarginLeft: '0.5rem',
+		inlineMarkerBorderWidth: '1.5px',
+		inlineMarkerBorderRadius: '0.2rem',
+		inlineMarkerPadding: '0.15rem',
+		// Define base colors for all markers in the LCH color space,
+		// which leads to consistent perceived brightness independent of hue
+		markHue: '284',
+		insHue: '136',
+		delHue: '33',
+		defaultChroma: '40',
+		defaultLuminance: ['32%', '75%'],
+		backgroundOpacity: '50%',
+		borderLuminance: '48%',
+		borderOpacity: '81.6%',
+		indicatorLuminance: ['67%', '40%'],
+		indicatorOpacity: '81.6%',
+		// You can use these to override the diff indicator content
+		insDiffIndicatorContent: "'+'",
+		delDiffIndicatorContent: "'-'",
+		// The settings below will be calculated by setDefaults()
+		markBackground: '',
+		markBorderColor: '',
+		insBackground: '',
+		insBorderColor: '',
+		insDiffIndicatorColor: '',
+		delBackground: '',
+		delBorderColor: '',
+		delDiffIndicatorColor: '',
+	},
 })
 
 declare module '@expressive-code/core' {
@@ -44,12 +77,11 @@ setDefaults('markHue', 'markBackground', 'markBorderColor')
 setDefaults('insHue', 'insBackground', 'insBorderColor', 'insDiffIndicatorColor')
 setDefaults('delHue', 'delBackground', 'delBorderColor', 'delDiffIndicatorColor')
 
-export function getTextMarkersBaseStyles(theme: ExpressiveCodeTheme, coreStyles: ResolvedCoreStyles, styleOverrides: Partial<typeof textMarkersStyleSettings.defaultSettings>) {
+export function getTextMarkersBaseStyles(theme: ExpressiveCodeTheme, coreStyles: ResolvedCoreStyles, styleOverrides: Partial<StyleOverrides> | undefined) {
 	const styles = textMarkersStyleSettings.resolve({
 		theme,
 		coreStyles,
 		styleOverrides,
-		themeStyleOverrides: theme.styleOverrides.textMarkers,
 	})
 	const result = `
 		.${codeLineClass} {
@@ -167,7 +199,7 @@ export function getMarkerTypeColorsForContrastCalculation({
 }: {
 	theme: ExpressiveCodeTheme
 	coreStyles: ResolvedCoreStyles
-	styleOverrides?: Partial<typeof textMarkersStyleSettings.defaultSettings> | undefined
+	styleOverrides: Partial<StyleOverrides> | undefined
 }) {
 	const textMarkersStyles = textMarkersStyleSettings.resolve({
 		theme,
@@ -177,6 +209,7 @@ export function getMarkerTypeColorsForContrastCalculation({
 	const defaultTextMarkersStyles = textMarkersStyleSettings.resolve({
 		theme,
 		coreStyles,
+		styleOverrides: undefined,
 	})
 	const colorOrDefault = (input: string, defaultColor: string) => (input[0] === '#' ? input : defaultColor)
 	const result: { [K in MarkerType]: string } = {

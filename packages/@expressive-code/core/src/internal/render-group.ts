@@ -6,6 +6,7 @@ import { runHooks } from '../common/plugin-hooks'
 import { groupWrapperClassName, groupWrapperElement, PluginStyles, processPluginStyles } from './css'
 import { renderBlock } from './render-block'
 import { isHastParent, newTypeError } from './type-checks'
+import { ExpressiveCodeEngineConfig } from '../common/engine'
 
 export type RenderInput = ExpressiveCodeBlockOptions | ExpressiveCodeBlock | (ExpressiveCodeBlockOptions | ExpressiveCodeBlock)[]
 
@@ -30,6 +31,7 @@ export type RenderedGroupContents = readonly { codeBlock: ExpressiveCodeBlock; r
 export async function renderGroup({
 	input,
 	options,
+	config,
 	theme,
 	defaultLocale,
 	coreStyles,
@@ -40,6 +42,7 @@ export async function renderGroup({
 }: {
 	input: RenderInput
 	options?: RenderOptions | undefined
+	config: ExpressiveCodeEngineConfig
 	defaultLocale: string
 	plugins: readonly ExpressiveCodePlugin[]
 } & ResolverContext) {
@@ -68,9 +71,11 @@ export async function renderGroup({
 		const { renderedBlockAst, blockStyles } = await renderBlock({
 			codeBlock: groupContent.codeBlock,
 			groupContents,
+			config,
 			theme,
 			locale: groupContent.codeBlock.locale || defaultLocale,
 			coreStyles,
+			styleOverrides,
 			plugins,
 		})
 

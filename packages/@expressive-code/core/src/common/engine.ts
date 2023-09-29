@@ -75,13 +75,18 @@ export interface ExpressiveCodeEngineConfig {
 
 export class ExpressiveCodeEngine {
 	constructor(config: ExpressiveCodeEngineConfig) {
-		this.theme = config.theme || new ExpressiveCodeTheme(githubDark)
-		this.defaultLocale = config.defaultLocale || 'en-US'
-		this.useThemedScrollbars = config.useThemedScrollbars ?? true
-		this.useThemedSelectionColors = config.useThemedSelectionColors ?? true
-		this.styleOverrides = {
-			...config.styleOverrides,
-		}
+		config = { ...config }
+		if (!config.theme) config.theme = new ExpressiveCodeTheme(githubDark)
+		if (!config.defaultLocale) config.defaultLocale = 'en-US'
+		if (config.useThemedScrollbars === undefined) config.useThemedScrollbars = true
+		if (config.useThemedSelectionColors === undefined) config.useThemedSelectionColors = true
+		config.styleOverrides = { ...config.styleOverrides }
+		this.config = config
+		this.theme = config.theme
+		this.defaultLocale = config.defaultLocale
+		this.useThemedScrollbars = config.useThemedScrollbars
+		this.useThemedSelectionColors = config.useThemedSelectionColors
+		this.styleOverrides = config.styleOverrides
 		this.plugins = config.plugins?.flat() || []
 
 		// Allow customizing the loaded theme
@@ -94,7 +99,6 @@ export class ExpressiveCodeEngine {
 		this.coreStyles = coreStyleSettings.resolve({
 			theme: this.theme,
 			styleOverrides: this.styleOverrides,
-			themeStyleOverrides: this.theme.styleOverrides,
 			// @ts-expect-error We have no resolved core styles here as we are just resolving them.
 			// Attempts to access them at this point are a programming error, so we pass `null`
 			// to ensure an error will be thrown if anyone tries to. As `ExpressiveCodeConfig`
@@ -129,6 +133,7 @@ export class ExpressiveCodeEngine {
 		return await renderGroup({
 			input,
 			options,
+			config: this.config,
 			defaultLocale: this.defaultLocale,
 			plugins: this.plugins,
 			// Also pass resolved core styles in case plugins need them
@@ -201,6 +206,7 @@ export class ExpressiveCodeEngine {
 		}
 	}
 
+	readonly config: ExpressiveCodeEngineConfig
 	readonly theme: ExpressiveCodeTheme
 	readonly defaultLocale: string
 	readonly useThemedScrollbars: boolean

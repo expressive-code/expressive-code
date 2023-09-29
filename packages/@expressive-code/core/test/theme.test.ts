@@ -241,6 +241,49 @@ describe('ExpressiveCodeTheme', () => {
 			expect(engine.coreStyles.codeBackground).toBe('#04255a')
 		})
 	})
+
+	describe('Can override core styles using the "styleOverrides" property', () => {
+		test('Themes can override the default styles', async () => {
+			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('themes/github-dark.json'))
+			theme.styleOverrides.codeBackground = 'var(--test-code-bg)'
+			theme.styleOverrides.uiFontFamily = 'MyUiTestFont'
+
+			const engine = new ExpressiveCodeEngine({
+				theme,
+			})
+
+			// Expect the resolved core styles to contain the new values
+			expect(engine.coreStyles.codeBackground).toBe('var(--test-code-bg)')
+			expect(engine.coreStyles.uiFontFamily).toBe('MyUiTestFont')
+
+			// Expect the base styles to contain the new values
+			const baseStyles = await engine.getBaseStyles()
+			expect(baseStyles).toContain('var(--test-code-bg)')
+			expect(baseStyles).toMatch(/font-family:\s*MyUiTestFont/)
+		})
+		test('Theme styleOverrides take precedence over global styleOverrides', async () => {
+			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('themes/github-dark.json'))
+			theme.styleOverrides.codeBackground = '#fedcba98'
+			theme.styleOverrides.uiFontFamily = 'MyThemeProvidedFont'
+
+			const engine = new ExpressiveCodeEngine({
+				theme,
+				styleOverrides: {
+					codeBackground: '#123456',
+					uiFontFamily: 'ThisFontShouldBeOverwritten',
+				},
+			})
+
+			// Expect the resolved core styles to contain the new values
+			expect(engine.coreStyles.codeBackground).toBe('#fedcba98')
+			expect(engine.coreStyles.uiFontFamily).toBe('MyThemeProvidedFont')
+
+			// Expect the base styles to contain the new values
+			const baseStyles = await engine.getBaseStyles()
+			expect(baseStyles).toContain('#fedcba98')
+			expect(baseStyles).toMatch(/font-family:\s*MyThemeProvidedFont/)
+		})
+	})
 })
 
 function loadThemeFromJsonFile(fileName: string) {

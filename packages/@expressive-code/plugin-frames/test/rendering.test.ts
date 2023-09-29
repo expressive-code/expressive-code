@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'vitest'
 import { Parent } from 'hast-util-to-html/lib/types'
 import { matches, select, selectAll } from 'hast-util-select'
-import { ExpressiveCodeTheme, StyleOverrides } from '@expressive-code/core'
-import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures } from '@internal/test-utils'
+import { ExpressiveCodeEngine, ExpressiveCodeEngineConfig, ExpressiveCodeTheme, StyleOverrides, coreStyleSettings } from '@expressive-code/core'
+import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures, parseCss, findDeclsBySelectorAndProperty } from '@internal/test-utils'
 import { pluginShiki, loadShikiTheme } from '@expressive-code/plugin-shiki'
 import { pluginFrames } from '../src'
 
@@ -114,7 +114,21 @@ ${exampleCode}
 	)
 
 	describe('Allows customizing the frame using styleOverrides', () => {
-		const runStyleOverridesTest = async (testName: string, styleOverrides: Partial<StyleOverrides>) => {
+		const runStyleOverridesTest = async ({
+			testName,
+			engineOptions,
+			expectedStyleMatches,
+		}: {
+			testName: string
+			engineOptions: Partial<ExpressiveCodeEngineConfig>
+			expectedStyleMatches: ({
+				theme,
+				coreStyles,
+			}: {
+				theme: ExpressiveCodeTheme
+				coreStyles: ExpressiveCodeEngine['coreStyles']
+			}) => { selector: string | RegExp; property: string | RegExp; value: string | RegExp }[]
+		}) => {
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,
@@ -125,15 +139,25 @@ ${exampleCode}
 ${exampleCode}
 					`.trim(),
 					plugins: [pluginFrames()],
-					engineOptions: {
-						styleOverrides,
-					},
-					blockValidationFn: ({ renderedGroupAst }) => {
+					engineOptions,
+					blockValidationFn: ({ renderedGroupAst, theme, coreStyles, baseStyles }) => {
 						validateBlockAst({
 							renderedGroupAst,
 							figureSelector: '.frame.has-title:not(.is-terminal)',
 							title: 'test.config.mjs',
 							srTitlePresent: false,
+						})
+						const css = parseCss(baseStyles)
+						expectedStyleMatches({ theme, coreStyles }).forEach((expectedStyleMatch) => {
+							const { selector, property, value } = expectedStyleMatch
+							const decls = findDeclsBySelectorAndProperty(css, selector, property)
+							const declValueMatches = decls.filter((decl) => {
+								return value instanceof RegExp ? decl.value.match(value) : decl.value === value
+							})
+							expect(
+								declValueMatches.length >= 1,
+								`Expected style did not match: selector=${selector.toString()}, property=${property.toString()}, value=${value.toString()}`
+							).toBeTruthy()
 						})
 					},
 				}),
@@ -141,20 +165,94 @@ ${exampleCode}
 		}
 
 		test('Style with thick borders', async ({ meta: { name: testName } }) => {
-			await runStyleOverridesTest(testName, {
-				borderWidth: '3px',
+			await runStyleOverridesTest({
+				testName,
+				engineOptions: {
+					styleOverrides: {
+						borderWidth: '3px',
+					},
+				},
+				expectedStyleMatches: () => [
+					{
+						selector: / pre$/,
+						property: 'border',
+						value: /^3px solid/,
+					},
+				],
 			})
 		})
 
 		test('Style without tab bar background', async ({ meta: { name: testName } }) => {
-			await runStyleOverridesTest(testName, {
-				frames: {
-					editorTabBarBackground: 'transparent',
-					editorTabBarBorderColor: 'transparent',
-					editorTabBarBorderBottom: ({ coreStyles }) => coreStyles.borderColor,
-					editorActiveTabBorder: ({ coreStyles }) => coreStyles.borderColor,
-					shadowColor: 'transparent',
+			await runStyleOverridesTest({
+				testName,
+				engineOptions: {
+					styleOverrides: {
+						frames: {
+							editorTabBarBackground: 'transparent',
+							editorTabBarBorderColor: 'transparent',
+							editorTabBarBorderBottom: ({ coreStyles }) => coreStyles.borderColor,
+							editorActiveTabBorder: ({ coreStyles }) => coreStyles.borderColor,
+							shadowColor: 'transparent',
+						},
+					},
 				},
+				expectedStyleMatches: ({ coreStyles }) => [
+					// Validate editorTabBarBackground
+					{
+						selector: / .header$/,
+						property: 'background',
+						value: /linear-gradient\(transparent, transparent\)/,
+					},
+					// Validate editorTabBarBorderBottom
+					{
+						selector: / .header$/,
+						property: 'background',
+						value: new RegExp(`^linear-gradient\\(to top,\\s*${coreStyles.borderColor} `),
+					},
+					// Validate shadowColor
+					{
+						selector: / .frame$/,
+						property: 'box-shadow',
+						value: /transparent$/,
+					},
+				],
+			})
+		})
+
+		test('Style overwritten by theme', async ({ meta: { name: testName } }) => {
+			await runStyleOverridesTest({
+				testName,
+				engineOptions: {
+					customizeTheme: (theme) => {
+						theme = new ExpressiveCodeTheme(theme)
+						theme.styleOverrides.frames = {
+							editorTabBorderRadius: '0.75rem',
+						}
+						return theme
+					},
+					styleOverrides: {
+						borderRadius: '0px',
+						frames: {
+							editorTabBarBackground: 'transparent',
+							editorTabBarBorderColor: 'transparent',
+							editorTabBarBorderBottom: ({ coreStyles }) => coreStyles.borderColor,
+							editorActiveTabBorder: ({ coreStyles }) => coreStyles.borderColor,
+							shadowColor: 'transparent',
+						},
+					},
+				},
+				expectedStyleMatches: () => [
+					{
+						selector: / pre$/,
+						property: 'border-radius',
+						value: /0px/,
+					},
+					{
+						selector: / .frame$/,
+						property: '--tab-border-radius',
+						value: /0\.75rem/,
+					},
+				],
 			})
 		})
 	})

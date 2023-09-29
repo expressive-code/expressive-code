@@ -1,38 +1,226 @@
 import { StyleSettings, multiplyAlpha, ExpressiveCodeTheme, ResolvedCoreStyles, onBackground, setLuminance } from '@expressive-code/core'
 import { PluginFramesOptions } from '.'
+import { StyleOverrides } from '@expressive-code/core'
 
-export const framesStyleSettings = new StyleSettings({
-	shadowColor: ({ theme, coreStyles }) => theme.colors['widget.shadow'] || multiplyAlpha(coreStyles.borderColor, 0.75),
-	frameBoxShadowCssValue: ({ resolveSetting }) => `0.1rem 0.1rem 0.2rem ${resolveSetting('shadowColor')}`,
-	editorActiveTabBackground: ({ theme }) => theme.colors['tab.activeBackground'],
-	editorActiveTabForeground: ({ theme }) => theme.colors['tab.activeForeground'],
-	editorActiveTabBorder: 'transparent',
-	editorActiveTabHighlightHeight: ({ coreStyles }) => coreStyles.borderWidth,
-	editorActiveTabBorderTop: ({ theme }) => theme.colors['tab.activeBorderTop'],
-	editorActiveTabBorderBottom: ({ theme }) => theme.colors['tab.activeBorder'],
-	editorActiveTabMarginInlineStart: '0',
-	editorActiveTabMarginBlockStart: '0',
-	editorTabBorderRadius: ({ coreStyles }) => coreStyles.borderRadius,
-	editorTabBarBackground: ({ theme }) => theme.colors['editorGroupHeader.tabsBackground'],
-	editorTabBarBorderColor: ({ coreStyles }) => coreStyles.borderColor,
-	editorTabBarBorderBottom: ({ theme }) => theme.colors['editorGroupHeader.tabsBorder'] || 'transparent',
-	editorBackground: ({ coreStyles }) => coreStyles.codeBackground,
-	terminalTitlebarDotsForeground: ({ resolveSetting }) => resolveSetting('terminalTitlebarForeground'),
-	terminalTitlebarDotsOpacity: '0.15',
-	terminalTitlebarBackground: ({ theme }) => theme.colors['titleBar.activeBackground'] || theme.colors['editorGroupHeader.tabsBackground'],
-	terminalTitlebarForeground: ({ theme }) => theme.colors['titleBar.activeForeground'],
-	terminalTitlebarBorderBottom: ({ theme, coreStyles }) =>
-		theme.colors['titleBar.border'] || onBackground(coreStyles.borderColor, theme.type === 'dark' ? '#000000bf' : '#ffffffbf'),
-	terminalBackground: ({ theme }) => theme.colors['terminal.background'],
-	inlineButtonBackground: ({ resolveSetting }) => resolveSetting('inlineButtonForeground'),
-	inlineButtonBackgroundIdleOpacity: '0',
-	inlineButtonBackgroundHoverOrFocusOpacity: '0.2',
-	inlineButtonBackgroundActiveOpacity: '0.3',
-	inlineButtonForeground: ({ coreStyles }) => coreStyles.codeForeground,
-	inlineButtonBorder: ({ resolveSetting }) => resolveSetting('inlineButtonForeground'),
-	inlineButtonBorderOpacity: '0.4',
-	tooltipSuccessBackground: ({ theme }) => setLuminance(theme.colors['terminal.ansiGreen'] || '#0dbc79', 0.18),
-	tooltipSuccessForeground: 'white',
+export interface FramesStyleSettings {
+	/**
+	 * The color to use for the shadow of the frame.
+	 * @default
+	 * ({ theme }) => theme.colors['widget.shadow'] || multiplyAlpha(coreStyles.borderColor, 0.75)
+	 */
+	shadowColor: string
+	/**
+	 * The CSS value for the box shadow of the frame.
+	 * @default
+	 * ({ resolveSetting }) => `0.1rem 0.1rem 0.2rem ${resolveSetting('shadowColor')}`
+	 */
+	frameBoxShadowCssValue: string
+	/**
+	 * The background color of the active editor tab.
+	 * @default
+	 * ({ theme }) => theme.colors['tab.activeBackground']
+	 */
+	editorActiveTabBackground: string
+	/**
+	 * The foreground color of the active editor tab.
+	 * @default
+	 * ({ theme }) => theme.colors['tab.activeForeground']
+	 */
+	editorActiveTabForeground: string
+	/**
+	 * The border color of the active editor tab.
+	 * @default 'transparent'
+	 */
+	editorActiveTabBorder: string
+	/**
+	 * The height of the highlight border indicating the active editor tab.
+	 * This is the colorful line that appears at the top and/or bottom of the active tab.
+	 * @default
+	 * ({ coreStyles }) => coreStyles.borderWidth
+	 */
+	editorActiveTabHighlightHeight: string
+	/**
+	 * The color of the top highlight border indicating the active editor tab.
+	 * @default
+	 * ({ theme }) => theme.colors['tab.activeBorderTop']
+	 */
+	editorActiveTabBorderTop: string
+	/**
+	 * The color of the bottom highlight border indicating the active editor tab.
+	 * @default
+	 * ({ theme }) => theme.colors['tab.activeBorder']
+	 */
+	editorActiveTabBorderBottom: string
+	/**
+	 * The inline margin (= left margin in horizontal writing mode) to apply inside the tab bar
+	 * before the first editor tab.
+	 * @default '0'
+	 */
+	editorTabsMarginInlineStart: string
+	/**
+	 * The block margin (= top margin in horizontal writing mode) to apply inside the tab bar
+	 * before the editor tabs.
+	 * @default '0'
+	 */
+	editorTabsMarginBlockStart: string
+	/**
+	 * The border radius to apply to the outer corners of editor tabs.
+	 * @default
+	 * ({ coreStyles }) => coreStyles.borderRadius
+	 */
+	editorTabBorderRadius: string
+	/**
+	 * The background color of the editor tab bar.
+	 * @default
+	 * ({ theme }) => theme.colors['editorGroupHeader.tabsBackground']
+	 */
+	editorTabBarBackground: string
+	/**
+	 * The border color of the editor tab bar.
+	 * @default
+	 * ({ coreStyles }) => coreStyles.borderColor
+	 */
+	editorTabBarBorderColor: string
+	/**
+	 * The color of the border between the editor tab bar and the code contents.
+	 * @default
+	 * ({ theme }) => theme.colors['editorGroupHeader.tabsBorder'] || 'transparent'
+	 */
+	editorTabBarBorderBottom: string
+	/**
+	 * The background color of the code editor.
+	 * This color is used for the "code" frame type.
+	 * @default
+	 * ({ coreStyles }) => coreStyles.codeBackground
+	 */
+	editorBackground: string
+	/**
+	 * The color of the three dots in the terminal title bar.
+	 * @default
+	 * ({ resolveSetting }) => resolveSetting('terminalTitlebarForeground')
+	 */
+	terminalTitlebarDotsForeground: string
+	/**
+	 * The opacity of the three dots in the terminal title bar.
+	 * @default '0.15'
+	 */
+	terminalTitlebarDotsOpacity: string
+	/**
+	 * The background color of the terminal title bar.
+	 * @default
+	 * ({ theme }) => theme.colors['titleBar.activeBackground'] || theme.colors['editorGroupHeader.tabsBackground']
+	 */
+	terminalTitlebarBackground: string
+	/**
+	 * The foreground color of the terminal title bar.
+	 * @default
+	 * ({ theme }) => theme.colors['titleBar.activeForeground']
+	 */
+	terminalTitlebarForeground: string
+	/**
+	 * The color of the border between the terminal title bar and the terminal contents.
+	 * @default
+	 * ({ theme, coreStyles }) =>
+	 *   theme.colors['titleBar.border'] ||
+	 *   onBackground(coreStyles.borderColor, theme.type === 'dark' ? '#000000bf' : '#ffffffbf')
+	 */
+	terminalTitlebarBorderBottom: string
+	/**
+	 * The background color of the terminal window.
+	 * This color is used for the "terminal" frame type.
+	 * @default
+	 * ({ theme }) => theme.colors['terminal.background']
+	 */
+	terminalBackground: string
+	/**
+	 * The background color of the copy button.
+	 * This color is modified by the state-dependent opacity values specified in
+	 * {@link inlineButtonBackgroundIdleOpacity}, {@link inlineButtonBackgroundHoverOrFocusOpacity}
+	 * and {@link inlineButtonBackgroundActiveOpacity}.
+	 * @default
+	 * ({ resolveSetting }) => resolveSetting('inlineButtonForeground')
+	 */
+	inlineButtonBackground: string
+	/**
+	 * The opacity of the copy button background when idle.
+	 * @default '0'
+	 */
+	inlineButtonBackgroundIdleOpacity: string
+	/**
+	 * The opacity of the copy button background when hovered or focused.
+	 * @default '0.2'
+	 */
+	inlineButtonBackgroundHoverOrFocusOpacity: string
+	/**
+	 * The opacity of the copy button background when pressed.
+	 * @default '0.3'
+	 */
+	inlineButtonBackgroundActiveOpacity: string
+	/**
+	 * The foreground color of the copy button.
+	 * @default
+	 * ({ coreStyles }) => coreStyles.codeForeground
+	 */
+	inlineButtonForeground: string
+	/**
+	 * The border color of the copy button.
+	 * @default
+	 * ({ resolveSetting }) => resolveSetting('inlineButtonForeground')
+	 */
+	inlineButtonBorder: string
+	/**
+	 * The opacity of the copy button border.
+	 * @default '0.4'
+	 */
+	inlineButtonBorderOpacity: string
+	/**
+	 * The background color of the tooltip shown after successfully copying the code.
+	 * @default
+	 * ({ theme }) => setLuminance(theme.colors['terminal.ansiGreen'] || '#0dbc79', 0.18)
+	 */
+	tooltipSuccessBackground: string
+	/**
+	 * The foreground color of the tooltip shown after successfully copying the code.
+	 * @default 'white'
+	 */
+	tooltipSuccessForeground: string
+}
+
+export const framesStyleSettings = new StyleSettings<FramesStyleSettings>({
+	styleOverridesSubpath: 'frames',
+	defaultSettings: {
+		shadowColor: ({ theme, coreStyles }) => theme.colors['widget.shadow'] || multiplyAlpha(coreStyles.borderColor, 0.75),
+		frameBoxShadowCssValue: ({ resolveSetting }) => `0.1rem 0.1rem 0.2rem ${resolveSetting('shadowColor')}`,
+		editorActiveTabBackground: ({ theme }) => theme.colors['tab.activeBackground'],
+		editorActiveTabForeground: ({ theme }) => theme.colors['tab.activeForeground'],
+		editorActiveTabBorder: 'transparent',
+		editorActiveTabHighlightHeight: ({ coreStyles }) => coreStyles.borderWidth,
+		editorActiveTabBorderTop: ({ theme }) => theme.colors['tab.activeBorderTop'],
+		editorActiveTabBorderBottom: ({ theme }) => theme.colors['tab.activeBorder'],
+		editorTabsMarginInlineStart: '0',
+		editorTabsMarginBlockStart: '0',
+		editorTabBorderRadius: ({ coreStyles }) => coreStyles.borderRadius,
+		editorTabBarBackground: ({ theme }) => theme.colors['editorGroupHeader.tabsBackground'],
+		editorTabBarBorderColor: ({ coreStyles }) => coreStyles.borderColor,
+		editorTabBarBorderBottom: ({ theme }) => theme.colors['editorGroupHeader.tabsBorder'] || 'transparent',
+		editorBackground: ({ coreStyles }) => coreStyles.codeBackground,
+		terminalTitlebarDotsForeground: ({ resolveSetting }) => resolveSetting('terminalTitlebarForeground'),
+		terminalTitlebarDotsOpacity: '0.15',
+		terminalTitlebarBackground: ({ theme }) => theme.colors['titleBar.activeBackground'] || theme.colors['editorGroupHeader.tabsBackground'],
+		terminalTitlebarForeground: ({ theme }) => theme.colors['titleBar.activeForeground'],
+		terminalTitlebarBorderBottom: ({ theme, coreStyles }) =>
+			theme.colors['titleBar.border'] || onBackground(coreStyles.borderColor, theme.type === 'dark' ? '#000000bf' : '#ffffffbf'),
+		terminalBackground: ({ theme }) => theme.colors['terminal.background'],
+		inlineButtonBackground: ({ resolveSetting }) => resolveSetting('inlineButtonForeground'),
+		inlineButtonBackgroundIdleOpacity: '0',
+		inlineButtonBackgroundHoverOrFocusOpacity: '0.2',
+		inlineButtonBackgroundActiveOpacity: '0.3',
+		inlineButtonForeground: ({ coreStyles }) => coreStyles.codeForeground,
+		inlineButtonBorder: ({ resolveSetting }) => resolveSetting('inlineButtonForeground'),
+		inlineButtonBorderOpacity: '0.4',
+		tooltipSuccessBackground: ({ theme }) => setLuminance(theme.colors['terminal.ansiGreen'] || '#0dbc79', 0.18),
+		tooltipSuccessForeground: 'white',
+	},
 })
 
 declare module '@expressive-code/core' {
@@ -41,17 +229,11 @@ declare module '@expressive-code/core' {
 	}
 }
 
-export function getFramesBaseStyles(
-	theme: ExpressiveCodeTheme,
-	coreStyles: ResolvedCoreStyles,
-	styleOverrides: Partial<typeof framesStyleSettings.defaultSettings>,
-	options: PluginFramesOptions
-) {
+export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: ResolvedCoreStyles, styleOverrides: Partial<StyleOverrides> | undefined, options: PluginFramesOptions) {
 	const framesStyles = framesStyleSettings.resolve({
 		theme,
 		coreStyles,
 		styleOverrides,
-		themeStyleOverrides: theme.styleOverrides.frames,
 	})
 
 	const dotsSvg = [
@@ -126,7 +308,7 @@ export function getFramesBaseStyles(
 				color: ${framesStyles.editorActiveTabForeground};
 				background: ${framesStyles.editorActiveTabBackground};
 				background-clip: padding-box;
-				margin-block-start: ${framesStyles.editorActiveTabMarginBlockStart};
+				margin-block-start: ${framesStyles.editorTabsMarginBlockStart};
 				padding: calc(${coreStyles.uiPaddingBlock} + ${framesStyles.editorActiveTabHighlightHeight}) ${coreStyles.uiPaddingInline};
 				border: ${coreStyles.borderWidth} solid ${framesStyles.editorActiveTabBorder};
 				border-radius: var(--tab-border-radius) var(--tab-border-radius) 0 0;
@@ -150,7 +332,7 @@ export function getFramesBaseStyles(
 				background: ${tabBarBackground};
 				background-repeat: no-repeat;
 
-				padding-inline-start: ${framesStyles.editorActiveTabMarginInlineStart};
+				padding-inline-start: ${framesStyles.editorTabsMarginInlineStart};
 
 				&::before {
 					content: '';

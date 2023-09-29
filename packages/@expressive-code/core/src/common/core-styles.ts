@@ -2,76 +2,190 @@ import { lighten, ensureColorContrastOnBackground } from '../helpers/color-trans
 import { ResolvedStyleSettings, StyleSettings, UnresolvedCoreStyleSettings } from '../helpers/style-settings'
 import { ExpressiveCodeTheme } from './theme'
 
-export type CoreStyleSettings =
-	| 'borderRadius'
-	| 'borderWidth'
-	| 'borderColor'
-	| 'codeFontFamily'
-	| 'codeFontSize'
-	| 'codeFontWeight'
-	| 'codeLineHeight'
-	| 'codePaddingBlock'
-	| 'codePaddingInline'
-	| 'codeBackground'
-	| 'codeForeground'
-	| 'codeSelectionBackground'
-	| 'uiFontFamily'
-	| 'uiFontSize'
-	| 'uiFontWeight'
-	| 'uiLineHeight'
-	| 'uiPaddingBlock'
-	| 'uiPaddingInline'
-	| 'uiSelectionBackground'
-	| 'uiSelectionForeground'
-	| 'focusBorder'
-	| 'scrollbarThumbColor'
-	| 'scrollbarThumbHoverColor'
+export interface CoreStyleSettings {
+	/**
+	 * Border radius of code blocks.
+	 * @default '0.3rem'
+	 */
+	borderRadius: string
+	/**
+	 * Border width of code blocks.
+	 * @default '1.5px'
+	 */
+	borderWidth: string
+	/**
+	 * Border color of code blocks.
+	 * @default
+	 * ({ theme }) => theme.colors['titleBar.border'] || lighten(theme.colors['editor.background'], theme.type === 'dark' ? 0.5 : -0.15) || 'transparent'
+	 */
+	borderColor: string
+	/**
+	 * Font family of code content.
+	 * @default "'IBM Plex Mono', Consolas, 'Andale Mono WT', 'Andale Mono', 'Lucida Console', 'Lucida Sans Typewriter', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Liberation Mono', 'Nimbus Mono L', Monaco, 'Courier New', Courier, monospace"
+	 */
+	codeFontFamily: string
+	/**
+	 * Font size of code content.
+	 * @default '0.85rem'
+	 */
+	codeFontSize: string
+	/**
+	 * Font weight of code content.
+	 * @default '400'
+	 */
+	codeFontWeight: string
+	/**
+	 * Font line height of code content.
+	 * @default '1.65'
+	 */
+	codeLineHeight: string
+	/**
+	 * Block-level padding (= top and bottom padding in horizontal writing mode)
+	 * around the code content inside code blocks.
+	 * @default '1rem'
+	 */
+	codePaddingBlock: string
+	/**
+	 * Inline-level padding (= left and right padding in horizontal writing mode)
+	 * around the code content inside code blocks.
+	 * @default '1.35rem'
+	 */
+	codePaddingInline: string
+	/**
+	 * Background color of code blocks.
+	 * @default
+	 * ({ theme }) => theme.colors['editor.background']
+	 */
+	codeBackground: string
+	/**
+	 * Foreground color of code, unless overwritten by syntax highlighting.
+	 * @default
+	 * ({ theme }) => theme.colors['editor.foreground']
+	 */
+	codeForeground: string
+	/**
+	 * Background color of selected code, unless selection color customization is disabled
+	 * by the option `useThemedSelectionColors`.
+	 * @default
+	 * ({ theme }) => theme.colors['editor.selectionBackground']
+	 */
+	codeSelectionBackground: string
+	/**
+	 * Font family of UI elements.
+	 * @default "system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji'"
+	 */
+	uiFontFamily: string
+	/**
+	 * Font size of UI elements.
+	 * @default '0.9rem'
+	 */
+	uiFontSize: string
+	/**
+	 * Font weight of UI elements.
+	 * @default '400'
+	 */
+	uiFontWeight: string
+	/**
+	 * Font line height of UI elements.
+	 * @default '1.65'
+	 */
+	uiLineHeight: string
+	/**
+	 * Block-level padding (= top and bottom padding in horizontal writing mode)
+	 * of UI elements like tabs, buttons etc.
+	 * @default '0.25rem'
+	 */
+	uiPaddingBlock: string
+	/**
+	 * Inline-level padding (= left and right padding in horizontal writing mode)
+	 * of UI elements like tabs, buttons etc.
+	 * @default '1rem'
+	 */
+	uiPaddingInline: string
+	/**
+	 * Background color of selected UI elements, unless selection color customization is disabled
+	 * by the option `useThemedSelectionColors`.
+	 * @default
+	 * ({ theme }) => theme.colors['menu.selectionBackground']
+	 */
+	uiSelectionBackground: string
+	/**
+	 * Foreground color of selected UI elements, unless selection color customization is disabled
+	 * by the option `useThemedSelectionColors`.
+	 * @default
+	 * ({ theme }) => theme.colors['menu.selectionForeground']
+	 */
+	uiSelectionForeground: string
+	/**
+	 * Color of the focus border around focused elements.
+	 * @default
+	 * ({ theme }) => theme.colors['focusBorder']
+	 */
+	focusBorder: string
+	/**
+	 * Color of the scrollbar thumb, unless scrollbar color customization is disabled
+	 * by the option `useThemedScrollbars`.
+	 * @default
+	 * ({ theme }) => theme.colors['scrollbarSlider.background']
+	 */
+	scrollbarThumbColor: string
+	/**
+	 * Color of the scrollbar thumb when hovered, unless scrollbar color customization is disabled
+	 * by the option `useThemedScrollbars`.
+	 * @default
+	 * ({ theme }) => theme.colors['scrollbarSlider.hoverBackground']
+	 */
+	scrollbarThumbHoverColor: string
+}
 
 export const coreStyleSettings = new StyleSettings<CoreStyleSettings>({
-	// Outer container
-	borderRadius: '0.3rem',
-	borderWidth: '1.5px',
-	borderColor: ({ theme }) => theme.colors['titleBar.border'] || lighten(theme.colors['editor.background'], theme.type === 'dark' ? 0.5 : -0.15) || 'transparent',
-	// Code editor content
-	codeFontFamily: [
-		`'IBM Plex Mono'`,
-		`Consolas`,
-		`'Andale Mono WT'`,
-		`'Andale Mono'`,
-		`'Lucida Console'`,
-		`'Lucida Sans Typewriter'`,
-		`'DejaVu Sans Mono'`,
-		`'Bitstream Vera Sans Mono'`,
-		`'Liberation Mono'`,
-		`'Nimbus Mono L'`,
-		`Monaco`,
-		`'Courier New'`,
-		`Courier`,
-		`monospace`,
-	].join(','),
-	codeFontSize: '0.85rem',
-	codeFontWeight: '400',
-	codeLineHeight: '1.65',
-	codePaddingBlock: '1rem',
-	codePaddingInline: '1.35rem',
-	codeBackground: ({ theme }) => theme.colors['editor.background'],
-	codeForeground: ({ theme }) => theme.colors['editor.foreground'],
-	codeSelectionBackground: ({ theme }) => theme.colors['editor.selectionBackground'],
-	// UI elements
-	uiFontFamily: ['system-ui', `-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, `Helvetica`, `Arial`, `sans-serif`, `'Apple Color Emoji'`, `'Segoe UI Emoji'`].join(','),
-	uiFontSize: '0.9rem',
-	uiFontWeight: '400',
-	uiLineHeight: '1.65',
-	uiPaddingBlock: '0.25rem',
-	uiPaddingInline: '1rem',
-	uiSelectionBackground: ({ theme }) => theme.colors['menu.selectionBackground'],
-	uiSelectionForeground: ({ theme }) => theme.colors['menu.selectionForeground'],
-	// Special colors
-	focusBorder: ({ theme }) => theme.colors['focusBorder'],
-	scrollbarThumbColor: ({ theme, resolveSetting }) => ensureColorContrastOnBackground(theme.colors['scrollbarSlider.background'], resolveSetting('codeBackground'), 1, 2),
-	scrollbarThumbHoverColor: ({ theme, resolveSetting }) =>
-		ensureColorContrastOnBackground(theme.colors['scrollbarSlider.hoverBackground'], resolveSetting('codeBackground'), 2.5, 3.5),
-} satisfies UnresolvedCoreStyleSettings<CoreStyleSettings>)
+	styleOverridesSubpath: '',
+	defaultSettings: {
+		// Outer container
+		borderRadius: '0.3rem',
+		borderWidth: '1.5px',
+		borderColor: ({ theme }) => theme.colors['titleBar.border'] || lighten(theme.colors['editor.background'], theme.type === 'dark' ? 0.5 : -0.15) || 'transparent',
+		// Code editor content
+		codeFontFamily: [
+			`'IBM Plex Mono'`,
+			`Consolas`,
+			`'Andale Mono WT'`,
+			`'Andale Mono'`,
+			`'Lucida Console'`,
+			`'Lucida Sans Typewriter'`,
+			`'DejaVu Sans Mono'`,
+			`'Bitstream Vera Sans Mono'`,
+			`'Liberation Mono'`,
+			`'Nimbus Mono L'`,
+			`Monaco`,
+			`'Courier New'`,
+			`Courier`,
+			`monospace`,
+		].join(','),
+		codeFontSize: '0.85rem',
+		codeFontWeight: '400',
+		codeLineHeight: '1.65',
+		codePaddingBlock: '1rem',
+		codePaddingInline: '1.35rem',
+		codeBackground: ({ theme }) => theme.colors['editor.background'],
+		codeForeground: ({ theme }) => theme.colors['editor.foreground'],
+		codeSelectionBackground: ({ theme }) => theme.colors['editor.selectionBackground'],
+		// UI elements
+		uiFontFamily: ['system-ui', `-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, `Helvetica`, `Arial`, `sans-serif`, `'Apple Color Emoji'`, `'Segoe UI Emoji'`].join(','),
+		uiFontSize: '0.9rem',
+		uiFontWeight: '400',
+		uiLineHeight: '1.65',
+		uiPaddingBlock: '0.25rem',
+		uiPaddingInline: '1rem',
+		uiSelectionBackground: ({ theme }) => theme.colors['menu.selectionBackground'],
+		uiSelectionForeground: ({ theme }) => theme.colors['menu.selectionForeground'],
+		// Special colors
+		focusBorder: ({ theme }) => theme.colors['focusBorder'],
+		scrollbarThumbColor: ({ theme, resolveSetting }) => ensureColorContrastOnBackground(theme.colors['scrollbarSlider.background'], resolveSetting('codeBackground'), 1, 2),
+		scrollbarThumbHoverColor: ({ theme, resolveSetting }) =>
+			ensureColorContrastOnBackground(theme.colors['scrollbarSlider.hoverBackground'], resolveSetting('codeBackground'), 2.5, 3.5),
+	},
+})
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface StyleOverrides extends Partial<UnresolvedCoreStyleSettings<CoreStyleSettings>> {}

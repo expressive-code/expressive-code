@@ -11,21 +11,18 @@ import {
 import rangeParser from 'parse-numeric-range'
 import { visitParents } from 'unist-util-visit-parents'
 import { MarkerType, markerTypeFromString } from './marker-types'
-import { getMarkerTypeColorsForContrastCalculation, getTextMarkersBaseStyles, textMarkersStyleSettings } from './styles'
+import { getMarkerTypeColorsForContrastCalculation, getTextMarkersBaseStyles } from './styles'
 import { flattenInlineMarkerRanges, getInlineSearchTermMatches } from './inline-markers'
 import { TextMarkerAnnotation } from './annotations'
+import { StyleOverrides } from '@expressive-code/core'
 
-export interface PluginTextMarkersOptions {
-	styleOverrides?: Partial<typeof textMarkersStyleSettings.defaultSettings> | undefined
-}
-
-export function pluginTextMarkers(options: PluginTextMarkersOptions = {}): ExpressiveCodePlugin {
+export function pluginTextMarkers(): ExpressiveCodePlugin {
 	return {
 		name: 'TextMarkers',
-		baseStyles: ({ theme, coreStyles, styleOverrides }) => getTextMarkersBaseStyles(theme, coreStyles, { ...styleOverrides.textMarkers, ...options.styleOverrides }),
+		baseStyles: ({ theme, coreStyles, styleOverrides }) => getTextMarkersBaseStyles(theme, coreStyles, styleOverrides),
 		hooks: {
-			preprocessMetadata: ({ codeBlock, theme, coreStyles }) => {
-				const { blockData, markerTypeColors } = getBlockDataAndMarkerTypeColors(codeBlock, theme, coreStyles, options)
+			preprocessMetadata: ({ codeBlock, theme, coreStyles, styleOverrides }) => {
+				const { blockData, markerTypeColors } = getBlockDataAndMarkerTypeColors(codeBlock, theme, coreStyles, styleOverrides)
 
 				codeBlock.meta = replaceDelimitedValues(
 					codeBlock.meta,
@@ -93,8 +90,8 @@ export function pluginTextMarkers(options: PluginTextMarkersOptions = {}): Expre
 					}
 				)
 			},
-			preprocessCode: ({ codeBlock, theme, coreStyles }) => {
-				const { blockData, markerTypeColors } = getBlockDataAndMarkerTypeColors(codeBlock, theme, coreStyles, options)
+			preprocessCode: ({ codeBlock, theme, coreStyles, styleOverrides }) => {
+				const { blockData, markerTypeColors } = getBlockDataAndMarkerTypeColors(codeBlock, theme, coreStyles, styleOverrides)
 
 				// Perform special handling of code marked with the language "diff":
 				// - This language is often used as a widely supported format for highlighting
@@ -148,8 +145,8 @@ export function pluginTextMarkers(options: PluginTextMarkersOptions = {}): Expre
 					}
 				}
 			},
-			annotateCode: ({ codeBlock, theme, coreStyles }) => {
-				const { blockData, markerTypeColors } = getBlockDataAndMarkerTypeColors(codeBlock, theme, coreStyles, options)
+			annotateCode: ({ codeBlock, theme, coreStyles, styleOverrides }) => {
+				const { blockData, markerTypeColors } = getBlockDataAndMarkerTypeColors(codeBlock, theme, coreStyles, styleOverrides)
 
 				codeBlock.getLines().forEach((line) => {
 					// Check the line text for search term matches and collect their ranges
@@ -200,13 +197,18 @@ export function pluginTextMarkers(options: PluginTextMarkersOptions = {}): Expre
 	}
 }
 
-function getBlockDataAndMarkerTypeColors(codeBlock: ExpressiveCodeBlock, theme: ExpressiveCodeTheme, coreStyles: ResolvedCoreStyles, options: PluginTextMarkersOptions) {
+function getBlockDataAndMarkerTypeColors(
+	codeBlock: ExpressiveCodeBlock,
+	theme: ExpressiveCodeTheme,
+	coreStyles: ResolvedCoreStyles,
+	styleOverrides: Partial<StyleOverrides> | undefined
+) {
 	const blockData = pluginTextMarkersData.getOrCreateFor(codeBlock)
 	if (!blockData.markerTypeColors) {
 		blockData.markerTypeColors = getMarkerTypeColorsForContrastCalculation({
 			theme,
 			coreStyles,
-			styleOverrides: options.styleOverrides,
+			styleOverrides,
 		})
 	}
 	return { blockData, markerTypeColors: blockData.markerTypeColors }

@@ -1,14 +1,14 @@
 import { ExpressiveCodeEngine, ExpressiveCodeEngineConfig, ExpressiveCodePlugin } from '@expressive-code/core'
 import { PluginFramesOptions, pluginFrames } from '@expressive-code/plugin-frames'
 import { pluginShiki } from '@expressive-code/plugin-shiki'
-import { PluginTextMarkersOptions, pluginTextMarkers } from '@expressive-code/plugin-text-markers'
+import { pluginTextMarkers } from '@expressive-code/plugin-text-markers'
 
 export * from '@expressive-code/core'
 export * from '@expressive-code/plugin-frames'
 export * from '@expressive-code/plugin-shiki'
 export * from '@expressive-code/plugin-text-markers'
 
-export interface ExpressiveCodeConfig extends ExpressiveCodeEngineConfig {
+export interface ExpressiveCodeConfig extends Omit<ExpressiveCodeEngineConfig, 'frames'> {
 	/**
 	 * The Shiki plugin adds syntax highlighting to code blocks.
 	 *
@@ -22,7 +22,7 @@ export interface ExpressiveCodeConfig extends ExpressiveCodeEngineConfig {
 	 * This plugin is enabled by default. Set this to `false` to disable it.
 	 * You can also configure the plugin by setting this to an options object.
 	 */
-	textMarkers?: PluginTextMarkersOptions | boolean | undefined
+	textMarkers?: boolean | undefined
 	/**
 	 * The Frames plugin adds an editor or terminal frame around code blocks,
 	 * including an optional title displayed as a tab or window caption.
@@ -44,7 +44,7 @@ export class ExpressiveCode extends ExpressiveCodeEngine {
 			pluginsToPrepend.push(pluginShiki())
 		}
 		if (textMarkers !== false && notPresentInPlugins('TextMarkers')) {
-			pluginsToPrepend.push(pluginTextMarkers(textMarkers !== true ? textMarkers : undefined))
+			pluginsToPrepend.push(pluginTextMarkers())
 		}
 		if (frames !== false && notPresentInPlugins('Frames')) {
 			pluginsToPrepend.push(pluginFrames(frames !== true ? frames : undefined))
