@@ -1,6 +1,6 @@
 import { lighten, ensureColorContrastOnBackground } from '../helpers/color-transforms'
-import { ResolvedStyleSettings, StyleSettings, UnresolvedCoreStyleSettings } from '../helpers/style-settings'
-import { ExpressiveCodeTheme } from './theme'
+import { ResolvedStyleSettings, StyleSettings } from '../helpers/style-settings'
+import { StyleVariant } from './styling'
 
 export interface CoreStyleSettings {
 	/**
@@ -187,22 +187,21 @@ export const coreStyleSettings = new StyleSettings<CoreStyleSettings>({
 	},
 })
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface StyleOverrides extends Partial<UnresolvedCoreStyleSettings<CoreStyleSettings>> {}
-
 export type ResolvedCoreStyles = ResolvedStyleSettings<CoreStyleSettings>
 
 export const codeLineClass = 'ec-line'
 
-export function getCoreBaseStyles(options: { theme: ExpressiveCodeTheme; coreStyles: ResolvedCoreStyles; useThemedScrollbars: boolean; useThemedSelectionColors: boolean }) {
-	const { coreStyles } = options
+export function getCoreBaseStyles(options: { useThemedScrollbars: boolean; useThemedSelectionColors: boolean; styleVariants: StyleVariant[] }) {
 	const ifThemedScrollbars = (css: string) => (options.useThemedScrollbars ? css : '')
 	const ifThemedSelectionColors = (css: string) => (options.useThemedSelectionColors ? css : '')
+	// TODO: Support multiple style variants
+	const resolvedStyles = coreStyleSettings.resolve(options.styleVariants[0])
+	const cssVar = (key: keyof typeof resolvedStyles) => resolvedStyles[key] // coreStyleSettings.var.bind(coreStyleSettings)
 
 	return `
-		font-family: ${coreStyles.uiFontFamily};
-		font-size: ${coreStyles.uiFontSize};
-		line-height: ${coreStyles.uiLineHeight};
+		font-family: ${cssVar('uiFontFamily')};
+		font-size: ${cssVar('uiFontSize')};
+		line-height: ${cssVar('uiLineHeight')};
 		text-size-adjust: none;
 		-webkit-text-size-adjust: none;
 
@@ -212,20 +211,20 @@ export function getCoreBaseStyles(options: { theme: ExpressiveCodeTheme; coreSty
 		}
 
 		${ifThemedSelectionColors(`::selection {
-			background: ${coreStyles.uiSelectionBackground};
-			color: ${coreStyles.uiSelectionForeground};
+			background: ${cssVar('uiSelectionBackground')};
+			color: ${cssVar('uiSelectionForeground')};
 		}`)}
 
 		pre {
 			display: flex;
 			margin: 0;
 			padding: 0;
-			border: ${coreStyles.borderWidth} solid ${coreStyles.borderColor};
-			border-radius: calc(${coreStyles.borderRadius} + ${coreStyles.borderWidth});
-			background: ${coreStyles.codeBackground};
+			border: ${cssVar('borderWidth')} solid ${cssVar('borderColor')};
+			border-radius: calc(${cssVar('borderRadius')} + ${cssVar('borderWidth')});
+			background: ${cssVar('codeBackground')};
 
 			&:focus-visible {
-				outline: 3px solid ${coreStyles.focusBorder};
+				outline: 3px solid ${cssVar('focusBorder')};
 				outline-offset: -3px;
 			}
 
@@ -234,17 +233,17 @@ export function getCoreBaseStyles(options: { theme: ExpressiveCodeTheme; coreSty
 				display: block;
 				flex: 1 0 100%;
 
-				padding: ${coreStyles.codePaddingBlock} 0;
-				color: ${coreStyles.codeForeground};
+				padding: ${cssVar('codePaddingBlock')} 0;
+				color: ${cssVar('codeForeground')};
 
-				font-family: ${coreStyles.codeFontFamily};
-				font-size: ${coreStyles.codeFontSize};
-				line-height: ${coreStyles.codeLineHeight};
-				--padding-inline: ${coreStyles.codePaddingInline};
+				font-family: ${cssVar('codeFontFamily')};
+				font-size: ${cssVar('codeFontSize')};
+				line-height: ${cssVar('codeLineHeight')};
+				--padding-inline: ${cssVar('codePaddingInline')};
 			}
 
 			${ifThemedSelectionColors(`::selection {
-				background: ${coreStyles.codeSelectionBackground};
+				background: ${cssVar('codeSelectionBackground')};
 				color: inherit;
 			}`)}
 
@@ -255,18 +254,18 @@ export function getCoreBaseStyles(options: { theme: ExpressiveCodeTheme; coreSty
 			&::-webkit-scrollbar,
 			&::-webkit-scrollbar-track {
 				background-color: inherit;
-				border-radius: calc(${coreStyles.borderRadius} + ${coreStyles.borderWidth});
+				border-radius: calc(${cssVar('borderRadius')} + ${cssVar('borderWidth')});
 				border-top-left-radius: 0;
 				border-top-right-radius: 0;
 			}
 			&::-webkit-scrollbar-thumb {
-				background-color: ${coreStyles.scrollbarThumbColor};
+				background-color: ${cssVar('scrollbarThumbColor')};
 				border: 4px solid transparent;
 				background-clip: content-box;
 				border-radius: 10px;
 			}
 			&::-webkit-scrollbar-thumb:hover {
-				background-color: ${coreStyles.scrollbarThumbHoverColor};
+				background-color: ${cssVar('scrollbarThumbHoverColor')};
 			}
 			`)}
 		}

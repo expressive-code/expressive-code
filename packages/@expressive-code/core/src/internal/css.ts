@@ -88,11 +88,7 @@ const processedStylesCache = new Map<string, string>()
 export async function processPluginStyles({
 	pluginStyles,
 	plugins,
-	theme,
-	coreStyles,
-	styleOverrides,
-	configClassName,
-	themeClassName,
+	...resolverContext
 }: {
 	pluginStyles: PluginStyles[]
 	plugins: readonly ExpressiveCodePlugin[]
@@ -111,7 +107,7 @@ export async function processPluginStyles({
 		// Return cached result if the current styles have already been processed
 		// in a previous call to this function with the same config class name
 		// (this is useful because plugins tend to add the same styles for every block)
-		const cacheKey = `${configClassName}::${styles}`
+		const cacheKey = `${resolverContext.configClassName}::${styles}`
 		const cachedStyles = processedStylesCache.get(cacheKey)
 		if (cachedStyles !== undefined) {
 			result.add(cachedStyles)
@@ -120,8 +116,8 @@ export async function processPluginStyles({
 
 		try {
 			// Parse the styles and attach processing data to the root node for use by plugins
-			const root = postcss.parse(`.${configClassName}{${styles}}`, postCssOptions)
-			processingData.set(root, { plugins, theme, coreStyles, styleOverrides, configClassName, themeClassName })
+			const root = postcss.parse(`.${resolverContext.configClassName}{${styles}}`, postCssOptions)
+			processingData.set(root, { plugins, ...resolverContext })
 
 			// Preprocess the parsed root node
 			const preprocessedStyles = await preprocessor.process(root, postCssOptions)

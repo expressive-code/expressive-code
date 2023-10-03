@@ -1,6 +1,5 @@
-import { StyleSettings, multiplyAlpha, ExpressiveCodeTheme, ResolvedCoreStyles, onBackground, setLuminance } from '@expressive-code/core'
+import { StyleSettings, StyleVariant, multiplyAlpha, onBackground, setLuminance } from '@expressive-code/core'
 import { PluginFramesOptions } from '.'
-import { StyleOverrides } from '@expressive-code/core'
 
 export interface FramesStyleSettings {
 	/**
@@ -229,7 +228,12 @@ declare module '@expressive-code/core' {
 	}
 }
 
-export function getFramesBaseStyles(theme: ExpressiveCodeTheme, coreStyles: ResolvedCoreStyles, styleOverrides: Partial<StyleOverrides> | undefined, options: PluginFramesOptions) {
+export function getFramesBaseStyles(styleVariants: StyleVariant[], options: PluginFramesOptions) {
+	// TODO: Support multiple style variants by using `framesStyleSettings.var()` in the CSS code
+	//       instead of `framesStyleSettings.resolve()` here.
+	// TODO: Find a way to access core CSS variables from `baseStyles` functions as well
+	//       (coreStyles contains resolved values which we don't really want).
+	const { theme, coreStyles, styleOverrides } = styleVariants[0]
 	const framesStyles = framesStyleSettings.resolve({
 		theme,
 		coreStyles,

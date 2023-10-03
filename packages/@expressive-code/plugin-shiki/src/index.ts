@@ -29,7 +29,9 @@ export function pluginShiki(): ExpressiveCodePlugin {
 	return {
 		name: 'Shiki',
 		hooks: {
-			performSyntaxAnalysis: async ({ codeBlock, theme }) => {
+			performSyntaxAnalysis: async ({ codeBlock, styleVariants }) => {
+				// TODO: Make this work with multiple style variants
+				const theme = styleVariants[0].theme
 				const cacheKey = getThemeCacheKey(theme)
 				const highlighter = await getCachedHighlighter({ theme, cacheKey })
 				const codeLines = codeBlock.getLines()

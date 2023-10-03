@@ -1,6 +1,5 @@
-import { StyleSettings, ExpressiveCodeTheme, ResolvedCoreStyles, codeLineClass, toHexColor } from '@expressive-code/core'
+import { StyleSettings, StyleOverrides, StyleVariant, ExpressiveCodeTheme, ResolvedCoreStyles, codeLineClass, toHexColor } from '@expressive-code/core'
 import { MarkerType } from './marker-types'
-import { StyleOverrides } from '@expressive-code/core'
 
 export interface TextMarkersStyleSettings {
 	lineMarkerAccentMargin: string
@@ -77,12 +76,10 @@ setDefaults('markHue', 'markBackground', 'markBorderColor')
 setDefaults('insHue', 'insBackground', 'insBorderColor', 'insDiffIndicatorColor')
 setDefaults('delHue', 'delBackground', 'delBorderColor', 'delDiffIndicatorColor')
 
-export function getTextMarkersBaseStyles(theme: ExpressiveCodeTheme, coreStyles: ResolvedCoreStyles, styleOverrides: Partial<StyleOverrides> | undefined) {
-	const styles = textMarkersStyleSettings.resolve({
-		theme,
-		coreStyles,
-		styleOverrides,
-	})
+export function getTextMarkersBaseStyles(styleVariants: StyleVariant[]) {
+	// TODO: Support multiple style variants
+	const variant = styleVariants[0]
+	const styles = textMarkersStyleSettings.resolve(variant)
 	const result = `
 		.${codeLineClass} {
 			/* Support line-level mark/ins/del */
@@ -115,7 +112,7 @@ export function getTextMarkersBaseStyles(theme: ExpressiveCodeTheme, coreStyles:
 				background: var(--line-marker-bg-color);
 				margin-inline-start: var(--accent-margin);
 				border-inline-start: var(--accent-width) solid var(--line-marker-border-color);
-				padding-inline-start: calc(${coreStyles.codePaddingInline} - var(--accent-margin) - var(--accent-width)) !important;
+				padding-inline-start: calc(${variant.coreStyles.codePaddingInline} - var(--accent-margin) - var(--accent-width)) !important;
 				&::before {
 					position: absolute;
 					left: ${styles.lineDiffIndicatorMarginLeft};

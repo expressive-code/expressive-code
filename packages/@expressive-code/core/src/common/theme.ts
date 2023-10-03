@@ -2,7 +2,7 @@ import { groupedDefaultWorkbenchColorKeys, guessThemeTypeFromEditorColors, resol
 import stripJsonComments from 'strip-json-comments'
 import type { IShikiTheme } from 'shiki'
 import { chromaticRecolor, ChromaticRecolorTarget } from '../helpers/color-transforms'
-import { StyleOverrides } from './core-styles'
+import { StyleOverrides } from './styling'
 
 export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'> {
 	name: string

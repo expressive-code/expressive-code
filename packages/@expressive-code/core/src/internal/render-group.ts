@@ -6,7 +6,8 @@ import { runHooks } from '../common/plugin-hooks'
 import { groupWrapperClassName, groupWrapperElement, PluginStyles, processPluginStyles } from './css'
 import { renderBlock } from './render-block'
 import { isHastParent, newTypeError } from './type-checks'
-import { ExpressiveCodeEngineConfig } from '../common/engine'
+import { getStableObjectHash } from '../helpers/objects'
+import { kebabCase } from '../helpers/string-processing'
 
 export type RenderInput = ExpressiveCodeBlockOptions | ExpressiveCodeBlock | (ExpressiveCodeBlockOptions | ExpressiveCodeBlock)[]
 
@@ -31,18 +32,13 @@ export type RenderedGroupContents = readonly { codeBlock: ExpressiveCodeBlock; r
 export async function renderGroup({
 	input,
 	options,
-	config,
-	theme,
 	defaultLocale,
-	coreStyles,
-	styleOverrides,
+	styleVariants,
 	plugins,
 	configClassName,
-	themeClassName,
 }: {
 	input: RenderInput
 	options?: RenderOptions | undefined
-	config: ExpressiveCodeEngineConfig
 	defaultLocale: string
 	plugins: readonly ExpressiveCodePlugin[]
 } & ResolverContext) {
@@ -71,11 +67,8 @@ export async function renderGroup({
 		const { renderedBlockAst, blockStyles } = await renderBlock({
 			codeBlock: groupContent.codeBlock,
 			groupContents,
-			config,
-			theme,
 			locale: groupContent.codeBlock.locale || defaultLocale,
-			coreStyles,
-			styleOverrides,
+			styleVariants,
 			plugins,
 		})
 
@@ -107,17 +100,19 @@ export async function renderGroup({
 		}
 	})
 
+	// TODO: Remove this temporary workaround after finishing the transition to the new CSS system
+	const firstTheme = styleVariants[0]?.theme
+	const themeNameOrHash = firstTheme.name?.length ? firstTheme.name : `hash-${getStableObjectHash(firstTheme)}`
+	const themeClassName = `ec-theme-${kebabCase(themeNameOrHash)}`
+
 	return {
 		renderedGroupAst: addWrapperAroundGroupAst({ groupAst: groupRenderData.groupAst, configClassName, themeClassName }),
 		renderedGroupContents,
 		styles: await processPluginStyles({
 			pluginStyles,
 			plugins,
-			theme,
-			coreStyles,
-			styleOverrides,
+			styleVariants,
 			configClassName,
-			themeClassName,
 		}),
 	}
 }

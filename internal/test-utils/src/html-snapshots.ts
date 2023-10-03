@@ -1,20 +1,10 @@
 import { mkdirSync, writeFileSync } from 'fs'
 import { join, dirname } from 'path'
-import { ExpressiveCodeEngine, ExpressiveCodeEngineConfig, ExpressiveCodePlugin, ExpressiveCodeTheme } from '@expressive-code/core'
+import { ExpressiveCodeEngine, ExpressiveCodeEngineConfig, ExpressiveCodePlugin, ExpressiveCodeTheme, StyleVariant } from '@expressive-code/core'
 import { Parent } from 'hast-util-to-html/lib/types'
 import { toHtml } from 'hast-util-to-html'
 
-export type BlockValidationFn = ({
-	renderedGroupAst,
-	theme,
-	coreStyles,
-	baseStyles,
-}: {
-	renderedGroupAst: Parent
-	theme: ExpressiveCodeTheme
-	coreStyles: ExpressiveCodeEngine['coreStyles']
-	baseStyles: string
-}) => void
+export type BlockValidationFn = ({ renderedGroupAst, baseStyles, styleVariants }: { renderedGroupAst: Parent; baseStyles: string; styleVariants: StyleVariant[] }) => void
 
 export type TestFixture = {
 	fixtureName: string
@@ -59,6 +49,7 @@ export async function renderAndOutputHtmlSnapshot({ testName, testBaseDir, fixtu
 				jsModules,
 				styles,
 				theme: engine.theme,
+				styleOverrides: engine.styleOverrides,
 				coreStyles: engine.coreStyles,
 				foreground: engine.theme.type === 'dark' ? '#fff' : '#000',
 				background: engine.theme.type === 'dark' ? '#248' : '#eee',
@@ -73,9 +64,9 @@ export async function renderAndOutputHtmlSnapshot({ testName, testBaseDir, fixtu
 		renderResults,
 	})
 
-	renderResults.forEach(({ renderedGroupAst, theme, coreStyles, baseStyles, blockValidationFn }) => {
+	renderResults.forEach(({ renderedGroupAst, theme, styleOverrides, coreStyles, baseStyles, blockValidationFn }) => {
 		if (!blockValidationFn) return
-		blockValidationFn({ renderedGroupAst, theme, coreStyles, baseStyles })
+		blockValidationFn({ renderedGroupAst, baseStyles, styleVariants: [{ theme, styleOverrides, coreStyles }] })
 	})
 }
 

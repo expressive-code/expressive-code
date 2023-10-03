@@ -1,5 +1,4 @@
-import { StyleOverrides } from '@expressive-code/core'
-import { StyleSettings, ExpressiveCodeTheme, ResolvedCoreStyles, setAlpha } from '@expressive-code/core'
+import { StyleSettings, StyleVariant, setAlpha } from '@expressive-code/core'
 
 export const collapsibleSectionClass = 'ec-section'
 
@@ -104,12 +103,9 @@ declare module '@expressive-code/core' {
 	}
 }
 
-export function getCollapsibleSectionsBaseStyles(theme: ExpressiveCodeTheme, coreStyles: ResolvedCoreStyles, styleOverrides: Partial<StyleOverrides> | undefined) {
-	const styles = collapsibleSectionsStyleSettings.resolve({
-		theme,
-		coreStyles,
-		styleOverrides,
-	})
+export function getCollapsibleSectionsBaseStyles(styleVariants: StyleVariant[]) {
+	// TODO: Support multiple variants
+	const styles = collapsibleSectionsStyleSettings.resolve(styleVariants[0])
 	const result = `
 		.${collapsibleSectionClass} {
 			& summary {

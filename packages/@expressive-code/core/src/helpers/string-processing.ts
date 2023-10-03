@@ -150,3 +150,25 @@ export function getGroupIndicesFromRegExpMatch(match: RegExpMatchArray) {
 
 	return groupIndices
 }
+
+/**
+ * Converts the given string to kebab-case and strips all non-alphanumeric characters.
+ *
+ * @example
+ * 'somePropName'  → 'some-prop-name'
+ * 'SomePropName'  → 'some-prop-name'
+ * 'gray500'       → 'gray-500'
+ * 'some.property' → 'some-property'
+ * 'some_property' → 'some-property'
+ */
+export function kebabCase(str: string) {
+	return str
+		.trim()
+		.replace(/([a-z])([A-Z])/g, '$1-$2')
+		.replace(/([a-zA-Z])([0-9])/g, '$1-$2')
+		.replace(/([0-9])([a-zA-Z])/g, '$1-$2')
+		.replace(/([A-Z]+)([A-Z][a-z])/g, '$1-$2')
+		.replace(/[^a-zA-Z0-9]+/g, '-')
+		.replace(/^-+|-+$/g, '')
+		.toLowerCase()
+}

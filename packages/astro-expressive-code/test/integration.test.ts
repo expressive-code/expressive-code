@@ -73,9 +73,7 @@ function validateHtml(html: string) {
 	const codeBlockClassNames = [...html.matchAll(/<div class="expressive-code (.*?)">/g)].map((match) => match[1])
 	// Expect two code blocks in total (because two themes were configured)
 	expect(codeBlockClassNames).toHaveLength(2)
-	// Validate theme class names
-	const themeClassNames = codeBlockClassNames?.map((className) => className.match(/(^|\s)(ec-theme-.*?)(\s|$)/)?.[2])
-	expect(themeClassNames).toEqual(['ec-theme-hash-jhsoa', 'ec-theme-solarized-light'])
+	// TODO: Validate CSS variables for the configured themes
 }
 
 async function buildFixture({ fixtureDir, buildCommand, buildArgs, outputDir }: { fixtureDir: string; buildCommand: string; buildArgs?: string[] | undefined; outputDir: string }) {

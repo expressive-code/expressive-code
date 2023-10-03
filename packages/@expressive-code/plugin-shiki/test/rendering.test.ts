@@ -215,9 +215,12 @@ describe('Renders syntax highlighting', async () => {
 					language: 'ansi',
 					meta: '',
 					plugins: [pluginShiki()],
-					blockValidationFn: ({ renderedGroupAst, theme }) => {
+					blockValidationFn: ({ renderedGroupAst, styleVariants }) => {
 						const html = toHtml(renderedGroupAst)
 						expect(html).not.toMatch(ansiEscapeCode)
+
+						// TODO: Support multiple style variants
+						const theme = styleVariants[0].theme
 
 						if (theme.name === 'github-dark') {
 							expect(html).toContain('<span style="color:#56d4dd"> Context Testing ANSI</span>')

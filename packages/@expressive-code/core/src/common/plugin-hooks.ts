@@ -4,18 +4,13 @@ import { GroupContents, RenderedGroupContents } from '../internal/render-group'
 import { ExpressiveCodeBlock } from './block'
 import { ExpressiveCodeLine } from './line'
 import { ExpressiveCodePlugin } from './plugin'
-import { ExpressiveCodeTheme } from './theme'
-import { ResolvedCoreStyles, StyleOverrides } from './core-styles'
-import { ExpressiveCodeEngineConfig } from './engine'
+import { StyleVariant } from './styling'
 
 export interface ExpressiveCodeHookContext {
 	codeBlock: ExpressiveCodeBlock
 	groupContents: GroupContents
-	config: ExpressiveCodeEngineConfig
-	theme: ExpressiveCodeTheme
 	locale: string
-	coreStyles: ResolvedCoreStyles
-	styleOverrides: StyleOverrides
+	styleVariants: StyleVariant[]
 	/**
 	 * Adds CSS styles to the document that contains the rendered code.
 	 *

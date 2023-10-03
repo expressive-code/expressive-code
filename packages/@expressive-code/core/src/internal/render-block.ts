@@ -2,32 +2,24 @@ import { Element } from 'hast-util-to-html/lib/types'
 import { h } from 'hastscript'
 import { ExpressiveCodeBlock } from '../common/block'
 import { ExpressiveCodePlugin } from '../common/plugin'
-import { ExpressiveCodePluginHooks_BeforeRendering, runHooks } from '../common/plugin-hooks'
-import { ExpressiveCodeTheme } from '../common/theme'
+import { ExpressiveCodeHookContext, ExpressiveCodePluginHooks_BeforeRendering, runHooks } from '../common/plugin-hooks'
+import { StyleVariant } from '../common/styling'
 import { PluginStyles } from './css'
 import { GroupContents } from './render-group'
 import { renderLineToAst } from './render-line'
 import { isBoolean, isHastElement, isHastParent, newTypeError } from './type-checks'
-import { ResolvedCoreStyles, StyleOverrides } from '../common/core-styles'
-import { ExpressiveCodeEngineConfig } from '../common/engine'
 
 export async function renderBlock({
 	codeBlock,
 	groupContents,
-	config,
-	theme,
 	locale,
-	coreStyles,
-	styleOverrides,
+	styleVariants,
 	plugins,
 }: {
 	codeBlock: ExpressiveCodeBlock
 	groupContents: GroupContents
-	config: ExpressiveCodeEngineConfig
-	theme: ExpressiveCodeTheme
 	locale: string
-	coreStyles: ResolvedCoreStyles
-	styleOverrides: StyleOverrides
+	styleVariants: StyleVariant[]
 	plugins: readonly ExpressiveCodePlugin[]
 }) {
 	const state: ExpressiveCodeProcessingState = {
@@ -39,14 +31,11 @@ export async function renderBlock({
 
 	const blockStyles: PluginStyles[] = []
 
-	const baseContext = {
+	const baseContext: Omit<ExpressiveCodeHookContext, 'addStyles'> = {
 		codeBlock,
 		groupContents,
-		config,
-		theme,
 		locale,
-		coreStyles,
-		styleOverrides,
+		styleVariants,
 	}
 
 	const runBeforeRenderingHooks = async (key: keyof ExpressiveCodePluginHooks_BeforeRendering) => {

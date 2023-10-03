@@ -3,7 +3,8 @@ import { ExpressiveCodePlugin, ResolverContext } from './plugin'
 import { renderGroup, RenderInput, RenderOptions } from '../internal/render-group'
 import { ExpressiveCodeTheme } from './theme'
 import { PluginStyles, processPluginStyles } from '../internal/css'
-import { coreStyleSettings, getCoreBaseStyles, ResolvedCoreStyles, StyleOverrides } from './core-styles'
+import { StyleOverrides } from './styling'
+import { coreStyleSettings, getCoreBaseStyles, ResolvedCoreStyles } from './core-styles'
 import { getStableObjectHash } from '../helpers/objects'
 
 export interface ExpressiveCodeEngineConfig {
@@ -96,6 +97,8 @@ export class ExpressiveCodeEngine {
 		}
 
 		// Resolve core styles based on the theme and style overrides
+		// TODO: Maybe more like "generate CSS variable declarations for core styles",
+		//       but we will also need to access the resolved values in resolver functions.
 		this.coreStyles = coreStyleSettings.resolve({
 			theme: this.theme,
 			styleOverrides: this.styleOverrides,
@@ -117,23 +120,12 @@ export class ExpressiveCodeEngine {
 			{ includeFunctionContents: true }
 		)
 		this.configClassName = `ec.ec-${configHash}`
-
-		// Generate a theme-based class name for the wrapper element
-		const kebabCase = (str: string) =>
-			str
-				.trim()
-				.replace(/([a-z])([A-Z])/g, '$1-$2')
-				.replace(/[\s_]+/g, '-')
-				.toLowerCase()
-		const themeNameOrHash = this.theme.name?.length ? this.theme.name : `hash-${getStableObjectHash(this.theme)}`
-		this.themeClassName = `ec-theme-${kebabCase(themeNameOrHash)}`
 	}
 
 	async render(input: RenderInput, options?: RenderOptions) {
 		return await renderGroup({
 			input,
 			options,
-			config: this.config,
 			defaultLocale: this.defaultLocale,
 			plugins: this.plugins,
 			// Also pass resolved core styles in case plugins need them
@@ -147,10 +139,16 @@ export class ExpressiveCodeEngine {
 		pluginStyles.push({
 			pluginName: 'core',
 			styles: getCoreBaseStyles({
-				theme: this.theme,
-				coreStyles: this.coreStyles,
 				useThemedScrollbars: this.useThemedScrollbars,
 				useThemedSelectionColors: this.useThemedSelectionColors,
+				// TODO: Support multiple style variants
+				styleVariants: [
+					{
+						theme: this.theme,
+						styleOverrides: this.styleOverrides,
+						coreStyles: this.coreStyles,
+					},
+				],
 			}),
 		})
 		// Add plugin base styles
@@ -198,11 +196,14 @@ export class ExpressiveCodeEngine {
 
 	private getResolverContext(): ResolverContext {
 		return {
-			theme: this.theme,
-			coreStyles: this.coreStyles,
-			styleOverrides: this.styleOverrides,
+			styleVariants: [
+				{
+					theme: this.theme,
+					styleOverrides: this.styleOverrides,
+					coreStyles: this.coreStyles,
+				},
+			],
 			configClassName: this.configClassName,
-			themeClassName: this.themeClassName,
 		}
 	}
 
@@ -230,12 +231,4 @@ export class ExpressiveCodeEngine {
 	 * regardless of the config options.
 	 */
 	readonly configClassName: string
-	/**
-	 * This class name is used by Expressive Code when rendering its wrapper element
-	 * around all code block groups.
-	 *
-	 * Its format is `ec-theme-<name>`, where `<name>` is the kebab-cased name of the theme
-	 * that was passed to the class constructor.
-	 */
-	readonly themeClassName: string
 }

@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { Parent } from 'hast-util-to-html/lib/types'
 import { matches, select, selectAll } from 'hast-util-select'
-import { ExpressiveCodeEngine, ExpressiveCodeEngineConfig, ExpressiveCodeTheme, StyleOverrides, coreStyleSettings } from '@expressive-code/core'
+import { ExpressiveCodeEngine, ExpressiveCodeEngineConfig, ExpressiveCodeTheme } from '@expressive-code/core'
 import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures, parseCss, findDeclsBySelectorAndProperty } from '@internal/test-utils'
 import { pluginShiki, loadShikiTheme } from '@expressive-code/plugin-shiki'
 import { pluginFrames } from '../src'
@@ -140,7 +140,7 @@ ${exampleCode}
 					`.trim(),
 					plugins: [pluginFrames()],
 					engineOptions,
-					blockValidationFn: ({ renderedGroupAst, theme, coreStyles, baseStyles }) => {
+					blockValidationFn: ({ renderedGroupAst, baseStyles, styleVariants }) => {
 						validateBlockAst({
 							renderedGroupAst,
 							figureSelector: '.frame.has-title:not(.is-terminal)',
@@ -148,16 +148,18 @@ ${exampleCode}
 							srTitlePresent: false,
 						})
 						const css = parseCss(baseStyles)
-						expectedStyleMatches({ theme, coreStyles }).forEach((expectedStyleMatch) => {
-							const { selector, property, value } = expectedStyleMatch
-							const decls = findDeclsBySelectorAndProperty(css, selector, property)
-							const declValueMatches = decls.filter((decl) => {
-								return value instanceof RegExp ? decl.value.match(value) : decl.value === value
+						styleVariants.forEach(({ theme, coreStyles }) => {
+							expectedStyleMatches({ theme, coreStyles }).forEach((expectedStyleMatch) => {
+								const { selector, property, value } = expectedStyleMatch
+								const decls = findDeclsBySelectorAndProperty(css, selector, property)
+								const declValueMatches = decls.filter((decl) => {
+									return value instanceof RegExp ? decl.value.match(value) : decl.value === value
+								})
+								expect(
+									declValueMatches.length >= 1,
+									`Expected style did not match: selector=${selector.toString()}, property=${property.toString()}, value=${value.toString()}`
+								).toBeTruthy()
 							})
-							expect(
-								declValueMatches.length >= 1,
-								`Expected style did not match: selector=${selector.toString()}, property=${property.toString()}, value=${value.toString()}`
-							).toBeTruthy()
 						})
 					},
 				}),

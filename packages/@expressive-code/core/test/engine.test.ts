@@ -5,7 +5,7 @@ import githubDark from 'shiki/themes/github-dark.json'
 import { WrapperAnnotation, getHookTestResult, getMultiPluginTestResult, nonArrayValues, nonObjectValues } from './utils'
 import { ExpressiveCodeEngine } from '../src/common/engine'
 import { ExpressiveCodeBlock } from '../src/common/block'
-import { ExpressiveCodeTheme } from '../src/common/theme'
+import { StyleVariant } from '../src/common/styling'
 
 describe('ExpressiveCodeEngine', () => {
 	describe('render()', () => {
@@ -91,10 +91,12 @@ describe('ExpressiveCodeEngine', () => {
 		})
 		describe('Allows plugin hooks to access theme colors', () => {
 			test('Default theme (github-dark)', async () => {
-				let extractedTheme: Omit<ExpressiveCodeTheme, 'applyHueAndChromaAdjustments'> | undefined
-				await getHookTestResult('annotateCode', ({ theme }) => {
-					extractedTheme = { ...theme }
+				let extractedStyleVariants: StyleVariant[] = []
+				await getHookTestResult('annotateCode', ({ styleVariants }) => {
+					extractedStyleVariants = styleVariants
 				})
+				expect(extractedStyleVariants).toHaveLength(1)
+				const extractedTheme = extractedStyleVariants[0].theme
 				if (!extractedTheme) throw new Error('Expected theme to be defined')
 
 				expect(extractedTheme.name).toEqual('github-dark')
@@ -146,11 +148,11 @@ describe('ExpressiveCodeEngine', () => {
 						{
 							name: 'TestPlugin',
 							hooks: {},
-							jsModules: ({ theme }) => [`console.log("${theme.name}")`],
+							jsModules: ({ styleVariants }) => [`console.log("${styleVariants.length}: ${styleVariants[0].theme.name}")`],
 						},
 					],
 				})
-				expect(await engine.getJsModules()).toEqual(['console.log("github-dark")'])
+				expect(await engine.getJsModules()).toEqual(['console.log("1: github-dark")'])
 			})
 		})
 		describe('Deduplicates JS modules', () => {

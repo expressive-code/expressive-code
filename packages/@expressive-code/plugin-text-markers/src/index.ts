@@ -3,26 +3,25 @@ import {
 	ensureColorContrastOnBackground,
 	ExpressiveCodeBlock,
 	ExpressiveCodePlugin,
-	ExpressiveCodeTheme,
 	onBackground,
 	replaceDelimitedValues,
-	ResolvedCoreStyles,
+	StyleVariant,
 } from '@expressive-code/core'
 import rangeParser from 'parse-numeric-range'
 import { visitParents } from 'unist-util-visit-parents'
 import { MarkerType, markerTypeFromString } from './marker-types'
-import { getMarkerTypeColorsForContrastCalculation, getTextMarkersBaseStyles } from './styles'
+import { getMarkerTypeColorsForContrastCalculation, getTextMarkersBaseStyles, textMarkersStyleSettings } from './styles'
 import { flattenInlineMarkerRanges, getInlineSearchTermMatches } from './inline-markers'
 import { TextMarkerAnnotation } from './annotations'
-import { StyleOverrides } from '@expressive-code/core'
 
 export function pluginTextMarkers(): ExpressiveCodePlugin {
 	return {
 		name: 'TextMarkers',
-		baseStyles: ({ theme, coreStyles, styleOverrides }) => getTextMarkersBaseStyles(theme, coreStyles, styleOverrides),
+		styleSettings: textMarkersStyleSettings,
+		baseStyles: ({ styleVariants }) => getTextMarkersBaseStyles(styleVariants),
 		hooks: {
-			preprocessMetadata: ({ codeBlock, theme, coreStyles, styleOverrides }) => {
-				const { blockData, markerTypeColors } = getBlockDataAndMarkerTypeColors(codeBlock, theme, coreStyles, styleOverrides)
+			preprocessMetadata: ({ codeBlock, styleVariants }) => {
+				const { blockData, markerTypeColors } = getBlockDataAndMarkerTypeColors(codeBlock, styleVariants)
 
 				codeBlock.meta = replaceDelimitedValues(
 					codeBlock.meta,
@@ -90,8 +89,8 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 					}
 				)
 			},
-			preprocessCode: ({ codeBlock, theme, coreStyles, styleOverrides }) => {
-				const { blockData, markerTypeColors } = getBlockDataAndMarkerTypeColors(codeBlock, theme, coreStyles, styleOverrides)
+			preprocessCode: ({ codeBlock, styleVariants }) => {
+				const { blockData, markerTypeColors } = getBlockDataAndMarkerTypeColors(codeBlock, styleVariants)
 
 				// Perform special handling of code marked with the language "diff":
 				// - This language is often used as a widely supported format for highlighting
@@ -145,8 +144,8 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 					}
 				}
 			},
-			annotateCode: ({ codeBlock, theme, coreStyles, styleOverrides }) => {
-				const { blockData, markerTypeColors } = getBlockDataAndMarkerTypeColors(codeBlock, theme, coreStyles, styleOverrides)
+			annotateCode: ({ codeBlock, styleVariants }) => {
+				const { blockData, markerTypeColors } = getBlockDataAndMarkerTypeColors(codeBlock, styleVariants)
 
 				codeBlock.getLines().forEach((line) => {
 					// Check the line text for search term matches and collect their ranges
@@ -171,7 +170,9 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 					})
 				})
 			},
-			postprocessRenderedLine: ({ renderData, theme, coreStyles }) => {
+			postprocessRenderedLine: ({ renderData, styleVariants }) => {
+				// TODO: Support multiple style variants
+				const { theme, coreStyles } = styleVariants[0]
 				const backgroundColor = coreStyles.codeBackground[0] === '#' ? coreStyles.codeBackground : theme.bg
 				visitParents(renderData.lineAst, (node, ancestors) => {
 					if (node.type !== 'element' || !node.properties || !node.data) return
@@ -197,19 +198,11 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 	}
 }
 
-function getBlockDataAndMarkerTypeColors(
-	codeBlock: ExpressiveCodeBlock,
-	theme: ExpressiveCodeTheme,
-	coreStyles: ResolvedCoreStyles,
-	styleOverrides: Partial<StyleOverrides> | undefined
-) {
+function getBlockDataAndMarkerTypeColors(codeBlock: ExpressiveCodeBlock, styleVariants: StyleVariant[]) {
 	const blockData = pluginTextMarkersData.getOrCreateFor(codeBlock)
 	if (!blockData.markerTypeColors) {
-		blockData.markerTypeColors = getMarkerTypeColorsForContrastCalculation({
-			theme,
-			coreStyles,
-			styleOverrides,
-		})
+		// TODO: Support multiple style variants
+		blockData.markerTypeColors = getMarkerTypeColorsForContrastCalculation(styleVariants[0])
 	}
 	return { blockData, markerTypeColors: blockData.markerTypeColors }
 }

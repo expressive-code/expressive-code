@@ -1,12 +1,11 @@
 import { BaseStylesResolverFn } from '../helpers/style-settings'
-import { ResolvedCoreStyles, StyleOverrides } from './core-styles'
+import { ResolvedCoreStyles } from './core-styles'
 import { ExpressiveCodePluginHooks } from './plugin-hooks'
+import { StyleOverrides, StyleVariant } from './styling'
 import { ExpressiveCodeTheme } from './theme'
 
 export type ResolverContext = {
-	theme: ExpressiveCodeTheme
-	coreStyles: ResolvedCoreStyles
-	styleOverrides: Partial<StyleOverrides>
+	styleVariants: StyleVariant[]
 	/**
 	 * This class name is used by Expressive Code when rendering its wrapper element
 	 * around all code block groups.
@@ -19,19 +18,18 @@ export type ResolverContext = {
 	 * are scoped automatically using this class name.
 	 */
 	configClassName: string
-	/**
-	 * This class name is used by Expressive Code when rendering its wrapper element
-	 * around all code block groups.
-	 *
-	 * Its format is `ec-theme-<name>`, where `<name>` is the kebab-cased theme name.
-	 */
-	themeClassName: string
 }
 
 export type JsModulesResolverFn = (context: ResolverContext) => string[] | Promise<string[]>
 
 export interface ExpressiveCodePlugin {
 	name: string
+	/**
+	 * An instance of `StyleSettings` that is used to define the plugin's CSS variables
+	 */
+	styleSettings?:
+		| { resolve: (context: { theme: ExpressiveCodeTheme; coreStyles: ResolvedCoreStyles; styleOverrides: Partial<StyleOverrides> | undefined }) => { [K: string]: string } }
+		| undefined
 	/**
 	 * The CSS styles that should be added to every page containing code blocks.
 	 *

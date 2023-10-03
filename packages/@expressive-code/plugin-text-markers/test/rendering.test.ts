@@ -144,7 +144,7 @@ describe('Renders text markers', async () => {
 							}),
 							pluginTextMarkers(),
 						],
-						blockValidationFn: ({ renderedGroupAst, theme }) => {
+						blockValidationFn: (actual) => {
 							// Expect that the correct texts were marked
 							const validateMarkers = buildMarkerValidationFn([
 								{ markerType: 'mark', text: '= "Hello"' },
@@ -153,10 +153,10 @@ describe('Renders text markers', async () => {
 								// Expect that this marker was not split
 								{ markerType: 'ins', text: 'mighty' },
 							])
-							validateMarkers({ renderedGroupAst, theme })
+							validateMarkers(actual)
 
 							// Expect that the highlights were split correctly
-							const matchingElements = selectAll(`span[style]`, renderedGroupAst)
+							const matchingElements = selectAll(`span[style]`, actual.renderedGroupAst)
 							const actualHighlights = matchingElements.map((highlight) => {
 								const text = toText(highlight)
 								return {
@@ -164,7 +164,7 @@ describe('Renders text markers', async () => {
 									color: highlight.properties?.style?.toString().match(/color:(#.*?)(;|$)/)?.[1],
 								}
 							})
-							const typeColorIdx = theme.type === 'dark' ? 0 : 1
+							const typeColorIdx = actual.styleVariants[0].theme.type === 'dark' ? 0 : 1
 							expect(actualHighlights).toMatchObject([
 								{ text: '{greeting}, ', color: colors1[typeColorIdx] },
 								{ text: 'puny' },
@@ -199,7 +199,7 @@ describe('Renders text markers', async () => {
 							}),
 							pluginTextMarkers(),
 						],
-						blockValidationFn: ({ renderedGroupAst, theme }) => {
+						blockValidationFn: (actual) => {
 							// Expect that the correct texts were marked
 							const validateMarkers = buildMarkerValidationFn([
 								{ markerType: 'mark', text: '= "Hello"' },
@@ -211,10 +211,10 @@ describe('Renders text markers', async () => {
 								{ markerType: 'ins', text: 'hty {na', classNames: ['open-start', 'open-end'] },
 								{ markerType: 'ins', text: 'me}!', classNames: ['open-start'] },
 							])
-							validateMarkers({ renderedGroupAst, theme })
+							validateMarkers(actual)
 
 							// Expect that the highlights were not split
-							const matchingElements = selectAll(`span[style]`, renderedGroupAst)
+							const matchingElements = selectAll(`span[style]`, actual.renderedGroupAst)
 							const actualHighlights = matchingElements.map((highlight) => {
 								const text = toText(highlight)
 								return {
@@ -222,7 +222,7 @@ describe('Renders text markers', async () => {
 									color: highlight.properties?.style?.toString().match(/color:(#.*?)(;|$)/)?.[1],
 								}
 							})
-							const typeColorIdx = theme.type === 'dark' ? 0 : 1
+							const typeColorIdx = actual.styleVariants[0].theme.type === 'dark' ? 0 : 1
 							expect(actualHighlights).toMatchObject([
 								{ text: '{greeting}, punymig', color: colors1[typeColorIdx] },
 								{ text: 'hty {na', color: colors2[typeColorIdx] },
@@ -574,7 +574,9 @@ function pseudoSyntaxHighlighter(options: { highlights: { text: string; colors: 
 	return {
 		name: 'Pseudo Syntax Highlighter',
 		hooks: {
-			performSyntaxAnalysis: ({ codeBlock, theme }) => {
+			performSyntaxAnalysis: ({ codeBlock, styleVariants }) => {
+				// TODO: Add multiple style variant support
+				const theme = styleVariants[0].theme
 				codeBlock.getLines().forEach((line) => {
 					options.highlights.forEach(({ text, colors: [dark, light] }) => {
 						let idx = line.text.indexOf(text, 0)

@@ -1,6 +1,6 @@
 import { AttachedPluginData, ExpressiveCodePlugin, PluginTexts, replaceDelimitedValues } from '@expressive-code/core'
 import { h, Result as HastEntity } from 'hastscript'
-import { getFramesBaseStyles } from './styles'
+import { framesStyleSettings, getFramesBaseStyles } from './styles'
 import { FrameType, frameTypeFromString, frameTypes, getFileNameFromComment, isTerminalLanguage, LanguageGroups } from './utils'
 import { getCopyJsModule } from './copy-js-module'
 
@@ -54,7 +54,8 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 	}
 	return {
 		name: 'Frames',
-		baseStyles: ({ theme, coreStyles, styleOverrides }) => getFramesBaseStyles(theme, coreStyles, styleOverrides, options),
+		styleSettings: framesStyleSettings,
+		baseStyles: ({ styleVariants }) => getFramesBaseStyles(styleVariants, options),
 		jsModules: options.showCopyToClipboardButton ? [getCopyJsModule(`.expressive-code .copy button`)] : undefined,
 		hooks: {
 			preprocessMetadata: ({ codeBlock }) => {
