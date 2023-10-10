@@ -1,5 +1,19 @@
 # expressive-code
 
+## 0.26.2
+
+### Patch Changes
+
+- f2e6b81: Fix multiple different inline marker types on the same line. Thanks @7c78!
+
+  The logic inside `flattenInlineMarkerRanges` had a flaw that caused various combinations of `mark`, `ins` and `del` inline markers on the same line to fail. This was fixed and more tests were added.
+
+- Updated dependencies [f2e6b81]
+  - @expressive-code/plugin-text-markers@0.26.2
+  - @expressive-code/core@0.26.2
+  - @expressive-code/plugin-frames@0.26.2
+  - @expressive-code/plugin-shiki@0.26.2
+
 ## 0.26.1
 
 ### Patch Changes
