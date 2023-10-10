@@ -27,7 +27,7 @@ export function buildThemeFixtures(themes: (ExpressiveCodeTheme | undefined)[], 
 
 export async function renderAndOutputHtmlSnapshot({ testName, testBaseDir, fixtures }: { testName: string; testBaseDir: string; fixtures: TestFixture[] }) {
 	const renderResults = await Promise.all(
-		fixtures.map(async ({ code, language = 'js', meta = '', theme, plugins, engineOptions, blockValidationFn }) => {
+		fixtures.map(async ({ fixtureName, code, language = 'js', meta = '', theme, plugins, engineOptions, blockValidationFn }) => {
 			const engine = new ExpressiveCodeEngine({
 				plugins,
 				theme,
@@ -42,6 +42,7 @@ export async function renderAndOutputHtmlSnapshot({ testName, testBaseDir, fixtu
 			})
 
 			return {
+				fixtureName,
 				renderedGroupAst,
 				baseStyles,
 				jsModules,
@@ -74,6 +75,7 @@ export function outputHtmlSnapshot({
 	testName: string
 	testBaseDir: string
 	renderResults: {
+		fixtureName: string
 		renderedGroupAst: Parent
 		styles: Set<string>
 		baseStyles: string
@@ -101,11 +103,11 @@ export function outputHtmlSnapshot({
 		})
 	})
 
-	const renderedBlocks = renderResults.map(({ styles, renderedGroupAst, theme, foreground, background }) => {
+	const renderedBlocks = renderResults.map(({ fixtureName, styles, renderedGroupAst, theme, foreground, background }) => {
 		const blockStyles = [...styles].join('')
 		return `
 	<section style="color:${foreground};background:${background}">
-		<h2>Theme: ${theme.name}</h2>
+		<h2>${fixtureName}</h2>
 		${blockStyles ? `<style>${blockStyles}</style>\n\t\t` : ''}${toHtml(renderedGroupAst)}
 	</section>
 		`
