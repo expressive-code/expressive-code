@@ -98,6 +98,54 @@ describe('Renders text markers', async () => {
 			})
 		})
 
+		test(`Inline plaintext markers in any order`, async ({ meta: { name: testName } }) => {
+			const permutations: MarkerType[][] = [
+				['mark', 'ins', 'del'],
+				['ins', 'del', 'mark'],
+				['del', 'mark', 'ins'],
+				['del', 'ins', 'mark'],
+				['ins', 'mark', 'del'],
+				['mark', 'del', 'ins'],
+			]
+			const fixtures = permutations.map((types): TestFixture => {
+				const meta = `${types[0]}="x" ${types[1]}="y" ${types[2]}="z"`
+				return {
+					fixtureName: `Order: ${types.join(', ')}`,
+					theme: themes[0],
+					code: `# ${meta}\nxyz\nx y z\nxxyyzz`,
+					language: 'md',
+					meta,
+					plugins: [pluginTextMarkers()],
+					blockValidationFn: buildMarkerValidationFn([
+						// Heading line: `type0="x" type1="y" type2="z"`
+						{ markerType: types[0], text: 'x' },
+						{ markerType: types[1], text: 'y' },
+						{ markerType: types[2], text: 'z' },
+						// Line `xyz`
+						{ markerType: types[0], text: 'x' },
+						{ markerType: types[1], text: 'y' },
+						{ markerType: types[2], text: 'z' },
+						// Line `x y z`
+						{ markerType: types[0], text: 'x' },
+						{ markerType: types[1], text: 'y' },
+						{ markerType: types[2], text: 'z' },
+						// Line `xxyyzz`
+						{ markerType: types[0], text: 'x' },
+						{ markerType: types[0], text: 'x' },
+						{ markerType: types[1], text: 'y' },
+						{ markerType: types[1], text: 'y' },
+						{ markerType: types[2], text: 'z' },
+						{ markerType: types[2], text: 'z' },
+					]),
+				}
+			})
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures,
+			})
+		})
+
 		test(`Inline RegExp markers`, async ({ meta: { name: testName } }) => {
 			await renderAndOutputHtmlSnapshot({
 				testName,
@@ -105,16 +153,26 @@ describe('Renders text markers', async () => {
 				fixtures: buildThemeFixtures(themes, {
 					code: inlineMarkerTestText,
 					language: 'astro',
-					meta: `title="src/components/GreetingHeadline.astro" mark=/{\\w+?}/ ins=/(?<={.*?)= (".*?")(?=.*?})/`,
+					// Let's go a little crazy with the markers here to test various edge cases
+					meta: `title="src/components/GreetingHeadline.astro" mark=/{\\w+?}|.props/ ins=/(?<={.*?)= (".*?")(?=.*?})/ del=/= "He.*?\\s|puny/`,
 					plugins: [pluginTextMarkers()],
 					blockValidationFn: buildMarkerValidationFn([
+						// Expect the "del" marker to be partially overwritten by the
+						// higher priority "ins" marker
+						{ markerType: 'del', text: '= ' },
 						// Expect RegExp matches including capture groups to only mark
 						// the capture group contents, not the entire text of the match
 						{ markerType: 'ins', text: '"Hello"' },
+						// Rest of the "del" marker, expect the non-greedy quantifier to work
+						// and end at the first space
+						{ markerType: 'del', text: ', ' },
 						{ markerType: 'ins', text: '"Astronaut"' },
+						// Expect a third marker type on the same line to work
+						{ markerType: 'mark', text: '.props' },
 						// Expect RegExp matches without capture groups to mark the
 						// entire text of the match, and check that the backslash in `\w` worked
 						{ markerType: 'mark', text: '{greeting}' },
+						{ markerType: 'del', text: 'puny' },
 						{ markerType: 'mark', text: '{name}' },
 					]),
 				}),
