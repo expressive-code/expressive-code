@@ -65,61 +65,57 @@ export function getInlineSearchTermMatches(lineText: string, blockData: PluginTe
  */
 export function flattenInlineMarkerRanges(markerRanges: InlineMarkerRange[]): InlineMarkerRange[] {
 	const flattenedRanges: InlineMarkerRange[] = []
-	const sortedRanges = [...markerRanges].sort((a, b) => a.start - b.start)
-	const posInRange = (pos: number): { idx: number; range?: InlineMarkerRange | undefined } => {
-		for (let idx = 0; idx < flattenedRanges.length; idx++) {
-			const range = flattenedRanges[idx]
-			if (pos < range.end)
-				return {
-					idx,
-					range: pos >= range.start ? range : undefined,
+	const addRange = (newRange: InlineMarkerRange) => {
+		for (let idx = flattenedRanges.length - 1; idx >= 0; idx--) {
+			const curRange = flattenedRanges[idx]
+			// No overlap: The new range ends before the current one starts,
+			// or it starts after the current one ends
+			if (newRange.end <= curRange.start || newRange.start >= curRange.end) continue
+
+			// Full overlap: The new range fully covers the current one
+			if (newRange.start <= curRange.start && newRange.end >= curRange.end) {
+				// Remove current range
+				flattenedRanges.splice(idx, 1)
+				continue
+			}
+
+			// Partial overlap with same marker type
+			if (newRange.markerType === curRange.markerType) {
+				// Remove current range and extend the new one to cover it
+				flattenedRanges.splice(idx, 1)
+				newRange = {
+					...newRange,
+					start: Math.min(newRange.start, curRange.start),
+					end: Math.max(newRange.end, curRange.end),
 				}
+				continue
+			}
+
+			// If the new range leaves both the start and the end of the current range
+			// uncovered, we need to split the current range into two parts
+			if (newRange.start > curRange.start && newRange.end < curRange.end) {
+				// Replace the current range with two partial ranges
+				flattenedRanges.splice(idx, 1, { ...curRange, end: newRange.start }, { ...curRange, start: newRange.end })
+				continue
+			}
+
+			// If the new range starts after the current one starts, shorten the current range
+			if (newRange.start > curRange.start) {
+				curRange.end = newRange.start
+			}
+
+			// If the new range ends before the current one ends, shorten the current range
+			if (newRange.end < curRange.end) {
+				curRange.start = newRange.end
+			}
 		}
-		// After the last element
-		return {
-			idx: flattenedRanges.length,
-		}
+		// Finally add the new range to the flattened ranges and sort them by start position
+		flattenedRanges.push(newRange)
+		flattenedRanges.sort((a, b) => a.start - b.start)
 	}
 
 	MarkerTypeOrder.forEach((markerType) => {
-		sortedRanges
-			.filter((range) => range.markerType === markerType)
-			.forEach((rangeToAdd) => {
-				// Clone range to avoid overriding values of the original object
-				rangeToAdd = { ...rangeToAdd }
-
-				// Get insertion position for the start and end of rangeToAdd
-				const posStart = posInRange(rangeToAdd.start)
-				const posEnd = posInRange(rangeToAdd.end)
-
-				const newElements: InlineMarkerRange[] = [rangeToAdd]
-
-				// rangeToAdd starts inside an existing range and their start points differ
-				if (posStart.range && rangeToAdd.start !== posStart.range.start) {
-					if (posStart.range.markerType === rangeToAdd.markerType) {
-						rangeToAdd.start = posStart.range.start
-					} else {
-						newElements.unshift({
-							...posStart.range,
-							end: rangeToAdd.start,
-						})
-					}
-				}
-
-				// rangeToAdd ends inside an existing range and their end points differ
-				if (posEnd.range && rangeToAdd.end !== posEnd.range.end) {
-					if (posEnd.range.markerType === rangeToAdd.markerType) {
-						rangeToAdd.end = posEnd.range.end
-					} else {
-						newElements.push({
-							...posEnd.range,
-							start: rangeToAdd.end,
-						})
-					}
-				}
-
-				flattenedRanges.splice(posStart.idx, posEnd.idx - posStart.idx + 1, ...newElements)
-			})
+		markerRanges.filter((range) => range.markerType === markerType).forEach(addRange)
 	})
 
 	return flattenedRanges
