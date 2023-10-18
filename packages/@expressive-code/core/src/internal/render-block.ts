@@ -1,9 +1,8 @@
 import { Element } from 'hast-util-to-html/lib/types'
 import { h } from 'hastscript'
 import { ExpressiveCodeBlock } from '../common/block'
-import { ExpressiveCodePlugin } from '../common/plugin'
+import { ExpressiveCodePlugin, ResolverContext } from '../common/plugin'
 import { ExpressiveCodeHookContext, ExpressiveCodePluginHooks_BeforeRendering, runHooks } from '../common/plugin-hooks'
-import { StyleVariant } from '../common/styling'
 import { PluginStyles } from './css'
 import { GroupContents } from './render-group'
 import { renderLineToAst } from './render-line'
@@ -13,15 +12,17 @@ export async function renderBlock({
 	codeBlock,
 	groupContents,
 	locale,
-	styleVariants,
 	plugins,
+	cssVar,
+	cssVarName,
+	configClassName,
+	styleVariants,
 }: {
 	codeBlock: ExpressiveCodeBlock
 	groupContents: GroupContents
 	locale: string
-	styleVariants: StyleVariant[]
 	plugins: readonly ExpressiveCodePlugin[]
-}) {
+} & ResolverContext) {
 	const state: ExpressiveCodeProcessingState = {
 		canEditAnnotations: true,
 		canEditCode: true,
@@ -35,6 +36,9 @@ export async function renderBlock({
 		codeBlock,
 		groupContents,
 		locale,
+		cssVar,
+		cssVarName,
+		configClassName,
 		styleVariants,
 	}
 

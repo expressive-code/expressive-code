@@ -55,7 +55,7 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 	return {
 		name: 'Frames',
 		styleSettings: framesStyleSettings,
-		baseStyles: ({ styleVariants }) => getFramesBaseStyles(styleVariants, options),
+		baseStyles: (context) => getFramesBaseStyles(context, options),
 		jsModules: options.showCopyToClipboardButton ? [getCopyJsModule(`.expressive-code .copy button`)] : undefined,
 		hooks: {
 			preprocessMetadata: ({ codeBlock }) => {

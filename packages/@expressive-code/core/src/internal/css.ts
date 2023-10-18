@@ -9,7 +9,7 @@ export const groupWrapperClassName = 'expressive-code'
 // Support attaching processing data to root nodes
 const processingData = new WeakMap<
 	Root,
-	ResolverContext & {
+	Pick<ResolverContext, 'configClassName'> & {
 		plugins: readonly ExpressiveCodePlugin[]
 	}
 >()
@@ -92,7 +92,7 @@ export async function processPluginStyles({
 }: {
 	pluginStyles: PluginStyles[]
 	plugins: readonly ExpressiveCodePlugin[]
-} & ResolverContext): Promise<Set<string>> {
+} & Pick<ResolverContext, 'configClassName'>): Promise<Set<string>> {
 	const result = new Set<string>()
 	const seenStyles = new Set<string>()
 	// @ts-expect-error PostCSS has incorrect types when using exactOptionalPropertyTypes

@@ -3,14 +3,12 @@ import { PluginStyles } from '../internal/css'
 import { GroupContents, RenderedGroupContents } from '../internal/render-group'
 import { ExpressiveCodeBlock } from './block'
 import { ExpressiveCodeLine } from './line'
-import { ExpressiveCodePlugin } from './plugin'
-import { StyleVariant } from './styling'
+import { ExpressiveCodePlugin, ResolverContext } from './plugin'
 
-export interface ExpressiveCodeHookContext {
+export interface ExpressiveCodeHookContext extends ResolverContext {
 	codeBlock: ExpressiveCodeBlock
 	groupContents: GroupContents
 	locale: string
-	styleVariants: StyleVariant[]
 	/**
 	 * Adds CSS styles to the document that contains the rendered code.
 	 *

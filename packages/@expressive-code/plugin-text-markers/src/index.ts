@@ -1,16 +1,8 @@
-import {
-	AttachedPluginData,
-	ensureColorContrastOnBackground,
-	ExpressiveCodeBlock,
-	ExpressiveCodePlugin,
-	onBackground,
-	replaceDelimitedValues,
-	StyleVariant,
-} from '@expressive-code/core'
+import { AttachedPluginData, ExpressiveCodePlugin, replaceDelimitedValues } from '@expressive-code/core'
 import rangeParser from 'parse-numeric-range'
-import { visitParents } from 'unist-util-visit-parents'
+// import { visitParents } from 'unist-util-visit-parents'
 import { MarkerType, markerTypeFromString } from './marker-types'
-import { getMarkerTypeColorsForContrastCalculation, getTextMarkersBaseStyles, textMarkersStyleSettings } from './styles'
+import { getTextMarkersBaseStyles, markerBgColorPaths, textMarkersStyleSettings } from './styles'
 import { flattenInlineMarkerRanges, getInlineSearchTermMatches } from './inline-markers'
 import { TextMarkerAnnotation } from './annotations'
 
@@ -18,10 +10,10 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 	return {
 		name: 'TextMarkers',
 		styleSettings: textMarkersStyleSettings,
-		baseStyles: ({ styleVariants }) => getTextMarkersBaseStyles(styleVariants),
+		baseStyles: (context) => getTextMarkersBaseStyles(context),
 		hooks: {
-			preprocessMetadata: ({ codeBlock, styleVariants }) => {
-				const { blockData, markerTypeColors } = getBlockDataAndMarkerTypeColors(codeBlock, styleVariants)
+			preprocessMetadata: ({ codeBlock, cssVar }) => {
+				const blockData = pluginTextMarkersData.getOrCreateFor(codeBlock)
 
 				codeBlock.meta = replaceDelimitedValues(
 					codeBlock.meta,
@@ -48,7 +40,7 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 								codeBlock.getLine(lineIndex)?.addAnnotation(
 									new TextMarkerAnnotation({
 										markerType,
-										backgroundColor: markerTypeColors[markerType],
+										backgroundColor: cssVar(markerBgColorPaths[markerType]),
 									})
 								)
 							})
@@ -89,8 +81,8 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 					}
 				)
 			},
-			preprocessCode: ({ codeBlock, styleVariants }) => {
-				const { blockData, markerTypeColors } = getBlockDataAndMarkerTypeColors(codeBlock, styleVariants)
+			preprocessCode: ({ codeBlock, cssVar }) => {
+				const blockData = pluginTextMarkersData.getOrCreateFor(codeBlock)
 
 				// Perform special handling of code marked with the language "diff":
 				// - This language is often used as a widely supported format for highlighting
@@ -136,7 +128,7 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 								line.addAnnotation(
 									new TextMarkerAnnotation({
 										markerType,
-										backgroundColor: markerTypeColors[markerType],
+										backgroundColor: cssVar(markerBgColorPaths[markerType]),
 									})
 								)
 							}
@@ -144,8 +136,8 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 					}
 				}
 			},
-			annotateCode: ({ codeBlock, styleVariants }) => {
-				const { blockData, markerTypeColors } = getBlockDataAndMarkerTypeColors(codeBlock, styleVariants)
+			annotateCode: ({ codeBlock, cssVar }) => {
+				const blockData = pluginTextMarkersData.getOrCreateFor(codeBlock)
 
 				codeBlock.getLines().forEach((line) => {
 					// Check the line text for search term matches and collect their ranges
@@ -160,7 +152,7 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 						line.addAnnotation(
 							new TextMarkerAnnotation({
 								markerType,
-								backgroundColor: markerTypeColors[markerType],
+								backgroundColor: cssVar(markerBgColorPaths[markerType]),
 								inlineRange: {
 									columnStart: start,
 									columnEnd: end,
@@ -170,47 +162,37 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 					})
 				})
 			},
-			postprocessRenderedLine: ({ renderData, styleVariants }) => {
-				// TODO: Support multiple style variants
-				const { theme, coreStyles } = styleVariants[0]
-				const backgroundColor = coreStyles.codeBackground[0] === '#' ? coreStyles.codeBackground : theme.bg
-				visitParents(renderData.lineAst, (node, ancestors) => {
-					if (node.type !== 'element' || !node.properties || !node.data) return
-					const textColor = typeof node.data.inlineStyleColor === 'string' ? node.data.inlineStyleColor : undefined
-					if (!textColor) return
-					// Mix combined background color from ancestor chain
-					let combinedBackgroundColor = backgroundColor
-					ancestors.forEach((ancestor) => {
-						const markerBackgroundColor = typeof ancestor.data?.textMarkersBackgroundColor === 'string' ? ancestor.data.textMarkersBackgroundColor : undefined
-						if (!markerBackgroundColor) return
-						combinedBackgroundColor = onBackground(markerBackgroundColor, combinedBackgroundColor)
-					})
-					// Abort if the resulting background color is the same as the default
-					if (combinedBackgroundColor === backgroundColor) return
-					// Otherwise, ensure a good contrast ratio of the text
-					const readableTextColor = ensureColorContrastOnBackground(textColor, combinedBackgroundColor)
-					if (readableTextColor.toLowerCase() === textColor.toLowerCase()) return
-					node.data.inlineStyleColor = readableTextColor
-					node.properties.style = `color:${readableTextColor}${node.properties.style?.toString().replace(/^(color:[^;]+)(;|$)/, '$2') || ''}`
-				})
-			},
+			// postprocessRenderedLine: ({ renderData, styleVariants }) => {
+			// 	// TODO: Support multiple style variants
+			// 	const { theme, coreStyles } = styleVariants[0]
+			// 	const backgroundColor = coreStyles.codeBackground[0] === '#' ? coreStyles.codeBackground : theme.bg
+			// 	visitParents(renderData.lineAst, (node, ancestors) => {
+			// 		if (node.type !== 'element' || !node.properties || !node.data) return
+			// 		const textColor = typeof node.data.inlineStyleColor === 'string' ? node.data.inlineStyleColor : undefined
+			// 		if (!textColor) return
+			// 		// Mix combined background color from ancestor chain
+			// 		let combinedBackgroundColor = backgroundColor
+			// 		ancestors.forEach((ancestor) => {
+			// 			const markerBackgroundColor = typeof ancestor.data?.textMarkersBackgroundColor === 'string' ? ancestor.data.textMarkersBackgroundColor : undefined
+			// 			if (!markerBackgroundColor) return
+			// 			combinedBackgroundColor = onBackground(markerBackgroundColor, combinedBackgroundColor)
+			// 		})
+			// 		// Abort if the resulting background color is the same as the default
+			// 		if (combinedBackgroundColor === backgroundColor) return
+			// 		// Otherwise, ensure a good contrast ratio of the text
+			// 		const readableTextColor = ensureColorContrastOnBackground(textColor, combinedBackgroundColor)
+			// 		if (readableTextColor.toLowerCase() === textColor.toLowerCase()) return
+			// 		node.data.inlineStyleColor = readableTextColor
+			// 		node.properties.style = `color:${readableTextColor}${node.properties.style?.toString().replace(/^(color:[^;]+)(;|$)/, '$2') || ''}`
+			// 	})
+			// },
 		},
 	}
-}
-
-function getBlockDataAndMarkerTypeColors(codeBlock: ExpressiveCodeBlock, styleVariants: StyleVariant[]) {
-	const blockData = pluginTextMarkersData.getOrCreateFor(codeBlock)
-	if (!blockData.markerTypeColors) {
-		// TODO: Support multiple style variants
-		blockData.markerTypeColors = getMarkerTypeColorsForContrastCalculation(styleVariants[0])
-	}
-	return { blockData, markerTypeColors: blockData.markerTypeColors }
 }
 
 export interface PluginTextMarkersData {
 	plaintextTerms: { markerType: MarkerType; text: string }[]
 	regExpTerms: { markerType: MarkerType; regExp: RegExp }[]
-	markerTypeColors?: ReturnType<typeof getMarkerTypeColorsForContrastCalculation> | undefined
 	originalLanguage?: string | undefined
 }
 

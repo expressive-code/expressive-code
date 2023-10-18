@@ -1,4 +1,4 @@
-import { StyleSettings, StyleVariant, setAlpha } from '@expressive-code/core'
+import { PluginStyleSettings, ResolverContext, setAlpha } from '@expressive-code/core'
 
 export const collapsibleSectionClass = 'ec-section'
 
@@ -77,35 +77,34 @@ export interface CollapsibleSectionsStyleSettings {
 	openBorderColor: string
 }
 
-export const collapsibleSectionsStyleSettings = new StyleSettings<CollapsibleSectionsStyleSettings>({
-	styleOverridesSubpath: 'collapsibleSections',
-	defaultSettings: {
-		closedBorderWidth: '0',
-		closedPadding: '4px 0 4px var(--padding-inline)',
-		closedMargin: '0',
-		closedFontFamily: 'inherit',
-		closedFontSize: 'inherit',
-		closedLineHeight: 'inherit',
-		closedTextColor: 'inherit',
-		closedBackgroundColor: ({ theme }) => setAlpha(theme.colors['editor.foldBackground'], 0.2) || 'rgb(84 174 255 / 20%)',
-		closedBorderColor: ({ theme }) => setAlpha(theme.colors['editor.foldBackground'], 0.5) || 'rgb(84 174 255 / 50%)',
-		openBorderWidth: '1px',
-		openPadding: '0',
-		openMargin: '0',
-		openBackgroundColor: 'transparent',
-		openBorderColor: 'transparent',
-	},
-})
-
 declare module '@expressive-code/core' {
-	export interface StyleOverrides {
-		collapsibleSections: Partial<typeof collapsibleSectionsStyleSettings.defaultSettings>
+	export interface StyleSettings {
+		collapsibleSections: CollapsibleSectionsStyleSettings
 	}
 }
 
-export function getCollapsibleSectionsBaseStyles(styleVariants: StyleVariant[]) {
-	// TODO: Support multiple variants
-	const styles = collapsibleSectionsStyleSettings.resolve(styleVariants[0])
+export const collapsibleSectionsStyleSettings = new PluginStyleSettings({
+	defaultValues: {
+		collapsibleSections: {
+			closedBorderWidth: '0',
+			closedPadding: '4px 0 4px var(--padding-inline)',
+			closedMargin: '0',
+			closedFontFamily: 'inherit',
+			closedFontSize: 'inherit',
+			closedLineHeight: 'inherit',
+			closedTextColor: 'inherit',
+			closedBackgroundColor: ({ theme }) => setAlpha(theme.colors['editor.foldBackground'], 0.2) || 'rgb(84 174 255 / 20%)',
+			closedBorderColor: ({ theme }) => setAlpha(theme.colors['editor.foldBackground'], 0.5) || 'rgb(84 174 255 / 50%)',
+			openBorderWidth: '1px',
+			openPadding: '0',
+			openMargin: '0',
+			openBackgroundColor: 'transparent',
+			openBorderColor: 'transparent',
+		},
+	},
+})
+
+export function getCollapsibleSectionsBaseStyles({ cssVar }: ResolverContext) {
 	const result = `
 		.${collapsibleSectionClass} {
 			& summary {
@@ -129,20 +128,20 @@ export function getCollapsibleSectionsBaseStyles(styleVariants: StyleVariant[]) 
 					opacity: 0.75;
 				}
 
-				font-family: ${styles.closedFontFamily};
-				font-size: ${styles.closedFontSize};
-				line-height: ${styles.closedLineHeight};
+				font-family: ${cssVar('collapsibleSections.closedFontFamily')};
+				font-size: ${cssVar('collapsibleSections.closedFontSize')};
+				line-height: ${cssVar('collapsibleSections.closedLineHeight')};
 				user-select: none;
 				-webkit-user-select: none;
 
 				cursor: pointer;
-				color: ${styles.closedTextColor};
-				background-color: ${styles.closedBackgroundColor};
-				--border-color: ${styles.closedBorderColor};
-				--border-width: ${styles.closedBorderWidth};
+				color: ${cssVar('collapsibleSections.closedTextColor')};
+				background-color: ${cssVar('collapsibleSections.closedBackgroundColor')};
+				--border-color: ${cssVar('collapsibleSections.closedBorderColor')};
+				--border-width: ${cssVar('collapsibleSections.closedBorderWidth')};
 				box-shadow: inset 0 calc(-1 * var(--border-width)) var(--border-color), inset 0 var(--border-width) var(--border-color);
-				padding: ${styles.closedPadding};
-				margin: ${styles.closedMargin};
+				padding: ${cssVar('collapsibleSections.closedPadding')};
+				margin: ${cssVar('collapsibleSections.closedMargin')};
 			}
 
 			&[open] {
@@ -151,12 +150,12 @@ export function getCollapsibleSectionsBaseStyles(styleVariants: StyleVariant[]) 
 					display: none;
 				}
 
-				background-color: ${styles.openBackgroundColor};
-				--border-color: ${styles.openBorderColor};
-				--border-width: ${styles.openBorderWidth};
+				background-color: ${cssVar('collapsibleSections.openBackgroundColor')};
+				--border-color: ${cssVar('collapsibleSections.openBorderColor')};
+				--border-width: ${cssVar('collapsibleSections.openBorderWidth')};
 				box-shadow: inset 0 calc(-1 * var(--border-width)) var(--border-color), inset 0 var(--border-width) var(--border-color);
-				padding-inline: ${styles.openPadding};
-				margin-inline: ${styles.openMargin};
+				padding-inline: ${cssVar('collapsibleSections.openPadding')};
+				margin-inline: ${cssVar('collapsibleSections.openMargin')};
 			}
 		}
 	`

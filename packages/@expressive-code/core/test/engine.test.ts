@@ -5,7 +5,7 @@ import githubDark from 'shiki/themes/github-dark.json'
 import { WrapperAnnotation, getHookTestResult, getMultiPluginTestResult, nonArrayValues, nonObjectValues } from './utils'
 import { ExpressiveCodeEngine } from '../src/common/engine'
 import { ExpressiveCodeBlock } from '../src/common/block'
-import { StyleVariant } from '../src/common/styling'
+import { StyleVariant } from '../src/common/style-types'
 
 describe('ExpressiveCodeEngine', () => {
 	describe('render()', () => {

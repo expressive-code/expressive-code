@@ -1,6 +1,7 @@
-import { StyleSettings, StyleOverrides, StyleVariant, ExpressiveCodeTheme, ResolvedCoreStyles, codeLineClass, toHexColor } from '@expressive-code/core'
+import { PluginStyleSettings, codeLineClass, toHexColor, StyleSettingPath, ResolverContext, StyleResolverFn } from '@expressive-code/core'
 import { MarkerType } from './marker-types'
 
+// TODO: Document settings
 export interface TextMarkersStyleSettings {
 	lineMarkerAccentMargin: string
 	lineMarkerAccentWidth: string
@@ -30,107 +31,115 @@ export interface TextMarkersStyleSettings {
 	delDiffIndicatorColor: string
 }
 
-export const textMarkersStyleSettings = new StyleSettings<TextMarkersStyleSettings>({
-	styleOverridesSubpath: 'textMarkers',
-	defaultSettings: {
-		lineMarkerAccentMargin: '0rem',
-		lineMarkerAccentWidth: '0.15rem',
-		lineDiffIndicatorMarginLeft: '0.5rem',
-		inlineMarkerBorderWidth: '1.5px',
-		inlineMarkerBorderRadius: '0.2rem',
-		inlineMarkerPadding: '0.15rem',
-		// Define base colors for all markers in the LCH color space,
-		// which leads to consistent perceived brightness independent of hue
-		markHue: '284',
-		insHue: '136',
-		delHue: '33',
-		defaultChroma: '40',
-		defaultLuminance: ['32%', '75%'],
-		backgroundOpacity: '50%',
-		borderLuminance: '48%',
-		borderOpacity: '81.6%',
-		indicatorLuminance: ['67%', '40%'],
-		indicatorOpacity: '81.6%',
-		// You can use these to override the diff indicator content
-		insDiffIndicatorContent: "'+'",
-		delDiffIndicatorContent: "'-'",
-		// The settings below will be calculated by setDefaults()
-		markBackground: '',
-		markBorderColor: '',
-		insBackground: '',
-		insBorderColor: '',
-		insDiffIndicatorColor: '',
-		delBackground: '',
-		delBorderColor: '',
-		delDiffIndicatorColor: '',
-	},
-})
-
 declare module '@expressive-code/core' {
-	export interface StyleOverrides {
-		textMarkers: Partial<typeof textMarkersStyleSettings.defaultSettings>
+	export interface StyleSettings {
+		textMarkers: TextMarkersStyleSettings
 	}
 }
 
-setDefaults('markHue', 'markBackground', 'markBorderColor')
-setDefaults('insHue', 'insBackground', 'insBorderColor', 'insDiffIndicatorColor')
-setDefaults('delHue', 'delBackground', 'delBorderColor', 'delDiffIndicatorColor')
+export const textMarkersStyleSettings = new PluginStyleSettings({
+	defaultValues: {
+		textMarkers: {
+			lineMarkerAccentMargin: '0rem',
+			lineMarkerAccentWidth: '0.15rem',
+			lineDiffIndicatorMarginLeft: '0.5rem',
+			inlineMarkerBorderWidth: '1.5px',
+			inlineMarkerBorderRadius: '0.2rem',
+			inlineMarkerPadding: '0.15rem',
+			// Define base colors for all markers in the LCH color space,
+			// which leads to consistent perceived brightness independent of hue
+			markHue: '284',
+			insHue: '136',
+			delHue: '33',
+			defaultChroma: '40',
+			defaultLuminance: ['32%', '75%'],
+			backgroundOpacity: '50%',
+			borderLuminance: '48%',
+			borderOpacity: '81.6%',
+			indicatorLuminance: ['67%', '40%'],
+			indicatorOpacity: '81.6%',
+			// You can use these to override the diff indicator content
+			insDiffIndicatorContent: "'+'",
+			delDiffIndicatorContent: "'-'",
+			// The settings below will be calculated based on the settings above
+			markBackground: (context) => resolveBg(context, 'textMarkers.markHue'),
+			markBorderColor: (context) => resolveBorder(context, 'textMarkers.markHue'),
+			insBackground: (context) => resolveBg(context, 'textMarkers.insHue'),
+			insBorderColor: (context) => resolveBorder(context, 'textMarkers.insHue'),
+			insDiffIndicatorColor: (context) => resolveIndicator(context, 'textMarkers.insHue'),
+			delBackground: (context) => resolveBg(context, 'textMarkers.delHue'),
+			delBorderColor: (context) => resolveBorder(context, 'textMarkers.delHue'),
+			delDiffIndicatorColor: (context) => resolveIndicator(context, 'textMarkers.delHue'),
+		},
+	},
+	cssVarExclusions: [
+		// Exclude all settings from CSS variable output that will not be used directly in styles,
+		// but instead be used to calculate other settings
+		'textMarkers.markHue',
+		'textMarkers.insHue',
+		'textMarkers.delHue',
+		'textMarkers.defaultChroma',
+		'textMarkers.defaultLuminance',
+		'textMarkers.backgroundOpacity',
+		'textMarkers.borderLuminance',
+		'textMarkers.borderOpacity',
+		'textMarkers.indicatorLuminance',
+		'textMarkers.indicatorOpacity',
+	],
+})
 
-export function getTextMarkersBaseStyles(styleVariants: StyleVariant[]) {
-	// TODO: Support multiple style variants
-	const variant = styleVariants[0]
-	const styles = textMarkersStyleSettings.resolve(variant)
+export function getTextMarkersBaseStyles({ cssVar }: ResolverContext) {
 	const result = `
 		.${codeLineClass} {
 			/* Support line-level mark/ins/del */
 			&.mark {
-				--line-marker-bg-color: ${styles.markBackground};
-				--line-marker-border-color: ${styles.markBorderColor};
+				--line-marker-bg-color: ${cssVar('textMarkers.markBackground')};
+				--line-marker-border-color: ${cssVar('textMarkers.markBorderColor')};
 			}
 			&.ins {
-				--line-marker-bg-color: ${styles.insBackground};
-				--line-marker-border-color: ${styles.insBorderColor};
+				--line-marker-bg-color: ${cssVar('textMarkers.insBackground')};
+				--line-marker-border-color: ${cssVar('textMarkers.insBorderColor')};
 				&::before {
-					content: ${styles.insDiffIndicatorContent};
-					color: ${styles.insDiffIndicatorColor};
+					content: ${cssVar('textMarkers.insDiffIndicatorContent')};
+					color: ${cssVar('textMarkers.insDiffIndicatorColor')};
 				}
 			}
 			&.del {
-				--line-marker-bg-color: ${styles.delBackground};
-				--line-marker-border-color: ${styles.delBorderColor};
+				--line-marker-bg-color: ${cssVar('textMarkers.delBackground')};
+				--line-marker-border-color: ${cssVar('textMarkers.delBorderColor')};
 				&::before {
-					content: ${styles.delDiffIndicatorContent};
-					color: ${styles.delDiffIndicatorColor};
+					content: ${cssVar('textMarkers.delDiffIndicatorContent')};
+					color: ${cssVar('textMarkers.delDiffIndicatorColor')};
 				}
 			}
 			&.mark,
 			&.ins,
 			&.del {
-				--accent-margin: ${styles.lineMarkerAccentMargin};
-				--accent-width: ${styles.lineMarkerAccentWidth};
+				--accent-margin: ${cssVar('textMarkers.lineMarkerAccentMargin')};
+				--accent-width: ${cssVar('textMarkers.lineMarkerAccentWidth')};
 				position: relative;
 				background: var(--line-marker-bg-color);
 				margin-inline-start: var(--accent-margin);
 				border-inline-start: var(--accent-width) solid var(--line-marker-border-color);
-				padding-inline-start: calc(${variant.coreStyles.codePaddingInline} - var(--accent-margin) - var(--accent-width)) !important;
+				padding-inline-start: calc(${cssVar('codePaddingInline')} - var(--accent-margin) - var(--accent-width)) !important;
 				&::before {
 					position: absolute;
-					left: ${styles.lineDiffIndicatorMarginLeft};
+					left: ${cssVar('textMarkers.lineDiffIndicatorMarginLeft')};
 				}
 			}
 
 			/* Support inline mark/ins/del */
 			& mark {
-				--inline-marker-bg-color: ${styles.markBackground};
-				--inline-marker-border-color: ${styles.markBorderColor};
+				--inline-marker-bg-color: ${cssVar('textMarkers.markBackground')};
+				--inline-marker-border-color: ${cssVar('textMarkers.markBorderColor')};
 			}
 			& ins {
-				--inline-marker-bg-color: ${styles.insBackground};
-				--inline-marker-border-color: ${styles.insBorderColor};
+				--inline-marker-bg-color: ${cssVar('textMarkers.insBackground')};
+				--inline-marker-border-color: ${cssVar('textMarkers.insBorderColor')};
 			}
 			& del {
-				--inline-marker-bg-color: ${styles.delBackground};
-				--inline-marker-border-color: ${styles.delBorderColor};
+				--inline-marker-bg-color: ${cssVar('textMarkers.delBackground')};
+				--inline-marker-border-color: ${cssVar('textMarkers.delBorderColor')};
 			}
 			& mark,
 			& ins,
@@ -138,13 +147,13 @@ export function getTextMarkersBaseStyles(styleVariants: StyleVariant[]) {
 				all: unset;
 				display: inline-block;
 				position: relative;
-				--border: ${styles.inlineMarkerBorderWidth};
+				--border: ${cssVar('textMarkers.inlineMarkerBorderWidth')};
 				--border-l: var(--border);
 				--border-r: var(--border);
-				--radius-l: ${styles.inlineMarkerBorderRadius};
-				--radius-r: ${styles.inlineMarkerBorderRadius};
+				--radius-l: ${cssVar('textMarkers.inlineMarkerBorderRadius')};
+				--radius-r: ${cssVar('textMarkers.inlineMarkerBorderRadius')};
 				margin-inline: 0.025rem;
-				padding-inline: ${styles.inlineMarkerPadding};
+				padding-inline: ${cssVar('textMarkers.inlineMarkerPadding')};
 				border-radius: var(--radius-l) var(--radius-r) var(--radius-r) var(--radius-l);
 				background: var(--inline-marker-bg-color);
 				background-clip: padding-box;
@@ -178,50 +187,20 @@ export function getTextMarkersBaseStyles(styleVariants: StyleVariant[]) {
 	return result
 }
 
-/**
- * Attempts to get background color values per marker type.
- * These colors are used for calculating contrast ratios.
- *
- * Usually, these are either the colors defined in `textMarkersStyleSettings`,
- * or style overrides provided by the user.
- *
- * One notable exception is that if non-color values (e.g. CSS variables)
- * were provided, the default colors will be returned instead. This is because
- * we can't reliably determine the actual color values from CSS variables.
- */
-export function getMarkerTypeColorsForContrastCalculation({
-	theme,
-	coreStyles,
-	styleOverrides,
-}: {
-	theme: ExpressiveCodeTheme
-	coreStyles: ResolvedCoreStyles
-	styleOverrides: Partial<StyleOverrides> | undefined
-}) {
-	const textMarkersStyles = textMarkersStyleSettings.resolve({
-		theme,
-		coreStyles,
-		styleOverrides,
-	})
-	const defaultTextMarkersStyles = textMarkersStyleSettings.resolve({
-		theme,
-		coreStyles,
-		styleOverrides: undefined,
-	})
-	const colorOrDefault = (input: string, defaultColor: string) => (input[0] === '#' ? input : defaultColor)
-	const result: { [K in MarkerType]: string } = {
-		mark: colorOrDefault(textMarkersStyles.markBackground, defaultTextMarkersStyles.markBackground),
-		ins: colorOrDefault(textMarkersStyles.insBackground, defaultTextMarkersStyles.insBackground),
-		del: colorOrDefault(textMarkersStyles.delBackground, defaultTextMarkersStyles.delBackground),
-	}
-	return result
+export const markerBgColorPaths: { [K in MarkerType]: StyleSettingPath } = {
+	mark: 'textMarkers.markBackground',
+	ins: 'textMarkers.insBackground',
+	del: 'textMarkers.delBackground',
 }
 
-type StyleSettingName = keyof typeof textMarkersStyleSettings.defaultSettings
+function resolveBg({ resolveSetting: r }: Parameters<StyleResolverFn>[0], hue: StyleSettingPath) {
+	return toHexColor(`lch(${r('textMarkers.defaultLuminance')} ${r('textMarkers.defaultChroma')} ${r(hue)} / ${r('textMarkers.backgroundOpacity')})`)
+}
 
-function setDefaults(hue: StyleSettingName, bg: StyleSettingName, border: StyleSettingName, indicator?: StyleSettingName) {
-	const lch = (l: string, c: string, h: string, a: string) => toHexColor(`lch(${l} ${c} ${h} / ${a})`)
-	textMarkersStyleSettings.defaultSettings[bg] = ({ resolveSetting: r }) => lch(r('defaultLuminance'), r('defaultChroma'), r(hue), r('backgroundOpacity'))
-	textMarkersStyleSettings.defaultSettings[border] = ({ resolveSetting: r }) => lch(r('borderLuminance'), r('defaultChroma'), r(hue), r('borderOpacity'))
-	if (indicator) textMarkersStyleSettings.defaultSettings[indicator] = ({ resolveSetting: r }) => lch(r('indicatorLuminance'), r('defaultChroma'), r(hue), r('indicatorOpacity'))
+function resolveBorder({ resolveSetting: r }: Parameters<StyleResolverFn>[0], hue: StyleSettingPath) {
+	return toHexColor(`lch(${r('textMarkers.borderLuminance')} ${r('textMarkers.defaultChroma')} ${r(hue)} / ${r('textMarkers.borderOpacity')})`)
+}
+
+function resolveIndicator({ resolveSetting: r }: Parameters<StyleResolverFn>[0], hue: StyleSettingPath) {
+	return toHexColor(`lch(${r('textMarkers.indicatorLuminance')} ${r('textMarkers.defaultChroma')} ${r(hue)} / ${r('textMarkers.indicatorOpacity')})`)
 }

@@ -238,7 +238,7 @@ describe('ExpressiveCodeTheme', () => {
 			expect(engine.theme.colors['editor.background']).toBe('#04255a')
 
 			// Also expect resolved core styles to have picked up the adjusted colors
-			expect(engine.coreStyles.codeBackground).toBe('#04255a')
+			expect(engine.styleVariants[0].resolvedStyleSettings.get('codeBackground')).toBe('#04255a')
 		})
 	})
 
@@ -253,10 +253,12 @@ describe('ExpressiveCodeTheme', () => {
 			})
 
 			// Expect the resolved core styles to contain the new values
-			expect(engine.coreStyles.codeBackground).toBe('var(--test-code-bg)')
-			expect(engine.coreStyles.uiFontFamily).toBe('MyUiTestFont')
+			expect(engine.styleVariants[0].resolvedStyleSettings.get('codeBackground')).toBe('var(--test-code-bg)')
+			expect(engine.styleVariants[0].resolvedStyleSettings.get('uiFontFamily')).toBe('MyUiTestFont')
 
 			// Expect the base styles to contain the new values
+			// TODO: Develop an API that allows retrieving the CSS variable declarations from the engine,
+			// separately from the static base styles.
 			const baseStyles = await engine.getBaseStyles()
 			expect(baseStyles).toContain('var(--test-code-bg)')
 			expect(baseStyles).toMatch(/font-family:\s*MyUiTestFont/)
@@ -275,10 +277,12 @@ describe('ExpressiveCodeTheme', () => {
 			})
 
 			// Expect the resolved core styles to contain the new values
-			expect(engine.coreStyles.codeBackground).toBe('#fedcba98')
-			expect(engine.coreStyles.uiFontFamily).toBe('MyThemeProvidedFont')
+			expect(engine.styleVariants[0].resolvedStyleSettings.get('codeBackground')).toBe('#fedcba98')
+			expect(engine.styleVariants[0].resolvedStyleSettings.get('uiFontFamily')).toBe('MyThemeProvidedFont')
 
 			// Expect the base styles to contain the new values
+			// TODO: Develop an API that allows retrieving the CSS variable declarations from the engine,
+			// separately from the static base styles.
 			const baseStyles = await engine.getBaseStyles()
 			expect(baseStyles).toContain('#fedcba98')
 			expect(baseStyles).toMatch(/font-family:\s*MyThemeProvidedFont/)

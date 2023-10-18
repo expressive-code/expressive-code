@@ -1,6 +1,6 @@
 import { lighten, ensureColorContrastOnBackground } from '../helpers/color-transforms'
-import { ResolvedStyleSettings, StyleSettings } from '../helpers/style-settings'
-import { StyleVariant } from './styling'
+import { ResolverContext } from './plugin'
+import { PluginStyleSettings, UnresolvedStyleSettings } from './plugin-style-settings'
 
 export interface CoreStyleSettings {
 	/**
@@ -138,9 +138,11 @@ export interface CoreStyleSettings {
 	scrollbarThumbHoverColor: string
 }
 
-export const coreStyleSettings = new StyleSettings<CoreStyleSettings>({
-	styleOverridesSubpath: '',
-	defaultSettings: {
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
+export interface StyleSettings extends CoreStyleSettings {}
+
+export const coreStyleSettings = new PluginStyleSettings({
+	defaultValues: {
 		// Outer container
 		borderRadius: '0.3rem',
 		borderWidth: '1.5px',
@@ -184,19 +186,22 @@ export const coreStyleSettings = new StyleSettings<CoreStyleSettings>({
 		scrollbarThumbColor: ({ theme, resolveSetting }) => ensureColorContrastOnBackground(theme.colors['scrollbarSlider.background'], resolveSetting('codeBackground'), 1, 2),
 		scrollbarThumbHoverColor: ({ theme, resolveSetting }) =>
 			ensureColorContrastOnBackground(theme.colors['scrollbarSlider.hoverBackground'], resolveSetting('codeBackground'), 2.5, 3.5),
-	},
+	} satisfies UnresolvedStyleSettings,
 })
-
-export type ResolvedCoreStyles = ResolvedStyleSettings<CoreStyleSettings>
 
 export const codeLineClass = 'ec-line'
 
-export function getCoreBaseStyles(options: { useThemedScrollbars: boolean; useThemedSelectionColors: boolean; styleVariants: StyleVariant[] }) {
-	const ifThemedScrollbars = (css: string) => (options.useThemedScrollbars ? css : '')
-	const ifThemedSelectionColors = (css: string) => (options.useThemedSelectionColors ? css : '')
-	// TODO: Support multiple style variants
-	const resolvedStyles = coreStyleSettings.resolve(options.styleVariants[0])
-	const cssVar = (key: keyof typeof resolvedStyles) => resolvedStyles[key] // coreStyleSettings.var.bind(coreStyleSettings)
+export function getCoreBaseStyles({
+	cssVar,
+	useThemedScrollbars,
+	useThemedSelectionColors,
+}: {
+	cssVar: ResolverContext['cssVar']
+	useThemedScrollbars: boolean
+	useThemedSelectionColors: boolean
+}) {
+	const ifThemedScrollbars = (css: string) => (useThemedScrollbars ? css : '')
+	const ifThemedSelectionColors = (css: string) => (useThemedSelectionColors ? css : '')
 
 	return `
 		font-family: ${cssVar('uiFontFamily')};

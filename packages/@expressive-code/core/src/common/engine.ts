@@ -3,9 +3,10 @@ import { ExpressiveCodePlugin, ResolverContext } from './plugin'
 import { renderGroup, RenderInput, RenderOptions } from '../internal/render-group'
 import { ExpressiveCodeTheme } from './theme'
 import { PluginStyles, processPluginStyles } from '../internal/css'
-import { StyleOverrides } from './styling'
-import { coreStyleSettings, getCoreBaseStyles, ResolvedCoreStyles } from './core-styles'
+import { StyleSettings, getCoreBaseStyles } from './core-styles'
 import { getStableObjectHash } from '../helpers/objects'
+import { StyleVariant, resolveStyleVariants } from './style-variants'
+import { StyleSettingPath } from './plugin-style-settings'
 
 export interface ExpressiveCodeEngineConfig {
 	/**
@@ -64,7 +65,7 @@ export interface ExpressiveCodeEngineConfig {
 	 * **Tip:** If your site uses CSS variables for styling, you can also use these overrides
 	 * to replace any core style with a CSS variable reference, e.g. `var(--your-css-var)`.
 	 */
-	styleOverrides?: Partial<StyleOverrides> | undefined
+	styleOverrides?: Partial<StyleSettings> | undefined
 	/**
 	 * To add a plugin, import its initialization function and call it inside this array.
 	 *
@@ -97,24 +98,19 @@ export class ExpressiveCodeEngine {
 		}
 
 		// Resolve core styles based on the theme and style overrides
-		// TODO: Maybe more like "generate CSS variable declarations for core styles",
-		//       but we will also need to access the resolved values in resolver functions.
-		this.coreStyles = coreStyleSettings.resolve({
-			theme: this.theme,
+		this.styleVariants = resolveStyleVariants({
+			themes: [this.theme],
 			styleOverrides: this.styleOverrides,
-			// @ts-expect-error We have no resolved core styles here as we are just resolving them.
-			// Attempts to access them at this point are a programming error, so we pass `null`
-			// to ensure an error will be thrown if anyone tries to. As `ExpressiveCodeConfig`
-			// uses `UnresolvedCoreStyleSettings` as its `styleOverrides` type, `coreStyles`
-			// will not be available in resolver functions anyway.
-			coreStyles: null,
+			plugins: this.plugins,
+			cssVarName: (styleSetting) => this.cssVarName(styleSetting),
 		})
 
-		// Generate a unique class name for the wrapper element based on the config
+		// Generate a unique class name for the wrapper element based on rest of the config
 		const configHash = getStableObjectHash(
 			{
-				theme: this.theme,
-				styleOverrides: this.styleOverrides,
+				defaultLocale: this.defaultLocale,
+				useThemedScrollbars: this.useThemedScrollbars,
+				useThemedSelectionColors: this.useThemedSelectionColors,
 				plugins: this.plugins,
 			},
 			{ includeFunctionContents: true }
@@ -128,7 +124,7 @@ export class ExpressiveCodeEngine {
 			options,
 			defaultLocale: this.defaultLocale,
 			plugins: this.plugins,
-			// Also pass resolved core styles in case plugins need them
+			// Also pass resolved style variants in case plugins need them
 			...this.getResolverContext(),
 		})
 	}
@@ -139,16 +135,9 @@ export class ExpressiveCodeEngine {
 		pluginStyles.push({
 			pluginName: 'core',
 			styles: getCoreBaseStyles({
+				cssVar: (styleSetting, fallbackValue) => this.cssVar(styleSetting, fallbackValue),
 				useThemedScrollbars: this.useThemedScrollbars,
 				useThemedSelectionColors: this.useThemedSelectionColors,
-				// TODO: Support multiple style variants
-				styleVariants: [
-					{
-						theme: this.theme,
-						styleOverrides: this.styleOverrides,
-						coreStyles: this.coreStyles,
-					},
-				],
 			}),
 		})
 		// Add plugin base styles
@@ -194,26 +183,30 @@ export class ExpressiveCodeEngine {
 		return [...jsModules]
 	}
 
+	private cssVarName(styleSetting: StyleSettingPath) {
+		return `--ec-${styleSetting.replace(/\./g, '-')}`
+	}
+
+	private cssVar(styleSetting: StyleSettingPath, fallbackValue?: string) {
+		return `var(${this.cssVarName(styleSetting)}${fallbackValue ? `, ${fallbackValue}` : ''})`
+	}
+
 	private getResolverContext(): ResolverContext {
 		return {
-			styleVariants: [
-				{
-					theme: this.theme,
-					styleOverrides: this.styleOverrides,
-					coreStyles: this.coreStyles,
-				},
-			],
+			cssVar: (styleSetting, fallbackValue) => this.cssVar(styleSetting, fallbackValue),
+			cssVarName: (styleSetting) => this.cssVarName(styleSetting),
+			styleVariants: this.styleVariants,
 			configClassName: this.configClassName,
 		}
 	}
 
 	readonly config: ExpressiveCodeEngineConfig
+	readonly styleOverrides: Partial<StyleSettings>
+	readonly styleVariants: StyleVariant[]
 	readonly theme: ExpressiveCodeTheme
 	readonly defaultLocale: string
 	readonly useThemedScrollbars: boolean
 	readonly useThemedSelectionColors: boolean
-	readonly styleOverrides: Partial<StyleOverrides>
-	readonly coreStyles: ResolvedCoreStyles
 	readonly plugins: readonly ExpressiveCodePlugin[]
 	/**
 	 * This class name is used by Expressive Code when rendering its wrapper element

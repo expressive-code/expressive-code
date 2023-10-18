@@ -16,7 +16,7 @@ export function pluginCollapsibleSections(): ExpressiveCodePlugin {
 	return {
 		name: 'Collapsible sections',
 		styleSettings: collapsibleSectionsStyleSettings,
-		baseStyles: ({ styleVariants }) => getCollapsibleSectionsBaseStyles(styleVariants),
+		baseStyles: (context) => getCollapsibleSectionsBaseStyles(context),
 		hooks: {
 			preprocessMetadata: ({ codeBlock }) => {
 				codeBlock.meta = replaceDelimitedValues(

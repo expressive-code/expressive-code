@@ -6,8 +6,6 @@ import { runHooks } from '../common/plugin-hooks'
 import { groupWrapperClassName, groupWrapperElement, PluginStyles, processPluginStyles } from './css'
 import { renderBlock } from './render-block'
 import { isHastParent, newTypeError } from './type-checks'
-import { getStableObjectHash } from '../helpers/objects'
-import { kebabCase } from '../helpers/string-processing'
 
 export type RenderInput = ExpressiveCodeBlockOptions | ExpressiveCodeBlock | (ExpressiveCodeBlockOptions | ExpressiveCodeBlock)[]
 
@@ -33,9 +31,11 @@ export async function renderGroup({
 	input,
 	options,
 	defaultLocale,
-	styleVariants,
 	plugins,
+	cssVar,
+	cssVarName,
 	configClassName,
+	styleVariants,
 }: {
 	input: RenderInput
 	options?: RenderOptions | undefined
@@ -68,8 +68,11 @@ export async function renderGroup({
 			codeBlock: groupContent.codeBlock,
 			groupContents,
 			locale: groupContent.codeBlock.locale || defaultLocale,
-			styleVariants,
 			plugins,
+			cssVar,
+			cssVarName,
+			configClassName,
+			styleVariants,
 		})
 
 		// Store the rendered AST on the group content object
@@ -100,18 +103,12 @@ export async function renderGroup({
 		}
 	})
 
-	// TODO: Remove this temporary workaround after finishing the transition to the new CSS system
-	const firstTheme = styleVariants[0]?.theme
-	const themeNameOrHash = firstTheme.name?.length ? firstTheme.name : `hash-${getStableObjectHash(firstTheme)}`
-	const themeClassName = `ec-theme-${kebabCase(themeNameOrHash)}`
-
 	return {
-		renderedGroupAst: addWrapperAroundGroupAst({ groupAst: groupRenderData.groupAst, configClassName, themeClassName }),
+		renderedGroupAst: addWrapperAroundGroupAst({ groupAst: groupRenderData.groupAst, configClassName }),
 		renderedGroupContents,
 		styles: await processPluginStyles({
 			pluginStyles,
 			plugins,
-			styleVariants,
 			configClassName,
 		}),
 	}
@@ -121,6 +118,6 @@ export async function renderGroup({
  * Wraps the group AST in an Expressive Code wrapper element with a class,
  * allowing us to scope CSS styles that are added by plugins.
  */
-function addWrapperAroundGroupAst({ groupAst, configClassName, themeClassName }: { groupAst: Parent; configClassName: string; themeClassName: string }): Parent {
-	return h(`${groupWrapperElement}.${groupWrapperClassName}.${configClassName}${themeClassName ? `.${themeClassName}` : ''}`, groupAst)
+function addWrapperAroundGroupAst({ groupAst, configClassName }: { groupAst: Parent; configClassName: string }): Parent {
+	return h(`${groupWrapperElement}.${groupWrapperClassName}.${configClassName}`, groupAst)
 }
