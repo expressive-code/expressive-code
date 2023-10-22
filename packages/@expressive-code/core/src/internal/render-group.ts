@@ -34,7 +34,6 @@ export async function renderGroup({
 	plugins,
 	cssVar,
 	cssVarName,
-	configClassName,
 	styleVariants,
 }: {
 	input: RenderInput
@@ -71,7 +70,6 @@ export async function renderGroup({
 			plugins,
 			cssVar,
 			cssVarName,
-			configClassName,
 			styleVariants,
 		})
 
@@ -104,12 +102,11 @@ export async function renderGroup({
 	})
 
 	return {
-		renderedGroupAst: addWrapperAroundGroupAst({ groupAst: groupRenderData.groupAst, configClassName }),
+		renderedGroupAst: addWrapperAroundGroupAst({ groupAst: groupRenderData.groupAst }),
 		renderedGroupContents,
 		styles: await processPluginStyles({
 			pluginStyles,
 			plugins,
-			configClassName,
 		}),
 	}
 }
@@ -118,6 +115,6 @@ export async function renderGroup({
  * Wraps the group AST in an Expressive Code wrapper element with a class,
  * allowing us to scope CSS styles that are added by plugins.
  */
-function addWrapperAroundGroupAst({ groupAst, configClassName }: { groupAst: Parent; configClassName: string }): Parent {
-	return h(`${groupWrapperElement}.${groupWrapperClassName}.${configClassName}`, groupAst)
+function addWrapperAroundGroupAst({ groupAst }: { groupAst: Parent }): Parent {
+	return h(`${groupWrapperElement}.${groupWrapperClassName}`, groupAst)
 }

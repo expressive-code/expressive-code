@@ -14,10 +14,10 @@ describe('Processes CSS styles added by plugins', () => {
 	})
 	describe('Scopes styles to prevent leaking out', () => {
 		test('Adds a scope to top-level rules', async () => {
-			await expectResultStyles(`color: red`, `#CFG{color:red}`)
+			await expectResultStyles(`color: red`, `#GRP{color:red}`)
 		})
 		test('Adds a scope to unscoped styles', async () => {
-			await expectResultStyles(`del{color:red}`, `#CFG del{color:red}`)
+			await expectResultStyles(`del{color:red}`, `#GRP del{color:red}`)
 		})
 		test('Leaves already scoped styles unchanged', async () => {
 			await expectResultStyles(`${groupWrapperScope} del{color:red}`, `#GRP del{color:red}`)
@@ -38,7 +38,7 @@ describe('Processes CSS styles added by plugins', () => {
 					// Expect pre-scoped style to still be scoped to the default wrapper class
 					`#GRP{--ec-del-text:purple}`,
 					// Expect unscoped style to be scoped to the config class name
-					`#CFG del{color:var(--ec-del-text)}`,
+					`#GRP del{color:var(--ec-del-text)}`,
 				]
 			)
 		})
@@ -54,32 +54,32 @@ describe('Processes CSS styles added by plugins', () => {
 					ins{display:block}
 
 				`,
-				`#CFG del{color:red}#CFG ins{display:block}`
+				`#GRP del{color:red}#GRP ins{display:block}`
 			)
 		})
 		test('Removes whitespace between multiple selectors', async () => {
-			await expectResultStyles(`del,  \n   ins{color:red}`, `#CFG del,#CFG ins{color:red}`)
+			await expectResultStyles(`del,  \n   ins{color:red}`, `#GRP del,#GRP ins{color:red}`)
 		})
 		test('Removes whitespace between selectors and opening bracket', async () => {
-			await expectResultStyles(`del  \n  {color:red}`, `#CFG del{color:red}`)
+			await expectResultStyles(`del  \n  {color:red}`, `#GRP del{color:red}`)
 		})
 		test('Removes whitespace after opening bracket', async () => {
-			await expectResultStyles(`del{  color:red}`, `#CFG del{color:red}`)
+			await expectResultStyles(`del{  color:red}`, `#GRP del{color:red}`)
 		})
 		test('Removes whitespace between declaration properties and values', async () => {
-			await expectResultStyles(`del{color  :  red}`, `#CFG del{color:red}`)
+			await expectResultStyles(`del{color  :  red}`, `#GRP del{color:red}`)
 		})
 		test('Removes whitespace between declarations', async () => {
-			await expectResultStyles(`del{display:block  ;  color:red}`, `#CFG del{display:block;color:red}`)
+			await expectResultStyles(`del{display:block  ;  color:red}`, `#GRP del{display:block;color:red}`)
 		})
 		test('Removes whitespace before closing bracket', async () => {
-			await expectResultStyles(`del{color:red  }`, `#CFG del{color:red}`)
+			await expectResultStyles(`del{color:red  }`, `#GRP del{color:red}`)
 		})
 		test('Removes last semicolon before closing bracket', async () => {
-			await expectResultStyles(`del{display:block;color:red;}`, `#CFG del{display:block;color:red}`)
+			await expectResultStyles(`del{display:block;color:red;}`, `#GRP del{display:block;color:red}`)
 		})
 		test.skip('Removes whitespace inside multi-part selectors', async () => {
-			await expectResultStyles(`del > mark{color:red}`, `#CFG del>mark{color:red}`)
+			await expectResultStyles(`del > mark{color:red}`, `#GRP del>mark{color:red}`)
 		})
 		test('Removes comments', async () => {
 			await expectResultStyles(
@@ -90,7 +90,7 @@ describe('Processes CSS styles added by plugins', () => {
 					*/
 					ins {color:red;/* another comment */}
 				`,
-				`#CFG ins{color:red}`
+				`#GRP ins{color:red}`
 			)
 		})
 	})
@@ -102,7 +102,7 @@ describe('Processes CSS styles added by plugins', () => {
 						ins,mark { color: yellow }
 					}
 				`,
-				`#CFG .some-class ins,#CFG .some-class mark{color:yellow}`
+				`#GRP .some-class ins,#GRP .some-class mark{color:yellow}`
 			)
 		})
 		test('Targeting the group wrapper', async () => {
@@ -112,7 +112,7 @@ describe('Processes CSS styles added by plugins', () => {
 						color: blue
 					}
 				`,
-				`#CFG{color:blue}`
+				`#GRP{color:blue}`
 			)
 		})
 		test('Compound selectors', async () => {
@@ -122,7 +122,7 @@ describe('Processes CSS styles added by plugins', () => {
 						&.new { color: blue }
 					}
 				`,
-				`#CFG mark.new{color:blue}`
+				`#GRP mark.new{color:blue}`
 			)
 		})
 		test('Direct child selectors', async () => {
@@ -132,7 +132,7 @@ describe('Processes CSS styles added by plugins', () => {
 						> p { color: blue }
 					}
 				`,
-				`#CFG mark>p{color:blue}`,
+				`#GRP mark>p{color:blue}`,
 				// Note: We're allowing spaces around the child selector here
 				// because we cannot remove whitespace in multi-part selectors yet
 				(style) => style.replace(/mark\s*>\s*p/, 'mark>p')
@@ -190,7 +190,7 @@ describe('Processes CSS styles added by plugins', () => {
 						}
 					}
 				`,
-				`@media (min-width:50em){:root{--min-spacing-inline:calc(0.5vw-1.5rem);color:blue}body,html{color:green}#CFG code .test{color:red}}`
+				`@media (min-width:50em){:root{--min-spacing-inline:calc(0.5vw-1.5rem);color:blue}body,html{color:green}#GRP code .test{color:red}}`
 			)
 		})
 		test('@supports', async () => {
@@ -205,7 +205,7 @@ describe('Processes CSS styles added by plugins', () => {
 						}
 					}
 				`,
-				`@supports (height:100dvh){:root{--cur-viewport-height:100dvh}#CFG del{color:purple}}`
+				`@supports (height:100dvh){:root{--cur-viewport-height:100dvh}#GRP del{color:purple}}`
 			)
 		})
 		test('@keyframes', async () => {
@@ -236,7 +236,7 @@ describe('Processes CSS styles added by plugins', () => {
 				],
 				[
 					// Expect deduplicated, scoped and minified styles
-					`#CFG del{color:red}`,
+					`#GRP del{color:red}`,
 					`#GRP ins{color:green}`,
 				]
 			)
@@ -277,11 +277,11 @@ describe('Processes CSS styles added by plugins', () => {
 
 async function expectResultStyles(input: string | string[], expected: string | string[], postprocessStyle?: (style: string) => string) {
 	const arrInput = Array.isArray(input) ? input : [input]
-	const { styles, configClassName } = await getHookTestResult('annotateCode', ({ addStyles }) => {
+	const { styles } = await getHookTestResult('annotateCode', ({ addStyles }) => {
 		arrInput.forEach((input) => addStyles(input))
 	})
 	const arrExpected = Array.isArray(expected) ? expected : [expected]
-	const arrScopedExpected = arrExpected.map((style) => style.replace(/#CFG/g, `.${configClassName}`).replace(/#GRP/g, groupWrapperScope))
+	const arrScopedExpected = arrExpected.map((style) => style.replace(/#GRP/g, groupWrapperScope))
 	const postprocessedStyles = postprocessStyle ? new Set([...styles].map((style) => postprocessStyle(style))) : styles
 	expect(postprocessedStyles).toEqual(new Set(arrScopedExpected))
 }

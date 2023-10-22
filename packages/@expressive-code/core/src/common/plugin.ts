@@ -85,16 +85,4 @@ export type ResolverContext = {
 	 */
 	cssVarName: (styleSetting: StyleSettingPath) => string
 	styleVariants: StyleVariant[]
-	/**
-	 * This class name is used by Expressive Code when rendering its wrapper element
-	 * around all code block groups.
-	 *
-	 * Its format is `ec.ec-<hash>`, where `<hash>` is calculated based on the config options
-	 * that were passed to the class constructor. This allows you to render multiple code blocks
-	 * with different configurations on the same page without having to worry about CSS conflicts.
-	 *
-	 * Non-global CSS styles returned by the `getBaseStyles` and `render` methods
-	 * are scoped automatically using this class name.
-	 */
-	configClassName: string
 }

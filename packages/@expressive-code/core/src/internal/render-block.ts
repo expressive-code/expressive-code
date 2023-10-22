@@ -15,7 +15,6 @@ export async function renderBlock({
 	plugins,
 	cssVar,
 	cssVarName,
-	configClassName,
 	styleVariants,
 }: {
 	codeBlock: ExpressiveCodeBlock
@@ -38,7 +37,6 @@ export async function renderBlock({
 		locale,
 		cssVar,
 		cssVarName,
-		configClassName,
 		styleVariants,
 	}
 

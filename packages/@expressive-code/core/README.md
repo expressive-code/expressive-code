@@ -146,17 +146,6 @@ See above for a [usage example](#usage-example).
 
   The plugins passed to the [constructor](#new-expressivecodeengineconfig-expressivecodeengineconfig).
 
-- ##### `configClassName: string`
-
-  This class name is used by Expressive Code when rendering its wrapper element around all code block groups.
-
-  Its format is `ec-<hash>`, where `<hash>` is calculated based on the config options that were passed to the class constructor. This allows you to render multiple code blocks with different configurations on the same page without having to worry about CSS conflicts.
-
-  Non-global CSS styles returned by the `getBaseStyles` and `render` methods are scoped automatically using this class name.
-
-  > **Note**:
-  > If you want to target all code blocks in CSS, you will probably want to use the non-config-dependent default class `expressive-code` instead, which is also added to all wrapper elements.
-
 #### ExpressiveCodeEngine instance methods
 
 - ##### `async render(input: RenderInput, options?: RenderOptions)`

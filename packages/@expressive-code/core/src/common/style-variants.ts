@@ -6,10 +6,8 @@ import { ExpressiveCodeTheme } from './theme'
 export type StyleVariant = {
 	theme: ExpressiveCodeTheme
 	resolvedStyleSettings: ResolvedStyleSettingsByPath
-	cssVarDeclarations: CssVarDeclarations
+	cssVarDeclarations: Map<string, string>
 }
-
-export type CssVarDeclarations = Map<string, string>
 
 /**
  * Maps the given `themes` to an array of {@link StyleVariant `StyleVariant`} objects,

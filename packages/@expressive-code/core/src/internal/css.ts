@@ -1,24 +1,15 @@
 import postcss, { Root } from 'postcss'
 import postcssNested from 'postcss-nested'
 import { escapeRegExp } from './escaping'
-import { ExpressiveCodePlugin, ResolverContext } from '../common/plugin'
+import { ExpressiveCodePlugin } from '../common/plugin'
 
 export const groupWrapperElement = 'div'
 export const groupWrapperClassName = 'expressive-code'
 
-// Support attaching processing data to root nodes
-const processingData = new WeakMap<
-	Root,
-	Pick<ResolverContext, 'configClassName'> & {
-		plugins: readonly ExpressiveCodePlugin[]
-	}
->()
-const getScopeSelector = (root: Root): string => `.${processingData.get(root)?.configClassName || groupWrapperClassName}`
-
 const preprocessor = postcss([
 	// Prevent top-level selectors that are already scoped from being scoped twice
 	(root: Root) => {
-		const scopeSelector = getScopeSelector(root)
+		const scopeSelector = `.${groupWrapperClassName}`
 		root.walkRules((rule) => {
 			if (rule.parent?.parent === root) {
 				rule.selectors = rule.selectors.map((selector) => {
@@ -36,7 +27,7 @@ const preprocessor = postcss([
 const processor = postcss([
 	// Prevent selectors targeting the wrapper class name or top-level elements from being scoped
 	(root: Root) => {
-		const scopeSelector = getScopeSelector(root)
+		const scopeSelector = `.${groupWrapperClassName}`
 		const regExpScopedTopLevel = new RegExp(`^${escapeRegExp(scopeSelector)} .*(${escapeRegExp(`.${groupWrapperClassName}`)}|:root|html|body)`, 'g')
 		root.walkRules((rule) => {
 			rule.selectors = rule.selectors.map((selector) => selector.replace(regExpScopedTopLevel, '$1'))
@@ -92,7 +83,7 @@ export async function processPluginStyles({
 }: {
 	pluginStyles: PluginStyles[]
 	plugins: readonly ExpressiveCodePlugin[]
-} & Pick<ResolverContext, 'configClassName'>): Promise<Set<string>> {
+}): Promise<Set<string>> {
 	const result = new Set<string>()
 	const seenStyles = new Set<string>()
 	// @ts-expect-error PostCSS has incorrect types when using exactOptionalPropertyTypes
@@ -106,8 +97,7 @@ export async function processPluginStyles({
 
 		// Return cached result if the current styles have already been processed
 		// in a previous call to this function with the same config class name
-		// (this is useful because plugins tend to add the same styles for every block)
-		const cacheKey = `${resolverContext.configClassName}::${styles}`
+		const cacheKey = styles
 		const cachedStyles = processedStylesCache.get(cacheKey)
 		if (cachedStyles !== undefined) {
 			result.add(cachedStyles)
@@ -115,9 +105,8 @@ export async function processPluginStyles({
 		}
 
 		try {
-			// Parse the styles and attach processing data to the root node for use by plugins
-			const root = postcss.parse(`.${resolverContext.configClassName}{${styles}}`, postCssOptions)
-			processingData.set(root, { plugins, ...resolverContext })
+			// Parse the styles
+			const root = postcss.parse(`.${groupWrapperClassName}{${styles}}`, postCssOptions)
 
 			// Preprocess the parsed root node
 			const preprocessedStyles = await preprocessor.process(root, postCssOptions)

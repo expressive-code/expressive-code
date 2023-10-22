@@ -1,7 +1,6 @@
 import { coreStyleSettings } from '../common/core-styles'
 import { ExpressiveCodePlugin, ResolverContext } from '../common/plugin'
 import { StyleOverrides, ResolvedStyleSettingsByPath, StyleSettingPath, StyleValueOrValues, UnresolvedStyleValue } from '../common/plugin-style-settings'
-import { CssVarDeclarations } from '../common/style-variants'
 import { ExpressiveCodeTheme } from '../common/theme'
 
 /**
@@ -74,8 +73,8 @@ export function getCssVarDeclarations({
 	resolvedStyleSettings: ResolvedStyleSettingsByPath
 	plugins: readonly ExpressiveCodePlugin[]
 	cssVarName: ResolverContext['cssVarName']
-}): CssVarDeclarations {
-	const cssVarDeclarations: CssVarDeclarations = new Map()
+}): Map<string, string> {
+	const cssVarDeclarations = new Map<string, string>()
 	const excludedPaths = new Set<StyleSettingPath>()
 	plugins.forEach((plugin) => {
 		plugin.styleSettings?.cssVarExclusions.forEach((path) => excludedPaths.add(path))
