@@ -5,13 +5,13 @@ export interface FramesStyleSettings {
 	/**
 	 * The color to use for the shadow of the frame.
 	 * @default
-	 * ({ theme }) => theme.colors['widget.shadow'] || multiplyAlpha(coreStyles.borderColor, 0.75)
+	 * ({ theme, resolveSetting }) => theme.colors['widget.shadow'] || multiplyAlpha(resolveSetting('borderColor'), 0.75)
 	 */
 	shadowColor: string
 	/**
 	 * The CSS value for the box shadow of the frame.
 	 * @default
-	 * ({ resolveSetting }) => `0.1rem 0.1rem 0.2rem ${resolveSetting('shadowColor')}`
+	 * ({ resolveSetting }) => `0.1rem 0.1rem 0.2rem ${resolveSetting('frames.shadowColor')}`
 	 */
 	frameBoxShadowCssValue: string
 	/**
@@ -35,7 +35,7 @@ export interface FramesStyleSettings {
 	 * The height of the highlight border indicating the active editor tab.
 	 * This is the colorful line that appears at the top and/or bottom of the active tab.
 	 * @default
-	 * ({ coreStyles }) => coreStyles.borderWidth
+	 * ({ resolveSetting }) => resolveSetting('borderWidth')
 	 */
 	editorActiveTabHighlightHeight: string
 	/**
@@ -65,7 +65,7 @@ export interface FramesStyleSettings {
 	/**
 	 * The border radius to apply to the outer corners of editor tabs.
 	 * @default
-	 * ({ coreStyles }) => coreStyles.borderRadius
+	 * ({ resolveSetting }) => resolveSetting('borderRadius')
 	 */
 	editorTabBorderRadius: string
 	/**
@@ -77,7 +77,7 @@ export interface FramesStyleSettings {
 	/**
 	 * The border color of the editor tab bar.
 	 * @default
-	 * ({ coreStyles }) => coreStyles.borderColor
+	 * ({ resolveSetting }) => resolveSetting('borderColor')
 	 */
 	editorTabBarBorderColor: string
 	/**
@@ -90,13 +90,13 @@ export interface FramesStyleSettings {
 	 * The background color of the code editor.
 	 * This color is used for the "code" frame type.
 	 * @default
-	 * ({ coreStyles }) => coreStyles.codeBackground
+	 * ({ resolveSetting }) => resolveSetting('codeBackground')
 	 */
 	editorBackground: string
 	/**
 	 * The color of the three dots in the terminal title bar.
 	 * @default
-	 * ({ resolveSetting }) => resolveSetting('terminalTitlebarForeground')
+	 * ({ resolveSetting }) => resolveSetting('frames.terminalTitlebarForeground')
 	 */
 	terminalTitlebarDotsForeground: string
 	/**
@@ -119,9 +119,9 @@ export interface FramesStyleSettings {
 	/**
 	 * The color of the border between the terminal title bar and the terminal contents.
 	 * @default
-	 * ({ theme, coreStyles }) =>
+	 * ({ theme, resolveSetting }) =>
 	 *   theme.colors['titleBar.border'] ||
-	 *   onBackground(coreStyles.borderColor, theme.type === 'dark' ? '#000000bf' : '#ffffffbf')
+	 *   onBackground(resolveSetting('borderColor'), theme.type === 'dark' ? '#000000bf' : '#ffffffbf')
 	 */
 	terminalTitlebarBorderBottom: string
 	/**
@@ -137,7 +137,7 @@ export interface FramesStyleSettings {
 	 * {@link inlineButtonBackgroundIdleOpacity}, {@link inlineButtonBackgroundHoverOrFocusOpacity}
 	 * and {@link inlineButtonBackgroundActiveOpacity}.
 	 * @default
-	 * ({ resolveSetting }) => resolveSetting('inlineButtonForeground')
+	 * ({ resolveSetting }) => resolveSetting('frames.inlineButtonForeground')
 	 */
 	inlineButtonBackground: string
 	/**
@@ -158,13 +158,13 @@ export interface FramesStyleSettings {
 	/**
 	 * The foreground color of the copy button.
 	 * @default
-	 * ({ coreStyles }) => coreStyles.codeForeground
+	 * ({ resolveSetting }) => resolveSetting('codeForeground')
 	 */
 	inlineButtonForeground: string
 	/**
 	 * The border color of the copy button.
 	 * @default
-	 * ({ resolveSetting }) => resolveSetting('inlineButtonForeground')
+	 * ({ resolveSetting }) => resolveSetting('frames.inlineButtonForeground')
 	 */
 	inlineButtonBorder: string
 	/**

@@ -19,8 +19,7 @@ pnpm i one-more-package
 `.trim()
 
 describe('Allows removing comments from terminal window frames', () => {
-	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
-	themes.unshift(undefined)
+	const themes = testThemeNames.map(loadTestTheme)
 
 	test('Terminal comments are removed by default', async ({ meta: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({

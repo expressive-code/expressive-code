@@ -2,10 +2,11 @@ import { describe, expect, test } from 'vitest'
 import { sanitize } from 'hast-util-sanitize'
 import { toHtml } from 'hast-util-to-html'
 import githubDark from 'shiki/themes/github-dark.json'
+import githubLight from 'shiki/themes/github-light.json'
 import { WrapperAnnotation, getHookTestResult, getMultiPluginTestResult, nonArrayValues, nonObjectValues } from './utils'
 import { ExpressiveCodeEngine } from '../src/common/engine'
 import { ExpressiveCodeBlock } from '../src/common/block'
-import { StyleVariant } from '../src/common/style-types'
+import { StyleVariant } from '../src/common/style-variants'
 
 describe('ExpressiveCodeEngine', () => {
 	describe('render()', () => {
@@ -90,18 +91,23 @@ describe('ExpressiveCodeEngine', () => {
 			})
 		})
 		describe('Allows plugin hooks to access theme colors', () => {
-			test('Default theme (github-dark)', async () => {
+			test('Default themes (github-dark, github-light)', async () => {
 				let extractedStyleVariants: StyleVariant[] = []
 				await getHookTestResult('annotateCode', ({ styleVariants }) => {
 					extractedStyleVariants = styleVariants
 				})
-				expect(extractedStyleVariants).toHaveLength(1)
-				const extractedTheme = extractedStyleVariants[0].theme
-				if (!extractedTheme) throw new Error('Expected theme to be defined')
+				expect(extractedStyleVariants).toHaveLength(2)
+				const extractedDark = extractedStyleVariants[0].theme
+				const extractedLight = extractedStyleVariants[1].theme
+				if (!extractedDark) throw new Error('Expected dark theme to be defined')
+				if (!extractedLight) throw new Error('Expected light theme to be defined')
 
-				expect(extractedTheme.name).toEqual('github-dark')
-				expect(extractedTheme.colors['editor.foreground']).toEqual(githubDark.colors['editor.foreground'].toLowerCase())
-				expect(extractedTheme.colors['editor.background']).toEqual(githubDark.colors['editor.background'].toLowerCase())
+				expect(extractedDark.name).toEqual('github-dark')
+				expect(extractedDark.colors['editor.foreground']).toEqual(githubDark.colors['editor.foreground'].toLowerCase())
+				expect(extractedDark.colors['editor.background']).toEqual(githubDark.colors['editor.background'].toLowerCase())
+				expect(extractedLight.name).toEqual('github-light')
+				expect(extractedLight.colors['editor.foreground']).toEqual(githubLight.colors['editor.foreground'].toLowerCase())
+				expect(extractedLight.colors['editor.background']).toEqual(githubLight.colors['editor.background'].toLowerCase())
 			})
 		})
 	})
@@ -148,11 +154,11 @@ describe('ExpressiveCodeEngine', () => {
 						{
 							name: 'TestPlugin',
 							hooks: {},
-							jsModules: ({ styleVariants }) => [`console.log("${styleVariants.length}: ${styleVariants[0].theme.name}")`],
+							jsModules: ({ styleVariants }) => [`console.log("${styleVariants.length}: ${styleVariants.map((variant) => variant.theme.name).join(', ')}")`],
 						},
 					],
 				})
-				expect(await engine.getJsModules()).toEqual(['console.log("1: github-dark")'])
+				expect(await engine.getJsModules()).toEqual(['console.log("2: github-dark, github-light")'])
 			})
 		})
 		describe('Deduplicates JS modules', () => {

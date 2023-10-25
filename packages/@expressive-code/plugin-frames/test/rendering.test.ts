@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { Parent } from 'hast-util-to-html/lib/types'
 import { matches, select, selectAll } from 'hast-util-select'
-import { ExpressiveCodeEngine, ExpressiveCodeEngineConfig, ExpressiveCodeTheme } from '@expressive-code/core'
+import { ExpressiveCodeEngineConfig, ExpressiveCodeTheme, ResolvedStyleSettingsByPath } from '@expressive-code/core'
 import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures, parseCss, findDeclsBySelectorAndProperty } from '@internal/test-utils'
 import { pluginShiki, loadShikiTheme } from '@expressive-code/plugin-shiki'
 import { pluginFrames } from '../src'
@@ -16,15 +16,13 @@ pnpm i --save-dev expressive-code some-other-package yet-another-package
 `.trim()
 
 describe('Renders frames around the code', async () => {
-	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
+	const themes = testThemeNames.map(loadTestTheme)
 
 	// Add a few shiki themes
 	themes.unshift(await loadShikiTheme('nord'))
 	themes.unshift(await loadShikiTheme('dracula'))
 	themes.unshift(await loadShikiTheme('material-theme'))
 	themes.unshift(await loadShikiTheme('github-light'))
-	// Add the default theme
-	themes.unshift(undefined)
 
 	test('Single JS block without title', async ({ meta: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
@@ -123,10 +121,10 @@ ${exampleCode}
 			engineOptions: Partial<ExpressiveCodeEngineConfig>
 			expectedStyleMatches: ({
 				theme,
-				coreStyles,
+				resolvedStyleSettings,
 			}: {
 				theme: ExpressiveCodeTheme
-				coreStyles: ExpressiveCodeEngine['coreStyles']
+				resolvedStyleSettings: ResolvedStyleSettingsByPath
 			}) => { selector: string | RegExp; property: string | RegExp; value: string | RegExp }[]
 		}) => {
 			await renderAndOutputHtmlSnapshot({
@@ -148,16 +146,25 @@ ${exampleCode}
 							srTitlePresent: false,
 						})
 						const css = parseCss(baseStyles)
-						styleVariants.forEach(({ theme, coreStyles }) => {
-							expectedStyleMatches({ theme, coreStyles }).forEach((expectedStyleMatch) => {
+						styleVariants.forEach(({ theme, resolvedStyleSettings, cssVarDeclarations }) => {
+							expectedStyleMatches({ theme, resolvedStyleSettings }).forEach((expectedStyleMatch) => {
 								const { selector, property, value } = expectedStyleMatch
 								const decls = findDeclsBySelectorAndProperty(css, selector, property)
-								const declValueMatches = decls.filter((decl) => {
-									return value instanceof RegExp ? decl.value.match(value) : decl.value === value
+								const resolvedDeclValues = decls.map((decl) => {
+									let value = decl.value
+									cssVarDeclarations.forEach((cssVarValue, cssVarName) => {
+										value = value.replace(new RegExp(`var\\(${cssVarName}\\)`, 'g'), cssVarValue)
+									})
+									return value
+								})
+								const declValueMatches = resolvedDeclValues.filter((declValue) => {
+									return value instanceof RegExp ? declValue.match(value) : declValue === value
 								})
 								expect(
 									declValueMatches.length >= 1,
-									`Expected style did not match: selector=${selector.toString()}, property=${property.toString()}, value=${value.toString()}`
+									`Expected style did not match: selector=${selector.toString()}, property=${property.toString()}, value=${value.toString()}, resolvedDeclValues=${JSON.stringify(
+										resolvedDeclValues
+									)}`
 								).toBeTruthy()
 							})
 						})
@@ -192,13 +199,13 @@ ${exampleCode}
 						frames: {
 							editorTabBarBackground: 'transparent',
 							editorTabBarBorderColor: 'transparent',
-							editorTabBarBorderBottom: ({ coreStyles }) => coreStyles.borderColor,
-							editorActiveTabBorder: ({ coreStyles }) => coreStyles.borderColor,
+							editorTabBarBorderBottom: ({ resolveSetting }) => resolveSetting('borderColor'),
+							editorActiveTabBorder: ({ resolveSetting }) => resolveSetting('borderColor'),
 							shadowColor: 'transparent',
 						},
 					},
 				},
-				expectedStyleMatches: ({ coreStyles }) => [
+				expectedStyleMatches: ({ resolvedStyleSettings }) => [
 					// Validate editorTabBarBackground
 					{
 						selector: / .header$/,
@@ -209,7 +216,7 @@ ${exampleCode}
 					{
 						selector: / .header$/,
 						property: 'background',
-						value: new RegExp(`^linear-gradient\\(to top,\\s*${coreStyles.borderColor} `),
+						value: new RegExp(`^linear-gradient\\(to top,\\s*${resolvedStyleSettings.get('borderColor') ?? '-'} `),
 					},
 					// Validate shadowColor
 					{
@@ -237,8 +244,8 @@ ${exampleCode}
 						frames: {
 							editorTabBarBackground: 'transparent',
 							editorTabBarBorderColor: 'transparent',
-							editorTabBarBorderBottom: ({ coreStyles }) => coreStyles.borderColor,
-							editorActiveTabBorder: ({ coreStyles }) => coreStyles.borderColor,
+							editorTabBarBorderBottom: ({ resolveSetting }) => resolveSetting('borderColor'),
+							editorActiveTabBorder: ({ resolveSetting }) => resolveSetting('borderColor'),
 							shadowColor: 'transparent',
 						},
 					},
@@ -261,8 +268,7 @@ ${exampleCode}
 })
 
 describe('Differentiates between terminal and code editor frames', () => {
-	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
-	themes.unshift(undefined)
+	const themes = testThemeNames.map(loadTestTheme)
 
 	test('Renders a shell script with shebang as frame="code"', async ({ meta: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
@@ -311,8 +317,7 @@ ${exampleTerminalCode}
 })
 
 describe('Allows changing the frame type to "terminal" using meta information', () => {
-	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
-	themes.unshift(undefined)
+	const themes = testThemeNames.map(loadTestTheme)
 
 	test('Change JS block without title to frame="terminal"', async ({ meta: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
@@ -383,8 +388,7 @@ ${exampleTerminalCode}
 })
 
 describe('Allows changing the frame type to "code" using meta information', () => {
-	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
-	themes.unshift(undefined)
+	const themes = testThemeNames.map(loadTestTheme)
 
 	test('Change terminal block without title to frame="code"', async ({ meta: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
@@ -408,8 +412,7 @@ describe('Allows changing the frame type to "code" using meta information', () =
 })
 
 describe('Allows changing the frame type to "none" using meta information', () => {
-	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
-	themes.unshift(undefined)
+	const themes = testThemeNames.map(loadTestTheme)
 
 	test('Change JS block without title to frame="none"', async ({ meta: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({

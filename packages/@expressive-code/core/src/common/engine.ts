@@ -1,14 +1,14 @@
 import githubDark from 'shiki/themes/github-dark.json'
+import githubLight from 'shiki/themes/github-light.json'
 import { ExpressiveCodePlugin, ResolverContext } from './plugin'
 import { renderGroup, RenderInput, RenderOptions } from '../internal/render-group'
 import { ExpressiveCodeTheme } from './theme'
 import { PluginStyles, processPluginStyles } from '../internal/css'
-import { StyleSettings, getCoreBaseStyles } from './core-styles'
+import { getCoreBaseStyles } from './core-styles'
 import { StyleVariant, resolveStyleVariants } from './style-variants'
-import { StyleSettingPath } from './plugin-style-settings'
+import { StyleOverrides, StyleSettingPath } from './plugin-style-settings'
 
 export interface ExpressiveCodeEngineConfig {
-	// TODO: Actually add the array type to the theme option
 	/**
 	 * The color theme(s) that should be available for your code blocks.
 	 *
@@ -19,7 +19,7 @@ export interface ExpressiveCodeEngineConfig {
 	 *
 	 * Defaults to the `github-dark` and `github-light` themes.
 	 */
-	theme?: ExpressiveCodeTheme /*| ExpressiveCodeTheme[]*/ | undefined
+	themes?: ExpressiveCodeTheme | ExpressiveCodeTheme[] | undefined
 	// TODO: Implement this option
 	/**
 	 * Determines if CSS code should be generated that uses a `prefers-color-scheme` media query
@@ -29,11 +29,15 @@ export interface ExpressiveCodeEngineConfig {
 	 * (which is the default), and `false` otherwise.
 	 */
 	useDarkModeMediaQuery?: boolean | undefined
-	// TODO: Implement this option
 	/**
-	 * Allows to customize the selector used to scope theme-dependent CSS variables.
+	 * Allows to customize the selector used to switch between multiple themes.
 	 *
-	 * By default, Expressive Code uses the following selector to scope theme-dependent styles:
+	 * The first theme defined in the `themes` option is considered the "base theme", which
+	 * always generates a full set of CSS variables using the `:root` selector. This ensures
+	 * that all required CSS variables are globally available.
+	 *
+	 * For all alternate themes, Expressive Code uses the following default CSS selector to
+	 * override any CSS variables that differ from the base theme:
 	 * `:root[data-theme='${theme.name}'], .expressive-code[data-theme='${theme.name}']`
 	 *
 	 * This default selector allows you to switch between multiple themes on a global level
@@ -43,8 +47,11 @@ export interface ExpressiveCodeEngineConfig {
 	 *
 	 * If your site's theme switcher requires a different approach (e.g. if it uses class names
 	 * instead of a data attribute), you can customize the generated selectors using this option.
+	 *
+	 * If you want to prevent the generation of theme-specific CSS variables altogether,
+	 * you can set this to `false` or return it from the function.
 	 */
-	themeCssSelector?: ((theme: ExpressiveCodeTheme) => string) | undefined
+	themeCssSelector?: ((theme: ExpressiveCodeTheme) => string | false) | false | undefined
 	/**
 	 * This optional function is called once per theme during engine initialization
 	 * with the loaded theme as its only argument.
@@ -94,7 +101,7 @@ export interface ExpressiveCodeEngineConfig {
 	 * **Tip:** If your site uses CSS variables for styling, you can also use these overrides
 	 * to replace any core style with a CSS variable reference, e.g. `var(--your-css-var)`.
 	 */
-	styleOverrides?: Partial<StyleSettings> | undefined
+	styleOverrides?: StyleOverrides | undefined
 	/**
 	 * The locale that should be used for text content. Defaults to `en-US`.
 	 */
@@ -106,33 +113,34 @@ export interface ExpressiveCodeEngineConfig {
 	 * function as an object containing your desired property values.
 	 */
 	plugins?: (ExpressiveCodePlugin | ExpressiveCodePlugin[])[] | undefined
+
+	/**
+	 * @deprecated Please use the {@link themes} option instead.
+	 */
+	theme?: ExpressiveCodeTheme | undefined
 }
 
 export class ExpressiveCodeEngine {
 	constructor(config: ExpressiveCodeEngineConfig) {
-		config = { ...config }
-		if (!config.theme) config.theme = new ExpressiveCodeTheme(githubDark)
-		if (!config.defaultLocale) config.defaultLocale = 'en-US'
-		if (config.useThemedScrollbars === undefined) config.useThemedScrollbars = true
-		if (config.useThemedSelectionColors === undefined) config.useThemedSelectionColors = true
-		config.styleOverrides = { ...config.styleOverrides }
-		this.config = config
-		this.theme = config.theme
-		this.defaultLocale = config.defaultLocale
-		this.useThemedScrollbars = config.useThemedScrollbars
-		this.useThemedSelectionColors = config.useThemedSelectionColors
-		this.styleOverrides = config.styleOverrides
+		// Transfer deprecated `theme` option to `themes` without triggering the deprecation warning
+		const deprecatedConfig: ExpressiveCodeEngineConfig & { theme?: ExpressiveCodeTheme | undefined } = config
+		if (deprecatedConfig.theme && !config.themes) {
+			config.themes = deprecatedConfig.theme
+		}
+		this.themes = Array.isArray(config.themes) ? [...config.themes] : config.themes ? [config.themes] : [new ExpressiveCodeTheme(githubDark), new ExpressiveCodeTheme(githubLight)]
+		this.themeCssSelector = config.themeCssSelector ?? ((theme) => `:root[data-theme='${theme.name}'], .expressive-code[data-theme='${theme.name}']`)
+		this.useThemedScrollbars = config.useThemedScrollbars ?? true
+		this.useThemedSelectionColors = config.useThemedSelectionColors ?? true
+		this.styleOverrides = { ...config.styleOverrides }
+		this.defaultLocale = config.defaultLocale || 'en-US'
 		this.plugins = config.plugins?.flat() || []
 
-		// Allow customizing the loaded theme
-		if (config.customizeTheme) {
-			const newTheme = config.customizeTheme(this.theme)
-			if (newTheme) this.theme = newTheme
-		}
+		// Allow customizing the loaded themes
+		this.themes = this.themes.map((theme) => (config.customizeTheme && config.customizeTheme(theme)) || theme)
 
-		// Resolve core styles based on the theme and style overrides
+		// Resolve core styles based on the themes and style overrides
 		this.styleVariants = resolveStyleVariants({
-			themes: [this.theme],
+			themes: this.themes,
 			styleOverrides: this.styleOverrides,
 			plugins: this.plugins,
 			cssVarName: (styleSetting) => this.cssVarName(styleSetting),
@@ -158,7 +166,7 @@ export class ExpressiveCodeEngine {
 	 * The calling code must take care of actually adding the returned styles to the page.
 	 *
 	 * Please note that the styles contain references to CSS variables, which must also
-	 * be added to the page. These can be obtained by calling `getCssVars`.
+	 * be added to the page. These can be obtained by calling {@link getThemeStyles}.
 	 */
 	async getBaseStyles(): Promise<string> {
 		const pluginStyles: PluginStyles[] = []
@@ -191,17 +199,43 @@ export class ExpressiveCodeEngine {
 		return [...processedStyles].join('')
 	}
 
-	getCssVars(): string {
-		// Generate CSS variable declarations for all the resolved settings, using the first theme
-		// as a base and then wrapping the differences between the base values and the other
-		// variants into a user-configurable selector (e.g. a preferred color scheme media query,
-		// or an `ec-theme` data property on any element)
-		this.styleVariants.forEach((styleVariant) => {
-			styleVariant.cssVarDeclarations.forEach((varValue, varName) => {
-				// ...
+	/**
+	 * Returns a string containing theme-dependent styles that should be added to every page
+	 * using Expressive Code. These styles contain CSS variable declarations that are generated
+	 * automatically based on the configured {@link ExpressiveCodeEngineConfig.themes themes},
+	 * {@link ExpressiveCodeEngineConfig.useDarkModeMediaQuery useDarkModeMediaQuery} and
+	 * {@link ExpressiveCodeEngineConfig.themeCssSelector themeCssSelector} config options.
+	 *
+	 * The calling code must take care of actually adding the returned styles to the page.
+	 *
+	 * Please note that these styles must be added to the page together with the base styles
+	 * returned by {@link getBaseStyles}.
+	 */
+	getThemeStyles(): string {
+		const styles: string[] = []
+		const renderDeclarations = (declarations: Map<string, string>) => [...declarations].map(([varName, varValue]) => `${varName}:${varValue}`).join(';')
+
+		// Generate CSS variables for the first theme (the "base theme")
+		const baseVars = this.styleVariants[0].cssVarDeclarations
+		styles.push(`:root{${renderDeclarations(baseVars)}}`)
+
+		if (this.themeCssSelector !== false) {
+			this.styleVariants.forEach((styleVariant) => {
+				const themeSelector = this.themeCssSelector && this.themeCssSelector(styleVariant.theme)
+				if (!themeSelector) return
+
+				const diffVars = new Map<string, string>()
+				styleVariant.cssVarDeclarations.forEach((varValue, varName) => {
+					if (baseVars.get(varName) !== varValue) {
+						diffVars.set(varName, varValue)
+					}
+				})
+				if (!diffVars.size) return
+
+				styles.push(`\n\n${themeSelector}{${renderDeclarations(diffVars)}}`)
 			})
-		})
-		return ''
+		}
+		return styles.join('')
 	}
 
 	/**
@@ -244,10 +278,10 @@ export class ExpressiveCodeEngine {
 		}
 	}
 
-	readonly config: ExpressiveCodeEngineConfig
-	readonly styleOverrides: Partial<StyleSettings>
+	readonly themes: ExpressiveCodeTheme[]
+	readonly themeCssSelector: NonNullable<ExpressiveCodeEngineConfig['themeCssSelector']>
+	readonly styleOverrides: StyleOverrides
 	readonly styleVariants: StyleVariant[]
-	readonly theme: ExpressiveCodeTheme
 	readonly defaultLocale: string
 	readonly useThemedScrollbars: boolean
 	readonly useThemedSelectionColors: boolean

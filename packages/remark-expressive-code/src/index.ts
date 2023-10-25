@@ -151,7 +151,7 @@ export async function createRenderer(options: SingleThemeRemarkExpressiveCodeOpt
 	const mustLoadTheme = theme !== undefined && !(theme instanceof ExpressiveCodeTheme)
 	const optLoadedTheme = mustLoadTheme ? new ExpressiveCodeTheme(typeof theme === 'string' ? await loadShikiTheme(theme) : theme) : theme
 	const ec = new ExpressiveCode({
-		theme: optLoadedTheme,
+		themes: optLoadedTheme,
 		...ecOptions,
 	})
 	const baseStyles = await ec.getBaseStyles()

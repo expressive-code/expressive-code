@@ -235,7 +235,7 @@ describe('ExpressiveCodeTheme', () => {
 
 			// Expect background colors to be adjusted
 			// - Original github-dark color: #24292e
-			expect(engine.theme.colors['editor.background']).toBe('#04255a')
+			expect(engine.themes[0].colors['editor.background']).toBe('#04255a')
 
 			// Also expect resolved core styles to have picked up the adjusted colors
 			expect(engine.styleVariants[0].resolvedStyleSettings.get('codeBackground')).toBe('#04255a')
@@ -249,19 +249,17 @@ describe('ExpressiveCodeTheme', () => {
 			theme.styleOverrides.uiFontFamily = 'MyUiTestFont'
 
 			const engine = new ExpressiveCodeEngine({
-				theme,
+				themes: theme,
 			})
 
 			// Expect the resolved core styles to contain the new values
 			expect(engine.styleVariants[0].resolvedStyleSettings.get('codeBackground')).toBe('var(--test-code-bg)')
 			expect(engine.styleVariants[0].resolvedStyleSettings.get('uiFontFamily')).toBe('MyUiTestFont')
 
-			// Expect the base styles to contain the new values
-			// TODO: Develop an API that allows retrieving the CSS variable declarations from the engine,
-			// separately from the static base styles.
-			const baseStyles = await engine.getBaseStyles()
-			expect(baseStyles).toContain('var(--test-code-bg)')
-			expect(baseStyles).toMatch(/font-family:\s*MyUiTestFont/)
+			// Expect the theme-dependent styles to contain the new values
+			const themeStyles = engine.getThemeStyles()
+			expect(themeStyles).toContain('var(--test-code-bg)')
+			expect(themeStyles).toContain('MyUiTestFont')
 		})
 		test('Theme styleOverrides take precedence over global styleOverrides', async () => {
 			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('themes/github-dark.json'))
@@ -269,7 +267,7 @@ describe('ExpressiveCodeTheme', () => {
 			theme.styleOverrides.uiFontFamily = 'MyThemeProvidedFont'
 
 			const engine = new ExpressiveCodeEngine({
-				theme,
+				themes: theme,
 				styleOverrides: {
 					codeBackground: '#123456',
 					uiFontFamily: 'ThisFontShouldBeOverwritten',
@@ -280,12 +278,10 @@ describe('ExpressiveCodeTheme', () => {
 			expect(engine.styleVariants[0].resolvedStyleSettings.get('codeBackground')).toBe('#fedcba98')
 			expect(engine.styleVariants[0].resolvedStyleSettings.get('uiFontFamily')).toBe('MyThemeProvidedFont')
 
-			// Expect the base styles to contain the new values
-			// TODO: Develop an API that allows retrieving the CSS variable declarations from the engine,
-			// separately from the static base styles.
-			const baseStyles = await engine.getBaseStyles()
-			expect(baseStyles).toContain('#fedcba98')
-			expect(baseStyles).toMatch(/font-family:\s*MyThemeProvidedFont/)
+			// Expect the theme-dependent styles to contain the new values
+			const themeStyles = engine.getThemeStyles()
+			expect(themeStyles).toContain('#fedcba98')
+			expect(themeStyles).toContain('MyThemeProvidedFont')
 		})
 	})
 })

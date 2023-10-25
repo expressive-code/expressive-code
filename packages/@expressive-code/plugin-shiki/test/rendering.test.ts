@@ -1,6 +1,5 @@
 import { describe, test, expect } from 'vitest'
 import { toHtml } from 'hast-util-to-html'
-import { ExpressiveCodeTheme } from '@expressive-code/core'
 import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures } from '@internal/test-utils'
 // import dracula from 'shiki/themes/dracula.json'
 import { loadShikiTheme, pluginShiki } from '../src'
@@ -103,15 +102,13 @@ const ansiTestCode = `
 const ansiEscapeCode = /\u001b\[\d+m/gu
 
 describe('Renders syntax highlighting', async () => {
-	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
+	const themes = testThemeNames.map(loadTestTheme)
 
 	// Add a few shiki themes
 	themes.unshift(await loadShikiTheme('nord'))
 	themes.unshift(await loadShikiTheme('dracula'))
 	themes.unshift(await loadShikiTheme('material-theme'))
 	themes.unshift(await loadShikiTheme('github-light'))
-	// Add the default theme
-	themes.unshift(undefined)
 
 	test(
 		'Supports themes in JS code',

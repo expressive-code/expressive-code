@@ -1,5 +1,4 @@
 import { describe, test, expect } from 'vitest'
-import { ExpressiveCodeTheme } from '@expressive-code/core'
 import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures, TestFixture } from '@internal/test-utils'
 import { pluginShiki } from '@expressive-code/plugin-shiki'
 import { pluginTextMarkers } from '@expressive-code/plugin-text-markers'
@@ -21,8 +20,7 @@ export default defineConfig({
 `.trim()
 
 describe('Renders collapsed sections', () => {
-	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
-	themes.unshift(undefined)
+	const themes = testThemeNames.map(loadTestTheme)
 
 	describe('Collapsed lines', () => {
 		test(`Collapses the expected lines`, async ({ meta: { name: testName } }) => {

@@ -28,15 +28,13 @@ const { greeting = "Hello", name = "Astronaut" } = Astro.props;
 `.trim()
 
 describe('Renders text markers', async () => {
-	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
+	const themes = testThemeNames.map(loadTestTheme)
 
 	// Add a few shiki themes
 	themes.unshift(await loadShikiTheme('nord'))
 	themes.unshift(await loadShikiTheme('dracula'))
 	themes.unshift(await loadShikiTheme('material-theme'))
 	themes.unshift(await loadShikiTheme('github-light'))
-	// Add the default theme
-	themes.unshift(undefined)
 
 	describe('Line-level markers', () => {
 		test(`Marks the expected lines`, async ({ meta: { name: testName } }) => {
@@ -111,7 +109,7 @@ describe('Renders text markers', async () => {
 				const meta = `${types[0]}="x" ${types[1]}="y" ${types[2]}="z"`
 				return {
 					fixtureName: `Order: ${types.join(', ')}`,
-					theme: themes[0],
+					themes: themes[0],
 					code: `# ${meta}\nxyz\nx y z\nxxyyzz`,
 					language: 'md',
 					meta,
