@@ -33,7 +33,7 @@ async function renderFixture({ fixtureName, code, language = 'js', meta = '', th
 		...engineOptions,
 	})
 	const baseStyles = await engine.getBaseStyles()
-	const themeStyles = engine.getThemeStyles()
+	const themeStyles = await engine.getThemeStyles()
 	const jsModules = await engine.getJsModules()
 	const { renderedGroupAst, styles } = await engine.render({
 		code,

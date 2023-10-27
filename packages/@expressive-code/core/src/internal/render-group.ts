@@ -104,10 +104,7 @@ export async function renderGroup({
 	return {
 		renderedGroupAst: addWrapperAroundGroupAst({ groupAst: groupRenderData.groupAst }),
 		renderedGroupContents,
-		styles: await processPluginStyles({
-			pluginStyles,
-			plugins,
-		}),
+		styles: await processPluginStyles(pluginStyles),
 	}
 }
 

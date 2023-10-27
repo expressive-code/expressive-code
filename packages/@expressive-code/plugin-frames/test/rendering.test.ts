@@ -2,8 +2,8 @@ import { describe, expect, test } from 'vitest'
 import { Parent } from 'hast-util-to-html/lib/types'
 import { matches, select, selectAll } from 'hast-util-select'
 import { ExpressiveCodeEngineConfig, ExpressiveCodeTheme, ResolvedStyleSettingsByPath } from '@expressive-code/core'
-import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures, parseCss, findDeclsBySelectorAndProperty } from '@internal/test-utils'
-import { pluginShiki, loadShikiTheme } from '@expressive-code/plugin-shiki'
+import { renderAndOutputHtmlSnapshot, buildThemeFixtures, parseCss, findDeclsBySelectorAndProperty, loadTestThemes } from '@internal/test-utils'
+import { pluginShiki } from '@expressive-code/plugin-shiki'
 import { pluginFrames } from '../src'
 
 const exampleCode = `
@@ -16,13 +16,7 @@ pnpm i --save-dev expressive-code some-other-package yet-another-package
 `.trim()
 
 describe('Renders frames around the code', async () => {
-	const themes = testThemeNames.map(loadTestTheme)
-
-	// Add a few shiki themes
-	themes.unshift(await loadShikiTheme('nord'))
-	themes.unshift(await loadShikiTheme('dracula'))
-	themes.unshift(await loadShikiTheme('material-theme'))
-	themes.unshift(await loadShikiTheme('github-light'))
+	const themes = await loadTestThemes()
 
 	test('Single JS block without title', async ({ meta: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
@@ -267,8 +261,8 @@ ${exampleCode}
 	})
 })
 
-describe('Differentiates between terminal and code editor frames', () => {
-	const themes = testThemeNames.map(loadTestTheme)
+describe('Differentiates between terminal and code editor frames', async () => {
+	const themes = await loadTestThemes()
 
 	test('Renders a shell script with shebang as frame="code"', async ({ meta: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
@@ -316,8 +310,8 @@ ${exampleTerminalCode}
 	})
 })
 
-describe('Allows changing the frame type to "terminal" using meta information', () => {
-	const themes = testThemeNames.map(loadTestTheme)
+describe('Allows changing the frame type to "terminal" using meta information', async () => {
+	const themes = await loadTestThemes()
 
 	test('Change JS block without title to frame="terminal"', async ({ meta: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
@@ -387,8 +381,8 @@ ${exampleTerminalCode}
 	})
 })
 
-describe('Allows changing the frame type to "code" using meta information', () => {
-	const themes = testThemeNames.map(loadTestTheme)
+describe('Allows changing the frame type to "code" using meta information', async () => {
+	const themes = await loadTestThemes()
 
 	test('Change terminal block without title to frame="code"', async ({ meta: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
@@ -411,8 +405,8 @@ describe('Allows changing the frame type to "code" using meta information', () =
 	})
 })
 
-describe('Allows changing the frame type to "none" using meta information', () => {
-	const themes = testThemeNames.map(loadTestTheme)
+describe('Allows changing the frame type to "none" using meta information', async () => {
+	const themes = await loadTestThemes()
 
 	test('Change JS block without title to frame="none"', async ({ meta: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({

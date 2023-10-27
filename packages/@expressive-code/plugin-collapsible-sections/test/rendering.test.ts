@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest'
-import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures, TestFixture } from '@internal/test-utils'
+import { renderAndOutputHtmlSnapshot, buildThemeFixtures, TestFixture, loadTestThemes } from '@internal/test-utils'
 import { pluginShiki } from '@expressive-code/plugin-shiki'
 import { pluginTextMarkers } from '@expressive-code/plugin-text-markers'
 import { select } from 'hast-util-select'
@@ -19,8 +19,8 @@ export default defineConfig({
 });
 `.trim()
 
-describe('Renders collapsed sections', () => {
-	const themes = testThemeNames.map(loadTestTheme)
+describe('Renders collapsed sections', async () => {
+	const themes = await loadTestThemes()
 
 	describe('Collapsed lines', () => {
 		test(`Collapses the expected lines`, async ({ meta: { name: testName } }) => {

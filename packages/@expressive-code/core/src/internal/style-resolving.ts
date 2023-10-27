@@ -1,4 +1,4 @@
-import { coreStyleSettings } from '../common/core-styles'
+import { coreStyleSettings } from './core-styles'
 import { ExpressiveCodePlugin, ResolverContext } from '../common/plugin'
 import { StyleOverrides, ResolvedStyleSettingsByPath, StyleSettingPath, StyleValueOrValues, UnresolvedStyleValue } from '../common/plugin-style-settings'
 import { ExpressiveCodeTheme } from '../common/theme'
@@ -10,16 +10,18 @@ import { ExpressiveCodeTheme } from '../common/theme'
  */
 export function resolveStyleSettings({
 	theme,
+	styleVariantIndex,
 	plugins,
 	styleOverrides,
 }: {
 	theme: ExpressiveCodeTheme
+	styleVariantIndex: number
 	plugins: readonly ExpressiveCodePlugin[]
 	styleOverrides: StyleOverrides | undefined
 }): ResolvedStyleSettingsByPath {
 	const attemptedToResolve = new Set<StyleSettingPath>()
 	const resolvedByPath: ResolvedStyleSettingsByPath = new Map()
-	const resolverArgs = { theme, resolveSetting }
+	const resolverArgs = { theme, styleVariantIndex, resolveSetting }
 
 	// Start by mapping all core setting paths to their default values
 	const unresolvedByPath = getStyleSettingsByPath(coreStyleSettings.defaultValues)

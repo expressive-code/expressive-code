@@ -1,6 +1,7 @@
 import { lighten, ensureColorContrastOnBackground } from '../helpers/color-transforms'
-import { ResolverContext } from './plugin'
-import { PluginStyleSettings, UnresolvedStyleSettings } from './plugin-style-settings'
+import { ResolverContext } from '../common/plugin'
+import { PluginStyleSettings } from '../common/plugin-style-settings'
+import { UnresolvedStyleSettings, codeLineClass } from '../common/style-settings'
 
 export interface CoreStyleSettings {
 	/**
@@ -138,9 +139,6 @@ export interface CoreStyleSettings {
 	scrollbarThumbHoverColor: string
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface StyleSettings extends CoreStyleSettings {}
-
 export const coreStyleSettings = new PluginStyleSettings({
 	defaultValues: {
 		// Outer container
@@ -188,8 +186,6 @@ export const coreStyleSettings = new PluginStyleSettings({
 			ensureColorContrastOnBackground(theme.colors['scrollbarSlider.hoverBackground'], resolveSetting('codeBackground'), 2.5, 3.5),
 	} satisfies UnresolvedStyleSettings,
 })
-
-export const codeLineClass = 'ec-line'
 
 export function getCoreBaseStyles({
 	cssVar,
@@ -298,6 +294,18 @@ export function getCoreBaseStyles({
 			clip: rect(0, 0, 0, 0);
 			white-space: nowrap;
 			border-width: 0;							
+		}
+	`
+}
+
+export function getCoreThemeStyles(styleVariantIndex: number) {
+	return `
+		/* Theme-dependent styles for InlineStyleAnnotation */
+		.is {
+			color: var(--${styleVariantIndex}, inherit);
+			font-style: var(--${styleVariantIndex}fs, inherit);
+			font-weight: var(--${styleVariantIndex}fw, inherit);
+			text-decoration: var(--${styleVariantIndex}td, inherit);
 		}
 	`
 }

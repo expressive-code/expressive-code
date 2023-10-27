@@ -1,12 +1,13 @@
 import { expect } from 'vitest'
 import { h } from 'hastscript'
+import { Element } from 'hast-util-to-html/lib/types'
 import { AnnotationBaseOptions, AnnotationRenderOptions, AnnotationRenderPhase, ExpressiveCodeAnnotation } from '../src/common/annotation'
 import { ExpressiveCodeLine } from '../src/common/line'
 import { ExpressiveCodeBlockOptions } from '../src/common/block'
 import { ExpressiveCodeEngine } from '../src/common/engine'
 import { ExpressiveCodePlugin } from '../src/common/plugin'
 import { ExpressiveCodePluginHookName, ExpressiveCodeHook, ExpressiveCodePluginHooks } from '../src/common/plugin-hooks'
-import { addClass } from '../src/helpers/ast-transforms'
+import { addClassName } from '../src/helpers/ast'
 
 const nothings = [undefined, null, NaN]
 const booleans = [true, false]
@@ -90,7 +91,7 @@ export class ClassNameAnnotation extends ExpressiveCodeAnnotation {
 		this.addClass = addClass
 	}
 	render({ nodesToTransform }: AnnotationRenderOptions) {
-		nodesToTransform.forEach((node) => addClass(node, this.addClass))
+		nodesToTransform.forEach((node) => addClassName(node as Element, this.addClass))
 		return nodesToTransform
 	}
 }

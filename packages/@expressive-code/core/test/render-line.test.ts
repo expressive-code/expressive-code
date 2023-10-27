@@ -4,7 +4,7 @@ import { h } from 'hastscript'
 import { ExpressiveCodeLine } from '../src/common/line'
 import { renderLineToAst, splitLineAtAnnotationBoundaries } from '../src/internal/render-line'
 import { ClassNameAnnotation, WrapperAnnotation, annotateMatchingTextParts, getAnnotatedTextParts, nonArrayValues, nonObjectValues } from './utils'
-import { codeLineClass } from '../src/common/core-styles'
+import { codeLineClass } from '../src/common/style-settings'
 import { AnnotationBaseOptions, AnnotationRenderOptions, ExpressiveCodeAnnotation } from '../src/common/annotation'
 import { Parent } from 'hast-util-to-html/lib/types'
 

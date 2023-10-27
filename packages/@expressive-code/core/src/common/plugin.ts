@@ -1,5 +1,6 @@
 import { ExpressiveCodePluginHooks } from './plugin-hooks'
-import { PluginStyleSettings, StyleSettingPath } from './plugin-style-settings'
+import { PluginStyleSettings } from './plugin-style-settings'
+import { StyleSettingPath } from './style-settings'
 import { StyleVariant } from './style-variants'
 
 export interface ExpressiveCodePlugin {

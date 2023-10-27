@@ -30,10 +30,6 @@ export function pluginShiki(): ExpressiveCodePlugin {
 		name: 'Shiki',
 		hooks: {
 			performSyntaxAnalysis: async ({ codeBlock, styleVariants }) => {
-				// TODO: Make this work with multiple style variants
-				const theme = styleVariants[0].theme
-				const cacheKey = getThemeCacheKey(theme)
-				const highlighter = await getCachedHighlighter({ theme, cacheKey })
 				const codeLines = codeBlock.getLines()
 				let code = codeBlock.code
 
@@ -46,35 +42,42 @@ export function pluginShiki(): ExpressiveCodePlugin {
 					code = code.replace(/<([^>]*[^>\s])>/g, 'X$1X')
 				}
 
-				// Run Shiki on the code (without explanations to improve performance)
-				const tokenLines =
-					codeBlock.language === 'ansi'
-						? highlighter.ansiToThemedTokens(code, cacheKey)
-						: highlighter.codeToThemedTokens(code, codeBlock.language, cacheKey, { includeExplanation: false })
+				for (let styleVariantIndex = 0; styleVariantIndex < styleVariants.length; styleVariantIndex++) {
+					const theme = styleVariants[styleVariantIndex].theme
+					const cacheKey = getThemeCacheKey(theme)
+					const highlighter = await getCachedHighlighter({ theme, cacheKey })
 
-				tokenLines.forEach((line, lineIndex) => {
-					if (codeBlock.language === 'ansi') removeAnsiSequencesFromCodeLine(codeLines[lineIndex], line)
+					// Run Shiki on the code (without explanations to improve performance)
+					const tokenLines =
+						codeBlock.language === 'ansi'
+							? highlighter.ansiToThemedTokens(code, cacheKey)
+							: highlighter.codeToThemedTokens(code, codeBlock.language, cacheKey, { includeExplanation: false })
 
-					let charIndex = 0
-					line.forEach((token) => {
-						const tokenLength = token.content.length
-						const tokenEndIndex = charIndex + tokenLength
-						const fontStyle = token.fontStyle || FontStyle.None
-						codeLines[lineIndex].addAnnotation(
-							new InlineStyleAnnotation({
-								color: token.color || theme.fg,
-								italic: (fontStyle & FontStyle.Italic) === FontStyle.Italic,
-								bold: (fontStyle & FontStyle.Bold) === FontStyle.Bold,
-								underline: (fontStyle & FontStyle.Underline) === FontStyle.Underline,
-								inlineRange: {
-									columnStart: charIndex,
-									columnEnd: tokenEndIndex,
-								},
-							})
-						)
-						charIndex = tokenEndIndex
+					tokenLines.forEach((line, lineIndex) => {
+						if (codeBlock.language === 'ansi' && styleVariantIndex === 0) removeAnsiSequencesFromCodeLine(codeLines[lineIndex], line)
+
+						let charIndex = 0
+						line.forEach((token) => {
+							const tokenLength = token.content.length
+							const tokenEndIndex = charIndex + tokenLength
+							const fontStyle = token.fontStyle || FontStyle.None
+							codeLines[lineIndex].addAnnotation(
+								new InlineStyleAnnotation({
+									styleVariantIndex,
+									color: token.color || theme.fg,
+									italic: (fontStyle & FontStyle.Italic) === FontStyle.Italic,
+									bold: (fontStyle & FontStyle.Bold) === FontStyle.Bold,
+									underline: (fontStyle & FontStyle.Underline) === FontStyle.Underline,
+									inlineRange: {
+										columnStart: charIndex,
+										columnEnd: tokenEndIndex,
+									},
+								})
+							)
+							charIndex = tokenEndIndex
+						})
 					})
-				})
+				}
 			},
 		},
 	}

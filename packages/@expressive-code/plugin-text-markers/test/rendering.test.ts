@@ -1,9 +1,9 @@
 import { describe, test, expect } from 'vitest'
 import { selectAll } from 'hast-util-select'
 import { toText } from 'hast-util-to-text'
-import { AnnotationRenderPhase, ExpressiveCodePlugin, ExpressiveCodeTheme, InlineStyleAnnotation } from '@expressive-code/core'
-import { pluginShiki, loadShikiTheme } from '@expressive-code/plugin-shiki'
-import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures, TestFixture } from '@internal/test-utils'
+import { AnnotationRenderPhase, ExpressiveCodePlugin, InlineStyleAnnotation, getClassNames } from '@expressive-code/core'
+import { pluginShiki } from '@expressive-code/plugin-shiki'
+import { renderAndOutputHtmlSnapshot, buildThemeFixtures, TestFixture, loadTestThemes } from '@internal/test-utils'
 import { pluginTextMarkers } from '../src'
 import { MarkerType, MarkerTypeOrder } from '../src/marker-types'
 import { actualDiff, indentedJsCodeWithDiffMarkers, jsCodeWithDiffMarkers } from './data/diff-examples'
@@ -28,13 +28,7 @@ const { greeting = "Hello", name = "Astronaut" } = Astro.props;
 `.trim()
 
 describe('Renders text markers', async () => {
-	const themes = testThemeNames.map(loadTestTheme)
-
-	// Add a few shiki themes
-	themes.unshift(await loadShikiTheme('nord'))
-	themes.unshift(await loadShikiTheme('dracula'))
-	themes.unshift(await loadShikiTheme('material-theme'))
-	themes.unshift(await loadShikiTheme('github-light'))
+	const themes = await loadTestThemes()
 
 	describe('Line-level markers', () => {
 		test(`Marks the expected lines`, async ({ meta: { name: testName } }) => {
@@ -217,7 +211,7 @@ describe('Renders text markers', async () => {
 								const text = toText(highlight)
 								return {
 									text,
-									color: highlight.properties?.style?.toString().match(/color:(#.*?)(;|$)/)?.[1],
+									color: highlight.properties?.style?.toString().match(/--0:(#.*?)(;|$)/)?.[1],
 								}
 							})
 							const typeColorIdx = actual.styleVariants[0].theme.type === 'dark' ? 0 : 1
@@ -275,7 +269,7 @@ describe('Renders text markers', async () => {
 								const text = toText(highlight)
 								return {
 									text,
-									color: highlight.properties?.style?.toString().match(/color:(#.*?)(;|$)/)?.[1],
+									color: highlight.properties?.style?.toString().match(/--0:(#.*?)(;|$)/)?.[1],
 								}
 							})
 							const typeColorIdx = actual.styleVariants[0].theme.type === 'dark' ? 0 : 1
@@ -584,7 +578,7 @@ function buildMarkerValidationFn(
 		const actualMarkers = matchingElements.map((marker) => {
 			let text = toText(marker, { whitespace: 'pre' })
 			if (text === '\n') text = ''
-			const classNames = marker.properties?.className?.toString().split(' ') || []
+			const classNames = getClassNames(marker)
 			if (MarkerTypeOrder.includes(marker.tagName as MarkerType)) {
 				return {
 					fullLine: false,
@@ -631,22 +625,23 @@ function pseudoSyntaxHighlighter(options: { highlights: { text: string; colors: 
 		name: 'Pseudo Syntax Highlighter',
 		hooks: {
 			performSyntaxAnalysis: ({ codeBlock, styleVariants }) => {
-				// TODO: Add multiple style variant support
-				const theme = styleVariants[0].theme
 				codeBlock.getLines().forEach((line) => {
 					options.highlights.forEach(({ text, colors: [dark, light] }) => {
 						let idx = line.text.indexOf(text, 0)
 						while (idx > -1) {
-							line.addAnnotation(
-								new InlineStyleAnnotation({
-									color: theme.type === 'dark' ? dark : light,
-									inlineRange: {
-										columnStart: idx,
-										columnEnd: idx + text.length,
-									},
-									renderPhase: options.renderPhase || 'normal',
-								})
-							)
+							styleVariants.forEach(({ theme }, styleVariantIndex) => {
+								line.addAnnotation(
+									new InlineStyleAnnotation({
+										styleVariantIndex,
+										color: theme.type === 'dark' ? dark : light,
+										inlineRange: {
+											columnStart: idx,
+											columnEnd: idx + text.length,
+										},
+										renderPhase: options.renderPhase || 'normal',
+									})
+								)
+							})
 							idx = line.text.indexOf(text, idx + text.length)
 						}
 					})

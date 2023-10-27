@@ -1,5 +1,6 @@
-import { addClass, ExpressiveCodeAnnotation, AnnotationBaseOptions, AnnotationRenderOptions } from '@expressive-code/core'
+import { addClassName, ExpressiveCodeAnnotation, AnnotationBaseOptions, AnnotationRenderOptions } from '@expressive-code/core'
 import { h } from 'hastscript'
+import { Element } from 'hast-util-select/lib/types'
 import { MarkerType } from './marker-types'
 
 export class TextMarkerAnnotation extends ExpressiveCodeAnnotation {
@@ -21,7 +22,7 @@ export class TextMarkerAnnotation extends ExpressiveCodeAnnotation {
 		return nodesToTransform.map((node) => {
 			node.data = node.data || {}
 			node.data.textMarkersBackgroundColor = this.backgroundColor
-			addClass(node, this.markerType)
+			addClassName(node as Element, this.markerType)
 			return node
 		})
 	}
@@ -33,10 +34,10 @@ export class TextMarkerAnnotation extends ExpressiveCodeAnnotation {
 			transformedNode.data.textMarkersBackgroundColor = this.backgroundColor
 
 			if (nodesToTransform.length > 0 && idx > 0) {
-				addClass(transformedNode, 'open-start')
+				addClassName(transformedNode, 'open-start')
 			}
 			if (nodesToTransform.length > 0 && idx < nodesToTransform.length - 1) {
-				addClass(transformedNode, 'open-end')
+				addClassName(transformedNode, 'open-end')
 			}
 			return transformedNode
 		})

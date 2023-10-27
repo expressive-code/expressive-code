@@ -2,7 +2,7 @@ import { Parent } from 'hast-util-to-html/lib/types'
 import { h } from 'hastscript'
 import { ExpressiveCodeLine } from '../common/line'
 import { annotationSortFn, ExpressiveCodeAnnotation } from '../common/annotation'
-import { codeLineClass } from '../common/core-styles'
+import { codeLineClass } from '../common/style-settings'
 
 export function splitLineAtAnnotationBoundaries(line: ExpressiveCodeLine) {
 	const textParts: string[] = []

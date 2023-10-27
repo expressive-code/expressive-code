@@ -1,8 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { Parent } from 'hast-util-to-html/lib/types'
 import { select } from 'hast-util-select'
-import { ExpressiveCodeTheme } from '@expressive-code/core'
-import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures } from '@internal/test-utils'
+import { renderAndOutputHtmlSnapshot, buildThemeFixtures, loadTestThemes } from '@internal/test-utils'
 import { pluginFrames } from '../src'
 
 const exampleTerminalCode = `
@@ -18,8 +17,8 @@ pnpm i --save-dev expressive-code some-other-package yet-another-package
 pnpm i one-more-package
 `.trim()
 
-describe('Allows removing comments from terminal window frames', () => {
-	const themes = testThemeNames.map(loadTestTheme)
+describe('Allows removing comments from terminal window frames', async () => {
+	const themes = await loadTestThemes()
 
 	test('Terminal comments are removed by default', async ({ meta: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({

@@ -2,6 +2,7 @@ import { Parent } from 'hast-util-to-html/lib/types'
 import { isNumber, newTypeError } from '../internal/type-checks'
 import { ExpressiveCodeLine } from './line'
 import { h } from 'hastscript'
+import { getClassNames, setProperty } from '../helpers/ast'
 
 export type ExpressiveCodeInlineRange = {
 	columnStart: number
@@ -64,20 +65,41 @@ export abstract class ExpressiveCodeAnnotation {
 	readonly renderPhase: AnnotationRenderPhase | undefined
 }
 
+export type InlineStyleAnnotationOptions = AnnotationBaseOptions & {
+	/**
+	 * Inline styles are theme-dependent, which allows plugins like syntax highlighters to
+	 * style the same code differently depending on the theme.
+	 *
+	 * To support this, the engine creates a style variant for each theme given in the
+	 * configuration, and plugins can go through the engine's `styleVariants` array to
+	 * access all the themes. When adding an inline style annotation to a range of code,
+	 * you must specify the index in this `styleVariants` array to indicate which theme
+	 * the annotation applies to.
+	 */
+	styleVariantIndex: number
+	color?: string | undefined
+	italic?: boolean | undefined
+	bold?: boolean | undefined
+	underline?: boolean | undefined
+}
+
+/**
+ * A theme-dependent inline style annotation.
+ *
+ * You can add as many inline style annotations to a line as you want, even targeting the same code
+ * with multiple fully or partially overlapping annotation ranges. During rendering, these
+ * annotations will be automatically optimized to avoid creating unnecessary HTML elements.
+ */
 export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
+	styleVariantIndex: number
 	color: string | undefined
 	italic: boolean
 	bold: boolean
 	underline: boolean
 
-	constructor({
-		color,
-		italic = false,
-		bold = false,
-		underline = false,
-		...baseOptions
-	}: { color?: string | undefined; italic?: boolean | undefined; bold?: boolean | undefined; underline?: boolean | undefined } & AnnotationBaseOptions) {
+	constructor({ styleVariantIndex, color, italic = false, bold = false, underline = false, ...baseOptions }: InlineStyleAnnotationOptions) {
 		super(baseOptions)
+		this.styleVariantIndex = styleVariantIndex
 		this.color = color
 		this.italic = italic
 		this.bold = bold
@@ -86,16 +108,20 @@ export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
 
 	render({ nodesToTransform }: AnnotationRenderOptions) {
 		const tokenStyles: string[] = []
-		tokenStyles.push(`color:${this.color || 'inherit'}`)
-		if (this.italic) tokenStyles.push('font-style:italic')
-		if (this.bold) tokenStyles.push('font-weight:bold')
-		if (this.underline) tokenStyles.push('text-decoration:underline')
+		const varPrefix = `--${this.styleVariantIndex}`
+		if (this.color) tokenStyles.push(`${varPrefix}:${this.color}`)
+		if (this.italic) tokenStyles.push(`${varPrefix}fs:italic`)
+		if (this.bold) tokenStyles.push(`${varPrefix}fw:bold`)
+		if (this.underline) tokenStyles.push(`${varPrefix}td:underline`)
 		const tokenStyle = tokenStyles.join(';')
 
 		return nodesToTransform.map((node) => {
-			const transformedNode = h('span', { style: tokenStyle }, node)
-			transformedNode.data = transformedNode.data || {}
-			transformedNode.data.inlineStyleColor = this.color
+			if (node.type === 'element' && node.tagName === 'span' && getClassNames(node).includes('is')) {
+				// The node is already an inline style token, so we can just add to its style
+				setProperty(node, 'style', (node.properties?.style?.toString() || '') + ';' + tokenStyle)
+				return node
+			}
+			const transformedNode = h('span.is', { style: tokenStyle }, node)
 			return transformedNode
 		})
 	}

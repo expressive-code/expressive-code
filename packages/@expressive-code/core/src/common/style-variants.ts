@@ -1,6 +1,6 @@
 import { resolveStyleSettings, getCssVarDeclarations } from '../internal/style-resolving'
 import { ExpressiveCodePlugin, ResolverContext } from './plugin'
-import { StyleOverrides, ResolvedStyleSettingsByPath } from './plugin-style-settings'
+import { ResolvedStyleSettingsByPath, StyleOverrides } from './style-settings'
 import { ExpressiveCodeTheme } from './theme'
 
 export type StyleVariant = {
@@ -27,10 +27,10 @@ export function resolveStyleVariants({
 	styleOverrides: StyleOverrides
 	cssVarName: ResolverContext['cssVarName']
 }): StyleVariant[] {
-	return themes.map((theme) => {
+	return themes.map((theme, styleVariantIndex) => {
 		// Resolve all style settings contributed by core & plugins,
 		// respecting both global and theme `styleOverrides` (theme overrides take precedence)
-		const resolvedStyleSettings = resolveStyleSettings({ theme, plugins, styleOverrides })
+		const resolvedStyleSettings = resolveStyleSettings({ theme, styleVariantIndex, plugins, styleOverrides })
 
 		// Generate CSS variable declarations for the resolved style settings,
 		// omitting any settings excluded from CSS variable output by plugins

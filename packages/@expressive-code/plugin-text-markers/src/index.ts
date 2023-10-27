@@ -162,6 +162,9 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 					})
 				})
 			},
+			postprocessAnnotations: ({ codeBlock, styleVariants }) => {
+				// ...
+			},
 			// postprocessRenderedLine: ({ renderData, styleVariants }) => {
 			// 	// TODO: Support multiple style variants
 			// 	const { theme, coreStyles } = styleVariants[0]

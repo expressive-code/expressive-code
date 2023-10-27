@@ -1,8 +1,8 @@
 import { describe, test, expect } from 'vitest'
 import { toHtml } from 'hast-util-to-html'
-import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures } from '@internal/test-utils'
+import { renderAndOutputHtmlSnapshot, buildThemeFixtures, loadTestThemes } from '@internal/test-utils'
 // import dracula from 'shiki/themes/dracula.json'
-import { loadShikiTheme, pluginShiki } from '../src'
+import { pluginShiki } from '../src'
 
 const jsTestCode = `
 import { defineConfig } from 'astro/config';
@@ -102,13 +102,7 @@ const ansiTestCode = `
 const ansiEscapeCode = /\u001b\[\d+m/gu
 
 describe('Renders syntax highlighting', async () => {
-	const themes = testThemeNames.map(loadTestTheme)
-
-	// Add a few shiki themes
-	themes.unshift(await loadShikiTheme('nord'))
-	themes.unshift(await loadShikiTheme('dracula'))
-	themes.unshift(await loadShikiTheme('material-theme'))
-	themes.unshift(await loadShikiTheme('github-light'))
+	const themes = await loadTestThemes()
 
 	test(
 		'Supports themes in JS code',
@@ -216,14 +210,15 @@ describe('Renders syntax highlighting', async () => {
 						const html = toHtml(renderedGroupAst)
 						expect(html).not.toMatch(ansiEscapeCode)
 
-						// TODO: Support multiple style variants
-						const theme = styleVariants[0].theme
+						// Expect the ANSI colors of the "github-dark" theme to be present
+						expect(html).toMatch(/<span [^>]*?style="[^"]*?:#56d4dd[^"]*?"> Context Testing ANSI<\/span>/)
+						expect(html).toMatch(/<span [^>]*?style="[^"]*?:#fafbfc[^"]*?">Tests Passed: 1 <\/span>/)
 
-						if (theme.name === 'github-dark') {
-							expect(html).toContain('<span style="color:#56d4dd"> Context Testing ANSI</span>')
-							expect(html).toContain('<span style="color:#fafbfc">Tests Passed: 1 </span>')
-							colorAssertionExecuted = true
-						}
+						// Also expect the ANSI colors of the "dracula" theme to be present
+						expect(html).toMatch(/<span [^>]*?style="[^"]*?:#a4ffff[^"]*?"> Context Testing ANSI<\/span>/)
+						expect(html).toMatch(/<span [^>]*?style="[^"]*?:#ffffff[^"]*?">Tests Passed: 1 <\/span>/)
+
+						colorAssertionExecuted = true
 					},
 				}),
 			})

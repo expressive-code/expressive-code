@@ -3,10 +3,10 @@ import githubLight from 'shiki/themes/github-light.json'
 import { ExpressiveCodePlugin, ResolverContext } from './plugin'
 import { renderGroup, RenderInput, RenderOptions } from '../internal/render-group'
 import { ExpressiveCodeTheme } from './theme'
-import { PluginStyles, processPluginStyles } from '../internal/css'
-import { getCoreBaseStyles } from './core-styles'
+import { PluginStyles, scopeAndMinifyNestedCss, processPluginStyles } from '../internal/css'
+import { getCoreBaseStyles, getCoreThemeStyles } from '../internal/core-styles'
 import { StyleVariant, resolveStyleVariants } from './style-variants'
-import { StyleOverrides, StyleSettingPath } from './plugin-style-settings'
+import { StyleOverrides, StyleSettingPath } from './style-settings'
 
 export interface ExpressiveCodeEngineConfig {
 	/**
@@ -38,7 +38,7 @@ export interface ExpressiveCodeEngineConfig {
 	 *
 	 * For all alternate themes, Expressive Code uses the following default CSS selector to
 	 * override any CSS variables that differ from the base theme:
-	 * `:root[data-theme='${theme.name}'], .expressive-code[data-theme='${theme.name}']`
+	 * `:root[data-theme='${theme.name}'] &, &[data-theme='${theme.name}']`
 	 *
 	 * This default selector allows you to switch between multiple themes on a global level
 	 * by adding a `data-theme` attribute with the theme name to your `<html>` element,
@@ -128,7 +128,7 @@ export class ExpressiveCodeEngine {
 			config.themes = deprecatedConfig.theme
 		}
 		this.themes = Array.isArray(config.themes) ? [...config.themes] : config.themes ? [config.themes] : [new ExpressiveCodeTheme(githubDark), new ExpressiveCodeTheme(githubLight)]
-		this.themeCssSelector = config.themeCssSelector ?? ((theme) => `:root[data-theme='${theme.name}'], .expressive-code[data-theme='${theme.name}']`)
+		this.themeCssSelector = config.themeCssSelector ?? ((theme) => `:root[data-theme='${theme.name}'] &, &[data-theme='${theme.name}']`)
 		this.useThemedScrollbars = config.useThemedScrollbars ?? true
 		this.useThemedSelectionColors = config.useThemedSelectionColors ?? true
 		this.styleOverrides = { ...config.styleOverrides }
@@ -170,17 +170,17 @@ export class ExpressiveCodeEngine {
 	 */
 	async getBaseStyles(): Promise<string> {
 		const pluginStyles: PluginStyles[] = []
+		const resolverContext = this.getResolverContext()
 		// Add core base styles
 		pluginStyles.push({
 			pluginName: 'core',
 			styles: getCoreBaseStyles({
-				cssVar: (styleSetting, fallbackValue) => this.cssVar(styleSetting, fallbackValue),
+				...resolverContext,
 				useThemedScrollbars: this.useThemedScrollbars,
 				useThemedSelectionColors: this.useThemedSelectionColors,
 			}),
 		})
 		// Add plugin base styles
-		const resolverContext = this.getResolverContext()
 		for (const plugin of this.plugins) {
 			if (!plugin.baseStyles) continue
 			const resolvedStyles = typeof plugin.baseStyles === 'function' ? await plugin.baseStyles(resolverContext) : plugin.baseStyles
@@ -191,11 +191,7 @@ export class ExpressiveCodeEngine {
 			})
 		}
 		// Process styles (scoping, minifying, etc.)
-		const processedStyles = await processPluginStyles({
-			...resolverContext,
-			pluginStyles,
-			plugins: this.plugins,
-		})
+		const processedStyles = await processPluginStyles(pluginStyles)
 		return [...processedStyles].join('')
 	}
 
@@ -211,31 +207,39 @@ export class ExpressiveCodeEngine {
 	 * Please note that these styles must be added to the page together with the base styles
 	 * returned by {@link getBaseStyles}.
 	 */
-	getThemeStyles(): string {
+	async getThemeStyles(): Promise<string> {
 		const styles: string[] = []
 		const renderDeclarations = (declarations: Map<string, string>) => [...declarations].map(([varName, varValue]) => `${varName}:${varValue}`).join(';')
 
-		// Generate CSS variables for the first theme (the "base theme")
+		// Generate CSS styles for the first theme (the "base theme")
 		const baseVars = this.styleVariants[0].cssVarDeclarations
-		styles.push(`:root{${renderDeclarations(baseVars)}}`)
+		styles.push(await scopeAndMinifyNestedCss(`:root { ${renderDeclarations(baseVars)}; } ${getCoreThemeStyles(0)}`))
 
+		// Unless disabled, also generate per-theme CSS styles
 		if (this.themeCssSelector !== false) {
-			this.styleVariants.forEach((styleVariant) => {
+			for (let styleVariantIndex = 1; styleVariantIndex < this.styleVariants.length; styleVariantIndex++) {
+				const styleVariant = this.styleVariants[styleVariantIndex]
 				const themeSelector = this.themeCssSelector && this.themeCssSelector(styleVariant.theme)
-				if (!themeSelector) return
+				if (!themeSelector) continue
 
+				const themeStyles: string[] = []
+
+				// Add CSS variable declarations for any values that differ from the base theme
 				const diffVars = new Map<string, string>()
 				styleVariant.cssVarDeclarations.forEach((varValue, varName) => {
 					if (baseVars.get(varName) !== varValue) {
 						diffVars.set(varName, varValue)
 					}
 				})
-				if (!diffVars.size) return
+				if (diffVars.size > 0) themeStyles.push(renderDeclarations(diffVars))
 
-				styles.push(`\n\n${themeSelector}{${renderDeclarations(diffVars)}}`)
-			})
+				// Add core theme styles
+				themeStyles.push(getCoreThemeStyles(styleVariantIndex))
+
+				styles.push(await scopeAndMinifyNestedCss(`${themeSelector} { ${themeStyles.join(';')} }`))
+			}
 		}
-		return styles.join('')
+		return styles.join('\n\n')
 	}
 
 	/**

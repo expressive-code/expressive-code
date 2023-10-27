@@ -257,7 +257,7 @@ describe('ExpressiveCodeTheme', () => {
 			expect(engine.styleVariants[0].resolvedStyleSettings.get('uiFontFamily')).toBe('MyUiTestFont')
 
 			// Expect the theme-dependent styles to contain the new values
-			const themeStyles = engine.getThemeStyles()
+			const themeStyles = await engine.getThemeStyles()
 			expect(themeStyles).toContain('var(--test-code-bg)')
 			expect(themeStyles).toContain('MyUiTestFont')
 		})
@@ -279,7 +279,7 @@ describe('ExpressiveCodeTheme', () => {
 			expect(engine.styleVariants[0].resolvedStyleSettings.get('uiFontFamily')).toBe('MyThemeProvidedFont')
 
 			// Expect the theme-dependent styles to contain the new values
-			const themeStyles = engine.getThemeStyles()
+			const themeStyles = await engine.getThemeStyles()
 			expect(themeStyles).toContain('#fedcba98')
 			expect(themeStyles).toContain('MyThemeProvidedFont')
 		})
