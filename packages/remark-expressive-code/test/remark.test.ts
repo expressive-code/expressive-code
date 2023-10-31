@@ -6,14 +6,17 @@ import rehypeRaw from 'rehype-raw'
 import toHtml from 'rehype-stringify'
 import dracula from 'shiki/themes/dracula.json'
 import remarkExpressiveCode, { ExpressiveCodeTheme, RemarkExpressiveCodeOptions } from '../src'
-import { multiThemeSampleCodeHtmlRegExp, sampleCodeHtmlRegExp, sampleCodeMarkdown } from './utils'
+import { sampleCodeHtmlRegExp, sampleCodeMarkdown } from './utils'
 
-const regexCodeBg = /.ec-\w+? pre{(?:[^}]*?;)*background:(.*?)[;}]/g
-const regexCodeColor = /.ec-\w+? pre\s*>\s*code{(?:[^}]*?;)*color:(.*?)[;}]/g
-const regexCodeSelectionBg = /.ec-\w+? pre\s+::selection{(?:[^}]*?;)*background:(.*?)[;}]/g
-const regexScrollbarThumbColor = /.ec-\w+? pre::-webkit-scrollbar-thumb{(?:[^}]*?;)*background-color:(.*?)[;}]/g
-const regexScrollbarHoverColor = /.ec-\w+? pre::-webkit-scrollbar-thumb:hover{(?:[^}]*?;)*background-color:(.*?)[;}]/g
-const regexThemeClassNames = /<div class="expressive-code .*?(ec-theme-[\w-]+?)(| .*?)">/g
+const regexCodeBg = /--ec-codeBackground:(.*?)[;}]/g
+const regexCodeColor = /--ec-codeForeground:(.*?)[;}]/g
+const regexCodeSelectionBgVar = /--ec-codeSelectionBackground:(.*?)[;}]/g
+const regexScrollbarThumbColorVar = /--ec-scrollbarThumbColor:(.*?)[;}]/g
+const regexScrollbarHoverColorVar = /--ec-scrollbarThumbHoverColor:(.*?)[;}]/g
+const regexCodeSelectionBg = /.expressive-code pre\s+::selection{(?:[^}]*?;)*background:(.*?)[;}]/g
+const regexScrollbarThumbColor = /.expressive-code pre::-webkit-scrollbar-thumb{(?:[^}]*?;)*background-color:(.*?)[;}]/g
+const regexScrollbarHoverColor = /.expressive-code pre::-webkit-scrollbar-thumb:hover{(?:[^}]*?;)*background-color:(.*?)[;}]/g
+const regexThemeClassNames = /:root\[data-theme='([\w-]+?)'\] .expressive-code[,{]/g
 
 describe('Usage inside unified/remark', () => {
 	test('Works without any options', async () => {
@@ -21,15 +24,15 @@ describe('Usage inside unified/remark', () => {
 		const result = await processor.process(sampleCodeMarkdown)
 		expect(result.value).toMatch(sampleCodeHtmlRegExp)
 	})
-	describe('Supported inputs of the `theme` option', () => {
+	describe('Supported inputs of the `themes` option', () => {
 		const draculaBg = dracula.colors?.['editor.background'].toLowerCase()
 		const draculaFg = dracula.colors?.['editor.foreground'].toLowerCase()
 
 		test('Bundled Shiki theme names', async () => {
 			await runThemeTests({
 				testCases: [
-					{ theme: 'light-plus', bgColor: ['#ffffff'], textColor: ['#000000'] },
-					{ theme: 'material-theme', bgColor: ['#263238'], textColor: ['#eeffff'] },
+					{ themes: ['light-plus'], bgColor: ['#ffffff'], textColor: ['#000000'] },
+					{ themes: ['material-theme'], bgColor: ['#263238'], textColor: ['#eeffff'] },
 				],
 			})
 		})
@@ -37,7 +40,7 @@ describe('Usage inside unified/remark', () => {
 			await runThemeTests({
 				testCases: [
 					{
-						theme: dracula,
+						themes: [dracula],
 						bgColor: [draculaBg],
 						textColor: [draculaFg],
 					},
@@ -48,7 +51,7 @@ describe('Usage inside unified/remark', () => {
 			await runThemeTests({
 				testCases: [
 					{
-						theme: new ExpressiveCodeTheme(dracula),
+						themes: [new ExpressiveCodeTheme(dracula)],
 						bgColor: [draculaBg],
 						textColor: [draculaFg],
 					},
@@ -60,14 +63,14 @@ describe('Usage inside unified/remark', () => {
 				testCases: [
 					{
 						// Provide multiple themes by name
-						theme: ['light-plus', 'material-theme'],
+						themes: ['light-plus', 'material-theme'],
 						// Expect two matches per code block, each with a different theme
 						bgColor: ['#ffffff', '#263238'],
 						textColor: ['#000000', '#eeffff'],
 					},
 					{
 						// Mix and match theme names, JSON themes, and ExpressiveCodeTheme instances
-						theme: [
+						themes: [
 							'light-plus',
 							dracula,
 							new ExpressiveCodeTheme({
@@ -85,24 +88,24 @@ describe('Usage inside unified/remark', () => {
 			})
 		})
 	})
-	test('Adds CSS class names based on the theme names by default', async () => {
+	test('Adds selectors for alternate themes by default', async () => {
 		await runThemeTests({
 			testCases: [
 				{
 					// Provide multiple themes by name
-					theme: ['light-plus', 'material-theme'],
-					themeClassNames: ['ec-theme-light-plus', 'ec-theme-material-theme'],
+					themes: ['light-plus', 'material-theme'],
+					themeDataSelectors: ['material-theme'],
 				},
 			],
 		})
 	})
-	test('Can use the `customizeTheme` option to change CSS class names', async () => {
+	test('Can use the `customizeTheme` option to change alternate theme data selectors', async () => {
 		await runThemeTests({
 			testCases: [
 				{
 					// Provide multiple themes by name
-					theme: ['light-plus', 'material-theme'],
-					themeClassNames: ['ec-theme-light', 'ec-theme-dark'],
+					themes: ['light-plus', 'material-theme'],
+					themeDataSelectors: ['dark'],
 				},
 			],
 			config: {
@@ -115,16 +118,16 @@ describe('Usage inside unified/remark', () => {
 	test('Allows the theme to customize the scrollbar by default', async () => {
 		await runThemeTests({
 			testCases: [
-				{ theme: 'light-plus', thumbColor: ['#64646466'], hoverColor: ['#646464b2'] },
-				{ theme: 'material-theme', thumbColor: ['#eeffff20'], hoverColor: ['#eeffff4b'] },
+				{ themes: ['light-plus'], thumbColor: ['#64646466'], hoverColor: ['#646464b2'] },
+				{ themes: ['material-theme'], thumbColor: ['#eeffff20'], hoverColor: ['#eeffff4b'] },
 			],
 		})
 	})
 	test('Does not customize the scrollbar if `useThemedScrollbars` is false', async () => {
 		await runThemeTests({
 			testCases: [
-				{ theme: 'light-plus', thumbColor: [], hoverColor: [] },
-				{ theme: 'material-theme', thumbColor: [], hoverColor: [] },
+				{ themes: ['light-plus'], thumbColor: [], hoverColor: [] },
+				{ themes: ['material-theme'], thumbColor: [], hoverColor: [] },
 			],
 			config: { useThemedScrollbars: false },
 		})
@@ -132,16 +135,16 @@ describe('Usage inside unified/remark', () => {
 	test('Allows the theme to customize selection colors by default', async () => {
 		await runThemeTests({
 			testCases: [
-				{ theme: 'light-plus', codeSelectionBg: ['#add6ff'] },
-				{ theme: 'material-theme', codeSelectionBg: ['#80cbc420'] },
+				{ themes: ['light-plus'], codeSelectionBg: ['#add6ff'] },
+				{ themes: ['material-theme'], codeSelectionBg: ['#80cbc420'] },
 			],
 		})
 	})
 	test('Does not customize selection colors if `useThemedSelectionColors` is false', async () => {
 		await runThemeTests({
 			testCases: [
-				{ theme: 'light-plus', codeSelectionBg: [] },
-				{ theme: 'material-theme', codeSelectionBg: [] },
+				{ themes: ['light-plus'], codeSelectionBg: [] },
+				{ themes: ['material-theme'], codeSelectionBg: [] },
 			],
 			config: { useThemedSelectionColors: false },
 		})
@@ -170,6 +173,8 @@ describe('Usage inside unified/remark', () => {
 			'<script type="module">console.log("Test 2")</script>',
 		])
 	})
+	// TODO: Test that JS modules are not repeated on subsequent blocks
+	// TODO: Test that styles are not repeated on subsequent blocks
 	describe('Normalizes tabs in code', () => {
 		const codeWithTabs = `\`\`\`js
 function test() {
@@ -213,41 +218,45 @@ async function runThemeTests({
 	config,
 }: {
 	testCases: {
-		theme: RemarkExpressiveCodeOptions['theme']
+		themes: RemarkExpressiveCodeOptions['themes']
 		bgColor?: string[] | undefined
 		textColor?: string[] | undefined
 		thumbColor?: string[] | undefined
 		hoverColor?: string[] | undefined
 		codeSelectionBg?: string[] | undefined
-		themeClassNames?: string[] | undefined
+		themeDataSelectors?: string[] | undefined
 	}[]
 	config?: RemarkExpressiveCodeOptions | undefined
 }) {
 	await Promise.all(
 		testCases.map(async (testCase) => {
-			const processor = createRemarkProcessor({ theme: testCase.theme, ...config })
+			const processor = createRemarkProcessor({ themes: testCase.themes, ...config })
 			const result = await processor.process(sampleCodeMarkdown)
 			const html = result.value.toString()
-			if (Array.isArray(testCase.theme) && testCase.theme.length > 1) {
-				expect(html).toMatch(multiThemeSampleCodeHtmlRegExp)
-			} else {
-				expect(html).toMatch(sampleCodeHtmlRegExp)
-			}
+			expect(html).toMatch(sampleCodeHtmlRegExp)
 
 			// Perform individual tests specified in the test case
 			let performedTests = 0
-			const performRegexTest = (expected: string[] | undefined, regex: RegExp) => {
+			const performRegexTest = (expected: string[] | undefined, regex: RegExp, regexCssVarUsage?: RegExp) => {
 				if (!expected) return
-				const actual = [...html.matchAll(regex)].map((match) => match[1])
-				expect(actual).toEqual(expected)
+				// If we are testing a CSS variable, test if it was used in the CSS
+				if (regexCssVarUsage) {
+					const actualUsage = [...html.matchAll(regexCssVarUsage)].map((match) => match[1])
+					expect(actualUsage.length, 'CSS variable was not used in styles as expected').toEqual(expected.length)
+				}
+				// If we expected the variable to be used, also test its value
+				if (regexCssVarUsage && expected.length > 0) {
+					const actual = [...html.matchAll(regex)].map((match) => match[1])
+					expect(actual).toEqual(expected)
+				}
 				performedTests++
 			}
 			performRegexTest(testCase.bgColor, regexCodeBg)
 			performRegexTest(testCase.textColor, regexCodeColor)
-			performRegexTest(testCase.thumbColor, regexScrollbarThumbColor)
-			performRegexTest(testCase.hoverColor, regexScrollbarHoverColor)
-			performRegexTest(testCase.codeSelectionBg, regexCodeSelectionBg)
-			performRegexTest(testCase.themeClassNames, regexThemeClassNames)
+			performRegexTest(testCase.thumbColor, regexScrollbarThumbColorVar, regexScrollbarThumbColor)
+			performRegexTest(testCase.hoverColor, regexScrollbarHoverColorVar, regexScrollbarHoverColor)
+			performRegexTest(testCase.codeSelectionBg, regexCodeSelectionBgVar, regexCodeSelectionBg)
+			performRegexTest(testCase.themeDataSelectors, regexThemeClassNames)
 			expect(performedTests).toBeGreaterThan(0)
 		})
 	)

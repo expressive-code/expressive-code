@@ -10,7 +10,7 @@ import { StyleOverrides, StyleSettingPath } from './style-settings'
 
 export interface ExpressiveCodeEngineConfig {
 	/**
-	 * The color theme(s) that should be available for your code blocks.
+	 * The color themes that should be available for your code blocks.
 	 *
 	 * CSS variables will be generated for all themes, allowing to select the theme to display
 	 * using CSS. If you specify one dark and one light theme, a `prefers-color-scheme` media query
@@ -19,7 +19,7 @@ export interface ExpressiveCodeEngineConfig {
 	 *
 	 * Defaults to the `github-dark` and `github-light` themes.
 	 */
-	themes?: ExpressiveCodeTheme | ExpressiveCodeTheme[] | undefined
+	themes?: ExpressiveCodeTheme[] | undefined
 	// TODO: Implement this option
 	/**
 	 * Determines if CSS code should be generated that uses a `prefers-color-scheme` media query
@@ -125,7 +125,7 @@ export class ExpressiveCodeEngine {
 		// Transfer deprecated `theme` option to `themes` without triggering the deprecation warning
 		const deprecatedConfig: ExpressiveCodeEngineConfig & { theme?: ExpressiveCodeTheme | undefined } = config
 		if (deprecatedConfig.theme && !config.themes) {
-			config.themes = deprecatedConfig.theme
+			config.themes = Array.isArray(deprecatedConfig.theme) ? deprecatedConfig.theme : [deprecatedConfig.theme]
 		}
 		this.themes = Array.isArray(config.themes) ? [...config.themes] : config.themes ? [config.themes] : [new ExpressiveCodeTheme(githubDark), new ExpressiveCodeTheme(githubLight)]
 		this.themeCssSelector = config.themeCssSelector ?? ((theme) => `:root[data-theme='${theme.name}'] &, &[data-theme='${theme.name}']`)
@@ -239,7 +239,7 @@ export class ExpressiveCodeEngine {
 				styles.push(await scopeAndMinifyNestedCss(`${themeSelector} { ${themeStyles.join(';')} }`))
 			}
 		}
-		return styles.join('\n\n')
+		return styles.join('')
 	}
 
 	/**

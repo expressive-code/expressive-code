@@ -249,7 +249,7 @@ describe('ExpressiveCodeTheme', () => {
 			theme.styleOverrides.uiFontFamily = 'MyUiTestFont'
 
 			const engine = new ExpressiveCodeEngine({
-				themes: theme,
+				themes: [theme],
 			})
 
 			// Expect the resolved core styles to contain the new values
@@ -267,7 +267,7 @@ describe('ExpressiveCodeTheme', () => {
 			theme.styleOverrides.uiFontFamily = 'MyThemeProvidedFont'
 
 			const engine = new ExpressiveCodeEngine({
-				themes: theme,
+				themes: [theme],
 				styleOverrides: {
 					codeBackground: '#123456',
 					uiFontFamily: 'ThisFontShouldBeOverwritten',

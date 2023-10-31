@@ -11,7 +11,7 @@ export type TestFixture = {
 	code: string
 	language?: string | undefined
 	meta?: string | undefined
-	themes?: ExpressiveCodeTheme | ExpressiveCodeTheme[] | undefined
+	themes?: ExpressiveCodeTheme[] | undefined
 	plugins: ExpressiveCodePlugin[]
 	engineOptions?: Partial<ExpressiveCodeEngineConfig> | undefined
 	blockValidationFn?: BlockValidationFn | undefined
