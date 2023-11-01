@@ -13,12 +13,11 @@ const complexHtmlRegExp = buildSampleCodeHtmlRegExp({
 		// Expect at least one code line that is marked as inserted
 		'<div class="ec-line ins">',
 		// Expect Shiki highlighting colors inside
-		'.*?color:#.*?',
+		'.*?--0:#.*?',
 		// Expect all elements to be closed
 		'</div>',
 		'.*?',
 	],
-	expectMultiThemeWrapper: true,
 })
 
 describe('Integration into an Astro ^2.5.0 project', () => {
@@ -69,11 +68,13 @@ describe('Integration into an Astro ^3.0.0 project', () => {
 
 function validateHtml(html: string) {
 	expect(html).toMatch(complexHtmlRegExp)
-	// Collect the class names of all code blocks
-	const codeBlockClassNames = [...html.matchAll(/<div class="expressive-code (.*?)">/g)].map((match) => match[1])
-	// Expect two code blocks in total (because two themes were configured)
-	expect(codeBlockClassNames).toHaveLength(2)
-	// TODO: Validate CSS variables for the configured themes
+	// Collect all code blocks
+	const codeBlockClassNames = [...html.matchAll(/<div class="(expressive-code(?:| .*?))">/g)].map((match) => match[1])
+	// Expect one code block in total (because our new rendering logic doesn't create multiple code blocks anymore)
+	expect(codeBlockClassNames).toHaveLength(1)
+	// TODO: Validate that CSS variables were generated for the configured themes
+	// TODO: Validate automatic theme selection based on the user's system preferences
+	// TODO: Maybe add a second set of pages including two code blocks to test that the styles are deduplicated
 }
 
 async function buildFixture({ fixtureDir, buildCommand, buildArgs, outputDir }: { fixtureDir: string; buildCommand: string; buildArgs?: string[] | undefined; outputDir: string }) {

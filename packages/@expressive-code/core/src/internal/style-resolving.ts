@@ -1,6 +1,6 @@
 import { coreStyleSettings } from './core-styles'
 import { ExpressiveCodePlugin, ResolverContext } from '../common/plugin'
-import { StyleOverrides, ResolvedStyleSettingsByPath, StyleSettingPath, StyleValueOrValues, UnresolvedStyleValue } from '../common/plugin-style-settings'
+import { StyleOverrides, ResolvedStyleSettingsByPath, StyleSettingPath, StyleValueOrValues, UnresolvedStyleValue } from '../common/style-settings'
 import { ExpressiveCodeTheme } from '../common/theme'
 
 /**

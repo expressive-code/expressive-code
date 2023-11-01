@@ -5,14 +5,15 @@ import remarkRehype from 'remark-rehype'
 import rehypeRaw from 'rehype-raw'
 import toHtml from 'rehype-stringify'
 import dracula from 'shiki/themes/dracula.json'
-import remarkExpressiveCode, { ExpressiveCodeTheme, RemarkExpressiveCodeOptions } from '../src'
+import remarkExpressiveCode, { ExpressiveCodeTheme, RemarkExpressiveCodeOptions, StyleSettingPath, getCssVarName } from '../src'
 import { sampleCodeHtmlRegExp, sampleCodeMarkdown } from './utils'
 
-const regexCodeBg = /--ec-codeBackground:(.*?)[;}]/g
-const regexCodeColor = /--ec-codeForeground:(.*?)[;}]/g
-const regexCodeSelectionBgVar = /--ec-codeSelectionBackground:(.*?)[;}]/g
-const regexScrollbarThumbColorVar = /--ec-scrollbarThumbColor:(.*?)[;}]/g
-const regexScrollbarHoverColorVar = /--ec-scrollbarThumbHoverColor:(.*?)[;}]/g
+const buildCssVarValuesRegex = (setting: StyleSettingPath) => new RegExp(`${getCssVarName(setting)}:(.*?)[;}]`, 'g')
+const regexCodeBg = buildCssVarValuesRegex('codeBackground')
+const regexCodeColor = buildCssVarValuesRegex('codeForeground')
+const regexCodeSelectionBgVar = buildCssVarValuesRegex('codeSelectionBackground')
+const regexScrollbarThumbColorVar = buildCssVarValuesRegex('scrollbarThumbColor')
+const regexScrollbarHoverColorVar = buildCssVarValuesRegex('scrollbarThumbHoverColor')
 const regexCodeSelectionBg = /.expressive-code pre\s+::selection{(?:[^}]*?;)*background:(.*?)[;}]/g
 const regexScrollbarThumbColor = /.expressive-code pre::-webkit-scrollbar-thumb{(?:[^}]*?;)*background-color:(.*?)[;}]/g
 const regexScrollbarHoverColor = /.expressive-code pre::-webkit-scrollbar-thumb:hover{(?:[^}]*?;)*background-color:(.*?)[;}]/g

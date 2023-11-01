@@ -36,4 +36,78 @@ export type StyleOverrides = Partial<{
 
 export type ResolvedStyleSettingsByPath = Map<StyleSettingPath, string>
 
+/**
+ * A map of long terms commonly found in style setting paths to shorter alternatives that are
+ * still human-readable. These replacements are automatically applied by {@link getCssVarName}
+ * when generating CSS variable names to keep them fairly short.
+ *
+ * Plugins can add their own replacements to this map by importing this constant and calling
+ * `cssVarReplacements.set('myLongTerm', 'myLt')` inside their plugin initialization function.
+ */
+export const cssVarReplacements = new Map<string, string>([
+	['background', 'bg'],
+	['foreground', 'fg'],
+	['color', 'col'],
+	['border', 'brd'],
+	['padding', 'pad'],
+	['margin', 'mar'],
+	['radius', 'rd'],
+	['opacity', 'op'],
+	['width', 'wd'],
+	['height', 'ht'],
+	['weight', 'wg'],
+	['block', 'blk'],
+	['inline', 'inl'],
+	['bottom', 'btm'],
+	['value', 'val'],
+	['active', 'act'],
+	['inactive', 'inact'],
+	['highlight', 'hl'],
+	['selection', 'sel'],
+	['indicator', 'ind'],
+	['shadow', 'shd'],
+	['family', 'fam'],
+	['transform', 'trf'],
+	['decoration', 'dec'],
+	['button', 'btn'],
+	['editor', 'ed'],
+	['terminal', 'trm'],
+	['scrollbar', 'sb'],
+	['toolbar', 'tb'],
+	['titlebar', 'ttb'],
+	['textMarkers', 'tm'],
+	['frames', 'frm'],
+])
+
+/**
+ * Generates a CSS variable name for a given style setting path.
+ *
+ * Performs the following transformations on the path:
+ * - To avoid name collisions, the name is prefixed with `--ec-`.
+ * - All dots in the path are replaced with dashes.
+ * - Various common terms are replaced with shorter alternatives to reduce CSS size
+ *   (see {@link cssVarReplacements}).
+ */
+export function getCssVarName(styleSetting: StyleSettingPath) {
+	let varName = styleSetting.replace(/\./g, '-')
+	const capitalize = (word: string) => word[0].toUpperCase() + word.slice(1)
+	cssVarReplacements.forEach((replacement, term) => {
+		const termRegExp = new RegExp(
+			[
+				// The lowercase term,
+				// preceded by a non-lowercase character or the beginning of the string,
+				// and followed by a non-lowercase character or the end of the string
+				`(?<=[^a-z]|^)${term}(?=[^a-z]|$)`,
+				// The capitalized term,
+				// preceded by a lowercase character or the beginning of the string,
+				// and followed by a non-lowercase character or the end of the string
+				`(?<=[a-z]|^)${capitalize(term)}(?=[^a-z]|$)`,
+			].join('|'),
+			'g'
+		)
+		varName = varName.replace(termRegExp, (match) => (match === term ? replacement : capitalize(replacement)))
+	})
+	return `--ec-${varName}`
+}
+
 export const codeLineClass = 'ec-line'

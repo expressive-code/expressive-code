@@ -1,4 +1,4 @@
-import { AttachedPluginData, ExpressiveCodePlugin, PluginTexts, replaceDelimitedValues } from '@expressive-code/core'
+import { AttachedPluginData, ExpressiveCodePlugin, PluginTexts, replaceDelimitedValues, cssVarReplacements } from '@expressive-code/core'
 import { Section, parseSections } from './utils'
 import { select } from 'hast-util-select'
 import { sectionizeAst } from './ast'
@@ -13,6 +13,7 @@ pluginCollapsibleSectionsTexts.addLocale('de', {
 })
 
 export function pluginCollapsibleSections(): ExpressiveCodePlugin {
+	cssVarReplacements.set('collapsibleSections', 'cs')
 	return {
 		name: 'Collapsible sections',
 		styleSettings: collapsibleSectionsStyleSettings,

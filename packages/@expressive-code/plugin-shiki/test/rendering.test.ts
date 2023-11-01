@@ -206,7 +206,7 @@ describe('Renders syntax highlighting', async () => {
 					language: 'ansi',
 					meta: '',
 					plugins: [pluginShiki()],
-					blockValidationFn: ({ renderedGroupAst, styleVariants }) => {
+					blockValidationFn: ({ renderedGroupAst }) => {
 						const html = toHtml(renderedGroupAst)
 						expect(html).not.toMatch(ansiEscapeCode)
 

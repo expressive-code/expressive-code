@@ -6,7 +6,7 @@ import { ExpressiveCodeTheme } from './theme'
 import { PluginStyles, scopeAndMinifyNestedCss, processPluginStyles } from '../internal/css'
 import { getCoreBaseStyles, getCoreThemeStyles } from '../internal/core-styles'
 import { StyleVariant, resolveStyleVariants } from './style-variants'
-import { StyleOverrides, StyleSettingPath } from './style-settings'
+import { StyleOverrides, StyleSettingPath, getCssVarName } from './style-settings'
 
 export interface ExpressiveCodeEngineConfig {
 	/**
@@ -25,7 +25,7 @@ export interface ExpressiveCodeEngineConfig {
 	 * Determines if CSS code should be generated that uses a `prefers-color-scheme` media query
 	 * to automatically switch between light and dark themes based on the user's system preferences.
 	 *
-	 * Defaults to `true` if your `theme` option is set to one dark and one light theme
+	 * Defaults to `true` if your `themes` option is set to one dark and one light theme
 	 * (which is the default), and `false` otherwise.
 	 */
 	useDarkModeMediaQuery?: boolean | undefined
@@ -115,7 +115,11 @@ export interface ExpressiveCodeEngineConfig {
 	plugins?: (ExpressiveCodePlugin | ExpressiveCodePlugin[])[] | undefined
 
 	/**
-	 * @deprecated Please use the {@link themes} option instead.
+	 * @deprecated Efficient multi-theme support is now a core feature, so the `theme` option
+	 * was deprecated in favor of the new array `themes`. Please migrate your existing config
+	 * to use `themes` and ensure it is an array. If you only need a single theme, your `themes`
+	 * array can contain just this one theme. However, please consider the benefits of providing
+	 * multiple themes. See the `themes` option for more details.
 	 */
 	theme?: ExpressiveCodeTheme | undefined
 }
@@ -126,6 +130,7 @@ export class ExpressiveCodeEngine {
 		const deprecatedConfig: ExpressiveCodeEngineConfig & { theme?: ExpressiveCodeTheme | undefined } = config
 		if (deprecatedConfig.theme && !config.themes) {
 			config.themes = Array.isArray(deprecatedConfig.theme) ? deprecatedConfig.theme : [deprecatedConfig.theme]
+			delete deprecatedConfig.theme
 		}
 		this.themes = Array.isArray(config.themes) ? [...config.themes] : config.themes ? [config.themes] : [new ExpressiveCodeTheme(githubDark), new ExpressiveCodeTheme(githubLight)]
 		this.themeCssSelector = config.themeCssSelector ?? ((theme) => `:root[data-theme='${theme.name}'] &, &[data-theme='${theme.name}']`)
@@ -143,7 +148,7 @@ export class ExpressiveCodeEngine {
 			themes: this.themes,
 			styleOverrides: this.styleOverrides,
 			plugins: this.plugins,
-			cssVarName: (styleSetting) => this.cssVarName(styleSetting),
+			cssVarName: getCssVarName,
 		})
 	}
 
@@ -266,18 +271,14 @@ export class ExpressiveCodeEngine {
 		return [...jsModules]
 	}
 
-	private cssVarName(styleSetting: StyleSettingPath) {
-		return `--ec-${styleSetting.replace(/\./g, '-')}`
-	}
-
 	private cssVar(styleSetting: StyleSettingPath, fallbackValue?: string) {
-		return `var(${this.cssVarName(styleSetting)}${fallbackValue ? `, ${fallbackValue}` : ''})`
+		return `var(${getCssVarName(styleSetting)}${fallbackValue ? `, ${fallbackValue}` : ''})`
 	}
 
 	private getResolverContext(): ResolverContext {
 		return {
 			cssVar: (styleSetting, fallbackValue) => this.cssVar(styleSetting, fallbackValue),
-			cssVarName: (styleSetting) => this.cssVarName(styleSetting),
+			cssVarName: getCssVarName,
 			styleVariants: this.styleVariants,
 		}
 	}
