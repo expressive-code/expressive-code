@@ -12,6 +12,7 @@ import { MarkerType, MarkerTypeOrder, markerTypeFromString } from './marker-type
 import { getTextMarkersBaseStyles, markerBgColorPaths, textMarkersStyleSettings } from './styles'
 import { flattenInlineMarkerRanges, getInlineSearchTermMatches } from './inline-markers'
 import { TextMarkerAnnotation } from './annotations'
+export { TextMarkersStyleSettings } from './styles'
 
 export function pluginTextMarkers(): ExpressiveCodePlugin {
 	return {

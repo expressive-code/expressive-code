@@ -3,6 +3,7 @@ import { h, Result as HastEntity } from 'hastscript'
 import { framesStyleSettings, getFramesBaseStyles } from './styles'
 import { FrameType, frameTypeFromString, frameTypes, getFileNameFromComment, isTerminalLanguage, LanguageGroups } from './utils'
 import { getCopyJsModule } from './copy-js-module'
+export { FramesStyleSettings } from './styles'
 
 export interface PluginFramesOptions {
 	/**
