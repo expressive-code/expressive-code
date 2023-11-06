@@ -6,7 +6,7 @@ import rehypeRaw from 'rehype-raw'
 import toHtml from 'rehype-stringify'
 import dracula from 'shiki/themes/dracula.json'
 import remarkExpressiveCode, { ExpressiveCodeTheme, RemarkExpressiveCodeOptions, StyleSettingPath, getCssVarName } from '../src'
-import { sampleCodeHtmlRegExp, sampleCodeMarkdown } from './utils'
+import { buildSampleCodeHtmlRegExp, sampleCodeMarkdown } from './utils'
 
 const buildCssVarValuesRegex = (setting: StyleSettingPath) => new RegExp(`${getCssVarName(setting)}:(.*?)[;}]`, 'g')
 const regexCodeBg = buildCssVarValuesRegex('codeBackground')
@@ -20,10 +20,31 @@ const regexScrollbarHoverColor = /.expressive-code pre::-webkit-scrollbar-thumb:
 const regexThemeClassNames = /:root\[data-theme='([\w-]+?)'\] .expressive-code[,{]/g
 
 describe('Usage inside unified/remark', () => {
-	test('Works without any options', async () => {
+	test('Uses default settings when created without any options', async () => {
 		const processor = createRemarkProcessor()
 		const result = await processor.process(sampleCodeMarkdown)
-		expect(result.value).toMatch(sampleCodeHtmlRegExp)
+		const html = result.value.toString()
+		const sampleCodeHtmlRegExp = buildSampleCodeHtmlRegExp({
+			title: 'test.js',
+			codeContents: [
+				// Ensure that the Text Markers plugin works by expecting a highlighted code line
+				'<div class="ec-line ins">',
+				// Expect Shiki highlighting colors inside
+				'.*?--0:#.*?',
+				// Expect the code line to be closed
+				'</div>',
+			],
+		})
+		expect(html).toMatch(sampleCodeHtmlRegExp)
+	})
+	test('Provides access to styleOverrides settings contributed by default plugins', () => {
+		createRemarkProcessor({
+			styleOverrides: {
+				frames: {
+					editorBackground: 'blue',
+				},
+			},
+		})
 	})
 	describe('Supported inputs of the `themes` option', () => {
 		const draculaBg = dracula.colors?.['editor.background'].toLowerCase()
@@ -133,24 +154,24 @@ describe('Usage inside unified/remark', () => {
 			config: { useThemedScrollbars: false },
 		})
 	})
-	test('Allows the theme to customize selection colors by default', async () => {
-		await runThemeTests({
-			testCases: [
-				{ themes: ['light-plus'], codeSelectionBg: ['#add6ff'] },
-				{ themes: ['material-theme'], codeSelectionBg: ['#80cbc420'] },
-			],
-		})
-	})
-	test('Does not customize selection colors if `useThemedSelectionColors` is false', async () => {
+	test('Does not customize selection colors by default', async () => {
 		await runThemeTests({
 			testCases: [
 				{ themes: ['light-plus'], codeSelectionBg: [] },
 				{ themes: ['material-theme'], codeSelectionBg: [] },
 			],
-			config: { useThemedSelectionColors: false },
 		})
 	})
-	test('Adds JS modules provided by plugins before the first code block', async () => {
+	test('Allows themes to customize selection colors if `useThemedSelectionColors` is true', async () => {
+		await runThemeTests({
+			testCases: [
+				{ themes: ['light-plus'], codeSelectionBg: ['#add6ff'] },
+				{ themes: ['material-theme'], codeSelectionBg: ['#80cbc420'] },
+			],
+			config: { useThemedSelectionColors: true },
+		})
+	})
+	test('Adds JS modules provided by plugins before the first code block contents', async () => {
 		const processor = createRemarkProcessor({
 			frames: {
 				// Test that disabling the copy button prevents its JS module from being added
@@ -166,16 +187,85 @@ describe('Usage inside unified/remark', () => {
 		})
 		const result = await processor.process(sampleCodeMarkdown)
 		const html = result.value.toString()
+		// Expect all JS modules to be part of the output
 		const actualJsModules = html.match(/<script type="module">(.*?)<\/script>/g)
-		expect(html).toMatch(sampleCodeHtmlRegExp)
 		expect(actualJsModules).toEqual([
 			'<script type="module">console.log("Test 1")</script>',
 			// Expect whitespace to be normalized in Test 2
 			'<script type="module">console.log("Test 2")</script>',
 		])
+		// Expect JS modules to be nested inside the Expressive Code wrapper
+		const firstGroupWrapperIndex = html.search(/<div class="expressive-code/)
+		const firstJsModuleIndex = html.indexOf('<script type="module">')
+		const firstCodeBlockContentsIndex = html.search(/<(figure|code|pre)/)
+		expect(firstGroupWrapperIndex, 'Script modules are not located after opening group wrapper').toBeLessThan(firstJsModuleIndex)
+		expect(firstJsModuleIndex, 'Script modules are not located before first code block contents').toBeLessThan(firstCodeBlockContentsIndex)
 	})
-	// TODO: Test that JS modules are not repeated on subsequent blocks
-	// TODO: Test that styles are not repeated on subsequent blocks
+	test('Does not repeat JS modules on subsequent code blocks', async () => {
+		const multiBlockMarkdown = `${sampleCodeMarkdown}\n\n${sampleCodeMarkdown}`
+		const processor = createRemarkProcessor({
+			frames: {
+				// Test that disabling the copy button prevents its JS module from being added
+				showCopyToClipboardButton: false,
+			},
+			plugins: [
+				{
+					name: 'TestPlugin',
+					hooks: {},
+					jsModules: ['console.log("Test 1")', '\t\tconsole.log("Test 2") '],
+				},
+			],
+		})
+		const result = await processor.process(multiBlockMarkdown)
+		const html = result.value.toString()
+		// Expect all JS modules to be part of the output, but only once each
+		const actualJsModules = html.match(/<script type="module">(.*?)<\/script>/g)
+		expect(actualJsModules).toEqual([
+			'<script type="module">console.log("Test 1")</script>',
+			// Expect whitespace to be normalized in Test 2
+			'<script type="module">console.log("Test 2")</script>',
+		])
+		// Expect JS modules to be nested inside the Expressive Code wrapper
+		const firstGroupWrapperIndex = html.search(/<div class="expressive-code/)
+		const firstJsModuleIndex = html.indexOf('<script type="module">')
+		const lastJsModuleIndex = html.lastIndexOf('<script type="module">')
+		const firstCodeBlockContentsIndex = html.search(/<(figure|code|pre)/)
+		expect(firstGroupWrapperIndex, 'Script modules are not located after opening group wrapper').toBeLessThan(firstJsModuleIndex)
+		expect(lastJsModuleIndex, 'Last script module is not located before first code block contents').toBeLessThan(firstCodeBlockContentsIndex)
+	})
+	test('Does not repeat styles on subsequent code blocks', async () => {
+		const multiBlockMarkdown = `${sampleCodeMarkdown}\n\n${sampleCodeMarkdown}`
+		const processor = createRemarkProcessor()
+		const result = await processor.process(multiBlockMarkdown)
+		const html = result.value.toString()
+		// Expect styles to be part of the output, but only once
+		const actualStyles = html.match(/<style>(.*?)<\/style>/g)
+		expect(actualStyles).toEqual([expect.stringContaining(getCssVarName('codeBackground'))])
+		// Expect styles to be nested inside the Expressive Code wrapper
+		const firstGroupWrapperIndex = html.search(/<div class="expressive-code/)
+		const firstStyleIndex = html.indexOf('<style>')
+		const lastStyleIndex = html.lastIndexOf('<style>')
+		const firstCodeBlockContentsIndex = html.search(/<(figure|code|pre)/)
+		expect(firstGroupWrapperIndex, 'Styles are not located after opening group wrapper').toBeLessThan(firstStyleIndex)
+		expect(lastStyleIndex, 'Last style is not located before first code block contents').toBeLessThan(firstCodeBlockContentsIndex)
+	})
+	test('Does not render unexpected newlines', async () => {
+		const processor = createRemarkProcessor()
+		const result = await processor.process(sampleCodeMarkdown)
+		const html = result.value.toString()
+		const sampleCodeHtmlRegExp = buildSampleCodeHtmlRegExp({
+			title: 'test.js',
+			codeContents: [
+				// Capture all code contents
+				'(?<code>[\\s\\S]*?)',
+			],
+		})
+		const match = html.match(sampleCodeHtmlRegExp)
+		expect(match).toBeTruthy()
+		const { code, styles } = match?.groups || {}
+		expect(code, `Code contained unexpected newlines: ${code}`).not.toContain('\n')
+		expect(styles, `Styles contained unexpected newlines: ${styles}`).not.toContain('\n')
+	})
 	describe('Normalizes tabs in code', () => {
 		const codeWithTabs = `\`\`\`js
 function test() {
@@ -234,7 +324,6 @@ async function runThemeTests({
 			const processor = createRemarkProcessor({ themes: testCase.themes, ...config })
 			const result = await processor.process(sampleCodeMarkdown)
 			const html = result.value.toString()
-			expect(html).toMatch(sampleCodeHtmlRegExp)
 
 			// Perform individual tests specified in the test case
 			let performedTests = 0

@@ -20,8 +20,6 @@ export class TextMarkerAnnotation extends ExpressiveCodeAnnotation {
 
 	private renderFullLineMarker({ nodesToTransform }: AnnotationRenderOptions) {
 		return nodesToTransform.map((node) => {
-			node.data = node.data || {}
-			node.data.textMarkersBackgroundColor = this.backgroundColor
 			addClassName(node as Element, this.markerType)
 			return node
 		})
@@ -30,8 +28,6 @@ export class TextMarkerAnnotation extends ExpressiveCodeAnnotation {
 	private renderInlineMarker({ nodesToTransform }: AnnotationRenderOptions) {
 		return nodesToTransform.map((node, idx) => {
 			const transformedNode = h(this.markerType, node)
-			transformedNode.data = transformedNode.data || {}
-			transformedNode.data.textMarkersBackgroundColor = this.backgroundColor
 
 			if (nodesToTransform.length > 0 && idx > 0) {
 				addClassName(transformedNode, 'open-start')

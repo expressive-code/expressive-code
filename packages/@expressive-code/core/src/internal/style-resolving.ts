@@ -51,8 +51,13 @@ export function resolveStyleSettings({
 
 			resolvedByPath.set(settingPath, result)
 		}
-		// TODO: Decide if we want to throw an error instead if a setting resolves to `undefined`
-		return result!
+		if (result === undefined)
+			throw new Error(
+				`Failed to resolve style setting '${settingPath as string}' for theme '${
+					theme.name
+				}': The resolved value was undefined. This could be caused by your plugins or styleOverrides.`
+			)
+		return result
 	}
 
 	// Resolve all settings

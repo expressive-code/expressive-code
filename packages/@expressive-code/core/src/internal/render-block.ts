@@ -7,11 +7,13 @@ import { PluginStyles } from './css'
 import { GroupContents } from './render-group'
 import { renderLineToAst } from './render-line'
 import { isBoolean, isHastElement, isHastParent, newTypeError } from './type-checks'
+import { ResolvedExpressiveCodeEngineConfig } from '../common/engine'
 
 export async function renderBlock({
 	codeBlock,
 	groupContents,
 	locale,
+	config,
 	plugins,
 	cssVar,
 	cssVarName,
@@ -20,6 +22,7 @@ export async function renderBlock({
 	codeBlock: ExpressiveCodeBlock
 	groupContents: GroupContents
 	locale: string
+	config: ResolvedExpressiveCodeEngineConfig
 	plugins: readonly ExpressiveCodePlugin[]
 } & ResolverContext) {
 	const state: ExpressiveCodeProcessingState = {
@@ -35,6 +38,7 @@ export async function renderBlock({
 		codeBlock,
 		groupContents,
 		locale,
+		config,
 		cssVar,
 		cssVarName,
 		styleVariants,

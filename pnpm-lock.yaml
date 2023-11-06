@@ -97,6 +97,9 @@ importers:
         specifier: ^6.0.1
         version: 6.0.1(postcss@8.4.21)
     devDependencies:
+      '@internal/test-utils':
+        specifier: workspace:^
+        version: link:../../../internal/test-utils
       '@types/culori':
         specifier: ^2.0.0
         version: 2.0.0

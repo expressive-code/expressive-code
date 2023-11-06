@@ -3,7 +3,17 @@ import { MarkerType } from './marker-types'
 
 // TODO: Document settings
 export interface TextMarkersStyleSettings {
+	/**
+	 * The margin between the code block border and the line marker accent bar
+	 * displayed on the left side of a full-line text marker.
+	 * @default '0rem'
+	 */
 	lineMarkerAccentMargin: string
+	/**
+	 * The width of the line marker accent bar. This is the bar displayed on
+	 * the left side of a full-line text marker.
+	 * @default '0.15rem'
+	 */
 	lineMarkerAccentWidth: string
 	lineDiffIndicatorMarginLeft: string
 	inlineMarkerBorderWidth: string

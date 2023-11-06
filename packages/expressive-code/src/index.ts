@@ -44,9 +44,23 @@ export class ExpressiveCode extends ExpressiveCodeEngine {
 			pluginsToPrepend.push(pluginShiki())
 		}
 		if (textMarkers !== false && notPresentInPlugins('TextMarkers')) {
+			if (typeof textMarkers === 'object' && (textMarkers as { styleOverrides: unknown }).styleOverrides) {
+				throw new Error(
+					`The Expressive Code config option "textMarkers" can no longer be an object,
+					but only undefined or a boolean. Please move any style settings into the
+					top-level "styleOverrides" object below the new "textMarkers" key.`.replace(/\s+/g, ' ')
+				)
+			}
 			pluginsToPrepend.push(pluginTextMarkers())
 		}
 		if (frames !== false && notPresentInPlugins('Frames')) {
+			if (typeof frames === 'object' && (frames as { styleOverrides: unknown }).styleOverrides) {
+				throw new Error(
+					`The config option "frames" no longer has its own "styleOverrides" object.
+					Please move any style settings into the top-level "styleOverrides" object
+					below the new "frames" key.`.replace(/\s+/g, ' ')
+				)
+			}
 			pluginsToPrepend.push(pluginFrames(frames !== true ? frames : undefined))
 		}
 		// Create a new plugins array with the default plugins prepended

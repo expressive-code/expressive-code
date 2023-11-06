@@ -47,20 +47,22 @@ const processor = postcss([
 			rule.raws.between = ''
 			rule.raws.after = ''
 			rule.raws.semicolon = false
-			rule.walkDecls((decl) => {
-				decl.raws.before = decl.raws.before?.trim() || ''
-				/* c8 ignore next */
-				decl.raws.between = decl.raws.between?.trim() || ':'
-				if (decl.raws.value !== undefined) {
-					decl.raws.value.raw = decl.raws.value.raw.trim()
-				}
-			})
 		})
 		// Process at-rules like `@media`
 		root.walkAtRules((atRule) => {
 			atRule.raws.before = atRule.raws.before?.trim() || ''
 			atRule.raws.between = ''
 			atRule.raws.after = ''
+		})
+		// Process declarations
+		root.walkDecls((decl) => {
+			decl.raws.before = decl.raws.before?.trim() || ''
+			/* c8 ignore next */
+			decl.raws.between = decl.raws.between?.trim() || ':'
+			decl.raws.value = {
+				value: decl.value,
+				raw: decl.raws.value?.raw.trim() ?? decl.value.trim(),
+			}
 		})
 	},
 ])

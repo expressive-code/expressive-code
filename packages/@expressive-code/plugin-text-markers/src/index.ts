@@ -1,7 +1,14 @@
-import { AttachedPluginData, ExpressiveCodePlugin, replaceDelimitedValues } from '@expressive-code/core'
+import {
+	AnnotationRenderPhaseOrder,
+	AttachedPluginData,
+	ExpressiveCodePlugin,
+	InlineStyleAnnotation,
+	ensureColorContrastOnBackground,
+	onBackground,
+	replaceDelimitedValues,
+} from '@expressive-code/core'
 import rangeParser from 'parse-numeric-range'
-// import { visitParents } from 'unist-util-visit-parents'
-import { MarkerType, markerTypeFromString } from './marker-types'
+import { MarkerType, MarkerTypeOrder, markerTypeFromString } from './marker-types'
 import { getTextMarkersBaseStyles, markerBgColorPaths, textMarkersStyleSettings } from './styles'
 import { flattenInlineMarkerRanges, getInlineSearchTermMatches } from './inline-markers'
 import { TextMarkerAnnotation } from './annotations'
@@ -162,33 +169,76 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 					})
 				})
 			},
-			postprocessAnnotations: ({ codeBlock, styleVariants }) => {
-				// ...
+			postprocessAnnotations: ({ codeBlock, styleVariants, config }) => {
+				if (config.minSyntaxHighlightingColorContrast <= 0) return
+				codeBlock.getLines().forEach((line) => {
+					const annotations = line.getAnnotations()
+					// Determine the highest-priority full line marker
+					// and collect all inline markers
+					const markers: TextMarkerAnnotation[] = []
+					let fullLineMarker: TextMarkerAnnotation | undefined = undefined
+					for (const annotation of annotations) {
+						if (!(annotation instanceof TextMarkerAnnotation)) continue
+						if (annotation.inlineRange) {
+							markers.push(annotation)
+							continue
+						}
+						if (fullLineMarker) {
+							if (MarkerTypeOrder.indexOf(annotation.markerType) < MarkerTypeOrder.indexOf(fullLineMarker.markerType)) continue
+							if (AnnotationRenderPhaseOrder.indexOf(annotation.renderPhase) < AnnotationRenderPhaseOrder.indexOf(fullLineMarker.renderPhase)) continue
+						}
+						fullLineMarker = annotation
+					}
+					// Prepend the highest-priority full line marker to the inline markers
+					if (fullLineMarker) markers.unshift(fullLineMarker)
+					// Ensure color contrast for all style variants
+					styleVariants.forEach((styleVariant, styleVariantIndex) => {
+						const lineBgColor =
+							(fullLineMarker ? styleVariant.resolvedStyleSettings.get(markerBgColorPaths[fullLineMarker.markerType]) : styleVariant.resolvedStyleSettings.get('codeBackground')) ||
+							styleVariant.theme.bg
+						// Collect inline style annotations that change the text color
+						const textColors = annotations.filter(
+							(annotation) =>
+								annotation instanceof InlineStyleAnnotation &&
+								// Only consider annotations for the current style variant
+								annotation.styleVariantIndex === styleVariantIndex &&
+								annotation.color
+						) as InlineStyleAnnotation[]
+						// Go through all text color annotations
+						textColors.forEach((textColor) => {
+							const textFgColor = textColor.color
+							const textStart = textColor.inlineRange?.columnStart
+							const textEnd = textColor.inlineRange?.columnEnd
+							if (textFgColor === undefined || textStart === undefined || textEnd === undefined) return
+							// Go through all markers
+							markers.forEach((marker) => {
+								const markerStart = marker.inlineRange?.columnStart ?? 0
+								const markerEnd = marker.inlineRange?.columnEnd ?? line.text.length
+								if (markerStart > textEnd || markerEnd < textStart) return
+								// As the marker overlaps with the text color annotation,
+								// determine the combined background color of this range
+								const markerBgColor = styleVariant.resolvedStyleSettings.get(markerBgColorPaths[marker.markerType]) ?? ''
+								const combinedBgColor = onBackground(markerBgColor, lineBgColor)
+								// Now ensure a good contrast ratio of the text
+								const readableTextColor = ensureColorContrastOnBackground(textFgColor, combinedBgColor, config.minSyntaxHighlightingColorContrast)
+								if (readableTextColor.toLowerCase() === textFgColor.toLowerCase()) return
+								// If the text color is not readable enough, add an annotation
+								// with better contrast for the overlapping range
+								line.addAnnotation(
+									new InlineStyleAnnotation({
+										styleVariantIndex,
+										inlineRange: {
+											columnStart: Math.max(textStart, markerStart),
+											columnEnd: Math.min(textEnd, markerEnd),
+										},
+										color: readableTextColor,
+									})
+								)
+							})
+						})
+					})
+				})
 			},
-			// postprocessRenderedLine: ({ renderData, styleVariants }) => {
-			// 	// TODO: Support multiple style variants
-			// 	const { theme, coreStyles } = styleVariants[0]
-			// 	const backgroundColor = coreStyles.codeBackground[0] === '#' ? coreStyles.codeBackground : theme.bg
-			// 	visitParents(renderData.lineAst, (node, ancestors) => {
-			// 		if (node.type !== 'element' || !node.properties || !node.data) return
-			// 		const textColor = typeof node.data.inlineStyleColor === 'string' ? node.data.inlineStyleColor : undefined
-			// 		if (!textColor) return
-			// 		// Mix combined background color from ancestor chain
-			// 		let combinedBackgroundColor = backgroundColor
-			// 		ancestors.forEach((ancestor) => {
-			// 			const markerBackgroundColor = typeof ancestor.data?.textMarkersBackgroundColor === 'string' ? ancestor.data.textMarkersBackgroundColor : undefined
-			// 			if (!markerBackgroundColor) return
-			// 			combinedBackgroundColor = onBackground(markerBackgroundColor, combinedBackgroundColor)
-			// 		})
-			// 		// Abort if the resulting background color is the same as the default
-			// 		if (combinedBackgroundColor === backgroundColor) return
-			// 		// Otherwise, ensure a good contrast ratio of the text
-			// 		const readableTextColor = ensureColorContrastOnBackground(textColor, combinedBackgroundColor)
-			// 		if (readableTextColor.toLowerCase() === textColor.toLowerCase()) return
-			// 		node.data.inlineStyleColor = readableTextColor
-			// 		node.properties.style = `color:${readableTextColor}${node.properties.style?.toString().replace(/^(color:[^;]+)(;|$)/, '$2') || ''}`
-			// 	})
-			// },
 		},
 	}
 }

@@ -2,6 +2,7 @@ import { Parent, Element } from 'hast-util-to-html/lib/types'
 import { h } from 'hastscript'
 import { ExpressiveCodeBlock, ExpressiveCodeBlockOptions } from '../common/block'
 import { ExpressiveCodePlugin, ResolverContext } from '../common/plugin'
+import { ResolvedExpressiveCodeEngineConfig } from '../common/engine'
 import { runHooks } from '../common/plugin-hooks'
 import { groupWrapperClassName, groupWrapperElement, PluginStyles, processPluginStyles } from './css'
 import { renderBlock } from './render-block'
@@ -31,6 +32,7 @@ export async function renderGroup({
 	input,
 	options,
 	defaultLocale,
+	config,
 	plugins,
 	cssVar,
 	cssVarName,
@@ -39,6 +41,7 @@ export async function renderGroup({
 	input: RenderInput
 	options?: RenderOptions | undefined
 	defaultLocale: string
+	config: ResolvedExpressiveCodeEngineConfig
 	plugins: readonly ExpressiveCodePlugin[]
 } & ResolverContext) {
 	// Ensure that the input is an array
@@ -67,6 +70,7 @@ export async function renderGroup({
 			codeBlock: groupContent.codeBlock,
 			groupContents,
 			locale: groupContent.codeBlock.locale || defaultLocale,
+			config,
 			plugins,
 			cssVar,
 			cssVarName,

@@ -32,4 +32,13 @@ describe('ExpressiveCode constructor', () => {
 		})
 		expect(result.renderedGroupContents[0].codeBlock.code).toEqual(`// test.js`)
 	})
+	test('Provides access to styleOverrides settings contributed by default plugins', () => {
+		new ExpressiveCode({
+			styleOverrides: {
+				frames: {
+					editorBackground: 'blue',
+				},
+			},
+		})
+	})
 })

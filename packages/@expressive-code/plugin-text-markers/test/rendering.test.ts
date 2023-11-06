@@ -1,7 +1,7 @@
 import { describe, test, expect } from 'vitest'
 import { selectAll } from 'hast-util-select'
 import { toText } from 'hast-util-to-text'
-import { AnnotationRenderPhase, ExpressiveCodePlugin, InlineStyleAnnotation, getClassNames } from '@expressive-code/core'
+import { AnnotationRenderPhase, ExpressiveCodePlugin, InlineStyleAnnotation, getClassNames, getColorContrast } from '@expressive-code/core'
 import { pluginShiki } from '@expressive-code/plugin-shiki'
 import { renderAndOutputHtmlSnapshot, buildThemeFixtures, TestFixture, loadTestThemes } from '@internal/test-utils'
 import { pluginTextMarkers } from '../src'
@@ -103,7 +103,7 @@ describe('Renders text markers', async () => {
 				const meta = `${types[0]}="x" ${types[1]}="y" ${types[2]}="z"`
 				return {
 					fixtureName: `Order: ${types.join(', ')}`,
-					themes: themes[0],
+					themes: themes.slice(0, 1),
 					code: `# ${meta}\nxyz\nx y z\nxxyyzz`,
 					language: 'md',
 					meta,
@@ -249,6 +249,9 @@ describe('Renders text markers', async () => {
 							}),
 							pluginTextMarkers(),
 						],
+						engineOptions: {
+							minSyntaxHighlightingColorContrast: 0,
+						},
 						blockValidationFn: (actual) => {
 							// Expect that the correct texts were marked
 							const validateMarkers = buildMarkerValidationFn([
@@ -555,6 +558,85 @@ function fancyJsHelper() {
 						{ markerType: 'mark', text: `<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>` },
 						{ markerType: 'mark', text: `</BaseLayout>` },
 					]),
+				}),
+			})
+		},
+		{ timeout: 5 * 1000 }
+	)
+
+	test(
+		'Accessible color contrast is ensured',
+		async ({ meta: { name: testName } }) => {
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code: `
+---
+layout: ../../layouts/BaseLayout.astro
+title: 'My first MDX post'
++publishDate: '21 September 2022'
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+function fancyJsHelper() {
+  return "Try doing that with YAML!";
+}
+
+<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>
+  Welcome to my new Astro blog, using MDX!
+</BaseLayout>
+					`.trim(),
+					language: 'diff',
+					meta: `lang="mdx" title="src/pages/posts/first-post.mdx" ins={6} mark={9} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/`,
+					engineOptions: {
+						styleOverrides: {
+							textMarkers: {
+								// Set a very bright background color for all "ins" highlights
+								// to test color contrast of bright text on bright backgrounds
+								insBackground: '#393',
+								// Set a very dark background color for all "del" highlights
+								// to test color contrast of dark text on dark backgrounds
+								delBackground: '#400',
+							},
+						},
+					},
+					plugins: [pluginTextMarkers(), pluginShiki()],
+					blockValidationFn: ({ renderedGroupAst, styleVariants }) => {
+						const themesWithInsufficientContrast: string[] = []
+						styleVariants.forEach((styleVariant, styleVariantIndex) => {
+							// Calculate the contrast of all syntax tokens inside matching lines
+							const bg = styleVariant.resolvedStyleSettings.get('textMarkers.insBackground')
+							const tokens = selectAll(`.ins span[style]`, renderedGroupAst)
+							const tokenColorRegExp = new RegExp(`(?:^|;)--${styleVariantIndex}:(#.*?)(?:;|$)`)
+							const tokenColors = tokens.map((token) => {
+								const text = toText(token)
+								const fg = token.properties?.style?.toString().match(tokenColorRegExp)?.[1]
+								const contrast = fg && bg ? getColorContrast(fg, bg) : undefined
+								return {
+									text,
+									bg,
+									fg,
+									contrast,
+								}
+							})
+							const insufficientContrastTokens = tokenColors
+								.filter((token) => token.text.trim() !== '' && (token.contrast === undefined || token.contrast < 4.5))
+								.map(
+									(token) =>
+										`Token: "${token.text}" (${[
+											// `fg: ${token.fg ?? 'undefined'}`,
+											// `bg: ${token.bg ?? 'undefined'}`,
+											`contrast: ${token.contrast !== undefined ? Math.round(token.contrast * 10) / 10 : 'undefined'}`,
+										].join(', ')})`
+								)
+								.join('\n')
+							if (insufficientContrastTokens !== '') {
+								themesWithInsufficientContrast.push(`*** Theme "${styleVariant.theme.name}" has insufficient contrast:\n${insufficientContrastTokens}`)
+							}
+						})
+						expect(themesWithInsufficientContrast, `\n\n${themesWithInsufficientContrast.join('\n\n')}\n\n`).toHaveLength(0)
+					},
 				}),
 			})
 		},

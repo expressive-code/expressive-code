@@ -31,7 +31,7 @@ export abstract class ExpressiveCodeAnnotation {
 	constructor({ inlineRange, renderPhase }: AnnotationBaseOptions) {
 		if (inlineRange) validateExpressiveCodeInlineRange(inlineRange)
 		this.inlineRange = inlineRange
-		this.renderPhase = renderPhase
+		this.renderPhase = renderPhase ?? 'normal'
 	}
 
 	/**
@@ -62,7 +62,7 @@ export abstract class ExpressiveCodeAnnotation {
 	 *
 	 * The default phase is `normal`.
 	 */
-	readonly renderPhase: AnnotationRenderPhase | undefined
+	readonly renderPhase: AnnotationRenderPhase
 }
 
 export type InlineStyleAnnotationOptions = AnnotationBaseOptions & {
@@ -98,7 +98,7 @@ export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
 	underline: boolean
 
 	constructor({ styleVariantIndex, color, italic = false, bold = false, underline = false, ...baseOptions }: InlineStyleAnnotationOptions) {
-		super(baseOptions)
+		super({ renderPhase: 'earliest', ...baseOptions })
 		this.styleVariantIndex = styleVariantIndex
 		this.color = color
 		this.italic = italic
@@ -107,21 +107,28 @@ export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
 	}
 
 	render({ nodesToTransform }: AnnotationRenderOptions) {
-		const tokenStyles: string[] = []
+		const newStyles = new Map<string, string>()
 		const varPrefix = `--${this.styleVariantIndex}`
-		if (this.color) tokenStyles.push(`${varPrefix}:${this.color}`)
-		if (this.italic) tokenStyles.push(`${varPrefix}fs:italic`)
-		if (this.bold) tokenStyles.push(`${varPrefix}fw:bold`)
-		if (this.underline) tokenStyles.push(`${varPrefix}td:underline`)
-		const tokenStyle = tokenStyles.join(';')
+		if (this.color) newStyles.set(varPrefix, this.color)
+		if (this.italic) newStyles.set(`${varPrefix}fs`, 'italic')
+		if (this.bold) newStyles.set(`${varPrefix}fw`, 'bold')
+		if (this.underline) newStyles.set(`${varPrefix}td`, 'underline')
+
+		const buildStyleString = (styles: Map<string, string>) => {
+			return [...styles].map(([key, value]) => `${key}:${value}`).join(';')
+		}
 
 		return nodesToTransform.map((node) => {
 			if (node.type === 'element' && node.tagName === 'span' && getClassNames(node).includes('is')) {
-				// The node is already an inline style token, so we can just add to its style
-				setProperty(node, 'style', (node.properties?.style?.toString() || '') + ';' + tokenStyle)
+				// The node is already an inline style token, so we can modify its existing styles
+				const existingStyles: [string, string][] = (node.properties?.style?.toString() || '').split(';').map((style) => {
+					const declParts = style.split(':')
+					return [declParts[0], declParts.slice(1).join(':')]
+				})
+				setProperty(node, 'style', buildStyleString(new Map([...existingStyles, ...newStyles])))
 				return node
 			}
-			const transformedNode = h('span.is', { style: tokenStyle }, node)
+			const transformedNode = h('span.is', { style: buildStyleString(newStyles) }, node)
 			return transformedNode
 		})
 	}
