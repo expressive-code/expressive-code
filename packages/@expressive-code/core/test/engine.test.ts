@@ -9,7 +9,7 @@ import { WrapperAnnotation, getHookTestResult, getMultiPluginTestResult, nonArra
 import { ExpressiveCodeEngine, ExpressiveCodeEngineConfig } from '../src/common/engine'
 import { ExpressiveCodeBlock } from '../src/common/block'
 import { StyleVariant } from '../src/common/style-variants'
-import { findDeclsBySelectorAndProperty, findDeclsByStyleSetting, parseCss } from '@internal/test-utils'
+import { findDeclsBySelectorAndProperty, findDeclsByStyleSetting, parseCss } from '../../../../internal/test-utils'
 import { ExpressiveCodeTheme } from '../src/common/theme'
 import { groupWrapperClassName } from '../src/internal/css'
 
