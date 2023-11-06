@@ -71,7 +71,7 @@ export interface ExpressiveCodeEngineConfig {
 	 * If you want to prevent the generation of theme-specific CSS rules altogether,
 	 * you can set this to `false` or return it from the function.
 	 */
-	themeCssSelector?: ((theme: ExpressiveCodeTheme) => string | false) | false | undefined
+	themeCssSelector?: ((theme: ExpressiveCodeTheme, context: { styleVariants: StyleVariant[] }) => string | false) | false | undefined
 	/**
 	 * This optional function is called once per theme during engine initialization
 	 * with the loaded theme as its only argument.
@@ -310,7 +310,7 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 						this.themes.map((theme) => `${theme.name} (${theme.type})`).join(', '),
 					].join(' ')
 				)
-			const baseThemeSelector = this.themeCssSelector && this.themeCssSelector(baseTheme)
+			const baseThemeSelector = this.themeCssSelector && this.themeCssSelector(baseTheme, { styleVariants: this.styleVariants })
 			const notBaseThemeSelector = baseThemeSelector ? `:not(${baseThemeSelector})` : ''
 			const darkModeMediaQuery = await scopeAndMinifyNestedCss(`
 				@media (prefers-color-scheme: ${altType}) {
@@ -328,7 +328,7 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 		// Unless disabled, also generate per-theme CSS styles
 		if (this.themeCssSelector !== false) {
 			for (const { theme, cssVars, coreStyles } of alternateVariants) {
-				const themeSelector = this.themeCssSelector && this.themeCssSelector(theme)
+				const themeSelector = this.themeCssSelector && this.themeCssSelector(theme, { styleVariants: this.styleVariants })
 				if (!themeSelector) continue
 
 				themeStyles.push(
