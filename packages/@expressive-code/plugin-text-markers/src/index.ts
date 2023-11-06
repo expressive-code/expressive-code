@@ -194,9 +194,8 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 					if (fullLineMarker) markers.unshift(fullLineMarker)
 					// Ensure color contrast for all style variants
 					styleVariants.forEach((styleVariant, styleVariantIndex) => {
-						const lineBgColor =
-							(fullLineMarker ? styleVariant.resolvedStyleSettings.get(markerBgColorPaths[fullLineMarker.markerType]) : styleVariant.resolvedStyleSettings.get('codeBackground')) ||
-							styleVariant.theme.bg
+						const fullLineMarkerBgColor = (fullLineMarker && styleVariant.resolvedStyleSettings.get(markerBgColorPaths[fullLineMarker.markerType])) || 'transparent'
+						const lineBgColor = onBackground(fullLineMarkerBgColor, styleVariant.resolvedStyleSettings.get('codeBackground') || styleVariant.theme.bg)
 						// Collect inline style annotations that change the text color
 						const textColors = annotations.filter(
 							(annotation) =>
