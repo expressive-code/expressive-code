@@ -240,7 +240,6 @@ export function getCoreBaseStyles({
 				font-family: ${cssVar('codeFontFamily')};
 				font-size: ${cssVar('codeFontSize')};
 				line-height: ${cssVar('codeLineHeight')};
-				--padding-inline: ${cssVar('codePaddingInline')};
 			}
 
 			${ifThemedSelectionColors(`::selection {
@@ -273,10 +272,8 @@ export function getCoreBaseStyles({
 
 		/* Code lines */
 		.${codeLineClass} {
-			--accent-margin: 0rem;
-			min-width: calc(100% - var(--accent-margin));
-			padding-inline: var(--padding-inline);
-			padding-inline-end: calc(2rem + var(--padding-inline));
+			padding-inline: ${cssVar('codePaddingInline')};
+			padding-inline-end: calc(2rem + ${cssVar('codePaddingInline')});
 
 			/* RTL support: Code is always LTR */
 			direction: ltr;

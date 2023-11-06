@@ -223,20 +223,20 @@ export function getTextMarkersBaseStyles({ cssVar }: ResolverContext) {
 		.${codeLineClass} {
 			/* Support line-level mark/ins/del */
 			&.mark {
-				--line-marker-bg-color: ${cssVar('textMarkers.markBackground')};
-				--line-marker-border-color: ${cssVar('textMarkers.markBorderColor')};
+				--tmLineBgCol: ${cssVar('textMarkers.markBackground')};
+				--tmLineBrdCol: ${cssVar('textMarkers.markBorderColor')};
 			}
 			&.ins {
-				--line-marker-bg-color: ${cssVar('textMarkers.insBackground')};
-				--line-marker-border-color: ${cssVar('textMarkers.insBorderColor')};
+				--tmLineBgCol: ${cssVar('textMarkers.insBackground')};
+				--tmLineBrdCol: ${cssVar('textMarkers.insBorderColor')};
 				&::before {
 					content: ${cssVar('textMarkers.insDiffIndicatorContent')};
 					color: ${cssVar('textMarkers.insDiffIndicatorColor')};
 				}
 			}
 			&.del {
-				--line-marker-bg-color: ${cssVar('textMarkers.delBackground')};
-				--line-marker-border-color: ${cssVar('textMarkers.delBorderColor')};
+				--tmLineBgCol: ${cssVar('textMarkers.delBackground')};
+				--tmLineBrdCol: ${cssVar('textMarkers.delBorderColor')};
 				&::before {
 					content: ${cssVar('textMarkers.delDiffIndicatorContent')};
 					color: ${cssVar('textMarkers.delDiffIndicatorColor')};
@@ -245,13 +245,12 @@ export function getTextMarkersBaseStyles({ cssVar }: ResolverContext) {
 			&.mark,
 			&.ins,
 			&.del {
-				--accent-margin: ${cssVar('textMarkers.lineMarkerAccentMargin')};
-				--accent-width: ${cssVar('textMarkers.lineMarkerAccentWidth')};
 				position: relative;
-				background: var(--line-marker-bg-color);
-				margin-inline-start: var(--accent-margin);
-				border-inline-start: var(--accent-width) solid var(--line-marker-border-color);
-				padding-inline-start: calc(${cssVar('codePaddingInline')} - var(--accent-margin) - var(--accent-width)) !important;
+				background: var(--tmLineBgCol);
+				min-width: calc(100% - ${cssVar('textMarkers.lineMarkerAccentMargin')});
+				margin-inline-start: ${cssVar('textMarkers.lineMarkerAccentMargin')};
+				border-inline-start: ${cssVar('textMarkers.lineMarkerAccentWidth')} solid var(--tmLineBrdCol);
+				padding-inline-start: calc(${cssVar('codePaddingInline')} - ${cssVar('textMarkers.lineMarkerAccentMargin')} - ${cssVar('textMarkers.lineMarkerAccentWidth')}) !important;
 				&::before {
 					position: absolute;
 					left: ${cssVar('textMarkers.lineDiffIndicatorMarginLeft')};
@@ -260,16 +259,16 @@ export function getTextMarkersBaseStyles({ cssVar }: ResolverContext) {
 
 			/* Support inline mark/ins/del */
 			& mark {
-				--inline-marker-bg-color: ${cssVar('textMarkers.markBackground')};
-				--inline-marker-border-color: ${cssVar('textMarkers.markBorderColor')};
+				--tmInlineBgCol: ${cssVar('textMarkers.markBackground')};
+				--tmInlineBrdCol: ${cssVar('textMarkers.markBorderColor')};
 			}
 			& ins {
-				--inline-marker-bg-color: ${cssVar('textMarkers.insBackground')};
-				--inline-marker-border-color: ${cssVar('textMarkers.insBorderColor')};
+				--tmInlineBgCol: ${cssVar('textMarkers.insBackground')};
+				--tmInlineBrdCol: ${cssVar('textMarkers.insBorderColor')};
 			}
 			& del {
-				--inline-marker-bg-color: ${cssVar('textMarkers.delBackground')};
-				--inline-marker-border-color: ${cssVar('textMarkers.delBorderColor')};
+				--tmInlineBgCol: ${cssVar('textMarkers.delBackground')};
+				--tmInlineBrdCol: ${cssVar('textMarkers.delBorderColor')};
 			}
 			& mark,
 			& ins,
@@ -277,28 +276,27 @@ export function getTextMarkersBaseStyles({ cssVar }: ResolverContext) {
 				all: unset;
 				display: inline-block;
 				position: relative;
-				--border: ${cssVar('textMarkers.inlineMarkerBorderWidth')};
-				--border-l: var(--border);
-				--border-r: var(--border);
-				--radius-l: ${cssVar('textMarkers.inlineMarkerBorderRadius')};
-				--radius-r: ${cssVar('textMarkers.inlineMarkerBorderRadius')};
+				--tmBrdL: ${cssVar('textMarkers.inlineMarkerBorderWidth')};
+				--tmBrdR: ${cssVar('textMarkers.inlineMarkerBorderWidth')};
+				--tmRadL: ${cssVar('textMarkers.inlineMarkerBorderRadius')};
+				--tmRadR: ${cssVar('textMarkers.inlineMarkerBorderRadius')};
 				margin-inline: 0.025rem;
 				padding-inline: ${cssVar('textMarkers.inlineMarkerPadding')};
-				border-radius: var(--radius-l) var(--radius-r) var(--radius-r) var(--radius-l);
-				background: var(--inline-marker-bg-color);
+				border-radius: var(--tmRadL) var(--tmRadR) var(--tmRadR) var(--tmRadL);
+				background: var(--tmInlineBgCol);
 				background-clip: padding-box;
 
 				&.open-start {
 					margin-inline-start: 0;
 					padding-inline-start: 0;
-					--border-l: 0px;
-					--radius-l: 0;
+					--tmBrdL: 0px;
+					--tmRadL: 0;
 				}
 				&.open-end {
 					margin-inline-end: 0;
 					padding-inline-end: 0;
-					--border-r: 0px;
-					--radius-r: 0;
+					--tmBrdR: 0px;
+					--tmRadR: 0;
 				}
 				&::before {
 					content: '';
@@ -306,9 +304,9 @@ export function getTextMarkersBaseStyles({ cssVar }: ResolverContext) {
 					pointer-events: none;
 					display: inline-block;
 					inset: 0;
-					border-radius: var(--radius-l) var(--radius-r) var(--radius-r) var(--radius-l);
-					border: var(--border) solid var(--inline-marker-border-color);
-					border-inline-width: var(--border-l) var(--border-r);
+					border-radius: var(--tmRadL) var(--tmRadR) var(--tmRadR) var(--tmRadL);
+					border: ${cssVar('textMarkers.inlineMarkerBorderWidth')} solid var(--tmInlineBrdCol);
+					border-inline-width: var(--tmBrdL) var(--tmBrdR);
 				}
 			}
 		}

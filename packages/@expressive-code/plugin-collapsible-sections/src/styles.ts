@@ -10,7 +10,8 @@ export interface CollapsibleSectionsStyleSettings {
 	closedBorderWidth: string
 	/**
 	 * The padding of closed sections.
-	 * @default '4px 0 4px var(--padding-inline)'
+	 * @default
+	 * ({ resolveSetting }) => `4px 0 4px ${resolveSetting('codePaddingInline')}`
 	 */
 	closedPadding: string
 	/**
@@ -87,7 +88,7 @@ export const collapsibleSectionsStyleSettings = new PluginStyleSettings({
 	defaultValues: {
 		collapsibleSections: {
 			closedBorderWidth: '0',
-			closedPadding: '4px 0 4px var(--padding-inline)',
+			closedPadding: ({ resolveSetting }) => `4px 0 4px ${resolveSetting('codePaddingInline')}`,
 			closedMargin: '0',
 			closedFontFamily: 'inherit',
 			closedFontSize: 'inherit',
