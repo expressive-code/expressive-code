@@ -65,10 +65,10 @@ import astroExpressiveCode from 'astro-expressive-code'
 
 /** @type {import('astro-expressive-code').AstroExpressiveCodeOptions} */
 const astroExpressiveCodeOptions = {
-  // You can set this to any of the themes bundled with Shiki,
+  // You can use any of the themes bundled with Shiki by name,
   // specify a path to JSON theme file, or pass an instance
   // of the `ExpressiveCodeTheme` class here:
-  theme: 'dracula',
+  themes: ['dracula', 'solarized-light'],
 }
 
 export default defineConfig({
@@ -87,10 +87,10 @@ import remarkExpressiveCode from 'remark-expressive-code'
 
 /** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
 const remarkExpressiveCodeOptions = {
-  // You can set this to any of the themes bundled with Shiki,
+  // You can use any of the themes bundled with Shiki by name,
   // specify a path to JSON theme file, or pass an instance
   // of the `ExpressiveCodeTheme` class here:
-  theme: 'nord',
+  themes: ['dracula', 'solarized-light'],
 }
 
 /** @type {import('next').NextConfig} */
