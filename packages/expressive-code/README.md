@@ -82,13 +82,11 @@ In addition to the [options provided by the core engine](https://github.com/expr
 
   This plugin is enabled by default. Set this to `false` to disable it.
 
-- `textMarkers: PluginTextMarkersOptions | boolean`
+- `textMarkers: boolean`
 
   The Text Markers plugin allows to highlight lines and inline ranges in code blocks in various styles (e.g. marked, inserted, deleted).
 
   This plugin is enabled by default. Set this to `false` to disable it.
-
-  You can also configure the plugin by setting this to an [options object](https://github.com/expressive-code/expressive-code/blob/main/packages/%40expressive-code/plugin-text-markers/README.md#available-plugin-options).
 
 - `frames: PluginFramesOptions | boolean`
 

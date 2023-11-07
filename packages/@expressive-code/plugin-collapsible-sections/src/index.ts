@@ -1,12 +1,8 @@
-import { AttachedPluginData, ExpressiveCodePlugin, PluginTexts, replaceDelimitedValues } from '@expressive-code/core'
+import { AttachedPluginData, ExpressiveCodePlugin, PluginTexts, replaceDelimitedValues, cssVarReplacements } from '@expressive-code/core'
 import { Section, parseSections } from './utils'
 import { select } from 'hast-util-select'
 import { sectionizeAst } from './ast'
 import { collapsibleSectionsStyleSettings, getCollapsibleSectionsBaseStyles } from './styles'
-
-export interface PluginCollapsibleSectionsOptions {
-	styleOverrides?: Partial<typeof collapsibleSectionsStyleSettings.defaultSettings> | undefined
-}
 
 export const pluginCollapsibleSectionsTexts = new PluginTexts({
 	collapsedLines: '{lineCount} collapsed {lineCount;1=line;lines}',
@@ -16,11 +12,12 @@ pluginCollapsibleSectionsTexts.addLocale('de', {
 	collapsedLines: '{lineCount} ausgeblendete {lineCount;1=Zeile;Zeilen}',
 })
 
-export function pluginCollapsibleSections(options: PluginCollapsibleSectionsOptions = {}): ExpressiveCodePlugin {
+export function pluginCollapsibleSections(): ExpressiveCodePlugin {
+	cssVarReplacements.set('collapsibleSections', 'cs')
 	return {
 		name: 'Collapsible sections',
-		baseStyles: ({ theme, coreStyles, styleOverrides }) =>
-			getCollapsibleSectionsBaseStyles(theme, coreStyles, { ...styleOverrides.collapsibleSections, ...options.styleOverrides }),
+		styleSettings: collapsibleSectionsStyleSettings,
+		baseStyles: (context) => getCollapsibleSectionsBaseStyles(context),
 		hooks: {
 			preprocessMetadata: ({ codeBlock }) => {
 				codeBlock.meta = replaceDelimitedValues(

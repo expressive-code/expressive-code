@@ -3,28 +3,28 @@ import { h, Result as HastEntity } from 'hastscript'
 import { framesStyleSettings, getFramesBaseStyles } from './styles'
 import { FrameType, frameTypeFromString, frameTypes, getFileNameFromComment, isTerminalLanguage, LanguageGroups } from './utils'
 import { getCopyJsModule } from './copy-js-module'
+export { FramesStyleSettings } from './styles'
 
 export interface PluginFramesOptions {
 	/**
-	 * If this is true (default) and no title was found in the code block's meta string,
+	 * If `true` (which is the default), and no title was found in the code block's meta string,
 	 * the plugin will try to find and extract a comment line containing the code block file name
 	 * from the first 4 lines of the code.
 	 */
 	extractFileNameFromCode?: boolean | undefined
 	/**
-	 * If this is true (default), a "Copy to clipboard" button
+	 * If `true` (which is the default), a "Copy to clipboard" button
 	 * will be shown for each code block.
 	 */
 	showCopyToClipboardButton?: boolean | undefined
 	/**
-	 * If this is true (default), the "Copy to clipboard" button of terminal window frames
+	 * If `true` (which is the default), the "Copy to clipboard" button of terminal window frames
 	 * will remove comment lines starting with `#` from the copied text.
 	 *
 	 * This is useful to reduce the copied text to the actual commands users need to run,
 	 * instead of also copying explanatory comments or instructions.
 	 */
 	removeCommentsWhenCopyingTerminalFrames?: boolean | undefined
-	styleOverrides?: Partial<typeof framesStyleSettings.defaultSettings> | undefined
 }
 
 export const pluginFramesTexts = new PluginTexts({
@@ -49,7 +49,8 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 	}
 	return {
 		name: 'Frames',
-		baseStyles: ({ theme, coreStyles, styleOverrides }) => getFramesBaseStyles(theme, coreStyles, { ...styleOverrides.frames, ...options.styleOverrides }, options),
+		styleSettings: framesStyleSettings,
+		baseStyles: (context) => getFramesBaseStyles(context, options),
 		jsModules: options.showCopyToClipboardButton ? [getCopyJsModule(`.expressive-code .copy button`)] : undefined,
 		hooks: {
 			preprocessMetadata: ({ codeBlock }) => {

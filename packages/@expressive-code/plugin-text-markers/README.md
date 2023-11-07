@@ -188,9 +188,9 @@ import astroExpressiveCode from 'astro-expressive-code'
 
 /** @type {import('astro-expressive-code').AstroExpressiveCodeOptions} */
 const astroExpressiveCodeOptions = {
-  // This is where you can pass your plugin options
-  textMarkers: {
-    styleOverrides: {
+  styleOverrides: {
+    // You can optionally override the plugin's default styles here
+    textMarkers: {
       // Make default marker color slightly purple
       markHue: '310',
       // Reduce marker border opacity
@@ -215,9 +215,9 @@ import remarkExpressiveCode from 'remark-expressive-code'
 
 /** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
 const remarkExpressiveCodeOptions = {
-  // This is where you can pass your plugin options
-  textMarkers: {
-    styleOverrides: {
+  styleOverrides: {
+    // You can optionally override the plugin's default styles here
+    textMarkers: {
       // Make default marker color slightly purple
       markHue: '310',
       // Reduce marker border opacity
@@ -249,33 +249,9 @@ export default withMDX(nextConfig)
 
 ### Available plugin options
 
-You can pass the following options to the plugin:
+This plugin does not provide any configuration options that can be passed to its initialization function.
 
-- `styleOverrides`
-
-  Allows overriding the plugin's default styles using an object with named properties.
-
-  The property values can either be a string, or a function that returns a string. If a function is used, it will be called with the following arguments:
-
-  - `theme`: An ExpressiveCodeTheme object containing the current theme's colors and other properties.
-  - `coreStyles`: An object containing the ExpressiveCodeEngine core styles.
-  - `resolveSetting`: A function that can be used to resolve another style setting. It takes a style property name, and returns its resolved value. For example, all marker color values are calculated from base settings like `markHue` using this function.
-
-  The following properties are available:
-
-  - Spacing & border styles:
-    `lineMarkerAccentMargin`, `lineMarkerAccentWidth`, `lineDiffIndicatorMarginLeft`, `inlineMarkerBorderWidth`, `inlineMarkerBorderRadius`, `inlineMarkerPadding`,
-
-  - Base color styles for all markers:
-    `markHue`, `insHue`, `delHue`, `defaultChroma`, `defaultLuminance`, `backgroundOpacity`, `borderLuminance`, `borderOpacity`, `indicatorLuminance`, `indicatorOpacity`,
-    > **Note**: These colors use the LCH color space to ensure that the perceived color contrast is always the same, regardless of the base color hue. As not all browsers support this color space yet, the resulting colors will be converted to RGB before output.
-
-  - Diff indicator settings:
-    `insDiffIndicatorContent`, `delDiffIndicatorContent`
-
-  - Individual marker color styles:
-    `markBackground`, `markBorderColor`, `insBackground`, `insBorderColor`, `insDiffIndicatorColor`, `delBackground`, `delBorderColor`, `delDiffIndicatorColor`
-    > **Note**: By default, these colors are calculated from the base color styles above. You can override them individually if you want to.
+However, you can override its default styles inside the `styleOverrides` engine config option. See the [configuration examples](#configuration) above for more information.
 
 ## Advanced use cases
 
@@ -301,9 +277,6 @@ import { pluginTextMarkers } from '@expressive-code/plugin-text-markers'
 
 const ec = new ExpressiveCodeEngine({
   plugins: [
-    // Note: If you want to configure the plugin,
-    //       you can pass options like this:
-    // pluginTextMarkers({ ...your options here... })
     pluginTextMarkers(),
   ],
 })

@@ -235,10 +235,53 @@ describe('ExpressiveCodeTheme', () => {
 
 			// Expect background colors to be adjusted
 			// - Original github-dark color: #24292e
-			expect(engine.theme.colors['editor.background']).toBe('#04255a')
+			expect(engine.themes[0].colors['editor.background']).toBe('#04255a')
 
 			// Also expect resolved core styles to have picked up the adjusted colors
-			expect(engine.coreStyles.codeBackground).toBe('#04255a')
+			expect(engine.styleVariants[0].resolvedStyleSettings.get('codeBackground')).toBe('#04255a')
+		})
+	})
+
+	describe('Can override core styles using the "styleOverrides" property', () => {
+		test('Themes can override the default styles', async () => {
+			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('themes/github-dark.json'))
+			theme.styleOverrides.codeBackground = 'var(--test-code-bg)'
+			theme.styleOverrides.uiFontFamily = 'MyUiTestFont'
+
+			const engine = new ExpressiveCodeEngine({
+				themes: [theme],
+			})
+
+			// Expect the resolved core styles to contain the new values
+			expect(engine.styleVariants[0].resolvedStyleSettings.get('codeBackground')).toBe('var(--test-code-bg)')
+			expect(engine.styleVariants[0].resolvedStyleSettings.get('uiFontFamily')).toBe('MyUiTestFont')
+
+			// Expect the theme-dependent styles to contain the new values
+			const themeStyles = await engine.getThemeStyles()
+			expect(themeStyles).toContain('var(--test-code-bg)')
+			expect(themeStyles).toContain('MyUiTestFont')
+		})
+		test('Theme styleOverrides take precedence over global styleOverrides', async () => {
+			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('themes/github-dark.json'))
+			theme.styleOverrides.codeBackground = '#fedcba98'
+			theme.styleOverrides.uiFontFamily = 'MyThemeProvidedFont'
+
+			const engine = new ExpressiveCodeEngine({
+				themes: [theme],
+				styleOverrides: {
+					codeBackground: '#123456',
+					uiFontFamily: 'ThisFontShouldBeOverwritten',
+				},
+			})
+
+			// Expect the resolved core styles to contain the new values
+			expect(engine.styleVariants[0].resolvedStyleSettings.get('codeBackground')).toBe('#fedcba98')
+			expect(engine.styleVariants[0].resolvedStyleSettings.get('uiFontFamily')).toBe('MyThemeProvidedFont')
+
+			// Expect the theme-dependent styles to contain the new values
+			const themeStyles = await engine.getThemeStyles()
+			expect(themeStyles).toContain('#fedcba98')
+			expect(themeStyles).toContain('MyThemeProvidedFont')
 		})
 	})
 })

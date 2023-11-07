@@ -1,8 +1,8 @@
 import { groupedDefaultWorkbenchColorKeys, guessThemeTypeFromEditorColors, resolveVSCodeWorkbenchColors, VSCodeThemeType, VSCodeWorkbenchColors } from '../internal/vscode-colors'
 import stripJsonComments from 'strip-json-comments'
 import type { IShikiTheme } from 'shiki'
-import { chromaticRecolor, ChromaticRecolorTarget } from '../helpers/color-transforms'
-import { StyleOverrides } from './core-styles'
+import { chromaticRecolor, ChromaticRecolorTarget, ensureColorContrastOnBackground } from '../helpers/color-transforms'
+import { StyleOverrides } from './style-settings'
 
 export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'> {
 	name: string
@@ -12,7 +12,7 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 	bg: string
 	semanticHighlighting: boolean
 	settings: ThemeSetting[]
-	styleOverrides: Partial<StyleOverrides>
+	styleOverrides: StyleOverrides
 
 	/**
 	 * Loads the given theme for use with Expressive Code. Supports both Shiki and VS Code themes.
@@ -37,7 +37,8 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 			if (typeof themeColors[key] !== 'string' || !themeColors[key].trim().length) delete themeColors[key]
 		}
 
-		this.name = theme.name || ''
+		// If the theme does not define a name, use the theme type instead ("dark" or "light")
+		this.name = theme.name || themeType
 		this.type = themeType as VSCodeThemeType
 		this.colors = resolveVSCodeWorkbenchColors(themeColors, this.type)
 		this.fg = theme.fg || this.colors['editor.foreground']
@@ -99,6 +100,25 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 	}
 
 	/**
+	 * Processes the theme's syntax highlighting colors to ensure a minimum contrast ratio
+	 * between foreground and background colors.
+	 *
+	 * The default value of 5.5 ensures optimal accessibility with a contrast ratio of 5.5:1.
+	 *
+	 * Returns the same `ExpressiveCodeTheme` instance to allow chaining.
+	 */
+	ensureMinSyntaxHighlightingColorContrast(minContrast = 5.5) {
+		this.settings.forEach((s) => {
+			if (!s.settings.foreground) return
+			const newColor = ensureColorContrastOnBackground(s.settings.foreground, this.bg, minContrast)
+			if (newColor === s.settings.foreground) return
+			s.settings.foreground = newColor
+		})
+
+		return this
+	}
+
+	/**
 	 * Parses the given theme settings into a properly typed format
 	 * that can be used by both Expressive Code and Shiki.
 	 *
@@ -137,7 +157,7 @@ export type ExpressiveCodeThemeInput = Partial<Omit<ExpressiveCodeTheme | IShiki
 	type?: VSCodeThemeType | string | undefined
 	tokenColors?: unknown | undefined
 	semanticHighlighting?: boolean | undefined
-	styleOverrides?: Partial<StyleOverrides> | undefined
+	styleOverrides?: StyleOverrides | undefined
 }
 
 export type ThemeSetting = {

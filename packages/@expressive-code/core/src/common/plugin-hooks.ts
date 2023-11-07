@@ -3,16 +3,18 @@ import { PluginStyles } from '../internal/css'
 import { GroupContents, RenderedGroupContents } from '../internal/render-group'
 import { ExpressiveCodeBlock } from './block'
 import { ExpressiveCodeLine } from './line'
-import { ExpressiveCodePlugin } from './plugin'
-import { ExpressiveCodeTheme } from './theme'
-import { ResolvedCoreStyles } from './core-styles'
+import { ExpressiveCodePlugin, ResolverContext } from './plugin'
+import { ResolvedExpressiveCodeEngineConfig } from './engine'
 
-export interface ExpressiveCodeHookContext {
+export interface ExpressiveCodeHookContext extends ResolverContext {
 	codeBlock: ExpressiveCodeBlock
 	groupContents: GroupContents
-	theme: ExpressiveCodeTheme
 	locale: string
-	coreStyles: ResolvedCoreStyles
+	/**
+	 * The Expressive Code engine configuration, with all optional properties
+	 * resolved to their default values.
+	 */
+	config: ResolvedExpressiveCodeEngineConfig
 	/**
 	 * Adds CSS styles to the document that contains the rendered code.
 	 *

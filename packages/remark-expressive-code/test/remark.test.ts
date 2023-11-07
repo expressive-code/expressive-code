@@ -5,31 +5,56 @@ import remarkRehype from 'remark-rehype'
 import rehypeRaw from 'rehype-raw'
 import toHtml from 'rehype-stringify'
 import dracula from 'shiki/themes/dracula.json'
-import remarkExpressiveCode, { ExpressiveCodeTheme, RemarkExpressiveCodeOptions } from '../src'
-import { multiThemeSampleCodeHtmlRegExp, sampleCodeHtmlRegExp, sampleCodeMarkdown } from './utils'
+import remarkExpressiveCode, { ExpressiveCodeTheme, RemarkExpressiveCodeOptions, StyleSettingPath, getCssVarName } from '../src'
+import { buildSampleCodeHtmlRegExp, sampleCodeMarkdown } from './utils'
 
-const regexCodeBg = /.ec-\w+? pre{(?:[^}]*?;)*background:(.*?)[;}]/g
-const regexCodeColor = /.ec-\w+? pre\s*>\s*code{(?:[^}]*?;)*color:(.*?)[;}]/g
-const regexCodeSelectionBg = /.ec-\w+? pre\s+::selection{(?:[^}]*?;)*background:(.*?)[;}]/g
-const regexScrollbarThumbColor = /.ec-\w+? pre::-webkit-scrollbar-thumb{(?:[^}]*?;)*background-color:(.*?)[;}]/g
-const regexScrollbarHoverColor = /.ec-\w+? pre::-webkit-scrollbar-thumb:hover{(?:[^}]*?;)*background-color:(.*?)[;}]/g
-const regexThemeClassNames = /<div class="expressive-code .*?(ec-theme-[\w-]+?)(| .*?)">/g
+const buildCssVarValuesRegex = (setting: StyleSettingPath) => new RegExp(`${getCssVarName(setting)}:(.*?)[;}]`, 'g')
+const regexCodeBg = buildCssVarValuesRegex('codeBackground')
+const regexCodeColor = buildCssVarValuesRegex('codeForeground')
+const regexCodeSelectionBgVar = buildCssVarValuesRegex('codeSelectionBackground')
+const regexScrollbarThumbColorVar = buildCssVarValuesRegex('scrollbarThumbColor')
+const regexScrollbarHoverColorVar = buildCssVarValuesRegex('scrollbarThumbHoverColor')
+const regexCodeSelectionBg = /.expressive-code pre\s+::selection{(?:[^}]*?;)*background:(.*?)[;}]/g
+const regexScrollbarThumbColor = /.expressive-code pre::-webkit-scrollbar-thumb{(?:[^}]*?;)*background-color:(.*?)[;}]/g
+const regexScrollbarHoverColor = /.expressive-code pre::-webkit-scrollbar-thumb:hover{(?:[^}]*?;)*background-color:(.*?)[;}]/g
+const regexThemeClassNames = /:root\[data-theme='([\w-]+?)'\] .expressive-code[,{]/g
 
 describe('Usage inside unified/remark', () => {
-	test('Works without any options', async () => {
+	test('Uses default settings when created without any options', async () => {
 		const processor = createRemarkProcessor()
 		const result = await processor.process(sampleCodeMarkdown)
-		expect(result.value).toMatch(sampleCodeHtmlRegExp)
+		const html = result.value.toString()
+		const sampleCodeHtmlRegExp = buildSampleCodeHtmlRegExp({
+			title: 'test.js',
+			codeContents: [
+				// Ensure that the Text Markers plugin works by expecting a highlighted code line
+				'<div class="ec-line ins">',
+				// Expect Shiki highlighting colors inside
+				'.*?--0:#.*?',
+				// Expect the code line to be closed
+				'</div>',
+			],
+		})
+		expect(html).toMatch(sampleCodeHtmlRegExp)
 	})
-	describe('Supported inputs of the `theme` option', () => {
+	test('Provides access to styleOverrides settings contributed by default plugins', () => {
+		createRemarkProcessor({
+			styleOverrides: {
+				frames: {
+					editorBackground: 'blue',
+				},
+			},
+		})
+	})
+	describe('Supported inputs of the `themes` option', () => {
 		const draculaBg = dracula.colors?.['editor.background'].toLowerCase()
 		const draculaFg = dracula.colors?.['editor.foreground'].toLowerCase()
 
 		test('Bundled Shiki theme names', async () => {
 			await runThemeTests({
 				testCases: [
-					{ theme: 'light-plus', bgColor: ['#ffffff'], textColor: ['#000000'] },
-					{ theme: 'material-theme', bgColor: ['#263238'], textColor: ['#eeffff'] },
+					{ themes: ['light-plus'], bgColor: ['#ffffff'], textColor: ['#000000'] },
+					{ themes: ['material-theme'], bgColor: ['#263238'], textColor: ['#eeffff'] },
 				],
 			})
 		})
@@ -37,7 +62,7 @@ describe('Usage inside unified/remark', () => {
 			await runThemeTests({
 				testCases: [
 					{
-						theme: dracula,
+						themes: [dracula],
 						bgColor: [draculaBg],
 						textColor: [draculaFg],
 					},
@@ -48,7 +73,7 @@ describe('Usage inside unified/remark', () => {
 			await runThemeTests({
 				testCases: [
 					{
-						theme: new ExpressiveCodeTheme(dracula),
+						themes: [new ExpressiveCodeTheme(dracula)],
 						bgColor: [draculaBg],
 						textColor: [draculaFg],
 					},
@@ -60,14 +85,14 @@ describe('Usage inside unified/remark', () => {
 				testCases: [
 					{
 						// Provide multiple themes by name
-						theme: ['light-plus', 'material-theme'],
+						themes: ['light-plus', 'material-theme'],
 						// Expect two matches per code block, each with a different theme
 						bgColor: ['#ffffff', '#263238'],
 						textColor: ['#000000', '#eeffff'],
 					},
 					{
 						// Mix and match theme names, JSON themes, and ExpressiveCodeTheme instances
-						theme: [
+						themes: [
 							'light-plus',
 							dracula,
 							new ExpressiveCodeTheme({
@@ -85,24 +110,24 @@ describe('Usage inside unified/remark', () => {
 			})
 		})
 	})
-	test('Adds CSS class names based on the theme names by default', async () => {
+	test('Adds selectors for alternate themes by default', async () => {
 		await runThemeTests({
 			testCases: [
 				{
 					// Provide multiple themes by name
-					theme: ['light-plus', 'material-theme'],
-					themeClassNames: ['ec-theme-light-plus', 'ec-theme-material-theme'],
+					themes: ['light-plus', 'material-theme'],
+					themeDataSelectors: ['material-theme'],
 				},
 			],
 		})
 	})
-	test('Can use the `customizeTheme` option to change CSS class names', async () => {
+	test('Can use the `customizeTheme` option to change alternate theme data selectors', async () => {
 		await runThemeTests({
 			testCases: [
 				{
 					// Provide multiple themes by name
-					theme: ['light-plus', 'material-theme'],
-					themeClassNames: ['ec-theme-light', 'ec-theme-dark'],
+					themes: ['light-plus', 'material-theme'],
+					themeDataSelectors: ['dark'],
 				},
 			],
 			config: {
@@ -115,38 +140,38 @@ describe('Usage inside unified/remark', () => {
 	test('Allows the theme to customize the scrollbar by default', async () => {
 		await runThemeTests({
 			testCases: [
-				{ theme: 'light-plus', thumbColor: ['#64646466'], hoverColor: ['#646464b2'] },
-				{ theme: 'material-theme', thumbColor: ['#eeffff20'], hoverColor: ['#eeffff4b'] },
+				{ themes: ['light-plus'], thumbColor: ['#64646466'], hoverColor: ['#646464b2'] },
+				{ themes: ['material-theme'], thumbColor: ['#eeffff20'], hoverColor: ['#eeffff4b'] },
 			],
 		})
 	})
 	test('Does not customize the scrollbar if `useThemedScrollbars` is false', async () => {
 		await runThemeTests({
 			testCases: [
-				{ theme: 'light-plus', thumbColor: [], hoverColor: [] },
-				{ theme: 'material-theme', thumbColor: [], hoverColor: [] },
+				{ themes: ['light-plus'], thumbColor: [], hoverColor: [] },
+				{ themes: ['material-theme'], thumbColor: [], hoverColor: [] },
 			],
 			config: { useThemedScrollbars: false },
 		})
 	})
-	test('Allows the theme to customize selection colors by default', async () => {
+	test('Does not customize selection colors by default', async () => {
 		await runThemeTests({
 			testCases: [
-				{ theme: 'light-plus', codeSelectionBg: ['#add6ff'] },
-				{ theme: 'material-theme', codeSelectionBg: ['#80cbc420'] },
+				{ themes: ['light-plus'], codeSelectionBg: [] },
+				{ themes: ['material-theme'], codeSelectionBg: [] },
 			],
 		})
 	})
-	test('Does not customize selection colors if `useThemedSelectionColors` is false', async () => {
+	test('Allows themes to customize selection colors if `useThemedSelectionColors` is true', async () => {
 		await runThemeTests({
 			testCases: [
-				{ theme: 'light-plus', codeSelectionBg: [] },
-				{ theme: 'material-theme', codeSelectionBg: [] },
+				{ themes: ['light-plus'], codeSelectionBg: ['#add6ff'] },
+				{ themes: ['material-theme'], codeSelectionBg: ['#80cbc420'] },
 			],
-			config: { useThemedSelectionColors: false },
+			config: { useThemedSelectionColors: true },
 		})
 	})
-	test('Adds JS modules provided by plugins before the first code block', async () => {
+	test('Adds JS modules provided by plugins before the first code block contents', async () => {
 		const processor = createRemarkProcessor({
 			frames: {
 				// Test that disabling the copy button prevents its JS module from being added
@@ -162,13 +187,84 @@ describe('Usage inside unified/remark', () => {
 		})
 		const result = await processor.process(sampleCodeMarkdown)
 		const html = result.value.toString()
+		// Expect all JS modules to be part of the output
 		const actualJsModules = html.match(/<script type="module">(.*?)<\/script>/g)
-		expect(html).toMatch(sampleCodeHtmlRegExp)
 		expect(actualJsModules).toEqual([
 			'<script type="module">console.log("Test 1")</script>',
 			// Expect whitespace to be normalized in Test 2
 			'<script type="module">console.log("Test 2")</script>',
 		])
+		// Expect JS modules to be nested inside the Expressive Code wrapper
+		const firstGroupWrapperIndex = html.search(/<div class="expressive-code/)
+		const firstJsModuleIndex = html.indexOf('<script type="module">')
+		const firstCodeBlockContentsIndex = html.search(/<(figure|code|pre)/)
+		expect(firstGroupWrapperIndex, 'Script modules are not located after opening group wrapper').toBeLessThan(firstJsModuleIndex)
+		expect(firstJsModuleIndex, 'Script modules are not located before first code block contents').toBeLessThan(firstCodeBlockContentsIndex)
+	})
+	test('Does not repeat JS modules on subsequent code blocks', async () => {
+		const multiBlockMarkdown = `${sampleCodeMarkdown}\n\n${sampleCodeMarkdown}`
+		const processor = createRemarkProcessor({
+			frames: {
+				// Test that disabling the copy button prevents its JS module from being added
+				showCopyToClipboardButton: false,
+			},
+			plugins: [
+				{
+					name: 'TestPlugin',
+					hooks: {},
+					jsModules: ['console.log("Test 1")', '\t\tconsole.log("Test 2") '],
+				},
+			],
+		})
+		const result = await processor.process(multiBlockMarkdown)
+		const html = result.value.toString()
+		// Expect all JS modules to be part of the output, but only once each
+		const actualJsModules = html.match(/<script type="module">(.*?)<\/script>/g)
+		expect(actualJsModules).toEqual([
+			'<script type="module">console.log("Test 1")</script>',
+			// Expect whitespace to be normalized in Test 2
+			'<script type="module">console.log("Test 2")</script>',
+		])
+		// Expect JS modules to be nested inside the Expressive Code wrapper
+		const firstGroupWrapperIndex = html.search(/<div class="expressive-code/)
+		const firstJsModuleIndex = html.indexOf('<script type="module">')
+		const lastJsModuleIndex = html.lastIndexOf('<script type="module">')
+		const firstCodeBlockContentsIndex = html.search(/<(figure|code|pre)/)
+		expect(firstGroupWrapperIndex, 'Script modules are not located after opening group wrapper').toBeLessThan(firstJsModuleIndex)
+		expect(lastJsModuleIndex, 'Last script module is not located before first code block contents').toBeLessThan(firstCodeBlockContentsIndex)
+	})
+	test('Does not repeat styles on subsequent code blocks', async () => {
+		const multiBlockMarkdown = `${sampleCodeMarkdown}\n\n${sampleCodeMarkdown}`
+		const processor = createRemarkProcessor()
+		const result = await processor.process(multiBlockMarkdown)
+		const html = result.value.toString()
+		// Expect styles to be part of the output, but only once
+		const actualStyles = html.match(/<style>(.*?)<\/style>/g)
+		expect(actualStyles).toEqual([expect.stringContaining(getCssVarName('codeBackground'))])
+		// Expect styles to be nested inside the Expressive Code wrapper
+		const firstGroupWrapperIndex = html.search(/<div class="expressive-code/)
+		const firstStyleIndex = html.indexOf('<style>')
+		const lastStyleIndex = html.lastIndexOf('<style>')
+		const firstCodeBlockContentsIndex = html.search(/<(figure|code|pre)/)
+		expect(firstGroupWrapperIndex, 'Styles are not located after opening group wrapper').toBeLessThan(firstStyleIndex)
+		expect(lastStyleIndex, 'Last style is not located before first code block contents').toBeLessThan(firstCodeBlockContentsIndex)
+	})
+	test('Does not render unexpected newlines', async () => {
+		const processor = createRemarkProcessor()
+		const result = await processor.process(sampleCodeMarkdown)
+		const html = result.value.toString()
+		const sampleCodeHtmlRegExp = buildSampleCodeHtmlRegExp({
+			title: 'test.js',
+			codeContents: [
+				// Capture all code contents
+				'(?<code>[\\s\\S]*?)',
+			],
+		})
+		const match = html.match(sampleCodeHtmlRegExp)
+		expect(match).toBeTruthy()
+		const { code, styles } = match?.groups || {}
+		expect(code, `Code contained unexpected newlines: ${code}`).not.toContain('\n')
+		expect(styles, `Styles contained unexpected newlines: ${styles}`).not.toContain('\n')
 	})
 	describe('Normalizes tabs in code', () => {
 		const codeWithTabs = `\`\`\`js
@@ -213,41 +309,44 @@ async function runThemeTests({
 	config,
 }: {
 	testCases: {
-		theme: RemarkExpressiveCodeOptions['theme']
+		themes: RemarkExpressiveCodeOptions['themes']
 		bgColor?: string[] | undefined
 		textColor?: string[] | undefined
 		thumbColor?: string[] | undefined
 		hoverColor?: string[] | undefined
 		codeSelectionBg?: string[] | undefined
-		themeClassNames?: string[] | undefined
+		themeDataSelectors?: string[] | undefined
 	}[]
 	config?: RemarkExpressiveCodeOptions | undefined
 }) {
 	await Promise.all(
 		testCases.map(async (testCase) => {
-			const processor = createRemarkProcessor({ theme: testCase.theme, ...config })
+			const processor = createRemarkProcessor({ themes: testCase.themes, ...config })
 			const result = await processor.process(sampleCodeMarkdown)
 			const html = result.value.toString()
-			if (Array.isArray(testCase.theme) && testCase.theme.length > 1) {
-				expect(html).toMatch(multiThemeSampleCodeHtmlRegExp)
-			} else {
-				expect(html).toMatch(sampleCodeHtmlRegExp)
-			}
 
 			// Perform individual tests specified in the test case
 			let performedTests = 0
-			const performRegexTest = (expected: string[] | undefined, regex: RegExp) => {
+			const performRegexTest = (expected: string[] | undefined, regex: RegExp, regexCssVarUsage?: RegExp) => {
 				if (!expected) return
-				const actual = [...html.matchAll(regex)].map((match) => match[1])
-				expect(actual).toEqual(expected)
+				// If we are testing a CSS variable, test if it was used in the CSS
+				if (regexCssVarUsage) {
+					const actualUsage = [...html.matchAll(regexCssVarUsage)].map((match) => match[1])
+					expect(actualUsage.length, 'CSS variable was not used in styles as expected').toEqual(expected.length)
+				}
+				// If we expected the variable to be used, also test its value
+				if (regexCssVarUsage && expected.length > 0) {
+					const actual = [...html.matchAll(regex)].map((match) => match[1])
+					expect(actual).toEqual(expected)
+				}
 				performedTests++
 			}
 			performRegexTest(testCase.bgColor, regexCodeBg)
 			performRegexTest(testCase.textColor, regexCodeColor)
-			performRegexTest(testCase.thumbColor, regexScrollbarThumbColor)
-			performRegexTest(testCase.hoverColor, regexScrollbarHoverColor)
-			performRegexTest(testCase.codeSelectionBg, regexCodeSelectionBg)
-			performRegexTest(testCase.themeClassNames, regexThemeClassNames)
+			performRegexTest(testCase.thumbColor, regexScrollbarThumbColorVar, regexScrollbarThumbColor)
+			performRegexTest(testCase.hoverColor, regexScrollbarHoverColorVar, regexScrollbarHoverColor)
+			performRegexTest(testCase.codeSelectionBg, regexCodeSelectionBgVar, regexCodeSelectionBg)
+			performRegexTest(testCase.themeDataSelectors, regexThemeClassNames)
 			expect(performedTests).toBeGreaterThan(0)
 		})
 	)

@@ -2,6 +2,7 @@ import { Parent, Element } from 'hast-util-to-html/lib/types'
 import { h } from 'hastscript'
 import { ExpressiveCodeBlock, ExpressiveCodeBlockOptions } from '../common/block'
 import { ExpressiveCodePlugin, ResolverContext } from '../common/plugin'
+import { ResolvedExpressiveCodeEngineConfig } from '../common/engine'
 import { runHooks } from '../common/plugin-hooks'
 import { groupWrapperClassName, groupWrapperElement, PluginStyles, processPluginStyles } from './css'
 import { renderBlock } from './render-block'
@@ -30,17 +31,17 @@ export type RenderedGroupContents = readonly { codeBlock: ExpressiveCodeBlock; r
 export async function renderGroup({
 	input,
 	options,
-	theme,
 	defaultLocale,
-	coreStyles,
-	styleOverrides,
+	config,
 	plugins,
-	configClassName,
-	themeClassName,
+	cssVar,
+	cssVarName,
+	styleVariants,
 }: {
 	input: RenderInput
 	options?: RenderOptions | undefined
 	defaultLocale: string
+	config: ResolvedExpressiveCodeEngineConfig
 	plugins: readonly ExpressiveCodePlugin[]
 } & ResolverContext) {
 	// Ensure that the input is an array
@@ -68,10 +69,12 @@ export async function renderGroup({
 		const { renderedBlockAst, blockStyles } = await renderBlock({
 			codeBlock: groupContent.codeBlock,
 			groupContents,
-			theme,
 			locale: groupContent.codeBlock.locale || defaultLocale,
-			coreStyles,
+			config,
 			plugins,
+			cssVar,
+			cssVarName,
+			styleVariants,
 		})
 
 		// Store the rendered AST on the group content object
@@ -103,17 +106,9 @@ export async function renderGroup({
 	})
 
 	return {
-		renderedGroupAst: addWrapperAroundGroupAst({ groupAst: groupRenderData.groupAst, configClassName, themeClassName }),
+		renderedGroupAst: addWrapperAroundGroupAst({ groupAst: groupRenderData.groupAst }),
 		renderedGroupContents,
-		styles: await processPluginStyles({
-			pluginStyles,
-			plugins,
-			theme,
-			coreStyles,
-			styleOverrides,
-			configClassName,
-			themeClassName,
-		}),
+		styles: await processPluginStyles(pluginStyles),
 	}
 }
 
@@ -121,6 +116,6 @@ export async function renderGroup({
  * Wraps the group AST in an Expressive Code wrapper element with a class,
  * allowing us to scope CSS styles that are added by plugins.
  */
-function addWrapperAroundGroupAst({ groupAst, configClassName, themeClassName }: { groupAst: Parent; configClassName: string; themeClassName: string }): Parent {
-	return h(`${groupWrapperElement}.${groupWrapperClassName}.${configClassName}${themeClassName ? `.${themeClassName}` : ''}`, groupAst)
+function addWrapperAroundGroupAst({ groupAst }: { groupAst: Parent }): Parent {
+	return h(`${groupWrapperElement}.${groupWrapperClassName}`, groupAst)
 }

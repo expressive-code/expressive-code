@@ -1,9 +1,9 @@
 import { describe, test, expect } from 'vitest'
 import { selectAll } from 'hast-util-select'
 import { toText } from 'hast-util-to-text'
-import { AnnotationRenderPhase, ExpressiveCodePlugin, ExpressiveCodeTheme, InlineStyleAnnotation } from '@expressive-code/core'
-import { pluginShiki, loadShikiTheme } from '@expressive-code/plugin-shiki'
-import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures, TestFixture } from '@internal/test-utils'
+import { AnnotationRenderPhase, ExpressiveCodePlugin, InlineStyleAnnotation, getClassNames, getColorContrast } from '@expressive-code/core'
+import { pluginShiki } from '@expressive-code/plugin-shiki'
+import { renderAndOutputHtmlSnapshot, buildThemeFixtures, TestFixture, loadTestThemes } from '@internal/test-utils'
 import { pluginTextMarkers } from '../src'
 import { MarkerType, MarkerTypeOrder } from '../src/marker-types'
 import { actualDiff, indentedJsCodeWithDiffMarkers, jsCodeWithDiffMarkers } from './data/diff-examples'
@@ -28,15 +28,7 @@ const { greeting = "Hello", name = "Astronaut" } = Astro.props;
 `.trim()
 
 describe('Renders text markers', async () => {
-	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
-
-	// Add a few shiki themes
-	themes.unshift(await loadShikiTheme('nord'))
-	themes.unshift(await loadShikiTheme('dracula'))
-	themes.unshift(await loadShikiTheme('material-theme'))
-	themes.unshift(await loadShikiTheme('github-light'))
-	// Add the default theme
-	themes.unshift(undefined)
+	const themes = await loadTestThemes()
 
 	describe('Line-level markers', () => {
 		test(`Marks the expected lines`, async ({ meta: { name: testName } }) => {
@@ -111,7 +103,7 @@ describe('Renders text markers', async () => {
 				const meta = `${types[0]}="x" ${types[1]}="y" ${types[2]}="z"`
 				return {
 					fixtureName: `Order: ${types.join(', ')}`,
-					theme: themes[0],
+					themes: themes.slice(0, 1),
 					code: `# ${meta}\nxyz\nx y z\nxxyyzz`,
 					language: 'md',
 					meta,
@@ -202,7 +194,7 @@ describe('Renders text markers', async () => {
 							}),
 							pluginTextMarkers(),
 						],
-						blockValidationFn: ({ renderedGroupAst, theme }) => {
+						blockValidationFn: (actual) => {
 							// Expect that the correct texts were marked
 							const validateMarkers = buildMarkerValidationFn([
 								{ markerType: 'mark', text: '= "Hello"' },
@@ -211,18 +203,18 @@ describe('Renders text markers', async () => {
 								// Expect that this marker was not split
 								{ markerType: 'ins', text: 'mighty' },
 							])
-							validateMarkers({ renderedGroupAst, theme })
+							validateMarkers(actual)
 
 							// Expect that the highlights were split correctly
-							const matchingElements = selectAll(`span[style]`, renderedGroupAst)
+							const matchingElements = selectAll(`span[style]`, actual.renderedGroupAst)
 							const actualHighlights = matchingElements.map((highlight) => {
 								const text = toText(highlight)
 								return {
 									text,
-									color: highlight.properties?.style?.toString().match(/color:(#.*?)(;|$)/)?.[1],
+									color: highlight.properties?.style?.toString().match(/--0:(#.*?)(;|$)/)?.[1],
 								}
 							})
-							const typeColorIdx = theme.type === 'dark' ? 0 : 1
+							const typeColorIdx = actual.styleVariants[0].theme.type === 'dark' ? 0 : 1
 							expect(actualHighlights).toMatchObject([
 								{ text: '{greeting}, ', color: colors1[typeColorIdx] },
 								{ text: 'puny' },
@@ -257,7 +249,10 @@ describe('Renders text markers', async () => {
 							}),
 							pluginTextMarkers(),
 						],
-						blockValidationFn: ({ renderedGroupAst, theme }) => {
+						engineOptions: {
+							minSyntaxHighlightingColorContrast: 0,
+						},
+						blockValidationFn: (actual) => {
 							// Expect that the correct texts were marked
 							const validateMarkers = buildMarkerValidationFn([
 								{ markerType: 'mark', text: '= "Hello"' },
@@ -269,18 +264,18 @@ describe('Renders text markers', async () => {
 								{ markerType: 'ins', text: 'hty {na', classNames: ['open-start', 'open-end'] },
 								{ markerType: 'ins', text: 'me}!', classNames: ['open-start'] },
 							])
-							validateMarkers({ renderedGroupAst, theme })
+							validateMarkers(actual)
 
 							// Expect that the highlights were not split
-							const matchingElements = selectAll(`span[style]`, renderedGroupAst)
+							const matchingElements = selectAll(`span[style]`, actual.renderedGroupAst)
 							const actualHighlights = matchingElements.map((highlight) => {
 								const text = toText(highlight)
 								return {
 									text,
-									color: highlight.properties?.style?.toString().match(/color:(#.*?)(;|$)/)?.[1],
+									color: highlight.properties?.style?.toString().match(/--0:(#.*?)(;|$)/)?.[1],
 								}
 							})
-							const typeColorIdx = theme.type === 'dark' ? 0 : 1
+							const typeColorIdx = actual.styleVariants[0].theme.type === 'dark' ? 0 : 1
 							expect(actualHighlights).toMatchObject([
 								{ text: '{greeting}, punymig', color: colors1[typeColorIdx] },
 								{ text: 'hty {na', color: colors2[typeColorIdx] },
@@ -568,6 +563,85 @@ function fancyJsHelper() {
 		},
 		{ timeout: 5 * 1000 }
 	)
+
+	test(
+		'Accessible color contrast is ensured',
+		async ({ meta: { name: testName } }) => {
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code: `
+---
+layout: ../../layouts/BaseLayout.astro
+title: 'My first MDX post'
++publishDate: '21 September 2022'
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+function fancyJsHelper() {
+  return "Try doing that with YAML!";
+}
+
+<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>
+  Welcome to my new Astro blog, using MDX!
+</BaseLayout>
+					`.trim(),
+					language: 'diff',
+					meta: `lang="mdx" title="src/pages/posts/first-post.mdx" ins={6} mark={9} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/`,
+					engineOptions: {
+						styleOverrides: {
+							textMarkers: {
+								// Set a very bright background color for all "ins" highlights
+								// to test color contrast of bright text on bright backgrounds
+								insBackground: '#393',
+								// Set a very dark background color for all "del" highlights
+								// to test color contrast of dark text on dark backgrounds
+								delBackground: '#400',
+							},
+						},
+					},
+					plugins: [pluginTextMarkers(), pluginShiki()],
+					blockValidationFn: ({ renderedGroupAst, styleVariants }) => {
+						const themesWithInsufficientContrast: string[] = []
+						styleVariants.forEach((styleVariant, styleVariantIndex) => {
+							// Calculate the contrast of all syntax tokens inside matching lines
+							const bg = styleVariant.resolvedStyleSettings.get('textMarkers.insBackground')
+							const tokens = selectAll(`.ins span[style]`, renderedGroupAst)
+							const tokenColorRegExp = new RegExp(`(?:^|;)--${styleVariantIndex}:(#.*?)(?:;|$)`)
+							const tokenColors = tokens.map((token) => {
+								const text = toText(token)
+								const fg = token.properties?.style?.toString().match(tokenColorRegExp)?.[1]
+								const contrast = fg && bg ? getColorContrast(fg, bg) : undefined
+								return {
+									text,
+									bg,
+									fg,
+									contrast,
+								}
+							})
+							const insufficientContrastTokens = tokenColors
+								.filter((token) => token.text.trim() !== '' && (token.contrast === undefined || token.contrast < 4.5))
+								.map(
+									(token) =>
+										`Token: "${token.text}" (${[
+											// `fg: ${token.fg ?? 'undefined'}`,
+											// `bg: ${token.bg ?? 'undefined'}`,
+											`contrast: ${token.contrast !== undefined ? Math.round(token.contrast * 10) / 10 : 'undefined'}`,
+										].join(', ')})`
+								)
+								.join('\n')
+							if (insufficientContrastTokens !== '') {
+								themesWithInsufficientContrast.push(`*** Theme "${styleVariant.theme.name}" has insufficient contrast:\n${insufficientContrastTokens}`)
+							}
+						})
+						expect(themesWithInsufficientContrast, `\n\n${themesWithInsufficientContrast.join('\n\n')}\n\n`).toHaveLength(0)
+					},
+				}),
+			})
+		},
+		{ timeout: 5 * 1000 }
+	)
 })
 
 function buildMeta(markers: { markerType?: string | undefined; text: string }[]) {
@@ -586,7 +660,7 @@ function buildMarkerValidationFn(
 		const actualMarkers = matchingElements.map((marker) => {
 			let text = toText(marker, { whitespace: 'pre' })
 			if (text === '\n') text = ''
-			const classNames = marker.properties?.className?.toString().split(' ') || []
+			const classNames = getClassNames(marker)
 			if (MarkerTypeOrder.includes(marker.tagName as MarkerType)) {
 				return {
 					fullLine: false,
@@ -632,21 +706,24 @@ function pseudoSyntaxHighlighter(options: { highlights: { text: string; colors: 
 	return {
 		name: 'Pseudo Syntax Highlighter',
 		hooks: {
-			performSyntaxAnalysis: ({ codeBlock, theme }) => {
+			performSyntaxAnalysis: ({ codeBlock, styleVariants }) => {
 				codeBlock.getLines().forEach((line) => {
 					options.highlights.forEach(({ text, colors: [dark, light] }) => {
 						let idx = line.text.indexOf(text, 0)
 						while (idx > -1) {
-							line.addAnnotation(
-								new InlineStyleAnnotation({
-									color: theme.type === 'dark' ? dark : light,
-									inlineRange: {
-										columnStart: idx,
-										columnEnd: idx + text.length,
-									},
-									renderPhase: options.renderPhase || 'normal',
-								})
-							)
+							styleVariants.forEach(({ theme }, styleVariantIndex) => {
+								line.addAnnotation(
+									new InlineStyleAnnotation({
+										styleVariantIndex,
+										color: theme.type === 'dark' ? dark : light,
+										inlineRange: {
+											columnStart: idx,
+											columnEnd: idx + text.length,
+										},
+										renderPhase: options.renderPhase || 'normal',
+									})
+								)
+							})
 							idx = line.text.indexOf(text, idx + text.length)
 						}
 					})

@@ -146,7 +146,7 @@ describe('stableStringify()', () => {
 		const engine = new ExpressiveCodeEngine({
 			plugins: [],
 		})
-		expect(stableStringify(engine.theme)).toContain('"name":"github-dark",')
+		expect(stableStringify(engine.themes)).toContain('"name":"github-dark",')
 	})
 	test('Serializes an Expressive Code styleOverrides object', () => {
 		const engine = new ExpressiveCodeEngine({

@@ -1,7 +1,7 @@
 import { ExpressiveCodeEngine, ExpressiveCodeEngineConfig, ExpressiveCodePlugin } from '@expressive-code/core'
 import { PluginFramesOptions, pluginFrames } from '@expressive-code/plugin-frames'
 import { pluginShiki } from '@expressive-code/plugin-shiki'
-import { PluginTextMarkersOptions, pluginTextMarkers } from '@expressive-code/plugin-text-markers'
+import { pluginTextMarkers } from '@expressive-code/plugin-text-markers'
 
 export * from '@expressive-code/core'
 export * from '@expressive-code/plugin-frames'
@@ -20,9 +20,8 @@ export interface ExpressiveCodeConfig extends ExpressiveCodeEngineConfig {
 	 * in code blocks in various styles (e.g. marked, inserted, deleted).
 	 *
 	 * This plugin is enabled by default. Set this to `false` to disable it.
-	 * You can also configure the plugin by setting this to an options object.
 	 */
-	textMarkers?: PluginTextMarkersOptions | boolean | undefined
+	textMarkers?: boolean | undefined
 	/**
 	 * The Frames plugin adds an editor or terminal frame around code blocks,
 	 * including an optional title displayed as a tab or window caption.
@@ -44,9 +43,23 @@ export class ExpressiveCode extends ExpressiveCodeEngine {
 			pluginsToPrepend.push(pluginShiki())
 		}
 		if (textMarkers !== false && notPresentInPlugins('TextMarkers')) {
-			pluginsToPrepend.push(pluginTextMarkers(textMarkers !== true ? textMarkers : undefined))
+			if (typeof textMarkers === 'object' && (textMarkers as { styleOverrides: unknown }).styleOverrides) {
+				throw new Error(
+					`The Expressive Code config option "textMarkers" can no longer be an object,
+					but only undefined or a boolean. Please move any style settings into the
+					top-level "styleOverrides" object below the new "textMarkers" key.`.replace(/\s+/g, ' ')
+				)
+			}
+			pluginsToPrepend.push(pluginTextMarkers())
 		}
 		if (frames !== false && notPresentInPlugins('Frames')) {
+			if (typeof frames === 'object' && (frames as { styleOverrides: unknown }).styleOverrides) {
+				throw new Error(
+					`The config option "frames" no longer has its own "styleOverrides" object.
+					Please move any style settings into the top-level "styleOverrides" object
+					below the new "frames" key.`.replace(/\s+/g, ' ')
+				)
+			}
 			pluginsToPrepend.push(pluginFrames(frames !== true ? frames : undefined))
 		}
 		// Create a new plugins array with the default plugins prepended

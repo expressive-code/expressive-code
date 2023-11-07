@@ -1,37 +1,14 @@
-import { BaseStylesResolverFn } from '../helpers/style-settings'
-import { ResolvedCoreStyles, StyleOverrides } from './core-styles'
 import { ExpressiveCodePluginHooks } from './plugin-hooks'
-import { ExpressiveCodeTheme } from './theme'
-
-export type ResolverContext = {
-	theme: ExpressiveCodeTheme
-	coreStyles: ResolvedCoreStyles
-	styleOverrides: Partial<StyleOverrides>
-	/**
-	 * This class name is used by Expressive Code when rendering its wrapper element
-	 * around all code block groups.
-	 *
-	 * Its format is `ec.ec-<hash>`, where `<hash>` is calculated based on the config options
-	 * that were passed to the class constructor. This allows you to render multiple code blocks
-	 * with different configurations on the same page without having to worry about CSS conflicts.
-	 *
-	 * Non-global CSS styles returned by the `getBaseStyles` and `render` methods
-	 * are scoped automatically using this class name.
-	 */
-	configClassName: string
-	/**
-	 * This class name is used by Expressive Code when rendering its wrapper element
-	 * around all code block groups.
-	 *
-	 * Its format is `ec-theme-<name>`, where `<name>` is the kebab-cased theme name.
-	 */
-	themeClassName: string
-}
-
-export type JsModulesResolverFn = (context: ResolverContext) => string[] | Promise<string[]>
+import { PluginStyleSettings } from './plugin-style-settings'
+import { StyleSettingPath } from './style-settings'
+import { StyleVariant } from './style-variants'
 
 export interface ExpressiveCodePlugin {
 	name: string
+	/**
+	 * An instance of `PluginStyleSettings` that is used to define the plugin's CSS variables.
+	 */
+	styleSettings?: PluginStyleSettings | undefined
 	/**
 	 * The CSS styles that should be added to every page containing code blocks.
 	 *
@@ -43,8 +20,7 @@ export interface ExpressiveCodePlugin {
 	 * and collects their base styles.
 	 *
 	 * If you provide a function instead of a string, it is called with an object argument
-	 * containing the current theme, the resolved core styles and the config-dependent
-	 * wrapper class name. It is expected to either return a string or a string promise.
+	 * of type {@link ResolverContext}, and is expected to return a string or a string promise.
 	 *
 	 * The calling code must take care of actually adding the collected styles to the page.
 	 * For example, it could create a site-wide CSS stylesheet from the base styles
@@ -59,8 +35,7 @@ export interface ExpressiveCodePlugin {
 	 * collects their JS modules and deduplicates them.
 	 *
 	 * If you provide a function instead of a string, it is called with an object argument
-	 * containing the current theme, the resolved core styles and the config-dependent
-	 * wrapper class name. It is expected to either return or promise a string array.
+	 * of type {@link ResolverContext}, and is expected to return a string or a string promise.
 	 *
 	 * The calling code must take care of actually adding the collected scripts to the page.
 	 * For example, it could create site-wide JavaScript files from the returned modules
@@ -69,4 +44,46 @@ export interface ExpressiveCodePlugin {
 	 */
 	jsModules?: string[] | JsModulesResolverFn | undefined
 	hooks?: ExpressiveCodePluginHooks | undefined
+}
+
+export type BaseStylesResolverFn = (context: ResolverContext) => string | Promise<string>
+export type JsModulesResolverFn = (context: ResolverContext) => string[] | Promise<string[]>
+
+/**
+ * A context object that the engine passes to most hook functions.
+ *
+ * It provides access to theme-dependent CSS variables, all resolved style variants
+ * based on the configured themes and settings, and the config-dependent wrapper class name.
+ */
+export type ResolverContext = {
+	/**
+	 * Returns a CSS variable reference for the given style setting. The CSS variable name is
+	 * automatically generated based on the setting path.
+	 *
+	 * You can optionally pass a fallback value that will be added to the CSS `var()` function call
+	 * (e.g. `var(--ec-xyz, fallbackValue)`) in case the referenced variable is not defined or
+	 * unsupported. However, this should rarely be the case as the engine automatically generates
+	 * CSS variables for all style settings if the plugin's `styleSettings` property is set.
+	 *
+	 * @example
+	 * cssVar('frames.fontSize')
+	 * // ↓↓↓
+	 * 'var(--ec-frames-fontSize)'
+	 *
+	 * cssVar('frames.fontSize', '2rem')
+	 * // ↓↓↓
+	 * 'var(--ec-frames-fontSize, 2rem)'
+	 */
+	cssVar: (styleSetting: StyleSettingPath, fallbackValue?: string) => string
+	/**
+	 * Returns the CSS variable name for the given style setting. The CSS variable name is
+	 * automatically generated based on the setting path.
+	 *
+	 * @example
+	 * cssVarName('frames.fontSize')
+	 * // ↓↓↓
+	 * '--ec-frames-fontSize'
+	 */
+	cssVarName: (styleSetting: StyleSettingPath) => string
+	styleVariants: StyleVariant[]
 }

@@ -124,11 +124,15 @@ import astroExpressiveCode from 'astro-expressive-code'
 
 /** @type {import('astro-expressive-code').AstroExpressiveCodeOptions} */
 const astroExpressiveCodeOptions = {
-  // This is where you can pass your plugin options
+  // You can optionally override the plugin's default settings here
   frames: {
-    styleOverrides: {
-      editorTabBarBackground: ({ theme }) => theme.colors['menu.background'],
-      shadowColor: 'purple',
+    // Example: Hide the "Copy to clipboard" button
+    showCopyToClipboardButton: false,
+  },
+  styleOverrides: {
+    // You can optionally override the plugin's default styles here
+    frames: {
+      shadowColor: '#124',
     },
   },
 }
@@ -149,11 +153,15 @@ import remarkExpressiveCode from 'remark-expressive-code'
 
 /** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
 const remarkExpressiveCodeOptions = {
-  // This is where you can pass your plugin options
+  // You can optionally override the plugin's default settings here
   frames: {
-    styleOverrides: {
-      editorTabBarBackground: ({ theme }) => theme.colors['menu.background'],
-      shadowColor: 'purple',
+    // Example: Hide the "Copy to clipboard" button
+    showCopyToClipboardButton: false,
+  },
+  styleOverrides: {
+    // You can optionally override the plugin's default styles here
+    frames: {
+      shadowColor: '#124',
     },
   },
 }
@@ -196,36 +204,6 @@ You can pass the following options to the plugin:
   If `true` (which is the default), the "Copy to clipboard" button of terminal window frames will remove comment lines starting with `#` from the copied text.
   
   This is useful to reduce the copied text to the actual commands users need to run, instead of also copying explanatory comments or instructions.
-
-- `styleOverrides`
-
-  Allows overriding the plugin's default styles using an object with named properties.
-
-  The property values can either be a string, or a function that returns a string. If a function is used, it will be called with the following arguments:
-
-  - `theme`: An ExpressiveCodeTheme object containing the current theme's colors and other properties.
-  - `coreStyles`: An object containing the ExpressiveCodeEngine core styles.
-  - `resolveSetting`: A function that can be used to resolve another style setting. It takes a style property name, and returns its resolved value. For example, `frameBoxShadowCssValue` uses it to include the `shadowColor` value:
-
-    ```js
-    styleOverrides: {
-      frameBoxShadowCssValue: ({ resolveSetting }) =>
-        `0.1rem 0.1rem 0.2rem ${resolveSetting('shadowColor')}`
-    }
-    ```
-
-  The following properties are available:
-
-  - General styles: `shadowColor`, `frameBoxShadowCssValue`
-
-  - Editor styles:
-    `editorActiveTabBackground`, `editorActiveTabForeground`, `editorActiveTabBorder`, `editorActiveTabBorderTop`, `editorActiveTabBorderBottom`, `editorActiveTabMarginInlineStart`, `editorActiveTabMarginBlockStart`, `editorTabBorderRadius`, `editorTabBarBackground`, `editorTabBarBorderColor`, `editorTabBarBorderBottom`, `editorBackground`
-
-  - Terminal styles:
-    `terminalTitlebarDotsForeground`, `terminalTitlebarDotsOpacity`, `terminalTitlebarBackground`, `terminalTitlebarForeground`, `terminalTitlebarBorderBottom`, `terminalBackground`
-
-  - Copy button styles:
-    `inlineButtonBackground`, `inlineButtonBackgroundIdleOpacity`, `inlineButtonBackgroundHoverOrFocusOpacity`, `inlineButtonBackgroundActiveOpacity`, `inlineButtonForeground`, `inlineButtonBorder`, `inlineButtonBorderOpacity`, `tooltipSuccessBackground`, `tooltipSuccessForeground`
 
 ## Advanced use cases
 

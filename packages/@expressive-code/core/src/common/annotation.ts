@@ -2,6 +2,7 @@ import { Parent } from 'hast-util-to-html/lib/types'
 import { isNumber, newTypeError } from '../internal/type-checks'
 import { ExpressiveCodeLine } from './line'
 import { h } from 'hastscript'
+import { getClassNames, setProperty } from '../helpers/ast'
 
 export type ExpressiveCodeInlineRange = {
 	columnStart: number
@@ -30,7 +31,7 @@ export abstract class ExpressiveCodeAnnotation {
 	constructor({ inlineRange, renderPhase }: AnnotationBaseOptions) {
 		if (inlineRange) validateExpressiveCodeInlineRange(inlineRange)
 		this.inlineRange = inlineRange
-		this.renderPhase = renderPhase
+		this.renderPhase = renderPhase ?? 'normal'
 	}
 
 	/**
@@ -61,23 +62,44 @@ export abstract class ExpressiveCodeAnnotation {
 	 *
 	 * The default phase is `normal`.
 	 */
-	readonly renderPhase: AnnotationRenderPhase | undefined
+	readonly renderPhase: AnnotationRenderPhase
 }
 
+export type InlineStyleAnnotationOptions = AnnotationBaseOptions & {
+	/**
+	 * Inline styles are theme-dependent, which allows plugins like syntax highlighters to
+	 * style the same code differently depending on the theme.
+	 *
+	 * To support this, the engine creates a style variant for each theme given in the
+	 * configuration, and plugins can go through the engine's `styleVariants` array to
+	 * access all the themes. When adding an inline style annotation to a range of code,
+	 * you must specify the index in this `styleVariants` array to indicate which theme
+	 * the annotation applies to.
+	 */
+	styleVariantIndex: number
+	color?: string | undefined
+	italic?: boolean | undefined
+	bold?: boolean | undefined
+	underline?: boolean | undefined
+}
+
+/**
+ * A theme-dependent inline style annotation.
+ *
+ * You can add as many inline style annotations to a line as you want, even targeting the same code
+ * with multiple fully or partially overlapping annotation ranges. During rendering, these
+ * annotations will be automatically optimized to avoid creating unnecessary HTML elements.
+ */
 export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
+	styleVariantIndex: number
 	color: string | undefined
 	italic: boolean
 	bold: boolean
 	underline: boolean
 
-	constructor({
-		color,
-		italic = false,
-		bold = false,
-		underline = false,
-		...baseOptions
-	}: { color?: string | undefined; italic?: boolean | undefined; bold?: boolean | undefined; underline?: boolean | undefined } & AnnotationBaseOptions) {
-		super(baseOptions)
+	constructor({ styleVariantIndex, color, italic = false, bold = false, underline = false, ...baseOptions }: InlineStyleAnnotationOptions) {
+		super({ renderPhase: 'earliest', ...baseOptions })
+		this.styleVariantIndex = styleVariantIndex
 		this.color = color
 		this.italic = italic
 		this.bold = bold
@@ -85,17 +107,36 @@ export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
 	}
 
 	render({ nodesToTransform }: AnnotationRenderOptions) {
-		const tokenStyles: string[] = []
-		tokenStyles.push(`color:${this.color || 'inherit'}`)
-		if (this.italic) tokenStyles.push('font-style:italic')
-		if (this.bold) tokenStyles.push('font-weight:bold')
-		if (this.underline) tokenStyles.push('text-decoration:underline')
-		const tokenStyle = tokenStyles.join(';')
+		const newStyles = new Map<string, string>()
+		const varPrefix = `--${this.styleVariantIndex}`
+		if (this.color) newStyles.set(varPrefix, this.color)
+		if (this.italic) newStyles.set(`${varPrefix}fs`, 'italic')
+		if (this.bold) newStyles.set(`${varPrefix}fw`, 'bold')
+		if (this.underline) newStyles.set(`${varPrefix}td`, 'underline')
+		if (newStyles.size === 0) return nodesToTransform
+
+		const buildStyleString = (styles: Map<string, string>) => {
+			return [...styles].map(([key, value]) => `${key}:${value}`).join(';')
+		}
 
 		return nodesToTransform.map((node) => {
-			const transformedNode = h('span', { style: tokenStyle }, node)
-			transformedNode.data = transformedNode.data || {}
-			transformedNode.data.inlineStyleColor = this.color
+			const isInlineStyleNode =
+				node.type === 'element' &&
+				node.tagName === 'span' &&
+				// Our inline style nodes have no class names
+				!getClassNames(node).length &&
+				// Our inline style nodes contain CSS variable declarations
+				node.properties?.style?.toString().startsWith('--')
+			if (isInlineStyleNode) {
+				// The node is already an inline style token, so we can modify its existing styles
+				const existingStyles: [string, string][] = (node.properties?.style?.toString() || '').split(';').map((style) => {
+					const declParts = style.split(':')
+					return [declParts[0], declParts.slice(1).join(':')]
+				})
+				setProperty(node, 'style', buildStyleString(new Map([...existingStyles, ...newStyles])))
+				return node
+			}
+			const transformedNode = h('span', { style: buildStyleString(newStyles) }, node)
 			return transformedNode
 		})
 	}

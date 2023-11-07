@@ -1,9 +1,9 @@
 import { describe, expect, test } from 'vitest'
 import { Parent } from 'hast-util-to-html/lib/types'
 import { matches, select, selectAll } from 'hast-util-select'
-import { ExpressiveCodeTheme, StyleOverrides } from '@expressive-code/core'
-import { renderAndOutputHtmlSnapshot, testThemeNames, loadTestTheme, buildThemeFixtures } from '@internal/test-utils'
-import { pluginShiki, loadShikiTheme } from '@expressive-code/plugin-shiki'
+import { ExpressiveCodeEngineConfig, ExpressiveCodeTheme, ResolvedStyleSettingsByPath } from '@expressive-code/core'
+import { renderAndOutputHtmlSnapshot, buildThemeFixtures, parseCss, findDeclsBySelectorAndProperty, loadTestThemes } from '@internal/test-utils'
+import { pluginShiki } from '@expressive-code/plugin-shiki'
 import { pluginFrames } from '../src'
 
 const exampleCode = `
@@ -16,15 +16,7 @@ pnpm i --save-dev expressive-code some-other-package yet-another-package
 `.trim()
 
 describe('Renders frames around the code', async () => {
-	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
-
-	// Add a few shiki themes
-	themes.unshift(await loadShikiTheme('nord'))
-	themes.unshift(await loadShikiTheme('dracula'))
-	themes.unshift(await loadShikiTheme('material-theme'))
-	themes.unshift(await loadShikiTheme('github-light'))
-	// Add the default theme
-	themes.unshift(undefined)
+	const themes = await loadTestThemes()
 
 	test('Single JS block without title', async ({ meta: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
@@ -114,7 +106,21 @@ ${exampleCode}
 	)
 
 	describe('Allows customizing the frame using styleOverrides', () => {
-		const runStyleOverridesTest = async (testName: string, styleOverrides: Partial<StyleOverrides>) => {
+		const runStyleOverridesTest = async ({
+			testName,
+			engineOptions,
+			expectedStyleMatches,
+		}: {
+			testName: string
+			engineOptions: Partial<ExpressiveCodeEngineConfig>
+			expectedStyleMatches: ({
+				theme,
+				resolvedStyleSettings,
+			}: {
+				theme: ExpressiveCodeTheme
+				resolvedStyleSettings: ResolvedStyleSettingsByPath
+			}) => { selector: string | RegExp; property: string | RegExp; value: string | RegExp }[]
+		}) => {
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,
@@ -125,15 +131,36 @@ ${exampleCode}
 ${exampleCode}
 					`.trim(),
 					plugins: [pluginFrames()],
-					engineOptions: {
-						styleOverrides,
-					},
-					blockValidationFn: ({ renderedGroupAst }) => {
+					engineOptions,
+					blockValidationFn: ({ renderedGroupAst, baseStyles, styleVariants }) => {
 						validateBlockAst({
 							renderedGroupAst,
 							figureSelector: '.frame.has-title:not(.is-terminal)',
 							title: 'test.config.mjs',
 							srTitlePresent: false,
+						})
+						const css = parseCss(baseStyles)
+						styleVariants.forEach(({ theme, resolvedStyleSettings, cssVarDeclarations }) => {
+							expectedStyleMatches({ theme, resolvedStyleSettings }).forEach((expectedStyleMatch) => {
+								const { selector, property, value } = expectedStyleMatch
+								const decls = findDeclsBySelectorAndProperty(css, selector, property)
+								const resolvedDeclValues = decls.map((decl) => {
+									let value = decl.value
+									cssVarDeclarations.forEach((cssVarValue, cssVarName) => {
+										value = value.replace(new RegExp(`var\\(${cssVarName}\\)`, 'g'), cssVarValue)
+									})
+									return value
+								})
+								const declValueMatches = resolvedDeclValues.filter((declValue) => {
+									return value instanceof RegExp ? declValue.match(value) : declValue === value
+								})
+								expect(
+									declValueMatches.length >= 1,
+									`Expected style did not match: selector=${selector.toString()}, property=${property.toString()}, value=${value.toString()}, resolvedDeclValues=${JSON.stringify(
+										resolvedDeclValues
+									)}`
+								).toBeTruthy()
+							})
 						})
 					},
 				}),
@@ -141,28 +168,101 @@ ${exampleCode}
 		}
 
 		test('Style with thick borders', async ({ meta: { name: testName } }) => {
-			await runStyleOverridesTest(testName, {
-				borderWidth: '3px',
+			await runStyleOverridesTest({
+				testName,
+				engineOptions: {
+					styleOverrides: {
+						borderWidth: '3px',
+					},
+				},
+				expectedStyleMatches: () => [
+					{
+						selector: / pre$/,
+						property: 'border',
+						value: /^3px solid/,
+					},
+				],
 			})
 		})
 
 		test('Style without tab bar background', async ({ meta: { name: testName } }) => {
-			await runStyleOverridesTest(testName, {
-				frames: {
-					editorTabBarBackground: 'transparent',
-					editorTabBarBorderColor: 'transparent',
-					editorTabBarBorderBottom: ({ coreStyles }) => coreStyles.borderColor,
-					editorActiveTabBorder: ({ coreStyles }) => coreStyles.borderColor,
-					shadowColor: 'transparent',
+			await runStyleOverridesTest({
+				testName,
+				engineOptions: {
+					styleOverrides: {
+						frames: {
+							editorTabBarBackground: 'transparent',
+							editorTabBarBorderColor: 'transparent',
+							editorTabBarBorderBottomColor: ({ resolveSetting }) => resolveSetting('borderColor'),
+							editorActiveTabBorderColor: ({ resolveSetting }) => resolveSetting('borderColor'),
+							shadowColor: 'transparent',
+						},
+					},
 				},
+				expectedStyleMatches: ({ resolvedStyleSettings }) => [
+					// Validate editorTabBarBackground
+					{
+						selector: / .header$/,
+						property: 'background',
+						value: /linear-gradient\(transparent, transparent\)/,
+					},
+					// Validate editorTabBarBorderBottom
+					{
+						selector: / .header$/,
+						property: 'background',
+						value: new RegExp(`^linear-gradient\\(to top,\\s*${resolvedStyleSettings.get('borderColor') ?? '-'} `),
+					},
+					// Validate shadowColor
+					{
+						selector: / .frame$/,
+						property: 'box-shadow',
+						value: /transparent$/,
+					},
+				],
+			})
+		})
+
+		test('Style overwritten by theme', async ({ meta: { name: testName } }) => {
+			await runStyleOverridesTest({
+				testName,
+				engineOptions: {
+					customizeTheme: (theme) => {
+						theme = new ExpressiveCodeTheme(theme)
+						theme.styleOverrides.frames = {
+							editorTabBorderRadius: '0.75rem',
+						}
+						return theme
+					},
+					styleOverrides: {
+						borderRadius: '0px',
+						frames: {
+							editorTabBarBackground: 'transparent',
+							editorTabBarBorderColor: 'transparent',
+							editorTabBarBorderBottomColor: ({ resolveSetting }) => resolveSetting('borderColor'),
+							editorActiveTabBorderColor: ({ resolveSetting }) => resolveSetting('borderColor'),
+							shadowColor: 'transparent',
+						},
+					},
+				},
+				expectedStyleMatches: () => [
+					{
+						selector: / pre$/,
+						property: 'border-radius',
+						value: /0px/,
+					},
+					{
+						selector: / .frame$/,
+						property: '--tab-border-radius',
+						value: /0\.75rem/,
+					},
+				],
 			})
 		})
 	})
 })
 
-describe('Differentiates between terminal and code editor frames', () => {
-	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
-	themes.unshift(undefined)
+describe('Differentiates between terminal and code editor frames', async () => {
+	const themes = await loadTestThemes()
 
 	test('Renders a shell script with shebang as frame="code"', async ({ meta: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
@@ -210,9 +310,8 @@ ${exampleTerminalCode}
 	})
 })
 
-describe('Allows changing the frame type to "terminal" using meta information', () => {
-	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
-	themes.unshift(undefined)
+describe('Allows changing the frame type to "terminal" using meta information', async () => {
+	const themes = await loadTestThemes()
 
 	test('Change JS block without title to frame="terminal"', async ({ meta: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
@@ -282,9 +381,8 @@ ${exampleTerminalCode}
 	})
 })
 
-describe('Allows changing the frame type to "code" using meta information', () => {
-	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
-	themes.unshift(undefined)
+describe('Allows changing the frame type to "code" using meta information', async () => {
+	const themes = await loadTestThemes()
 
 	test('Change terminal block without title to frame="code"', async ({ meta: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
@@ -307,9 +405,8 @@ describe('Allows changing the frame type to "code" using meta information', () =
 	})
 })
 
-describe('Allows changing the frame type to "none" using meta information', () => {
-	const themes: (ExpressiveCodeTheme | undefined)[] = testThemeNames.map(loadTestTheme)
-	themes.unshift(undefined)
+describe('Allows changing the frame type to "none" using meta information', async () => {
+	const themes = await loadTestThemes()
 
 	test('Change JS block without title to frame="none"', async ({ meta: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({

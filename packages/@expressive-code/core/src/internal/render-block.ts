@@ -1,30 +1,30 @@
 import { Element } from 'hast-util-to-html/lib/types'
 import { h } from 'hastscript'
 import { ExpressiveCodeBlock } from '../common/block'
-import { ExpressiveCodePlugin } from '../common/plugin'
-import { ExpressiveCodePluginHooks_BeforeRendering, runHooks } from '../common/plugin-hooks'
-import { ExpressiveCodeTheme } from '../common/theme'
+import { ExpressiveCodePlugin, ResolverContext } from '../common/plugin'
+import { ExpressiveCodeHookContext, ExpressiveCodePluginHooks_BeforeRendering, runHooks } from '../common/plugin-hooks'
 import { PluginStyles } from './css'
 import { GroupContents } from './render-group'
 import { renderLineToAst } from './render-line'
 import { isBoolean, isHastElement, isHastParent, newTypeError } from './type-checks'
-import { ResolvedCoreStyles } from '../common/core-styles'
+import { ResolvedExpressiveCodeEngineConfig } from '../common/engine'
 
 export async function renderBlock({
 	codeBlock,
 	groupContents,
-	theme,
 	locale,
-	coreStyles,
+	config,
 	plugins,
+	cssVar,
+	cssVarName,
+	styleVariants,
 }: {
 	codeBlock: ExpressiveCodeBlock
 	groupContents: GroupContents
-	theme: ExpressiveCodeTheme
 	locale: string
-	coreStyles: ResolvedCoreStyles
+	config: ResolvedExpressiveCodeEngineConfig
 	plugins: readonly ExpressiveCodePlugin[]
-}) {
+} & ResolverContext) {
 	const state: ExpressiveCodeProcessingState = {
 		canEditAnnotations: true,
 		canEditCode: true,
@@ -34,12 +34,14 @@ export async function renderBlock({
 
 	const blockStyles: PluginStyles[] = []
 
-	const baseContext = {
+	const baseContext: Omit<ExpressiveCodeHookContext, 'addStyles'> = {
 		codeBlock,
 		groupContents,
-		theme,
 		locale,
-		coreStyles,
+		config,
+		cssVar,
+		cssVarName,
+		styleVariants,
 	}
 
 	const runBeforeRenderingHooks = async (key: keyof ExpressiveCodePluginHooks_BeforeRendering) => {

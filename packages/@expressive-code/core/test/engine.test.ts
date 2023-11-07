@@ -2,10 +2,18 @@ import { describe, expect, test } from 'vitest'
 import { sanitize } from 'hast-util-sanitize'
 import { toHtml } from 'hast-util-to-html'
 import githubDark from 'shiki/themes/github-dark.json'
+import githubLight from 'shiki/themes/github-light.json'
+import dracula from 'shiki/themes/dracula.json'
+import solarizedLight from 'shiki/themes/solarized-light.json'
 import { WrapperAnnotation, getHookTestResult, getMultiPluginTestResult, nonArrayValues, nonObjectValues } from './utils'
-import { ExpressiveCodeEngine } from '../src/common/engine'
+import { ExpressiveCodeEngine, ExpressiveCodeEngineConfig } from '../src/common/engine'
 import { ExpressiveCodeBlock } from '../src/common/block'
+import { StyleVariant } from '../src/common/style-variants'
+import { findDeclsBySelectorAndProperty, findDeclsByStyleSetting, parseCss } from '../../../../internal/test-utils'
 import { ExpressiveCodeTheme } from '../src/common/theme'
+import { groupWrapperClassName } from '../src/internal/css'
+import { codeLineClass } from '../src/common/style-settings'
+import { escapeRegExp } from '../src/internal/escaping'
 
 describe('ExpressiveCodeEngine', () => {
 	describe('render()', () => {
@@ -90,17 +98,373 @@ describe('ExpressiveCodeEngine', () => {
 			})
 		})
 		describe('Allows plugin hooks to access theme colors', () => {
-			test('Default theme (github-dark)', async () => {
-				let extractedTheme: Omit<ExpressiveCodeTheme, 'applyHueAndChromaAdjustments'> | undefined
-				await getHookTestResult('annotateCode', ({ theme }) => {
-					extractedTheme = { ...theme }
+			test('Default themes (github-dark, github-light)', async () => {
+				let extractedStyleVariants: StyleVariant[] = []
+				await getHookTestResult('annotateCode', ({ styleVariants }) => {
+					extractedStyleVariants = styleVariants
 				})
-				if (!extractedTheme) throw new Error('Expected theme to be defined')
+				expect(extractedStyleVariants).toHaveLength(2)
+				const extractedDark = extractedStyleVariants[0].theme
+				const extractedLight = extractedStyleVariants[1].theme
+				if (!extractedDark) throw new Error('Expected dark theme to be defined')
+				if (!extractedLight) throw new Error('Expected light theme to be defined')
 
-				expect(extractedTheme.name).toEqual('github-dark')
-				expect(extractedTheme.colors['editor.foreground']).toEqual(githubDark.colors['editor.foreground'].toLowerCase())
-				expect(extractedTheme.colors['editor.background']).toEqual(githubDark.colors['editor.background'].toLowerCase())
+				expect(extractedDark.name).toEqual('github-dark')
+				expect(extractedDark.colors['editor.foreground']).toEqual(githubDark.colors['editor.foreground'].toLowerCase())
+				expect(extractedDark.colors['editor.background']).toEqual(githubDark.colors['editor.background'].toLowerCase())
+				expect(extractedLight.name).toEqual('github-light')
+				expect(extractedLight.colors['editor.foreground']).toEqual(githubLight.colors['editor.foreground'].toLowerCase())
+				expect(extractedLight.colors['editor.background']).toEqual(githubLight.colors['editor.background'].toLowerCase())
 			})
+		})
+	})
+	describe('getBaseStyles()', () => {
+		test('Selection styles are disabled by default', async () => {
+			const engine = new ExpressiveCodeEngine({})
+			expect(await engine.getBaseStyles()).not.toMatch(/::selection/)
+		})
+		test('Selection styles can be enabled by setting `useThemedSelectionColors` to true', async () => {
+			const engine = new ExpressiveCodeEngine({ useThemedSelectionColors: true })
+			expect(await engine.getBaseStyles()).toMatch(/::selection/)
+		})
+		test('Scrollbar styles are enabled by default', async () => {
+			const engine = new ExpressiveCodeEngine({})
+			expect(await engine.getBaseStyles()).toMatch(/::-webkit-scrollbar/)
+		})
+		test('Scrollbar styles can be disabled by setting `useThemedScrollbars` to false', async () => {
+			const engine = new ExpressiveCodeEngine({ useThemedScrollbars: false })
+			expect(await engine.getBaseStyles()).not.toMatch(/::-webkit-scrollbar/)
+		})
+		test('Base styles do not contain unexpected newlines', async () => {
+			const engine = new ExpressiveCodeEngine({})
+			const styles = await engine.getBaseStyles()
+			expect(styles, `Found unexpected newlines: ${styles}`).not.toContain('\n')
+		})
+	})
+	describe('getThemeStyles()', () => {
+		const inlineStyleSelector = `.${codeLineClass} span[style^='--']:not([class])`
+
+		test('Contains CSS variables for `github-dark` and `github-light` by default', async () => {
+			const engine = new ExpressiveCodeEngine({})
+			const styles = await engine.getThemeStyles()
+			const parsedStyles = parseCss(styles)
+			expect(findDeclsByStyleSetting(parsedStyles, 'codeForeground')).toMatchObject([
+				{
+					value: githubDark.colors['editor.foreground'],
+					nestedSelectors: [':root'],
+				},
+				{
+					value: githubLight.colors['editor.foreground'],
+					nestedSelectors: ['@media (prefers-color-scheme: light)', `:root:not([data-theme='github-dark'])`],
+				},
+				{
+					value: githubLight.colors['editor.foreground'],
+					nestedSelectors: [expect.stringContaining('github-light') as boolean],
+				},
+			])
+			expect(findDeclsByStyleSetting(parsedStyles, 'codeBackground')).toMatchObject([
+				{
+					value: githubDark.colors['editor.background'],
+					nestedSelectors: [':root'],
+				},
+				{
+					value: githubLight.colors['editor.background'],
+					nestedSelectors: ['@media (prefers-color-scheme: light)', `:root:not([data-theme='github-dark'])`],
+				},
+				{
+					value: githubLight.colors['editor.background'],
+					nestedSelectors: [expect.stringContaining('github-light') as boolean],
+				},
+			])
+		})
+		test('Contains properly scoped core theme styles for inline annotations', async () => {
+			const engine = new ExpressiveCodeEngine({})
+			const styles = await engine.getThemeStyles()
+			const parsedStyles = parseCss(styles)
+			const inlineDecls = findDeclsBySelectorAndProperty(parsedStyles, new RegExp(`${escapeRegExp(inlineStyleSelector)}$`), 'color')
+			expect(inlineDecls).toMatchObject([
+				{
+					value: 'var(--0, inherit)',
+					nestedSelectors: [`.${groupWrapperClassName} ${inlineStyleSelector}`],
+				},
+				{
+					value: 'var(--1, inherit)',
+					nestedSelectors: ['@media (prefers-color-scheme: light)', `:root:not([data-theme='github-dark']) .${groupWrapperClassName} ${inlineStyleSelector}`],
+				},
+				{
+					value: 'var(--1, inherit)',
+					nestedSelectors: [
+						`:root[data-theme='github-light'] .${groupWrapperClassName} ${inlineStyleSelector},.${groupWrapperClassName}[data-theme='github-light'] ${inlineStyleSelector}`,
+					],
+				},
+			])
+		})
+		describe('Supports generating CSS rules to select a theme', () => {
+			test('Adds theme selectors for the document and groups using the `data-theme` attribute by default', async () => {
+				const engine = new ExpressiveCodeEngine({})
+				const styles = await engine.getThemeStyles()
+				const backgroundDecls = findDeclsByStyleSetting(parseCss(styles), 'codeBackground')
+				expect(backgroundDecls).toContainEqual(
+					expect.objectContaining({
+						value: githubLight.colors['editor.background'],
+						selector: `:root[data-theme='github-light'] .${groupWrapperClassName},.${groupWrapperClassName}[data-theme='github-light']`,
+					})
+				)
+			})
+			describe('Allows customizing the root selector by setting `themeCssRoot`', () => {
+				test('Uses `themeCssRoot` when scoping CSS variables', async () => {
+					const engine = new ExpressiveCodeEngine({
+						themeCssRoot: 'body',
+					})
+					const styles = await engine.getThemeStyles()
+					const backgroundDecls = findDeclsByStyleSetting(parseCss(styles), 'codeBackground')
+					expect(backgroundDecls).toContainEqual(
+						expect.objectContaining({
+							value: githubLight.colors['editor.background'],
+							selector: `body[data-theme='github-light'] .${groupWrapperClassName},.${groupWrapperClassName}[data-theme='github-light']`,
+						})
+					)
+				})
+				test('Uses `themeCssRoot` when scoping core theme styles for inline annotations', async () => {
+					const engine = new ExpressiveCodeEngine({
+						themeCssRoot: 'body',
+					})
+					const styles = await engine.getThemeStyles()
+					const parsedStyles = parseCss(styles)
+					const inlineDecls = findDeclsBySelectorAndProperty(parsedStyles, new RegExp(`${escapeRegExp(inlineStyleSelector)}$`), 'color')
+					expect(inlineDecls).toMatchObject([
+						{
+							value: 'var(--0, inherit)',
+							nestedSelectors: [`.${groupWrapperClassName} ${inlineStyleSelector}`],
+						},
+						{
+							value: 'var(--1, inherit)',
+							nestedSelectors: ['@media (prefers-color-scheme: light)', `body:not([data-theme='github-dark']) .${groupWrapperClassName} ${inlineStyleSelector}`],
+						},
+						{
+							value: 'var(--1, inherit)',
+							nestedSelectors: [
+								`body[data-theme='github-light'] .${groupWrapperClassName} ${inlineStyleSelector},.${groupWrapperClassName}[data-theme='github-light'] ${inlineStyleSelector}`,
+							],
+						},
+					])
+				})
+			})
+			describe('Allows customizing theme selectors by setting `themeCssSelector` to a function', () => {
+				test('Uses `themeCssSelector` when scoping CSS variables', async () => {
+					const engine = new ExpressiveCodeEngine({
+						themeCssSelector: (theme) => `.theme-${theme.name}`,
+					})
+					const styles = await engine.getThemeStyles()
+					const backgroundDecls = findDeclsByStyleSetting(parseCss(styles), 'codeBackground')
+					expect(backgroundDecls).toContainEqual(
+						expect.objectContaining({
+							value: githubLight.colors['editor.background'],
+							selector: `:root.theme-github-light .${groupWrapperClassName},.${groupWrapperClassName}.theme-github-light`,
+						})
+					)
+				})
+				test('Uses `themeCssSelector` when scoping core theme styles for inline annotations', async () => {
+					const engine = new ExpressiveCodeEngine({
+						themeCssSelector: (theme) => `.theme-${theme.name}`,
+					})
+					const styles = await engine.getThemeStyles()
+					const parsedStyles = parseCss(styles)
+					const inlineDecls = findDeclsBySelectorAndProperty(parsedStyles, new RegExp(`${escapeRegExp(inlineStyleSelector)}$`), 'color')
+					expect(inlineDecls).toMatchObject([
+						{
+							value: 'var(--0, inherit)',
+							nestedSelectors: [`.${groupWrapperClassName} ${inlineStyleSelector}`],
+						},
+						{
+							value: 'var(--1, inherit)',
+							nestedSelectors: ['@media (prefers-color-scheme: light)', `:root:not(.theme-github-dark) .${groupWrapperClassName} ${inlineStyleSelector}`],
+						},
+						{
+							value: 'var(--1, inherit)',
+							nestedSelectors: [`:root.theme-github-light .${groupWrapperClassName} ${inlineStyleSelector},.${groupWrapperClassName}.theme-github-light ${inlineStyleSelector}`],
+						},
+					])
+				})
+			})
+			test('Allows disabling theme selectors by setting `themeCssSelector` to `false`', async () => {
+				const engine = new ExpressiveCodeEngine({
+					themeCssSelector: false,
+				})
+				const styles = await engine.getThemeStyles()
+				const parsedStyles = parseCss(styles)
+				expect(findDeclsByStyleSetting(parsedStyles, 'codeForeground')).toMatchObject([
+					{
+						value: githubDark.colors['editor.foreground'],
+						nestedSelectors: [':root'],
+					},
+					// Still expect the media query for light mode, but without a negated
+					// base theme selector
+					{
+						value: githubLight.colors['editor.foreground'],
+						nestedSelectors: ['@media (prefers-color-scheme: light)', ':root'],
+					},
+					// Do not expect the theme selector
+				])
+				expect(findDeclsByStyleSetting(parsedStyles, 'codeBackground')).toMatchObject([
+					{
+						value: githubDark.colors['editor.background'],
+						nestedSelectors: [':root'],
+					},
+					// Still expect the media query for light mode, but without a negated
+					// base theme selector
+					{
+						value: githubLight.colors['editor.background'],
+						nestedSelectors: ['@media (prefers-color-scheme: light)', ':root'],
+					},
+					// Do not expect the theme selector
+				])
+			})
+		})
+		describe('Supports generating a dark mode media query', () => {
+			test('Media query is present by default', async () => {
+				const engine = new ExpressiveCodeEngine({})
+				const styles = await engine.getThemeStyles()
+				const backgroundDecls = findDeclsByStyleSetting(parseCss(styles), 'codeBackground')
+				// Expect a declaration for the base dark theme (on the `:root` selector)
+				expect(backgroundDecls).toContainEqual(
+					expect.objectContaining({
+						value: githubDark.colors['editor.background'],
+						nestedSelectors: [':root'],
+					})
+				)
+				// Expect a declaration for the light theme by media query
+				expect(backgroundDecls).toContainEqual(
+					expect.objectContaining({
+						value: githubLight.colors['editor.background'],
+						nestedSelectors: ['@media (prefers-color-scheme: light)', `:root:not([data-theme='github-dark'])`],
+					})
+				)
+			})
+			test('Media query respects the value of `themeCssRoot`', async () => {
+				const engine = new ExpressiveCodeEngine({
+					themeCssRoot: 'body',
+				})
+				const styles = await engine.getThemeStyles()
+				const backgroundDecls = findDeclsByStyleSetting(parseCss(styles), 'codeBackground')
+				// Expect a declaration for the base dark theme (on the `body` selector)
+				expect(backgroundDecls).toContainEqual(
+					expect.objectContaining({
+						value: githubDark.colors['editor.background'],
+						nestedSelectors: ['body'],
+					})
+				)
+				// Expect a declaration for the light theme by media query
+				expect(backgroundDecls).toContainEqual(
+					expect.objectContaining({
+						value: githubLight.colors['editor.background'],
+						nestedSelectors: ['@media (prefers-color-scheme: light)', `body:not([data-theme='github-dark'])`],
+					})
+				)
+			})
+			test('Media query is present by default when `themes` is set to one light and one dark theme', async () => {
+				const engine = new ExpressiveCodeEngine({
+					themes: [
+						// Test a different order than the default:
+						// Use a light theme as the base theme, and a dark theme as the alternative
+						new ExpressiveCodeTheme(githubLight),
+						new ExpressiveCodeTheme(githubDark),
+					],
+				})
+				const styles = await engine.getThemeStyles()
+				const backgroundDecls = findDeclsByStyleSetting(parseCss(styles), 'codeBackground')
+				// Expect a declaration for the base light theme (on the `:root` selector)
+				expect(backgroundDecls).toContainEqual(
+					expect.objectContaining({
+						value: githubLight.colors['editor.background'],
+						nestedSelectors: [':root'],
+					})
+				)
+				// Expect a declaration for the dark theme by media query
+				expect(backgroundDecls).toContainEqual(
+					expect.objectContaining({
+						value: githubDark.colors['editor.background'],
+						nestedSelectors: ['@media (prefers-color-scheme: dark)', `:root:not([data-theme='github-light'])`],
+					})
+				)
+			})
+			describe('Media query is not present by default when `themes` is not set to one light and one dark theme', () => {
+				test('Dark theme only', async () => {
+					await expectNoMediaQueryForConfig({
+						themes: [new ExpressiveCodeTheme(githubDark)],
+					})
+				})
+				test('Multiple dark themes', async () => {
+					await expectNoMediaQueryForConfig({
+						themes: [new ExpressiveCodeTheme(githubDark), new ExpressiveCodeTheme(dracula)],
+					})
+				})
+				test('Light theme only', async () => {
+					await expectNoMediaQueryForConfig({
+						themes: [new ExpressiveCodeTheme(githubLight)],
+					})
+				})
+				test('Multiple light themes', async () => {
+					await expectNoMediaQueryForConfig({
+						themes: [new ExpressiveCodeTheme(githubLight), new ExpressiveCodeTheme(solarizedLight)],
+					})
+				})
+				test('More than two themes', async () => {
+					await expectNoMediaQueryForConfig({
+						themes: [new ExpressiveCodeTheme(githubDark), new ExpressiveCodeTheme(dracula), new ExpressiveCodeTheme(githubLight)],
+					})
+				})
+			})
+			test('Media query can be disabled by setting `useDarkModeMediaQuery` to false', async () => {
+				await expectNoMediaQueryForConfig({
+					useDarkModeMediaQuery: false,
+				})
+			})
+			describe('Media query can be enforced by setting `useDarkModeMediaQuery` to true', () => {
+				test('First theme of opposite type is used in media query', async () => {
+					const engine = new ExpressiveCodeEngine({
+						themes: [
+							// Base theme type: dark
+							new ExpressiveCodeTheme(githubDark),
+							// Another dark theme
+							new ExpressiveCodeTheme(dracula),
+							// First theme of opposite type (light)
+							new ExpressiveCodeTheme(githubLight),
+						],
+						useDarkModeMediaQuery: true,
+					})
+					const styles = await engine.getThemeStyles()
+					const backgroundDecls = findDeclsByStyleSetting(parseCss(styles), 'codeBackground')
+					// Expect a declaration for the base dark theme (on the `:root` selector)
+					expect(backgroundDecls).toContainEqual(
+						expect.objectContaining({
+							value: githubDark.colors['editor.background'],
+							nestedSelectors: [':root'],
+						})
+					)
+					// Expect a declaration for the first theme of opposite type by media query
+					expect(backgroundDecls).toContainEqual(
+						expect.objectContaining({
+							value: githubLight.colors['editor.background'],
+							nestedSelectors: ['@media (prefers-color-scheme: light)', `:root:not([data-theme='github-dark'])`],
+						})
+					)
+				})
+				test('Throws if `themes` does not contain at least one light and one dark theme', async () => {
+					const engine = new ExpressiveCodeEngine({
+						themes: [new ExpressiveCodeTheme(githubDark)],
+						useDarkModeMediaQuery: true,
+					})
+					await expect(async () => {
+						return await engine.getThemeStyles()
+					}).rejects.toThrow()
+				})
+			})
+		})
+		test('Theme styles do not contain unexpected newlines', async () => {
+			const engine = new ExpressiveCodeEngine({})
+			const styles = await engine.getThemeStyles()
+			expect(styles, `Found unexpected newlines: ${styles}`).not.toContain('\n')
 		})
 	})
 	describe('getJsModules()', () => {
@@ -146,11 +510,11 @@ describe('ExpressiveCodeEngine', () => {
 						{
 							name: 'TestPlugin',
 							hooks: {},
-							jsModules: ({ theme }) => [`console.log("${theme.name}")`],
+							jsModules: ({ styleVariants }) => [`console.log("${styleVariants.length}: ${styleVariants.map((variant) => variant.theme.name).join(', ')}")`],
 						},
 					],
 				})
-				expect(await engine.getJsModules()).toEqual(['console.log("github-dark")'])
+				expect(await engine.getJsModules()).toEqual(['console.log("2: github-dark, github-light")'])
 			})
 		})
 		describe('Deduplicates JS modules', () => {
@@ -198,3 +562,15 @@ describe('ExpressiveCodeEngine', () => {
 		})
 	})
 })
+
+async function expectNoMediaQueryForConfig(config: ExpressiveCodeEngineConfig) {
+	const engine = new ExpressiveCodeEngine(config)
+	const styles = await engine.getThemeStyles()
+	const backgroundDecls = findDeclsByStyleSetting(parseCss(styles), 'codeBackground')
+	// Expect no media query
+	expect(backgroundDecls).not.toContainEqual(
+		expect.objectContaining({
+			selector: expect.stringContaining('prefers-color-scheme') as boolean,
+		})
+	)
+}
