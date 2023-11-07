@@ -74,7 +74,7 @@ console.dir({
 
 ### `ExpressiveCodeEngine`
 
-The main class of Expressive Code. It is responsible for rendering code blocks and providing access to the theme and other configuration options.
+The main class of Expressive Code. It is responsible for rendering code blocks and providing access to the themes and other configuration options.
 
 See above for a [usage example](#usage-example).
 
@@ -145,14 +145,14 @@ See above for a [usage example](#usage-example).
 
       It allows customizing the loaded theme and can be used for various purposes:
 
-      - You can change a theme's `name` property to influence its generated CSS class name (e.g. `theme.name = 'dark'` will result in code blocks having the class `ec-theme-dark`).
+      - You can change a theme's `name` property to influence the CSS needed to select it (e.g., when using the default settings for `themeCssRoot` and `themeCssSelector`, setting `theme.name = 'dark'` will allow theme selection using `<html data-theme="dark">`).
       - You can create color variations of themes by using `theme.applyHueAndChromaAdjustments()`.
 
       You can optionally return an `ExpressiveCodeTheme` instance from this function to replace the theme provided in the configuration. This allows you to create a copy of the theme and modify it without affecting the original instance.
 
     - `useThemedScrollbars?: boolean`
 
-      Whether the theme is allowed to style the scrollbars. Defaults to `true`.
+      Whether the themes are allowed to style the scrollbars. Defaults to `true`.
 
       If set to `false`, scrollbars will be rendered using the browser's default style.
 
@@ -160,7 +160,7 @@ See above for a [usage example](#usage-example).
 
     - `useThemedSelectionColors?: boolean`
 
-      Whether the theme is allowed to style selected text. Defaults to `false`.
+      Whether the themes are allowed to style selected text. Defaults to `false`.
 
       By default, Expressive Code renders selected text in code blocks using the browser's default style to maximize accessibility. If you want your selections to be more colorful, you can set this option to `true` to allow using theme selection colors instead.
 

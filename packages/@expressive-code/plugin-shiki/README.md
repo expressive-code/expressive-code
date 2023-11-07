@@ -32,7 +32,7 @@ If you are using the core package directly (e.g. because you are writing an inte
 
 ## Usage in markdown / MDX documents
 
-This plugin will automatically highlight your code blocks using the current theme of Expressive Code.
+This plugin will automatically highlight your code blocks using all themes defined in the Expressive Code configuration.
 
 You only need to ensure that your opening code fences have a language identifier, e.g. `js` for JavaScript:
 
@@ -48,9 +48,9 @@ The full list of languages can be found in the [Shiki documentation](https://git
 
 ## Configuration
 
-This plugin does not have any configuration options. It automatically uses the current theme of Expressive Code, which you can select using its `theme` configuration option.
+This plugin does not have any configuration options. It automatically uses all themes defined in the Expressive Code configuration under the option `themes`.
 
-Here are configuration examples on how to select a theme in some popular site generators:
+Here are configuration examples on how to select themes in some popular site generators:
 
 ### Astro configuration example
 

@@ -77,8 +77,9 @@ export interface ExpressiveCodeEngineConfig {
 	 * with the loaded theme as its only argument.
 	 *
 	 * It allows customizing the loaded theme and can be used for various purposes:
-	 * - You can change a theme's `name` property to influence its generated CSS class name
-	 *   (e.g. `theme.name = 'dark'` will result in code blocks having the class `ec-theme-dark`).
+	 * - You can change a theme's `name` property to influence the CSS needed to select it
+	 *   (e.g., when using the default settings for `themeCssRoot` and `themeCssSelector`,
+	 *   setting `theme.name = 'dark'` will allow theme selection using `<html data-theme="dark">`).
 	 * - You can create color variations of themes by using `theme.applyHueAndChromaAdjustments()`.
 	 *
 	 * You can optionally return an `ExpressiveCodeTheme` instance from this function to replace
@@ -87,7 +88,7 @@ export interface ExpressiveCodeEngineConfig {
 	 */
 	customizeTheme?: ((theme: ExpressiveCodeTheme) => ExpressiveCodeTheme | void) | undefined
 	/**
-	 * Whether the theme is allowed to style the scrollbars. Defaults to `true`.
+	 * Whether the themes are allowed to style the scrollbars. Defaults to `true`.
 	 *
 	 * If set to `false`, scrollbars will be rendered using the browser's default style.
 	 *
@@ -96,7 +97,7 @@ export interface ExpressiveCodeEngineConfig {
 	 */
 	useThemedScrollbars?: boolean | undefined
 	/**
-	 * Whether the theme is allowed to style selected text. Defaults to `false`.
+	 * Whether the themes are allowed to style selected text. Defaults to `false`.
 	 *
 	 * By default, Expressive Code renders selected text in code blocks using the browser's
 	 * default style to maximize accessibility. If you want your selections to be more colorful,

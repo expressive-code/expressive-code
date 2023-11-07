@@ -20,7 +20,6 @@ export interface ExpressiveCodeConfig extends ExpressiveCodeEngineConfig {
 	 * in code blocks in various styles (e.g. marked, inserted, deleted).
 	 *
 	 * This plugin is enabled by default. Set this to `false` to disable it.
-	 * You can also configure the plugin by setting this to an options object.
 	 */
 	textMarkers?: boolean | undefined
 	/**
