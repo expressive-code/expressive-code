@@ -6,7 +6,7 @@ import { StyleVariant } from './style-variants'
 export interface ExpressiveCodePlugin {
 	name: string
 	/**
-	 * An instance of `StyleSettings` that is used to define the plugin's CSS variables.
+	 * An instance of `PluginStyleSettings` that is used to define the plugin's CSS variables.
 	 */
 	styleSettings?: PluginStyleSettings | undefined
 	/**

@@ -27,12 +27,6 @@ export interface PluginFramesOptions {
 	removeCommentsWhenCopyingTerminalFrames?: boolean | undefined
 }
 
-declare module '@expressive-code/core' {
-	export interface ExpressiveCodeEngineConfig {
-		frames?: PluginFramesOptions | undefined
-	}
-}
-
 export const pluginFramesTexts = new PluginTexts({
 	terminalWindowFallbackTitle: 'Terminal window',
 	copyButtonTooltip: 'Copy to clipboard',

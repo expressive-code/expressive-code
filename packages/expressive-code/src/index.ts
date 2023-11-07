@@ -8,7 +8,7 @@ export * from '@expressive-code/plugin-frames'
 export * from '@expressive-code/plugin-shiki'
 export * from '@expressive-code/plugin-text-markers'
 
-export interface ExpressiveCodeConfig extends Omit<ExpressiveCodeEngineConfig, 'frames'> {
+export interface ExpressiveCodeConfig extends ExpressiveCodeEngineConfig {
 	/**
 	 * The Shiki plugin adds syntax highlighting to code blocks.
 	 *

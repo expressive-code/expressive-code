@@ -126,10 +126,15 @@ export interface ExpressiveCodeEngineConfig {
 	 */
 	defaultLocale?: string | undefined
 	/**
+	 * An optional array of plugins that should be used when rendering code blocks.
+	 *
 	 * To add a plugin, import its initialization function and call it inside this array.
 	 *
 	 * If the plugin has any configuration options, you can pass them to the initialization
 	 * function as an object containing your desired property values.
+	 *
+	 * If any nested arrays are found inside the `plugins` array, they will be flattened
+	 * before processing.
 	 */
 	plugins?: (ExpressiveCodePlugin | ExpressiveCodePlugin[])[] | undefined
 

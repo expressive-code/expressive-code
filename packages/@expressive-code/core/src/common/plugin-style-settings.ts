@@ -34,12 +34,12 @@ import { UnresolvedStyleSettings, StyleSettingPath } from './style-settings'
  * // When using TypeScript: Merge your style settings into the core module's `StyleSettings`
  * declare module '@expressive-code/core' {
  *   export interface StyleSettings {
- *     frames: UnresolvedStyleSettings<FramesStyleSettings>
+ *     frames: FramesStyleSettings
  *   }
  * }
  *
- * const framesStyleSettings = new StyleSettings({
- *   defaultSettings: {
+ * const framesStyleSettings = new PluginStyleSettings({
+ *   defaultValues: {
  *     frames: {
  *       fontFamily: 'sans-serif',
  *       fontSize: '1rem',
@@ -52,10 +52,10 @@ import { UnresolvedStyleSettings, StyleSettingPath } from './style-settings'
  *
  * // ↓↓↓
  *
- * framesStyleSettings.defaultSettings.frames.fontFamily         // 'sans-serif'
- * framesStyleSettings.defaultSettings.frames.fontSize           // '1rem'
- * framesStyleSettings.defaultSettings.frames.minContrast        // '5'
- * framesStyleSettings.defaultSettings.frames.titleBarForeground // ({ theme }) => theme.colors['editor.foreground']
+ * framesStyleSettings.defaultValues.frames.fontFamily         // 'sans-serif'
+ * framesStyleSettings.defaultValues.frames.fontSize           // '1rem'
+ * framesStyleSettings.defaultValues.frames.minContrast        // '5'
+ * framesStyleSettings.defaultValues.frames.titleBarForeground // ({ theme }) => theme.colors['editor.foreground']
  */
 export class PluginStyleSettings {
 	readonly defaultValues: Partial<UnresolvedStyleSettings>
