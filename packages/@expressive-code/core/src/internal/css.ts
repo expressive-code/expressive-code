@@ -128,3 +128,12 @@ export async function processPluginStyles(pluginStyles: PluginStyles[]): Promise
 
 	return result
 }
+
+/**
+ * If `cascadeLayerName` is a non-empty string, wraps the given `css` styles
+ * into a `@layer` rule with the given name.
+ */
+export function wrapInCascadeLayer(css: string, cascadeLayerName: string | undefined) {
+	if (!cascadeLayerName || cascadeLayerName.trim() === '') return css
+	return `@layer ${cascadeLayerName.trim()}{${css}}`
+}

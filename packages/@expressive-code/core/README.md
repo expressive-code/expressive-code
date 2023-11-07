@@ -139,6 +139,12 @@ See above for a [usage example](#usage-example).
 
       If you want to prevent the generation of theme-specific CSS rules altogether, you can set this to `false` or return it from the function.
 
+    - `cascadeLayer?: string`
+
+      Allows to specify a CSS cascade layer name that should be used for all generated CSS styles.
+
+      If you are using [cascade layers](https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Cascade_layers) on your site to control the order in which CSS rules are applied, set this option to a non-empty string, and Expressive Code will wrap all of its generated CSS styles in a `@layer` rule with the given name.
+
     - `customizeTheme?: ((theme: ExpressiveCodeTheme) => ExpressiveCodeTheme | void)`
 
       This optional function is called once per theme during engine initialization with the loaded theme as its only argument.

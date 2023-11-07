@@ -3,7 +3,7 @@ import githubLight from 'shiki/themes/github-light.json'
 import { ExpressiveCodePlugin, ResolverContext } from './plugin'
 import { renderGroup, RenderInput, RenderOptions } from '../internal/render-group'
 import { ExpressiveCodeTheme } from './theme'
-import { PluginStyles, scopeAndMinifyNestedCss, processPluginStyles } from '../internal/css'
+import { PluginStyles, scopeAndMinifyNestedCss, processPluginStyles, wrapInCascadeLayer } from '../internal/css'
 import { getCoreBaseStyles, getCoreThemeStyles } from '../internal/core-styles'
 import { StyleVariant, resolveStyleVariants } from './style-variants'
 import { StyleOverrides, StyleSettingPath, getCssVarName } from './style-settings'
@@ -72,6 +72,15 @@ export interface ExpressiveCodeEngineConfig {
 	 * you can set this to `false` or return it from the function.
 	 */
 	themeCssSelector?: ((theme: ExpressiveCodeTheme, context: { styleVariants: StyleVariant[] }) => string | false) | false | undefined
+	/**
+	 * Allows to specify a CSS cascade layer name that should be used for all generated CSS.
+	 *
+	 * If you are using [cascade layers](https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Cascade_layers)
+	 * on your site to control the order in which CSS rules are applied, set this option to
+	 * a non-empty string, and Expressive Code will wrap all of its generated CSS styles
+	 * in a `@layer` rule with the given name.
+	 */
+	cascadeLayer?: string | undefined
 	/**
 	 * This optional function is called once per theme during engine initialization
 	 * with the loaded theme as its only argument.
@@ -169,6 +178,7 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 		this.useDarkModeMediaQuery = config.useDarkModeMediaQuery ?? (this.themes.length === 2 && this.themes[0].type !== this.themes[1].type)
 		this.themeCssRoot = config.themeCssRoot ?? ':root'
 		this.themeCssSelector = config.themeCssSelector ?? ((theme) => `[data-theme='${theme.name}']`)
+		this.cascadeLayer = config.cascadeLayer ?? ''
 		this.customizeTheme = config.customizeTheme
 		this.useThemedScrollbars = config.useThemedScrollbars ?? true
 		this.useThemedSelectionColors = config.useThemedSelectionColors ?? false
@@ -244,7 +254,7 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 		}
 		// Process styles (scoping, minifying, etc.)
 		const processedStyles = await processPluginStyles(pluginStyles)
-		return [...processedStyles].join('')
+		return wrapInCascadeLayer([...processedStyles].join(''), this.cascadeLayer)
 	}
 
 	/**
@@ -347,7 +357,7 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 				)
 			}
 		}
-		return themeStyles.join('')
+		return wrapInCascadeLayer(themeStyles.join(''), this.cascadeLayer)
 	}
 
 	/**
@@ -391,11 +401,12 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 	readonly useDarkModeMediaQuery: boolean
 	readonly themeCssRoot: string
 	readonly themeCssSelector: NonNullable<ExpressiveCodeEngineConfig['themeCssSelector']>
+	readonly cascadeLayer: string
 	readonly customizeTheme: ExpressiveCodeEngineConfig['customizeTheme']
+	readonly useThemedScrollbars: boolean
+	readonly useThemedSelectionColors: boolean
 	readonly styleOverrides: StyleOverrides
 	readonly styleVariants: StyleVariant[]
 	readonly defaultLocale: string
-	readonly useThemedScrollbars: boolean
-	readonly useThemedSelectionColors: boolean
 	readonly plugins: readonly ExpressiveCodePlugin[]
 }

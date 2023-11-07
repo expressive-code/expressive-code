@@ -14,6 +14,7 @@
   - [`useDarkModeMediaQuery`](#usedarkmodemediaquery)
   - [`themeCssRoot`](#themecssroot)
   - [`themeCssSelector`](#themecssselector)
+  - [`cascadeLayer`](#cascadelayer)
   - [`customizeTheme`](#customizetheme)
   - [`useThemedScrollbars`](#usethemedscrollbars)
   - [`useThemedSelectionColors`](#usethemedselectioncolors)
@@ -247,6 +248,15 @@ The following options are available:
   If your site's theme switcher requires a different approach, you can customize the selectors using this option. For example, if you want to use class names instead of a data attribute, you could set this option to a function that returns `.theme-${theme.name}` instead.
 
   If you want to prevent the generation of theme-specific CSS rules altogether, you can set this to `false` or return it from the function.
+
+### `cascadeLayer`
+
+- Type: `string`
+- Default: `''`
+
+- Allows to specify a CSS cascade layer name that should be used for all generated CSS styles.
+
+  If you are using [cascade layers](https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Cascade_layers) on your site to control the order in which CSS rules are applied, set this option to a non-empty string, and Expressive Code will wrap all of its generated CSS styles in a `@layer` rule with the given name.
 
 ### `customizeTheme`
 
