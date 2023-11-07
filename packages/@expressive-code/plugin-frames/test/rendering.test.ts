@@ -193,8 +193,8 @@ ${exampleCode}
 						frames: {
 							editorTabBarBackground: 'transparent',
 							editorTabBarBorderColor: 'transparent',
-							editorTabBarBorderBottom: ({ resolveSetting }) => resolveSetting('borderColor'),
-							editorActiveTabBorder: ({ resolveSetting }) => resolveSetting('borderColor'),
+							editorTabBarBorderBottomColor: ({ resolveSetting }) => resolveSetting('borderColor'),
+							editorActiveTabBorderColor: ({ resolveSetting }) => resolveSetting('borderColor'),
 							shadowColor: 'transparent',
 						},
 					},
@@ -238,8 +238,8 @@ ${exampleCode}
 						frames: {
 							editorTabBarBackground: 'transparent',
 							editorTabBarBorderColor: 'transparent',
-							editorTabBarBorderBottom: ({ resolveSetting }) => resolveSetting('borderColor'),
-							editorActiveTabBorder: ({ resolveSetting }) => resolveSetting('borderColor'),
+							editorTabBarBorderBottomColor: ({ resolveSetting }) => resolveSetting('borderColor'),
+							editorActiveTabBorderColor: ({ resolveSetting }) => resolveSetting('borderColor'),
 							shadowColor: 'transparent',
 						},
 					},

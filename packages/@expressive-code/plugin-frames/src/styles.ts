@@ -15,7 +15,7 @@ export interface FramesStyleSettings {
 	 */
 	frameBoxShadowCssValue: string
 	/**
-	 * The background color of the active editor tab.
+	 * The CSS `background` value for the active editor tab.
 	 * @default
 	 * ({ theme }) => theme.colors['tab.activeBackground']
 	 */
@@ -30,26 +30,30 @@ export interface FramesStyleSettings {
 	 * The border color of the active editor tab.
 	 * @default 'transparent'
 	 */
-	editorActiveTabBorder: string
+	editorActiveTabBorderColor: string
 	/**
-	 * The height of the highlight border indicating the active editor tab.
-	 * This is the colorful line that appears at the top and/or bottom of the active tab.
+	 * The height of the indicator lines highlighting the active editor tab.
+	 * These are colorful lines that appear at the top and/or bottom of the active tab.
+	 *
+	 * The individual line colors can be set in {@link editorActiveTabIndicatorTopColor} and
+	 * {@link editorActiveTabIndicatorBottomColor}.
+	 *
 	 * @default
 	 * ({ resolveSetting }) => resolveSetting('borderWidth')
 	 */
-	editorActiveTabHighlightHeight: string
+	editorActiveTabIndicatorHeight: string
 	/**
-	 * The color of the top highlight border indicating the active editor tab.
+	 * The color of the indicator line displayed at the top border of the active editor tab.
 	 * @default
 	 * ({ theme }) => theme.colors['tab.activeBorderTop']
 	 */
-	editorActiveTabBorderTop: string
+	editorActiveTabIndicatorTopColor: string
 	/**
-	 * The color of the bottom highlight border indicating the active editor tab.
+	 * The color of the indicator line displayed at the bottom border of the active editor tab.
 	 * @default
 	 * ({ theme }) => theme.colors['tab.activeBorder']
 	 */
-	editorActiveTabBorderBottom: string
+	editorActiveTabIndicatorBottomColor: string
 	/**
 	 * The inline margin (= left margin in horizontal writing mode) to apply inside the tab bar
 	 * before the first editor tab.
@@ -69,7 +73,7 @@ export interface FramesStyleSettings {
 	 */
 	editorTabBorderRadius: string
 	/**
-	 * The background color of the editor tab bar.
+	 * The CSS `background` value of the editor tab bar.
 	 * @default
 	 * ({ theme }) => theme.colors['editorGroupHeader.tabsBackground']
 	 */
@@ -81,11 +85,12 @@ export interface FramesStyleSettings {
 	 */
 	editorTabBarBorderColor: string
 	/**
-	 * The color of the border between the editor tab bar and the code contents.
+	 * The color of the bottom border of the editor tab bar. This is an additional border
+	 * that can be used to display a line between the editor tab bar and the code contents.
 	 * @default
 	 * ({ theme }) => theme.colors['editorGroupHeader.tabsBorder'] || 'transparent'
 	 */
-	editorTabBarBorderBottom: string
+	editorTabBarBorderBottomColor: string
 	/**
 	 * The background color of the code editor.
 	 * This color is used for the "code" frame type.
@@ -198,16 +203,16 @@ export const framesStyleSettings = new PluginStyleSettings({
 			frameBoxShadowCssValue: ({ resolveSetting }) => `0.1rem 0.1rem 0.2rem ${resolveSetting('frames.shadowColor')}`,
 			editorActiveTabBackground: ({ theme }) => theme.colors['tab.activeBackground'],
 			editorActiveTabForeground: ({ theme }) => theme.colors['tab.activeForeground'],
-			editorActiveTabBorder: 'transparent',
-			editorActiveTabHighlightHeight: ({ resolveSetting }) => resolveSetting('borderWidth'),
-			editorActiveTabBorderTop: ({ theme }) => theme.colors['tab.activeBorderTop'],
-			editorActiveTabBorderBottom: ({ theme }) => theme.colors['tab.activeBorder'],
+			editorActiveTabBorderColor: 'transparent',
+			editorActiveTabIndicatorHeight: ({ resolveSetting }) => resolveSetting('borderWidth'),
+			editorActiveTabIndicatorTopColor: ({ theme }) => theme.colors['tab.activeBorderTop'],
+			editorActiveTabIndicatorBottomColor: ({ theme }) => theme.colors['tab.activeBorder'],
 			editorTabsMarginInlineStart: '0',
 			editorTabsMarginBlockStart: '0',
 			editorTabBorderRadius: ({ resolveSetting }) => resolveSetting('borderRadius'),
 			editorTabBarBackground: ({ theme }) => theme.colors['editorGroupHeader.tabsBackground'],
 			editorTabBarBorderColor: ({ resolveSetting }) => resolveSetting('borderColor'),
-			editorTabBarBorderBottom: ({ theme }) => theme.colors['editorGroupHeader.tabsBorder'] || 'transparent',
+			editorTabBarBorderBottomColor: ({ theme }) => theme.colors['editorGroupHeader.tabsBorder'] || 'transparent',
 			editorBackground: ({ resolveSetting }) => resolveSetting('codeBackground'),
 			terminalTitlebarDotsForeground: ({ resolveSetting }) => resolveSetting('frames.terminalTitlebarForeground'),
 			terminalTitlebarDotsOpacity: '0.15',
@@ -250,7 +255,7 @@ export function getFramesBaseStyles({ cssVar }: ResolverContext, options: Plugin
 	const copyToClipboard = `url("data:image/svg+xml,${escapedCopySvg}")`
 
 	const tabBarBackground = [
-		`linear-gradient(to top, ${cssVar('frames.editorTabBarBorderBottom')} ${cssVar('borderWidth')}, transparent ${cssVar('borderWidth')})`,
+		`linear-gradient(to top, ${cssVar('frames.editorTabBarBorderBottomColor')} ${cssVar('borderWidth')}, transparent ${cssVar('borderWidth')})`,
 		`linear-gradient(${cssVar('frames.editorTabBarBackground')}, ${cssVar('frames.editorTabBarBackground')})`,
 	].join(',')
 
@@ -290,7 +295,7 @@ export function getFramesBaseStyles({ cssVar }: ResolverContext, options: Plugin
 
 		/* Editor tab bar */
 		&.has-title:not(.is-terminal) {
-			--button-spacing: calc(1.9rem + 2 * (${cssVar('uiPaddingBlock')} + ${cssVar('frames.editorActiveTabHighlightHeight')}));
+			--button-spacing: calc(1.9rem + 2 * (${cssVar('uiPaddingBlock')} + ${cssVar('frames.editorActiveTabIndicatorHeight')}));
 
 			/* Active editor tab */
 			& .title {
@@ -299,8 +304,8 @@ export function getFramesBaseStyles({ cssVar }: ResolverContext, options: Plugin
 				background: ${cssVar('frames.editorActiveTabBackground')};
 				background-clip: padding-box;
 				margin-block-start: ${cssVar('frames.editorTabsMarginBlockStart')};
-				padding: calc(${cssVar('uiPaddingBlock')} + ${cssVar('frames.editorActiveTabHighlightHeight')}) ${cssVar('uiPaddingInline')};
-				border: ${cssVar('borderWidth')} solid ${cssVar('frames.editorActiveTabBorder')};
+				padding: calc(${cssVar('uiPaddingBlock')} + ${cssVar('frames.editorActiveTabIndicatorHeight')}) ${cssVar('uiPaddingInline')};
+				border: ${cssVar('borderWidth')} solid ${cssVar('frames.editorActiveTabBorderColor')};
 				border-radius: var(--tab-border-radius) var(--tab-border-radius) 0 0;
 				border-bottom: none;
 				overflow: hidden;
@@ -310,8 +315,8 @@ export function getFramesBaseStyles({ cssVar }: ResolverContext, options: Plugin
 					position: absolute;
 					pointer-events: none;
 					inset: 0;
-					border-top: ${cssVar('frames.editorActiveTabHighlightHeight')} solid ${cssVar('frames.editorActiveTabBorderTop')};
-					border-bottom: ${cssVar('frames.editorActiveTabHighlightHeight')} solid ${cssVar('frames.editorActiveTabBorderBottom')};
+					border-top: ${cssVar('frames.editorActiveTabIndicatorHeight')} solid ${cssVar('frames.editorActiveTabIndicatorTopColor')};
+					border-bottom: ${cssVar('frames.editorActiveTabIndicatorHeight')} solid ${cssVar('frames.editorActiveTabIndicatorBottomColor')};
 				}
 			}
 
