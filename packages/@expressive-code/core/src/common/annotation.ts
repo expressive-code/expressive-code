@@ -113,13 +113,21 @@ export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
 		if (this.italic) newStyles.set(`${varPrefix}fs`, 'italic')
 		if (this.bold) newStyles.set(`${varPrefix}fw`, 'bold')
 		if (this.underline) newStyles.set(`${varPrefix}td`, 'underline')
+		if (newStyles.size === 0) return nodesToTransform
 
 		const buildStyleString = (styles: Map<string, string>) => {
 			return [...styles].map(([key, value]) => `${key}:${value}`).join(';')
 		}
 
 		return nodesToTransform.map((node) => {
-			if (node.type === 'element' && node.tagName === 'span' && getClassNames(node).includes('is')) {
+			const isInlineStyleNode =
+				node.type === 'element' &&
+				node.tagName === 'span' &&
+				// Our inline style nodes have no class names
+				!getClassNames(node).length &&
+				// Our inline style nodes contain CSS variable declarations
+				node.properties?.style?.toString().startsWith('--')
+			if (isInlineStyleNode) {
 				// The node is already an inline style token, so we can modify its existing styles
 				const existingStyles: [string, string][] = (node.properties?.style?.toString() || '').split(';').map((style) => {
 					const declParts = style.split(':')
@@ -128,7 +136,7 @@ export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
 				setProperty(node, 'style', buildStyleString(new Map([...existingStyles, ...newStyles])))
 				return node
 			}
-			const transformedNode = h('span.is', { style: buildStyleString(newStyles) }, node)
+			const transformedNode = h('span', { style: buildStyleString(newStyles) }, node)
 			return transformedNode
 		})
 	}

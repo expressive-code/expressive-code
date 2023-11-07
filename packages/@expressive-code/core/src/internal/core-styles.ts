@@ -298,7 +298,7 @@ export function getCoreBaseStyles({
 export function getCoreThemeStyles(styleVariantIndex: number) {
 	return `
 		/* Theme-dependent styles for InlineStyleAnnotation */
-		.is {
+		.${codeLineClass} span[style^='--']:not([class]) {
 			color: var(--${styleVariantIndex}, inherit);
 			font-style: var(--${styleVariantIndex}fs, inherit);
 			font-weight: var(--${styleVariantIndex}fw, inherit);

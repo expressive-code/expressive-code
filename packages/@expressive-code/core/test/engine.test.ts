@@ -12,6 +12,8 @@ import { StyleVariant } from '../src/common/style-variants'
 import { findDeclsBySelectorAndProperty, findDeclsByStyleSetting, parseCss } from '../../../../internal/test-utils'
 import { ExpressiveCodeTheme } from '../src/common/theme'
 import { groupWrapperClassName } from '../src/internal/css'
+import { codeLineClass } from '../src/common/style-settings'
+import { escapeRegExp } from '../src/internal/escaping'
 
 describe('ExpressiveCodeEngine', () => {
 	describe('render()', () => {
@@ -140,6 +142,8 @@ describe('ExpressiveCodeEngine', () => {
 		})
 	})
 	describe('getThemeStyles()', () => {
+		const inlineStyleSelector = `.${codeLineClass} span[style^='--']:not([class])`
+
 		test('Contains CSS variables for `github-dark` and `github-light` by default', async () => {
 			const engine = new ExpressiveCodeEngine({})
 			const styles = await engine.getThemeStyles()
@@ -177,19 +181,21 @@ describe('ExpressiveCodeEngine', () => {
 			const engine = new ExpressiveCodeEngine({})
 			const styles = await engine.getThemeStyles()
 			const parsedStyles = parseCss(styles)
-			const inlineDecls = findDeclsBySelectorAndProperty(parsedStyles, /\.is$/, 'color')
+			const inlineDecls = findDeclsBySelectorAndProperty(parsedStyles, new RegExp(`${escapeRegExp(inlineStyleSelector)}$`), 'color')
 			expect(inlineDecls).toMatchObject([
 				{
 					value: 'var(--0, inherit)',
-					nestedSelectors: [`.${groupWrapperClassName} .is`],
+					nestedSelectors: [`.${groupWrapperClassName} ${inlineStyleSelector}`],
 				},
 				{
 					value: 'var(--1, inherit)',
-					nestedSelectors: ['@media (prefers-color-scheme: light)', `:root:not([data-theme='github-dark']) .${groupWrapperClassName} .is`],
+					nestedSelectors: ['@media (prefers-color-scheme: light)', `:root:not([data-theme='github-dark']) .${groupWrapperClassName} ${inlineStyleSelector}`],
 				},
 				{
 					value: 'var(--1, inherit)',
-					nestedSelectors: [`:root[data-theme='github-light'] .${groupWrapperClassName} .is,.${groupWrapperClassName}[data-theme='github-light'] .is`],
+					nestedSelectors: [
+						`:root[data-theme='github-light'] .${groupWrapperClassName} ${inlineStyleSelector},.${groupWrapperClassName}[data-theme='github-light'] ${inlineStyleSelector}`,
+					],
 				},
 			])
 		})
@@ -225,19 +231,21 @@ describe('ExpressiveCodeEngine', () => {
 					})
 					const styles = await engine.getThemeStyles()
 					const parsedStyles = parseCss(styles)
-					const inlineDecls = findDeclsBySelectorAndProperty(parsedStyles, /\.is$/, 'color')
+					const inlineDecls = findDeclsBySelectorAndProperty(parsedStyles, new RegExp(`${escapeRegExp(inlineStyleSelector)}$`), 'color')
 					expect(inlineDecls).toMatchObject([
 						{
 							value: 'var(--0, inherit)',
-							nestedSelectors: [`.${groupWrapperClassName} .is`],
+							nestedSelectors: [`.${groupWrapperClassName} ${inlineStyleSelector}`],
 						},
 						{
 							value: 'var(--1, inherit)',
-							nestedSelectors: ['@media (prefers-color-scheme: light)', `body:not([data-theme='github-dark']) .${groupWrapperClassName} .is`],
+							nestedSelectors: ['@media (prefers-color-scheme: light)', `body:not([data-theme='github-dark']) .${groupWrapperClassName} ${inlineStyleSelector}`],
 						},
 						{
 							value: 'var(--1, inherit)',
-							nestedSelectors: [`body[data-theme='github-light'] .${groupWrapperClassName} .is,.${groupWrapperClassName}[data-theme='github-light'] .is`],
+							nestedSelectors: [
+								`body[data-theme='github-light'] .${groupWrapperClassName} ${inlineStyleSelector},.${groupWrapperClassName}[data-theme='github-light'] ${inlineStyleSelector}`,
+							],
 						},
 					])
 				})
@@ -262,19 +270,19 @@ describe('ExpressiveCodeEngine', () => {
 					})
 					const styles = await engine.getThemeStyles()
 					const parsedStyles = parseCss(styles)
-					const inlineDecls = findDeclsBySelectorAndProperty(parsedStyles, /\.is$/, 'color')
+					const inlineDecls = findDeclsBySelectorAndProperty(parsedStyles, new RegExp(`${escapeRegExp(inlineStyleSelector)}$`), 'color')
 					expect(inlineDecls).toMatchObject([
 						{
 							value: 'var(--0, inherit)',
-							nestedSelectors: [`.${groupWrapperClassName} .is`],
+							nestedSelectors: [`.${groupWrapperClassName} ${inlineStyleSelector}`],
 						},
 						{
 							value: 'var(--1, inherit)',
-							nestedSelectors: ['@media (prefers-color-scheme: light)', `:root:not(.theme-github-dark) .${groupWrapperClassName} .is`],
+							nestedSelectors: ['@media (prefers-color-scheme: light)', `:root:not(.theme-github-dark) .${groupWrapperClassName} ${inlineStyleSelector}`],
 						},
 						{
 							value: 'var(--1, inherit)',
-							nestedSelectors: [`:root.theme-github-light .${groupWrapperClassName} .is,.${groupWrapperClassName}.theme-github-light .is`],
+							nestedSelectors: [`:root.theme-github-light .${groupWrapperClassName} ${inlineStyleSelector},.${groupWrapperClassName}.theme-github-light ${inlineStyleSelector}`],
 						},
 					])
 				})
