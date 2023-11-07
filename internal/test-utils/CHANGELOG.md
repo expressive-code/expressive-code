@@ -1,5 +1,18 @@
 # @internal/test-utils
 
+## 0.2.20
+
+### Patch Changes
+
+- Updated dependencies [f19746b]
+- Updated dependencies [f19746b]
+- Updated dependencies [f19746b]
+- Updated dependencies [f19746b]
+- Updated dependencies [f19746b]
+- Updated dependencies [f19746b]
+- Updated dependencies [f19746b]
+  - @expressive-code/core@0.27.0
+
 ## 0.2.19
 
 ### Patch Changes
