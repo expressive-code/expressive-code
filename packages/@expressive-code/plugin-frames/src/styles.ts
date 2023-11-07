@@ -128,7 +128,7 @@ export interface FramesStyleSettings {
 	 *   theme.colors['titleBar.border'] ||
 	 *   onBackground(resolveSetting('borderColor'), theme.type === 'dark' ? '#000000bf' : '#ffffffbf')
 	 */
-	terminalTitlebarBorderBottom: string
+	terminalTitlebarBorderBottomColor: string
 	/**
 	 * The background color of the terminal window.
 	 * This color is used for the "terminal" frame type.
@@ -218,7 +218,7 @@ export const framesStyleSettings = new PluginStyleSettings({
 			terminalTitlebarDotsOpacity: '0.15',
 			terminalTitlebarBackground: ({ theme }) => theme.colors['titleBar.activeBackground'] || theme.colors['editorGroupHeader.tabsBackground'],
 			terminalTitlebarForeground: ({ theme }) => theme.colors['titleBar.activeForeground'],
-			terminalTitlebarBorderBottom: ({ theme, resolveSetting }) =>
+			terminalTitlebarBorderBottomColor: ({ theme, resolveSetting }) =>
 				theme.colors['titleBar.border'] || onBackground(resolveSetting('borderColor'), theme.type === 'dark' ? '#000000bf' : '#ffffffbf'),
 			terminalBackground: ({ theme }) => theme.colors['terminal.background'],
 			inlineButtonBackground: ({ resolveSetting }) => resolveSetting('frames.inlineButtonForeground'),
@@ -385,7 +385,7 @@ export function getFramesBaseStyles({ cssVar }: ResolverContext, options: Plugin
 					position: absolute;
 					pointer-events: none;
 					inset: 0;
-					border-bottom: ${cssVar('borderWidth')} solid ${cssVar('frames.terminalTitlebarBorderBottom')};
+					border-bottom: ${cssVar('borderWidth')} solid ${cssVar('frames.terminalTitlebarBorderBottomColor')};
 				}
 			}
 		}
