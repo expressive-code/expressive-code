@@ -1,5 +1,115 @@
 # remark-expressive-code
 
+## 0.27.0
+
+### Minor Changes
+
+- f19746b: Add `useDarkModeMediaQuery` config option.
+
+  This new option determines if CSS code is generated that uses a `prefers-color-scheme` media query to automatically switch between light and dark themes based on the user's system preferences.
+
+  Defaults to `true` if your `themes` option is set to one dark and one light theme (which is the default), and `false` otherwise.
+
+- f19746b: Rendering multiple themes no longer generates duplicate CSS and HTML output.
+
+  In previous versions, a full set of CSS styles was generated for each individual theme, and each code block was rendered multiple times to include the HTML for each theme.
+
+  In this version, the CSS output has been changed to a single static set of base styles that uses CSS variables to allow efficient switching between themes.
+
+  Also, the HTML output for code blocks is now generated only once, and theme-dependent styles are applied using CSS variables.
+
+  These changes significantly reduce page size when using multiple themes, especially on pages with many code blocks.
+
+  If you have added CSS code to your site that relies on the old output (e.g. by selectively hiding or showing theme-specific code blocks based on their class name), you will need to update it to work with the new output.
+
+  > **Note**: Before writing new custom CSS, please consider if you can achieve your desired result out of the box now. For example, if your `themes` option contains one dark and one light theme, the `useDarkModeMediaQuery` option will generate a `prefers-color-scheme` media query for you by default.
+
+- f19746b: Add `minSyntaxHighlightingColorContrast` config option.
+
+  This new option determines if Expressive Code should process the syntax highlighting colors of all themes to ensure an accessible minimum contrast ratio between foreground and background colors.
+
+  Defaults to `5.5`, which ensures a contrast ratio of at least 5.5:1. You can change the desired contrast ratio by providing another value, or turn the feature off by setting this option to `0`.
+
+- f19746b: Config option `textMarkers` can no longer be an object.
+
+  In previous versions, the `textMarkers` config option could be an object containing plugin options. This is no longer supported, as the only option that was available (`styleOverrides`) has been nested into the top-level `styleOverrides` object now.
+
+  ```diff lang="js"
+    /** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
+    const remarkExpressiveCodeOptions = {
+  -   textMarkers: {
+  -     styleOverrides: {
+  -       markHue: '310',
+  -     },
+  -   },
+  +   styleOverrides: {
+  +     textMarkers: {
+  +       markHue: '310',
+  +     },
+  +     // You could override other plugin styles here as well:
+  +     // frames: { ... },
+  +   },
+    },
+  ```
+
+- f19746b: Move all plugin styles into nested sub-objects of top-level config option `styleOverrides`.
+
+  In previous versions, there could be multiple `styleOverrides` scattered through the configuration (one per plugin with configurable style settings). This has been simplified to a single top-level `styleOverrides` object that contains all style overrides.
+
+  Plugins can contribute their own style settings to this object as well by nesting them inside under their plugin name.
+
+  ```diff lang="js"
+    /** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
+    const remarkExpressiveCodeOptions = {
+      frames: {
+        showCopyToClipboardButton: false,
+  -     styleOverrides: {
+  -       shadowColor: '#124',
+  -     },
+      },
+  +   styleOverrides: {
+  +     frames: {
+  +       shadowColor: '#124',
+  +     },
+  +     // You could override other plugin styles here as well:
+  +     // textMarkers: { ... },
+  +   },
+    },
+  ```
+
+- f19746b: Rename config option `theme` to `themes`.
+
+  Efficient multi-theme support using CSS variables is now a core feature, so the `theme` option was deprecated in favor of the new array `themes`.
+
+  Please migrate your existing config to use `themes` and ensure it is an array. If you only need a single theme, your `themes` array can contain just this one theme. However, please consider the benefits of providing multiple themes.
+
+  ```diff lang="js"
+    /** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
+    const remarkExpressiveCodeOptions = {
+  -   theme: 'dracula',
+  +   // Rename to `themes` and ensure it is an array
+  +   // (also consider adding a light theme for accessibility)
+  +   themes: ['dracula'],
+    },
+  ```
+
+- f19746b: Add `cascadeLayer` config option.
+
+  This new option allows to specify a CSS cascade layer name that should be used for all generated CSS styles.
+
+  If you are using [cascade layers](https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Cascade_layers) on your site to control the order in which CSS rules are applied, set this option to a non-empty string, and Expressive Code will wrap all of its generated CSS styles in a `@layer` rule with the given name.
+
+### Patch Changes
+
+- Updated dependencies [f19746b]
+- Updated dependencies [f19746b]
+- Updated dependencies [f19746b]
+- Updated dependencies [f19746b]
+- Updated dependencies [f19746b]
+- Updated dependencies [f19746b]
+- Updated dependencies [f19746b]
+  - expressive-code@0.27.0
+
 ## 0.26.2
 
 ### Patch Changes
