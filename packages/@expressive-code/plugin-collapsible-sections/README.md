@@ -51,8 +51,8 @@ This plugin is **not installed by default** by our higher-level packages like `r
       integrations: [
         astroExpressiveCode({
           plugins: [
-            pluginCollapsibleSections({ /* options */ }),
-          ]
+            pluginCollapsibleSections(),
+          ],
         }),
       ],
     })
@@ -73,15 +73,13 @@ To mark a section as collapsible, you need to add **meta information** to your c
 
 ## Configuration
 
-You can configure it by passing an options to its initializer function.
-
 Here are configuration examples for some popular site generators:
 
 ### Astro configuration example
 
 We assume that you're using our Astro integration [`astro-expressive-code`](https://www.npmjs.com/package/astro-expressive-code).
 
-In your Astro config file, you can pass options to the collapsible sections plugin like this:
+In your Astro config file, you can configure the collapsible sections plugin like this:
 
 ```js
 // astro.config.mjs
@@ -92,13 +90,14 @@ import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-s
 /** @type {import('astro-expressive-code').AstroExpressiveCodeOptions} */
 const astroExpressiveCodeOptions = {
   plugins: [
-    pluginCollapsibleSections({
-      // This is where you can pass your plugin options
-      styleOverrides: {
-        closedBackgroundColor: 'red',
-      },
-    }),
-  ]
+    pluginCollapsibleSections(),
+  ],
+  styleOverrides: {
+    // You can optionally override the plugin's default styles here
+    collapsibleSections: {
+      closedBackgroundColor: '#68F',
+    },
+  },
 }
 
 export default defineConfig({
@@ -119,13 +118,14 @@ import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-s
 /** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
 const remarkExpressiveCodeOptions = {
   plugins: [
-    pluginCollapsibleSections({
-      // This is where you can pass your plugin options
-      styleOverrides: {
-        closedBackgroundColor: 'red',
-      },
-    }),
-  ]
+    pluginCollapsibleSections(),
+  ],
+  styleOverrides: {
+    // You can optionally override the plugin's default styles here
+    collapsibleSections: {
+      closedBackgroundColor: '#68F',
+    },
+  },
 }
 
 /** @type {import('next').NextConfig} */
@@ -151,22 +151,6 @@ export default withMDX(nextConfig)
 
 ### Available plugin options
 
-You can pass the following options to the plugin:
+This plugin does not provide any configuration options that can be passed to its initialization function.
 
-- `styleOverrides`
-
-  Allows overriding the plugin's default styles using an object with named properties.
-
-  The property values can either be a string, or a function that returns a string. If a function is used, it will be called with the following arguments:
-
-  - `theme`: An ExpressiveCodeTheme object containing the current theme's colors and other properties.
-  - `coreStyles`: An object containing the ExpressiveCodeEngine core styles.
-  - `resolveSetting`: A function that can be used to resolve another style setting. It takes a style property name, and returns its resolved value.
-
-  The following properties are available:
-
-  - Styles applying to the section when collapsed:
-    `closedBackgroundColor`, `closedBorderWidth`, `closedBorderColor`, `closedFontFamily`, `closedFontSize`, `closedLineHeight`, `closedMargin`, `closedPadding`, `closedTextColor`
-
-  - Styles applying to the section when open:
-    `openBackgroundColor`, `openBorderColor`, `openBorderWidth`, `openMargin`, `openPadding`
+However, you can override its default styles inside the `styleOverrides` engine config option. See the [configuration examples](#configuration) above for more information.
