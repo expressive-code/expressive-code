@@ -1,5 +1,12 @@
 # @expressive-code/plugin-collapsible-sections
 
+## 0.27.1
+
+### Patch Changes
+
+- cf01e1e: Fix missing `styleOverrides.collapsibleSections` declaration even after importing `@expressive-code/plugin-collapsible-sections`. Thanks @fflaten!
+  - @expressive-code/core@0.27.1
+
 ## 0.27.0
 
 ### Minor Changes
