@@ -2,7 +2,13 @@ import { AttachedPluginData, ExpressiveCodePlugin, PluginTexts, replaceDelimited
 import { Section, parseSections } from './utils'
 import { select } from 'hast-util-select'
 import { sectionizeAst } from './ast'
-import { collapsibleSectionsStyleSettings, getCollapsibleSectionsBaseStyles } from './styles'
+import { CollapsibleSectionsStyleSettings, collapsibleSectionsStyleSettings, getCollapsibleSectionsBaseStyles } from './styles'
+
+declare module '@expressive-code/core' {
+	export interface StyleSettings {
+		collapsibleSections: CollapsibleSectionsStyleSettings
+	}
+}
 
 export const pluginCollapsibleSectionsTexts = new PluginTexts({
 	collapsedLines: '{lineCount} collapsed {lineCount;1=line;lines}',

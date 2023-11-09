@@ -13,6 +13,9 @@ const astroExpressiveCodeOptions = {
 		textMarkers: {
 			lineMarkerAccentWidth: '0.3rem',
 		},
+		collapsibleSections: {
+			closedBackgroundColor: 'rgb(84 174 255 / 10%)',
+		},
 	},
 }
 
