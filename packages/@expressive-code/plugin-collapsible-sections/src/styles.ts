@@ -78,12 +78,6 @@ export interface CollapsibleSectionsStyleSettings {
 	openBorderColor: string
 }
 
-declare module '@expressive-code/core' {
-	export interface StyleSettings {
-		collapsibleSections: CollapsibleSectionsStyleSettings
-	}
-}
-
 export const collapsibleSectionsStyleSettings = new PluginStyleSettings({
 	defaultValues: {
 		collapsibleSections: {
