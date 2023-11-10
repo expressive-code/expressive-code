@@ -223,13 +223,12 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 		}
 		const renderer = await asyncRenderer
 
-		const parentDocument: ExpressiveCodeBlockOptions['parentDocument'] = {
-			sourceFilePath: file.path,
-		}
 		const addedStyles = new Set<string>()
 		const addedJsModules = new Set<string>()
 
-		for (const [parent, code] of nodesToProcess) {
+		for (let groupIndex = 0; groupIndex < nodesToProcess.length; groupIndex++) {
+			const [parent, code] = nodesToProcess[groupIndex]
+
 			// Normalize the code coming from the Markdown/MDX document
 			let normalizedCode = code.value
 			if (tabWidth > 0) normalizedCode = normalizedCode.replace(/\t/g, ' '.repeat(tabWidth))
@@ -240,7 +239,14 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 				code: normalizedCode,
 				language: code.lang || '',
 				meta: code.meta || '',
-				parentDocument,
+				parentDocument: {
+					sourceFilePath: file.path,
+					documentRoot: tree,
+					positionInDocument: {
+						groupIndex,
+						totalGroups: nodesToProcess.length,
+					},
+				},
 			}
 
 			// Allow the user to customize the locale for this code block

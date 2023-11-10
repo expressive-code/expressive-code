@@ -17,6 +17,7 @@ const astroExpressiveCodeOptions = {
 			closedBackgroundColor: 'rgb(84 174 255 / 10%)',
 		},
 	},
+	emitExternalStylesheet: false,
 }
 
 // https://astro.build/config

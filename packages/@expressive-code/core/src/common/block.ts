@@ -30,6 +30,24 @@ export interface ExpressiveCodeBlockOptions {
 				 * The full path to the source file containing the code block.
 				 */
 				sourceFilePath?: string | undefined
+				/**
+				 * A reference to the object representing the parsed source document.
+				 * This reference will stay the same for all code blocks in the same document.
+				 *
+				 * For example, if you are using `remark-expressive-code` to render code blocks
+				 * in a Markdown file, this would be the `mdast` node representing the file's
+				 * root node.
+				 */
+				documentRoot?: unknown | undefined
+				/**
+				 * Data about the position of the code block in the parent document.
+				 */
+				positionInDocument?:
+					| {
+							groupIndex: number
+							totalGroups: number
+					  }
+					| undefined
 		  }
 		| undefined
 }

@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeAll } from 'vitest'
-import { existsSync, rmSync, readFileSync } from 'fs'
+import { existsSync, rmSync, readFileSync, readdirSync } from 'fs'
 import { join } from 'path'
 import { execa } from 'execa'
 import { buildSampleCodeHtmlRegExp } from '../../remark-expressive-code/test/utils'
@@ -20,30 +20,7 @@ const complexHtmlRegExp = buildSampleCodeHtmlRegExp({
 	],
 })
 
-describe('Integration into an Astro ^2.5.0 project', () => {
-	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
-
-	beforeAll(async () => {
-		fixture = await buildFixture({
-			fixtureDir: 'astro-2.5.0',
-			buildCommand: 'pnpm',
-			buildArgs: ['astro', 'build'],
-			outputDir: 'dist',
-		})
-	}, 20 * 1000)
-
-	test('Regular Markdown files', () => {
-		const html = fixture?.readFile('index.html') ?? ''
-		validateHtml(html)
-	})
-
-	test('MDX files', () => {
-		const html = fixture?.readFile('mdx-page/index.html') ?? ''
-		validateHtml(html)
-	})
-})
-
-describe('Integration into an Astro ^3.0.0 project', () => {
+describe('Integration into Astro ^3.0.0', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	beforeAll(async () => {
@@ -55,19 +32,71 @@ describe('Integration into an Astro ^3.0.0 project', () => {
 		})
 	}, 20 * 1000)
 
-	test('Regular Markdown files', () => {
+	test('Renders code blocks in Markdown files', () => {
 		const html = fixture?.readFile('index.html') ?? ''
 		validateHtml(html)
 	})
 
-	test('MDX files', () => {
+	test('Renders code blocks in MDX files', () => {
 		const html = fixture?.readFile('mdx-page/index.html') ?? ''
 		validateHtml(html)
 	})
+
+	test('Emits an external stylesheet file', () => {
+		const files = fixture?.readDir('_astro') ?? []
+		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.css$/))).toHaveLength(1)
+	})
+
+	test('Emits an external script file', () => {
+		const files = fixture?.readDir('_astro') ?? []
+		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.js$/))).toHaveLength(1)
+	})
 })
 
-function validateHtml(html: string) {
-	expect(html).toMatch(complexHtmlRegExp)
+describe('Integration into Astro ^3.5.0 with `emitExternalStylesheet: false`', () => {
+	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
+
+	beforeAll(async () => {
+		fixture = await buildFixture({
+			fixtureDir: 'astro-3.5.0-no-external-css',
+			buildCommand: 'pnpm',
+			buildArgs: ['astro', 'build'],
+			outputDir: 'dist',
+		})
+	}, 20 * 1000)
+
+	test('Renders code blocks in Markdown files', () => {
+		const html = fixture?.readFile('index.html') ?? ''
+		validateHtml(html, { emitExternalStylesheet: false })
+	})
+
+	test('Renders code blocks in MDX files', () => {
+		const html = fixture?.readFile('mdx-page/index.html') ?? ''
+		validateHtml(html, { emitExternalStylesheet: false })
+	})
+
+	test('Emits no external stylesheet file due to `emitExternalStylesheet: false`', () => {
+		const files = fixture?.readDir('_astro') ?? []
+		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.css$/))).toHaveLength(0)
+	})
+
+	test('Emits an external script file', () => {
+		const files = fixture?.readDir('_astro') ?? []
+		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.js$/))).toHaveLength(1)
+	})
+})
+
+function validateHtml(html: string, options?: { emitExternalStylesheet?: boolean | undefined }) {
+	const { emitExternalStylesheet = true } = options ?? {}
+
+	// Expect the HTML structure to match our regular expression
+	const matches = html.match(complexHtmlRegExp)
+	expect(matches).toBeTruthy()
+
+	// Depending on the `emitExternalStylesheet` option, expect the `styles` capture group
+	// to either contain an external stylesheet or an inline style element
+	expect(matches?.groups?.['styles']).toContain(emitExternalStylesheet ? '<link rel="stylesheet"' : '<style>')
+
 	// Collect all code blocks
 	const codeBlockClassNames = [...html.matchAll(/<div class="(expressive-code(?:| .*?))">/g)].map((match) => match[1])
 	// Expect one code block in total (because our new rendering logic doesn't create multiple code blocks anymore)
@@ -98,5 +127,6 @@ async function buildFixture({ fixtureDir, buildCommand, buildArgs, outputDir }: 
 	return {
 		path: outputDirPath,
 		readFile: (filePath: string) => readFileSync(join(outputDirPath, filePath), 'utf-8'),
+		readDir: (subPath: string) => readdirSync(join(outputDirPath, subPath), 'utf-8'),
 	}
 }
