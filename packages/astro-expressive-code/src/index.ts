@@ -7,9 +7,6 @@ export * from 'remark-expressive-code'
 
 export type AstroExpressiveCodeOptions = RemarkExpressiveCodeOptions & {
 	/**
-	 * **Note**: This option is currently not working due to a route resolution bug.
-	 * Will be fixed soon.
-	 *
 	 * Determines if the styles required to display code blocks should be emitted into a separate
 	 * CSS file rather than being inlined into the rendered HTML of the first code block per page.
 	 * The generated URL `_astro/ec.{hash}.css` includes a content hash and can be cached
@@ -40,8 +37,8 @@ export function astroExpressiveCode(options: AstroExpressiveCodeOptions = {}) {
 		name: 'astro-expressive-code',
 		hooks: {
 			'astro:config:setup': async (args: unknown) => {
-				const { config, updateConfig, injectRoute, injectScript } = args as ConfigSetupHookArgs
-				const { /*emitExternalStylesheet = true,*/ customCreateRenderer, plugins = [], ...rest } = options ?? {}
+				const { config, updateConfig, injectRoute } = args as ConfigSetupHookArgs
+				const { emitExternalStylesheet = true, customCreateRenderer, plugins = [], ...rest } = options ?? {}
 
 				// Validate Astro configuration
 				const ownPosition = config.integrations.findIndex((integration) => integration.name === 'astro-expressive-code')
@@ -103,24 +100,19 @@ export function astroExpressiveCode(options: AstroExpressiveCodeOptions = {}) {
 
 				// Unless disabled, move the base and theme styles from the inline renderer
 				// into an external CSS file that can be cached by browsers
-				// TODO: Restore new code again once I figured out how to make `injectRoute`
-				// actually find its entryPoint when imported from a non-local package
-				// if (emitExternalStylesheet) {
-				// 	const combinedStyles = `${renderer.baseStyles}${renderer.themeStyles}`
-				// 	hashedStyles.push(getHashedRouteWithContent(combinedStyles, '/_astro/ec.{hash}.css'))
-				// 	renderer.baseStyles = ''
-				// 	renderer.themeStyles = ''
-				// }
+				if (emitExternalStylesheet) {
+					const combinedStyles = `${renderer.baseStyles}${renderer.themeStyles}`
+					hashedStyles.push(getHashedRouteWithContent(combinedStyles, '/_astro/ec.{hash}.css'))
+					renderer.baseStyles = ''
+					renderer.themeStyles = ''
+				}
 
 				// Also move any JS modules into external files
 				// (this is always enabled because the alternative using `injectScript`
 				// does not allow omitting the scripts on pages without any code blocks)
 				const uniqueJsModules = [...new Set<string>(renderer.jsModules)]
 				renderer.jsModules = []
-				// TODO: Restore new code again once I figured out how to make `injectRoute`
-				// actually find its entryPoint when imported from a non-local package
-				uniqueJsModules.forEach((moduleCode) => injectScript('page', moduleCode))
-				// hashedScripts.push(...uniqueJsModules.map((moduleCode) => getHashedRouteWithContent(moduleCode, '/_astro/ec.{hash}.js')))
+				hashedScripts.push(...uniqueJsModules.map((moduleCode) => getHashedRouteWithContent(moduleCode, '/_astro/ec.{hash}.js')))
 
 				// Inject route handlers that provide access to the extracted styles & scripts
 				hashedStyles.forEach(([hashedRoute]) => {
