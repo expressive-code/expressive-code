@@ -24,7 +24,8 @@
   },
   "types": "./dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "routes"
   ],
   "scripts": {
     "build": "tsup ./src/index.ts --format esm --dts --sourcemap --clean",
