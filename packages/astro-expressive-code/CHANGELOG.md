@@ -1,5 +1,12 @@
 # astro-expressive-code
 
+## 0.28.2
+
+### Patch Changes
+
+- 8c1bdd7: Use `import type` in route handlers to avoid potential `APIRoute` warning.
+  - remark-expressive-code@0.28.2
+
 ## 0.28.1
 
 ### Patch Changes
