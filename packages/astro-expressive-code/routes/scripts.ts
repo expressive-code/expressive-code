@@ -1,5 +1,5 @@
 /// <reference types="../virtual.d.ts" />
-import { APIRoute } from 'astro'
+import type { APIRoute } from 'astro'
 import { scripts } from 'virtual:astro-expressive-code/scripts'
 
 export const GET: APIRoute = ({ url }) => {
