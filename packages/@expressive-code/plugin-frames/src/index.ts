@@ -1,7 +1,16 @@
 import { AttachedPluginData, ExpressiveCodePlugin, PluginTexts, replaceDelimitedValues } from '@expressive-code/core'
 import { h, Result as HastEntity } from 'hastscript'
 import { framesStyleSettings, getFramesBaseStyles } from './styles'
-import { FrameType, frameTypeFromString, frameTypes, getFileNameFromComment, isTerminalLanguage, LanguageGroups } from './utils'
+import {
+	extractFileNameFromCodeBlock,
+	FrameType,
+	frameTypeFromString,
+	frameTypes,
+	getFileNameFromComment,
+	isTerminalLanguage,
+	LanguageGroups,
+	LanguagesWithFencedFrontmatter,
+} from './utils'
 import { getCopyJsModule } from './copy-js-module'
 export { FramesStyleSettings } from './styles'
 
@@ -80,31 +89,14 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 				})
 			},
 			preprocessCode: ({ codeBlock }) => {
-				// Skip processing if the given options do not allow file name extraction from code
-				if (!options.extractFileNameFromCode) return
-
 				const blockData = pluginFramesData.getOrCreateFor(codeBlock)
 
 				// If the block data we collected while parsing the meta information
-				// did not contain a title, and if the frame type wasn't set to "none",
-				// try to find a title inside the code
-				if (blockData.title === undefined && blockData.frameType !== 'none') {
-					// Check the first 4 lines of the code for a file name comment
-					const lineIdx = codeBlock.getLines(0, 4).findIndex((line) => {
-						blockData.title = getFileNameFromComment(line.text, codeBlock.language)
-						return !!blockData.title
-					})
-
-					// Was a valid file name comment line found?
-					if (blockData.title) {
-						// Yes, remove it from the code
-						codeBlock.deleteLine(lineIdx)
-
-						// If the following line is empty, remove it as well
-						if (codeBlock.getLine(lineIdx)?.text.trim().length === 0) {
-							codeBlock.deleteLine(lineIdx)
-						}
-					}
+				// did not contain a title, the frame type wasn't set to "none",
+				// and extracting file names from the code is enabled,
+				// try to find and extract a title from the code
+				if (blockData.title === undefined && blockData.frameType !== 'none' && options.extractFileNameFromCode) {
+					blockData.title = extractFileNameFromCodeBlock(codeBlock)
 				}
 
 				// If we're supposed to auto-detect the code block's frame type,
@@ -207,4 +199,4 @@ export interface PluginFramesData {
 
 export const pluginFramesData = new AttachedPluginData<PluginFramesData>(() => ({}))
 
-export { LanguageGroups }
+export { LanguageGroups, LanguagesWithFencedFrontmatter }
