@@ -453,6 +453,132 @@ import { defineConfig } from 'example/config'
 	})
 })
 
+describe('Cleans up frontmatter after file name comment extraction', () => {
+	test('Removes frontmatter blocks that are empty after extraction', async () => {
+		const code = `
+---
+# src/pages/post/blog-post.md
+---
+This is my test blog post.
+		`
+		await expectCodeResult({
+			code,
+			language: 'md',
+			expected: {
+				title: 'src/pages/post/blog-post.md',
+				code: 'This is my test blog post.',
+			},
+		})
+	})
+	test('Removes an empty line after a removed frontmatter block', async () => {
+		const code = `
+---
+# src/pages/welcome.astro
+---
+
+<h1>Welcome!</h1>
+		`
+		await expectCodeResult({
+			code,
+			language: 'astro',
+			expected: {
+				title: 'src/pages/welcome.astro',
+				code: '<h1>Welcome!</h1>',
+			},
+		})
+	})
+	test('Does not remove more than 1 empty line after a removed frontmatter block', async () => {
+		const code = `
+---
+# src/pages/post/blog-post.mdx
+---
+
+
+This is my test blog post.
+		`
+		await expectCodeResult({
+			code,
+			language: 'mdx',
+			expected: {
+				title: 'src/pages/post/blog-post.mdx',
+				code: '\nThis is my test blog post.',
+			},
+		})
+	})
+	test('If there is an empty line after the comment, removes it, but keeps the frontmatter block', async () => {
+		const code = `
+---
+# src/pages/post/blog-post.md
+
+---
+
+This is my test blog post.
+		`
+		const expectedResult = `
+---
+---
+
+This is my test blog post.
+		`.trim()
+		await expectCodeResult({
+			code,
+			language: 'md',
+			expected: {
+				title: 'src/pages/post/blog-post.md',
+				code: expectedResult,
+			},
+		})
+	})
+	test('If there is an empty line before the comment, keeps it and the frontmatter block', async () => {
+		const code = `
+---
+
+# src/pages/post/blog-post.md
+---
+
+This is my test blog post.
+		`
+		const expectedResult = `
+---
+
+---
+
+This is my test blog post.
+		`.trim()
+		await expectCodeResult({
+			code,
+			language: 'md',
+			expected: {
+				title: 'src/pages/post/blog-post.md',
+				code: expectedResult,
+			},
+		})
+	})
+	test('Does not touch frontmatter blocks that were empty before', async () => {
+		const code = `
+# src/pages/post/blog-post.md
+---
+---
+
+This is my test blog post.
+		`
+		const expectedResult = `
+---
+---
+
+This is my test blog post.
+		`.trim()
+		await expectCodeResult({
+			code,
+			language: 'md',
+			expected: {
+				title: 'src/pages/post/blog-post.md',
+				code: expectedResult,
+			},
+		})
+	})
+})
+
 async function runPreprocessingTests(
 	testCases: {
 		fileName: string

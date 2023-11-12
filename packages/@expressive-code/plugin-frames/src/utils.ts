@@ -1,3 +1,5 @@
+import type { ExpressiveCodeBlock } from '@expressive-code/core'
+
 export const frameTypes = ['code', 'terminal', 'none', 'auto'] as const
 
 export type FrameType = (typeof frameTypes)[number]
@@ -28,6 +30,8 @@ export const LanguageGroups = {
 	styles: ['css', 'less', 'sass', 'scss', 'styl', 'stylus', 'xsl'],
 	textContent: ['markdown', 'md', 'mdx'],
 }
+
+export const LanguagesWithFencedFrontmatter = ['astro', 'markdown', 'md', 'mdx', 'toml', 'yaml', 'yml']
 
 export function isTerminalLanguage(language: string) {
 	return LanguageGroups.terminal.includes(language)
@@ -84,7 +88,7 @@ let fileNameCommentRegExp: RegExp | undefined
  * If the syntax highlighting language is contained in our known language groups,
  * only allows file names with extensions that belong to the same language group.
  */
-export function getFileNameFromComment(line: string, lang: string) {
+export function getFileNameFromComment(line: string, lang: string): string | undefined {
 	if (fileNameCommentRegExp === undefined) {
 		fileNameCommentRegExp = new RegExp(getFileNameCommentRegExpString(), 'i')
 	}
@@ -134,4 +138,51 @@ export function getFileNameFromComment(line: string, lang: string) {
 	if (!fileExt || (languageGroup && !languageGroup.includes(fileExt))) return
 
 	return possibleFileName
+}
+
+/**
+ * Attempts to find and extract a file name from a comment on the first 4 lines of the code block.
+ *
+ * If a valid file name comment is found, it gets removed from the code block
+ * and some cleanup work is performed on the surrounding lines:
+ * - If the code block's language supports frontmatter, and the comment was located
+ *   in a frontmatter block that has now become empty, the empty frontmatter block gets removed
+ * - If the line following the removed comment (or removed frontmatter block) is empty,
+ *   it gets removed as well
+ *
+ * @returns the extracted file name, or `undefined` if no valid file name comment was found
+ */
+export function extractFileNameFromCodeBlock(codeBlock: ExpressiveCodeBlock): string | undefined {
+	// Check the first 4 lines of the code for a file name comment
+	let extractedFileName: string | undefined = undefined
+	let lineIdx = codeBlock.getLines(0, 4).findIndex((line) => {
+		extractedFileName = getFileNameFromComment(line.text, codeBlock.language)
+		return !!extractedFileName
+	})
+
+	// Abort if we didn't find a valid file name comment
+	if (!extractedFileName) return
+
+	// We found a file name comment, so remove it from the code
+	codeBlock.deleteLine(lineIdx)
+
+	// If the block's language supports frontmatter, and the removed comment
+	// caused its frontmatter block to become empty, remove the empty block
+	if (LanguagesWithFencedFrontmatter.includes(codeBlock.language)) {
+		const openingFence = lineIdx > 0 ? codeBlock.getLine(lineIdx - 1)?.text.trim() : undefined
+		const closingFence = codeBlock.getLine(lineIdx)?.text.trim()
+		const isFrontmatterEmptyNow = openingFence === closingFence && ['---', '+++'].includes(openingFence ?? '')
+		if (isFrontmatterEmptyNow) {
+			lineIdx--
+			codeBlock.deleteLine(lineIdx)
+			codeBlock.deleteLine(lineIdx)
+		}
+	}
+
+	// If the following line is empty, remove it as well
+	if (codeBlock.getLine(lineIdx)?.text.trim().length === 0) {
+		codeBlock.deleteLine(lineIdx)
+	}
+
+	return extractedFileName
 }
