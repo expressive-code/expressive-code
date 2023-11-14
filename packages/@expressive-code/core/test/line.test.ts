@@ -7,10 +7,13 @@ describe('ExpressiveCodeLine', () => {
 	describe('Constructor', () => {
 		test('Throws on invalid arguments', () => {
 			nonStringValues.forEach((value) => {
-				expect(() => {
-					// @ts-expect-error Pass invalid first argument type
-					new ExpressiveCodeLine(value)
-				}, `Did not throw when called with \`${JSON.stringify(value)}\` as first argument`).toThrowError()
+				expect(
+					() => {
+						// @ts-expect-error Pass invalid first argument type
+						new ExpressiveCodeLine(value)
+					},
+					`Did not throw when called with \`${JSON.stringify(value)}\` as first argument`
+				).toThrowError()
 			})
 		})
 		test('Returns an instance when given valid input', () => {
@@ -24,23 +27,32 @@ describe('ExpressiveCodeLine', () => {
 			nonNumberValues
 				.filter((value) => value !== undefined)
 				.forEach((value) => {
-					expect(() => {
-						const line = new ExpressiveCodeLine('This is a test.')
-						// @ts-expect-error Pass invalid first argument type
-						line.editText(value, 10, 'bug')
-					}, `Did not throw when called with \`${JSON.stringify(value)}\` as first argument`).toThrowError()
-					expect(() => {
-						const line = new ExpressiveCodeLine('This is a test.')
-						// @ts-expect-error Pass invalid second argument type
-						line.editText(10, value, 'bug')
-					}, `Did not throw when called with \`${JSON.stringify(value)}\` as second argument`).toThrowError()
+					expect(
+						() => {
+							const line = new ExpressiveCodeLine('This is a test.')
+							// @ts-expect-error Pass invalid first argument type
+							line.editText(value, 10, 'bug')
+						},
+						`Did not throw when called with \`${JSON.stringify(value)}\` as first argument`
+					).toThrowError()
+					expect(
+						() => {
+							const line = new ExpressiveCodeLine('This is a test.')
+							// @ts-expect-error Pass invalid second argument type
+							line.editText(10, value, 'bug')
+						},
+						`Did not throw when called with \`${JSON.stringify(value)}\` as second argument`
+					).toThrowError()
 				})
 			nonStringValues.forEach((value) => {
-				expect(() => {
-					const line = new ExpressiveCodeLine('This is a test.')
-					// @ts-expect-error Pass invalid text argument type
-					line.editText(10, 14, value)
-				}, `Did not throw when called with \`${JSON.stringify(value)}\` as text argument`).toThrowError()
+				expect(
+					() => {
+						const line = new ExpressiveCodeLine('This is a test.')
+						// @ts-expect-error Pass invalid text argument type
+						line.editText(10, 14, value)
+					},
+					`Did not throw when called with \`${JSON.stringify(value)}\` as text argument`
+				).toThrowError()
 			})
 		})
 
@@ -236,7 +248,7 @@ describe('ExpressiveCodeLine', () => {
 					(value) =>
 						({
 							render: value,
-						} as unknown as ExpressiveCodeAnnotation)
+						}) as unknown as ExpressiveCodeAnnotation
 				),
 			]
 			const invalidOptions: { inlineRange: ExpressiveCodeInlineRange }[] = [
@@ -254,16 +266,22 @@ describe('ExpressiveCodeLine', () => {
 				})),
 			]
 			invalidFirstArguments.forEach((invalidArgument) => {
-				expect(() => {
-					const line = new ExpressiveCodeLine('This is a test.')
-					line.addAnnotation(invalidArgument)
-				}, `Did not throw when called with \`${JSON.stringify(invalidArgument)}\` as first argument`).toThrowError()
+				expect(
+					() => {
+						const line = new ExpressiveCodeLine('This is a test.')
+						line.addAnnotation(invalidArgument)
+					},
+					`Did not throw when called with \`${JSON.stringify(invalidArgument)}\` as first argument`
+				).toThrowError()
 			})
 			invalidOptions.forEach((invalidOption) => {
-				expect(() => {
-					const line = new ExpressiveCodeLine('This is a test.')
-					line.addAnnotation(new WrapperAnnotation(invalidOption))
-				}, `Did not throw when called with \`${JSON.stringify(invalidOption)}\` as options`).toThrowError()
+				expect(
+					() => {
+						const line = new ExpressiveCodeLine('This is a test.')
+						line.addAnnotation(new WrapperAnnotation(invalidOption))
+					},
+					`Did not throw when called with \`${JSON.stringify(invalidOption)}\` as options`
+				).toThrowError()
 			})
 		})
 		test('Can be prevented when a state is set', () => {

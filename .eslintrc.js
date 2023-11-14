@@ -66,6 +66,7 @@ module.exports = {
         ],
         '@typescript-eslint/no-empty-function': 'warn',
         '@typescript-eslint/no-non-null-assertion': 'off',
+        '@typescript-eslint/no-redundant-type-constituents': 'off',
         'redundant-undefined/redundant-undefined': [
           'error',
           {
