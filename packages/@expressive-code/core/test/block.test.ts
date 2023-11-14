@@ -15,10 +15,13 @@ describe('ExpressiveCodeBlock', () => {
 			const invalidArgs = [...invalidFirstArgTypes, ...invalidFirstArgContents]
 
 			invalidArgs.forEach((value) => {
-				expect(() => {
-					// @ts-expect-error Pass invalid first argument type
-					new ExpressiveCodeBlock(value)
-				}, `Did not throw when called with \`${JSON.stringify(value)}\` as first argument`).toThrowError()
+				expect(
+					() => {
+						// @ts-expect-error Pass invalid first argument type
+						new ExpressiveCodeBlock(value)
+					},
+					`Did not throw when called with \`${JSON.stringify(value)}\` as first argument`
+				).toThrowError()
 			})
 		})
 		test('Returns an instance', () => {
@@ -32,10 +35,13 @@ describe('ExpressiveCodeBlock', () => {
 			const block = prepareTestBlock()
 			const invalidIndices = [...nonNumberValues, -1, -15]
 			invalidIndices.forEach((invalidIndex) => {
-				expect(() => {
-					// @ts-expect-error Test passing an invalid index
-					block.getLine(invalidIndex)
-				}, `Did not throw on invalid index ${JSON.stringify(invalidIndex)}`).toThrow()
+				expect(
+					() => {
+						// @ts-expect-error Test passing an invalid index
+						block.getLine(invalidIndex)
+					},
+					`Did not throw on invalid index ${JSON.stringify(invalidIndex)}`
+				).toThrow()
 			})
 		})
 		test('Returns undefined for non-existing lines', () => {
@@ -106,19 +112,25 @@ describe('ExpressiveCodeBlock', () => {
 			const invalidIndices = [...nonNumberValues, -1, 9]
 			invalidIndices.forEach((invalidIndex) => {
 				const block = prepareTestBlock()
-				expect(() => {
-					// @ts-expect-error Test passing an invalid index
-					block.deleteLine(invalidIndex)
-				}, `Did not throw on invalid index ${JSON.stringify(invalidIndex)}`).toThrow()
+				expect(
+					() => {
+						// @ts-expect-error Test passing an invalid index
+						block.deleteLine(invalidIndex)
+					},
+					`Did not throw on invalid index ${JSON.stringify(invalidIndex)}`
+				).toThrow()
 			})
 		})
 		test('Throws on indices that are out of bounds', () => {
 			const invalidIndices = [-1, 9]
 			invalidIndices.forEach((invalidIndex) => {
 				const block = prepareTestBlock()
-				expect(() => {
-					block.deleteLine(invalidIndex)
-				}, `Did not throw on out of bounds index ${JSON.stringify(invalidIndex)}`).toThrow()
+				expect(
+					() => {
+						block.deleteLine(invalidIndex)
+					},
+					`Did not throw on out of bounds index ${JSON.stringify(invalidIndex)}`
+				).toThrow()
 			})
 		})
 		test('Deletes single lines by index', () => {
@@ -166,10 +178,13 @@ describe('ExpressiveCodeBlock', () => {
 			]
 			invalidArguments.forEach((invalidArgument) => {
 				const block = prepareTestBlock()
-				expect(() => {
-					// @ts-expect-error Test an invalid argument
-					block.deleteLines(invalidArgument)
-				}, `Did not throw on invalid indices argument ${JSON.stringify(invalidArgument)}`).toThrow()
+				expect(
+					() => {
+						// @ts-expect-error Test an invalid argument
+						block.deleteLines(invalidArgument)
+					},
+					`Did not throw on invalid indices argument ${JSON.stringify(invalidArgument)}`
+				).toThrow()
 			})
 		})
 		test('Throws on repeated indices', () => {
@@ -180,9 +195,12 @@ describe('ExpressiveCodeBlock', () => {
 			]
 			invalidArguments.forEach((invalidArgument) => {
 				const block = prepareTestBlock()
-				expect(() => {
-					block.deleteLines(invalidArgument)
-				}, `Did not throw on argument containing repeated indices ${JSON.stringify(invalidArgument)}`).toThrow()
+				expect(
+					() => {
+						block.deleteLines(invalidArgument)
+					},
+					`Did not throw on argument containing repeated indices ${JSON.stringify(invalidArgument)}`
+				).toThrow()
 			})
 		})
 		test('Deletes multiple lines in an array by index', () => {
@@ -222,19 +240,25 @@ describe('ExpressiveCodeBlock', () => {
 			]
 			invalidArgumentSets.forEach((invalidArgumentSet) => {
 				const block = prepareTestBlock()
-				expect(() => {
-					// @ts-expect-error Test passing invalid arguments
-					block.insertLine(...invalidArgumentSet)
-				}, `Did not throw on invalid argument set ${JSON.stringify(invalidArgumentSet)}`).toThrow()
+				expect(
+					() => {
+						// @ts-expect-error Test passing invalid arguments
+						block.insertLine(...invalidArgumentSet)
+					},
+					`Did not throw on invalid argument set ${JSON.stringify(invalidArgumentSet)}`
+				).toThrow()
 			})
 		})
 		test('Throws on indices that are out of bounds', () => {
 			const invalidIndices = [-1, 8]
 			invalidIndices.forEach((invalidIndex) => {
 				const block = prepareTestBlock()
-				expect(() => {
-					block.insertLine(invalidIndex, 'test line')
-				}, `Did not throw on out of bounds index ${JSON.stringify(invalidIndex)}`).toThrow()
+				expect(
+					() => {
+						block.insertLine(invalidIndex, 'test line')
+					},
+					`Did not throw on out of bounds index ${JSON.stringify(invalidIndex)}`
+				).toThrow()
 			})
 		})
 		test('Can be prevented when a state is set', () => {

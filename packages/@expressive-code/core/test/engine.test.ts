@@ -30,11 +30,14 @@ describe('ExpressiveCodeEngine', () => {
 					{ meta: 'test' },
 				]
 				for (const invalidValue of invalidValues) {
-					await expect(async () => {
-						const engine = new ExpressiveCodeEngine({ plugins: [] })
-						// @ts-expect-error Intentionally passing an invalid value
-						await engine.render(invalidValue)
-					}, `Did not throw on invalid input ${JSON.stringify(invalidValue)}`).rejects.toThrow()
+					await expect(
+						async () => {
+							const engine = new ExpressiveCodeEngine({ plugins: [] })
+							// @ts-expect-error Intentionally passing an invalid value
+							await engine.render(invalidValue)
+						},
+						`Did not throw on invalid input ${JSON.stringify(invalidValue)}`
+					).rejects.toThrow()
 				}
 			})
 			test('Accepts a single ExpressiveCodeBlock instance', async () => {

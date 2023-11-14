@@ -65,9 +65,9 @@ export function pluginShiki(): ExpressiveCodePlugin {
 								new InlineStyleAnnotation({
 									styleVariantIndex,
 									color: token.color || theme.fg,
-									italic: (fontStyle & FontStyle.Italic) === FontStyle.Italic,
-									bold: (fontStyle & FontStyle.Bold) === FontStyle.Bold,
-									underline: (fontStyle & FontStyle.Underline) === FontStyle.Underline,
+									italic: ((fontStyle & FontStyle.Italic) as FontStyle) === FontStyle.Italic,
+									bold: ((fontStyle & FontStyle.Bold) as FontStyle) === FontStyle.Bold,
+									underline: ((fontStyle & FontStyle.Underline) as FontStyle) === FontStyle.Underline,
 									inlineRange: {
 										columnStart: charIndex,
 										columnEnd: tokenEndIndex,
