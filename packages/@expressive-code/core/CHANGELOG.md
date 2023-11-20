@@ -1,5 +1,13 @@
 # @expressive-code/core
 
+## 0.29.0
+
+### Minor Changes
+
+- 85dbab8: Update default fonts to match Tailwind CSS.
+
+  The previous set of default fonts could result in very thin character line widths on iOS devices. This is now fixed by using the same widely tested set of fonts that Tailwind CSS uses.
+
 ## 0.28.2
 
 ## 0.28.1
