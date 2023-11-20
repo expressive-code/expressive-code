@@ -1,5 +1,26 @@
 # astro-expressive-code
 
+## 0.29.0
+
+### Minor Changes
+
+- 85dbab8: Update default fonts to match Tailwind CSS.
+
+  The previous set of default fonts could result in very thin character line widths on iOS devices. This is now fixed by using the same widely tested set of fonts that Tailwind CSS uses.
+
+- e020b64: Clean up frontmatter after file name comment extraction.
+
+  If a file name comment gets extracted from a code block without a `title` attribute, additional cleanup work is now performed on the surrounding lines:
+
+  - If the code block's language supports frontmatter, and the comment was located in a frontmatter block that has now become empty, the empty frontmatter block gets removed.
+  - If the line following the removed comment (or removed frontmatter block) is empty, it gets removed as well.
+
+### Patch Changes
+
+- Updated dependencies [85dbab8]
+- Updated dependencies [e020b64]
+  - remark-expressive-code@0.29.0
+
 ## 0.28.2
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # @expressive-code/plugin-text-markers
 
+## 0.29.0
+
+### Patch Changes
+
+- Updated dependencies [85dbab8]
+  - @expressive-code/core@0.29.0
+
 ## 0.28.2
 
 ### Patch Changes
