@@ -22,7 +22,7 @@ export interface CoreStyleSettings {
 	borderColor: string
 	/**
 	 * Font family of code content.
-	 * @default "'IBM Plex Mono', Consolas, 'Andale Mono WT', 'Andale Mono', 'Lucida Console', 'Lucida Sans Typewriter', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Liberation Mono', 'Nimbus Mono L', Monaco, 'Courier New', Courier, monospace"
+	 * @default "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace"
 	 */
 	codeFontFamily: string
 	/**
@@ -73,7 +73,7 @@ export interface CoreStyleSettings {
 	codeSelectionBackground: string
 	/**
 	 * Font family of UI elements.
-	 * @default "system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji'"
+	 * @default "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'"
 	 */
 	uiFontFamily: string
 	/**
@@ -146,22 +146,7 @@ export const coreStyleSettings = new PluginStyleSettings({
 		borderWidth: '1.5px',
 		borderColor: ({ theme }) => theme.colors['titleBar.border'] || lighten(theme.colors['editor.background'], theme.type === 'dark' ? 0.5 : -0.15) || 'transparent',
 		// Code editor content
-		codeFontFamily: [
-			`'IBM Plex Mono'`,
-			`Consolas`,
-			`'Andale Mono WT'`,
-			`'Andale Mono'`,
-			`'Lucida Console'`,
-			`'Lucida Sans Typewriter'`,
-			`'DejaVu Sans Mono'`,
-			`'Bitstream Vera Sans Mono'`,
-			`'Liberation Mono'`,
-			`'Nimbus Mono L'`,
-			`Monaco`,
-			`'Courier New'`,
-			`Courier`,
-			`monospace`,
-		].join(','),
+		codeFontFamily: minifyFontFamily(`ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace`),
 		codeFontSize: '0.85rem',
 		codeFontWeight: '400',
 		codeLineHeight: '1.65',
@@ -171,7 +156,9 @@ export const coreStyleSettings = new PluginStyleSettings({
 		codeForeground: ({ theme }) => theme.colors['editor.foreground'],
 		codeSelectionBackground: ({ theme }) => theme.colors['editor.selectionBackground'],
 		// UI elements
-		uiFontFamily: ['system-ui', `-apple-system`, `BlinkMacSystemFont`, `Segoe UI`, `Helvetica`, `Arial`, `sans-serif`, `'Apple Color Emoji'`, `'Segoe UI Emoji'`].join(','),
+		uiFontFamily: minifyFontFamily(
+			`ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'`
+		),
 		uiFontSize: '0.9rem',
 		uiFontWeight: '400',
 		uiLineHeight: '1.65',
@@ -305,4 +292,11 @@ export function getCoreThemeStyles(styleVariantIndex: number) {
 			text-decoration: var(--${styleVariantIndex}td, inherit);
 		}
 	`
+}
+
+function minifyFontFamily(fontFamily: string) {
+	return fontFamily
+		.split(',')
+		.map((font) => font.trim())
+		.join(',')
 }
