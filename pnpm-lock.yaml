@@ -250,6 +250,24 @@ importers:
         specifier: ^3.1.7
         version: 3.1.7
 
+  packages/astro-expressive-code/test/fixtures/astro-3.5.0-custom-paths:
+    dependencies:
+      '@astrojs/mdx':
+        specifier: ^1.1.4
+        version: 1.1.4(astro@3.5.0)
+      '@expressive-code/plugin-collapsible-sections':
+        specifier: workspace:^
+        version: link:../../../../@expressive-code/plugin-collapsible-sections
+      astro:
+        specifier: ^3.5.0
+        version: 3.5.0(typescript@5.2.2)
+      astro-expressive-code:
+        specifier: workspace:^
+        version: link:../../..
+      summer-time:
+        specifier: ^3.1.7
+        version: 3.1.7
+
   packages/astro-expressive-code/test/fixtures/astro-3.5.0-no-external-css:
     dependencies:
       '@astrojs/mdx':
@@ -431,7 +449,7 @@ packages:
     dependencies:
       '@astrojs/markdown-remark': 3.4.0(astro@3.5.0)
       '@mdx-js/mdx': 2.3.0
-      acorn: 8.10.0
+      acorn: 8.11.2
       astro: 3.5.0(typescript@5.2.2)
       es-module-lexer: 1.3.0
       estree-util-visit: 1.2.1
@@ -476,7 +494,7 @@ packages:
     resolution: {integrity: sha512-A+0c7k/Xy293xx6odsYZuXiaHO0PL+bnDoXOc47sGDF5ffIKdKQGRPFl2NMlCF4L0NqN4Ynbgnaip+pPF0s7pQ==}
     engines: {node: '>=18.14.1'}
     dependencies:
-      ci-info: 3.8.0
+      ci-info: 3.9.0
       debug: 4.3.4
       dlv: 1.1.3
       dset: 3.1.2
@@ -2121,10 +2139,10 @@ packages:
       '@babel/traverse': 7.22.17
       '@babel/types': 7.22.17
       '@types/babel__core': 7.20.1
-      acorn: 8.10.0
+      acorn: 8.11.2
       boxen: 7.1.1
       chokidar: 3.5.3
-      ci-info: 3.8.0
+      ci-info: 3.9.0
       clsx: 2.0.0
       common-ancestor-path: 1.0.1
       cookie: 0.5.0
@@ -2136,7 +2154,7 @@ packages:
       esbuild: 0.19.3
       estree-walker: 3.0.3
       execa: 8.0.1
-      fast-glob: 3.3.1
+      fast-glob: 3.3.2
       github-slugger: 2.0.0
       gray-matter: 4.0.3
       html-escaper: 3.0.3
@@ -2154,7 +2172,7 @@ packages:
       probe-image-size: 7.2.3
       prompts: 2.4.2
       rehype: 12.0.1
-      resolve: 1.22.4
+      resolve: 1.22.8
       semver: 7.5.4
       server-destroy: 1.0.1
       shikiji: 0.6.12
@@ -2470,7 +2488,6 @@ packages:
   /ci-info@3.9.0:
     resolution: {integrity: sha512-NIxF55hv4nSqQswkAeiOi1r83xy8JldOFDTWiug55KBu9Jnblncd2U6ViHmYgHf01TPZS77NJBhBMKdWj9HQMQ==}
     engines: {node: '>=8'}
-    dev: true
 
   /cli-boxes@3.0.0:
     resolution: {integrity: sha512-/lzGpEWL/8PfI0BmBOPRwp0c/wFNX1RdUML3jK/RcSBA9T8mZDdQpqYBKtCFTOfQbwPqWEOpjqW+Fnayc0969g==}
@@ -3378,7 +3395,6 @@ packages:
       glob-parent: 5.1.2
       merge2: 1.4.1
       micromatch: 4.0.5
-    dev: true
 
   /fast-json-stable-stringify@2.1.0:
     resolution: {integrity: sha512-lhd/wF+Lk98HZoTCtlVraHtfh5XYijIjalXck7saUtuanSDyLMxnHhSXEDJqHxD7msR8D0uCmqlkwjCV8xvwHw==}
@@ -3494,7 +3510,6 @@ packages:
 
   /function-bind@1.1.2:
     resolution: {integrity: sha512-7XHNxH7qX9xG5mIwxkhumTox/MIRNcOgDrxWsMt2pAr23WHp6MrRlN7FBSFpCpr+oVO0F744iUgR82nJMfG2SA==}
-    dev: true
 
   /function.prototype.name@1.1.6:
     resolution: {integrity: sha512-Z5kx79swU5P27WEayXM1tBi5Ze/lbIyiNgU3qyXUOf9b2rgXYyF9Dy9Cx+IQv/Lc8WCG6L82zwUPpSS9hGehIg==}
@@ -3735,7 +3750,6 @@ packages:
     engines: {node: '>= 0.4'}
     dependencies:
       function-bind: 1.1.2
-    dev: true
 
   /hast-util-from-parse5@7.1.2:
     resolution: {integrity: sha512-Nz7FfPBuljzsN3tCQ4kCBKqdNhQE2l0Tn+X1ubgKBPRoiDIu1mL08Cfw4k7q71+Duyaw7DXDN+VTAp4Vh3oCOw==}
@@ -4161,7 +4175,6 @@ packages:
     resolution: {integrity: sha512-hHrIjvZsftOsvKSn2TRYl63zvxsgE0K+0mYMoH6gD4omR5IWB2KynivBQczo3+wF1cCkjzvptnI9Q0sPU66ilw==}
     dependencies:
       hasown: 2.0.0
-    dev: true
 
   /is-date-object@1.0.5:
     resolution: {integrity: sha512-9YQaSxsAiSwcvS33MBk3wTCVnWK+HhF8VZR2jRxehM16QcVOdHqPn4VPHmRK4lSr38n9JriurInLcP90xsYNfQ==}
@@ -6095,7 +6108,6 @@ packages:
       is-core-module: 2.13.1
       path-parse: 1.0.7
       supports-preserve-symlinks-flag: 1.0.0
-    dev: true
 
   /restore-cursor@4.0.0:
     resolution: {integrity: sha512-I9fPXU9geO9bHOt9pHHOhOkYerIMsmVaWB0rA2AI9ERh/+x/i7MV5HKBNrg+ljO5eoPVgCcnFuRjJ9uH6I/3eg==}

@@ -9,14 +9,17 @@ export type AstroExpressiveCodeOptions = RemarkExpressiveCodeOptions & {
 	/**
 	 * Determines if the styles required to display code blocks should be emitted into a separate
 	 * CSS file rather than being inlined into the rendered HTML of the first code block per page.
-	 * The generated URL `_astro/ec.{hash}.css` includes a content hash and can be cached
-	 * indefinitely by browsers.
 	 *
 	 * This is recommended for sites containing multiple pages with code blocks, as it will reduce
 	 * the overall footprint of the site when navigating between pages.
 	 *
+	 * The generated URL is located inside Astro's assets directory and includes a content hash
+	 * so it can be cached indefinitely by browsers. If you are using the default values for the
+	 * Astro config options `base`, `build.assets`, `build.assetsPrefix`, the resulting URL
+	 * will be `/_astro/ec.{hash}.css`.
+	 *
 	 * **Important**: To actually benefit from caching, please ensure that your hosting provider
-	 * serves the contents of the `_astro` directory as immutable files with a long cache lifetime,
+	 * serves the contents of the assets directory as immutable files with a long cache lifetime,
 	 * e.g. `Cache-Control: public,max-age=31536000,immutable`.
 	 *
 	 * @default true
@@ -51,6 +54,10 @@ export function astroExpressiveCode(options: AstroExpressiveCodeOptions = {}) {
 					)
 				}
 
+				// Determine the assets directory and href prefix from the Astro config
+				const assetsDir = config.build?.assets || '_astro'
+				const assetsHrefPrefix = (config?.build?.assetsPrefix || config?.base || '').trim().replace(/\/+$/g, '')
+
 				// Add a plugin that inserts external references to the styles and scripts
 				// that would normally be inlined into the first code block of every page
 				const hashedStyles: [string, string][] = []
@@ -71,7 +78,7 @@ export function astroExpressiveCode(options: AstroExpressiveCodeOptions = {}) {
 								extraElements.push({
 									type: 'element',
 									tagName: 'link',
-									properties: { rel: 'stylesheet', href: hashedRoute },
+									properties: { rel: 'stylesheet', href: `${assetsHrefPrefix}${hashedRoute}` },
 									children: [],
 								})
 							})
@@ -81,7 +88,7 @@ export function astroExpressiveCode(options: AstroExpressiveCodeOptions = {}) {
 								extraElements.push({
 									type: 'element',
 									tagName: 'script',
-									properties: { type: 'module', src: hashedRoute },
+									properties: { type: 'module', src: `${assetsHrefPrefix}${hashedRoute}` },
 									children: [],
 								})
 							})
@@ -102,7 +109,7 @@ export function astroExpressiveCode(options: AstroExpressiveCodeOptions = {}) {
 				// into an external CSS file that can be cached by browsers
 				if (emitExternalStylesheet) {
 					const combinedStyles = `${renderer.baseStyles}${renderer.themeStyles}`
-					hashedStyles.push(getHashedRouteWithContent(combinedStyles, '/_astro/ec.{hash}.css'))
+					hashedStyles.push(getHashedRouteWithContent(combinedStyles, `/${assetsDir}/ec.{hash}.css`))
 					renderer.baseStyles = ''
 					renderer.themeStyles = ''
 				}
@@ -112,7 +119,7 @@ export function astroExpressiveCode(options: AstroExpressiveCodeOptions = {}) {
 				// does not allow omitting the scripts on pages without any code blocks)
 				const uniqueJsModules = [...new Set<string>(renderer.jsModules)]
 				renderer.jsModules = []
-				hashedScripts.push(...uniqueJsModules.map((moduleCode) => getHashedRouteWithContent(moduleCode, '/_astro/ec.{hash}.js')))
+				hashedScripts.push(...uniqueJsModules.map((moduleCode) => getHashedRouteWithContent(moduleCode, `/${assetsDir}/ec.{hash}.js`)))
 
 				// Inject route handlers that provide access to the extracted styles & scripts
 				hashedStyles.forEach(([hashedRoute]) => {
