@@ -1,5 +1,12 @@
 # astro-expressive-code
 
+## 0.29.1
+
+### Patch Changes
+
+- ff368fc: Fix asset URLs when using non-default Astro config options for `base`, `build.assets` or `build.assetsPrefix`.
+  - remark-expressive-code@0.29.1
+
 ## 0.29.0
 
 ### Minor Changes
