@@ -2,6 +2,7 @@ import { describe, test, expect, beforeAll } from 'vitest'
 import { existsSync, rmSync, readFileSync, readdirSync } from 'fs'
 import { join } from 'path'
 import { execa } from 'execa'
+import type { AstroUserConfig } from 'astro/config'
 import { buildSampleCodeHtmlRegExp } from '../../remark-expressive-code/test/utils'
 
 const complexHtmlRegExp = buildSampleCodeHtmlRegExp({
@@ -42,12 +43,12 @@ describe('Integration into Astro ^3.0.0', () => {
 		validateHtml(html)
 	})
 
-	test('Emits an external stylesheet file', () => {
+	test('Emits an external stylesheet into the Astro assets dir', () => {
 		const files = fixture?.readDir('_astro') ?? []
 		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.css$/))).toHaveLength(1)
 	})
 
-	test('Emits an external script file', () => {
+	test('Emits an external script into the Astro assets dir', () => {
 		const files = fixture?.readDir('_astro') ?? []
 		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.js$/))).toHaveLength(1)
 	})
@@ -75,19 +76,72 @@ describe('Integration into Astro ^3.5.0 with `emitExternalStylesheet: false`', (
 		validateHtml(html, { emitExternalStylesheet: false })
 	})
 
-	test('Emits no external stylesheet file due to `emitExternalStylesheet: false`', () => {
+	test('Emits no external stylesheet due to `emitExternalStylesheet: false`', () => {
 		const files = fixture?.readDir('_astro') ?? []
 		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.css$/))).toHaveLength(0)
 	})
 
-	test('Emits an external script file', () => {
+	test('Emits an external script into the Astro assets dir', () => {
 		const files = fixture?.readDir('_astro') ?? []
 		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.js$/))).toHaveLength(1)
 	})
 })
 
-function validateHtml(html: string, options?: { emitExternalStylesheet?: boolean | undefined }) {
-	const { emitExternalStylesheet = true } = options ?? {}
+describe('Integration into Astro ^3.5.0 using custom `base` and `build.assets` paths', () => {
+	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
+
+	// Provide a copy of the settings defined in `astro.config.mjs` to the tests
+	const astroConfig = { base: '/subpath', build: { assets: '_custom' } }
+
+	beforeAll(async () => {
+		fixture = await buildFixture({
+			fixtureDir: 'astro-3.5.0-custom-paths',
+			buildCommand: 'pnpm',
+			buildArgs: ['astro', 'build'],
+			outputDir: 'dist',
+		})
+	}, 20 * 1000)
+
+	test('Renders code blocks in Markdown files', () => {
+		const html = fixture?.readFile('index.html') ?? ''
+		validateHtml(html, { astroConfig })
+	})
+
+	test('Renders code blocks in MDX files', () => {
+		const html = fixture?.readFile('mdx-page/index.html') ?? ''
+		validateHtml(html, { astroConfig })
+	})
+
+	test('Emits an external stylesheet into the Astro assets dir', () => {
+		const files = fixture?.readDir(astroConfig.build.assets) ?? []
+		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.css$/))).toHaveLength(1)
+		expect(
+			files.filter((fileName) => fileName.match(/^logo\./)),
+			'Expected Astro to use the same directory for image assets'
+		).toHaveLength(1)
+	})
+
+	test('Emits an external script into the Astro assets dir', () => {
+		const files = fixture?.readDir(astroConfig.build.assets) ?? []
+		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.js$/))).toHaveLength(1)
+		expect(
+			files.filter((fileName) => fileName.match(/^logo\./)),
+			'Expected Astro to use the same directory for image assets'
+		).toHaveLength(1)
+	})
+})
+
+function validateHtml(
+	html: string,
+	options?: {
+		emitExternalStylesheet?: boolean | undefined
+		astroConfig?: AstroUserConfig | undefined
+	}
+) {
+	const { emitExternalStylesheet = true, astroConfig } = options ?? {}
+
+	const assetsDir = astroConfig?.build?.assets || '_astro'
+	const assetsBaseHref = `${astroConfig?.build?.assetsPrefix || astroConfig?.base || ''}/${assetsDir}/`.replace(/\/+/g, '/')
 
 	// Expect the HTML structure to match our regular expression
 	const matches = html.match(complexHtmlRegExp)
@@ -95,7 +149,20 @@ function validateHtml(html: string, options?: { emitExternalStylesheet?: boolean
 
 	// Depending on the `emitExternalStylesheet` option, expect the `styles` capture group
 	// to either contain an external stylesheet or an inline style element
-	expect(matches?.groups?.['styles']).toContain(emitExternalStylesheet ? '<link rel="stylesheet"' : '<style>')
+	const styles = matches?.groups?.['styles']
+	if (emitExternalStylesheet) {
+		expect(styles, `Expected a stylesheet link href beginning with "${assetsBaseHref}", but got "${styles}"`).toMatch(
+			new RegExp(`<link rel="stylesheet" href="${assetsBaseHref}ec\\..*?\\.css"\\s*/?>`)
+		)
+	} else {
+		expect(styles).toContain('<style>')
+	}
+
+	// Expect the `scripts` capture group to contain an external script module
+	const scripts = matches?.groups?.['scripts']
+	expect(scripts, `Expected a script module src beginning with "${assetsBaseHref}", but got "${scripts}"`).toMatch(
+		new RegExp(`<script type="module" src="${assetsBaseHref}ec\\..*?\\.js"\\s*/?>`)
+	)
 
 	// Collect all code blocks
 	const codeBlockClassNames = [...html.matchAll(/<div class="(expressive-code(?:| .*?))">/g)].map((match) => match[1])
