@@ -1,5 +1,13 @@
 # astro-expressive-code
 
+## 0.29.2
+
+### Patch Changes
+
+- e18c69d: Comments like `// ...` are now no longer incorrectly detected as file names. Thanks @kdheepak!
+- Updated dependencies [e18c69d]
+  - remark-expressive-code@0.29.2
+
 ## 0.29.1
 
 ### Patch Changes

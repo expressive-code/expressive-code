@@ -1,5 +1,16 @@
 # expressive-code
 
+## 0.29.2
+
+### Patch Changes
+
+- e18c69d: Comments like `// ...` are now no longer incorrectly detected as file names. Thanks @kdheepak!
+- Updated dependencies [e18c69d]
+  - @expressive-code/plugin-frames@0.29.2
+  - @expressive-code/core@0.29.2
+  - @expressive-code/plugin-shiki@0.29.2
+  - @expressive-code/plugin-text-markers@0.29.2
+
 ## 0.29.1
 
 ### Patch Changes
