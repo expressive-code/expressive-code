@@ -129,7 +129,10 @@ No page will be built for this post.
 		'path\\to\\file',
 		// Relative file paths
 		'./test',
+		'../src',
+		'../../images',
 		'.\\Temp',
+		'..\\src',
 		// Absolute unix file paths
 		'/etc/hosts',
 		'~/some_file',
@@ -354,6 +357,10 @@ import { defineConfig } from 'example/config'
 			'# Allow: /',
 			'# cat /etc/profile',
 			'/// <reference types="astro/client" />',
+			'// Testing...',
+			'// ...loading',
+			'// ...',
+			'// ..',
 		]
 		const languages = ['js', 'sh']
 		await runPreprocessingTests(
