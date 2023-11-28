@@ -97,6 +97,12 @@ export function getFileNameFromComment(line: string, lang: string): string | und
 	const possibleFileName = matches?.[2]
 	if (!possibleFileName) return
 
+	// Ignore strings that only consist of special characters (dots, path separators, etc.)
+	if (!possibleFileName.match(/[^.:/\\~]/)) return
+
+	// Ignore strings starting with two or more dots not followed by a path separator
+	if (possibleFileName.match(/^\.{2,}(?!\/|\\)/)) return
+
 	// Check if the syntax highlighting language is contained in our known language groups,
 	// and determine the extension of the extracted file name (if any)
 	const languageGroup = Object.values(LanguageGroups).find((group) => group.includes(lang))
