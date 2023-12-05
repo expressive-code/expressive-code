@@ -1,5 +1,12 @@
 # astro-expressive-code
 
+## 0.29.3
+
+### Patch Changes
+
+- 0935247: Fix warning in Astro 4 due to renamed "entryPoint" property. Add Astro 4 to allowed peer dependencies.
+  - remark-expressive-code@0.29.3
+
 ## 0.29.2
 
 ### Patch Changes
