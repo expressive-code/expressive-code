@@ -123,10 +123,22 @@ export function astroExpressiveCode(options: AstroExpressiveCodeOptions = {}) {
 
 				// Inject route handlers that provide access to the extracted styles & scripts
 				hashedStyles.forEach(([hashedRoute]) => {
-					injectRoute({ pattern: hashedRoute, entryPoint: new URL('../routes/styles.ts', import.meta.url).href })
+					const entrypoint = new URL('../routes/styles.ts', import.meta.url).href
+					injectRoute({
+						pattern: hashedRoute,
+						entryPoint: entrypoint,
+						// @ts-expect-error: `entrypoint` is the new name since Astro 4
+						entrypoint,
+					})
 				})
 				hashedScripts.forEach(([hashedRoute]) => {
-					injectRoute({ pattern: hashedRoute, entryPoint: new URL('../routes/scripts.ts', import.meta.url).href })
+					const entrypoint = new URL('../routes/scripts.ts', import.meta.url).href
+					injectRoute({
+						pattern: hashedRoute,
+						entryPoint: entrypoint,
+						// @ts-expect-error: `entrypoint` is the new name since Astro 4
+						entrypoint,
+					})
 				})
 
 				const remarkExpressiveCodeOptions: RemarkExpressiveCodeOptions = {
