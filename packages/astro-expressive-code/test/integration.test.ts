@@ -131,6 +131,39 @@ describe('Integration into Astro ^3.5.0 using custom `base` and `build.assets` p
 	})
 })
 
+describe('Integration into Astro ^4.0.0', () => {
+	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
+
+	beforeAll(async () => {
+		fixture = await buildFixture({
+			fixtureDir: 'astro-4.0.0',
+			buildCommand: 'pnpm',
+			buildArgs: ['astro', 'build'],
+			outputDir: 'dist',
+		})
+	}, 20 * 1000)
+
+	test('Renders code blocks in Markdown files', () => {
+		const html = fixture?.readFile('index.html') ?? ''
+		validateHtml(html)
+	})
+
+	test('Renders code blocks in MDX files', () => {
+		const html = fixture?.readFile('mdx-page/index.html') ?? ''
+		validateHtml(html)
+	})
+
+	test('Emits an external stylesheet into the Astro assets dir', () => {
+		const files = fixture?.readDir('_astro') ?? []
+		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.css$/))).toHaveLength(1)
+	})
+
+	test('Emits an external script into the Astro assets dir', () => {
+		const files = fixture?.readDir('_astro') ?? []
+		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.js$/))).toHaveLength(1)
+	})
+})
+
 function validateHtml(
 	html: string,
 	options?: {
