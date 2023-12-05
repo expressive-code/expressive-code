@@ -1,0 +1,104 @@
+---
+title: How to Upgrade
+---
+
+## TODO
+
+- Framework selector buttons:
+    - Astro
+    - Starlight
+    - Next.js
+    - Other
+
+If you are already using Expressive Code and want to upgrade to a newer version, this page will guide you through the process.
+
+## Breaking changes in v0.27.0
+
+### Config option `theme` has been renamed to `themes`
+
+Efficient multi-theme support using CSS variables is now a core feature, so the `theme` option was deprecated in favor of the new array `themes`.
+
+Please migrate your existing config to use `themes` and ensure it is an array. If you only need a single theme, your `themes` array can contain just this one theme. However, please consider the benefits of providing multiple themes. See the [`themes`](#themes) option for more details.
+
+```diff lang="js"
+  /** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
+  const remarkExpressiveCodeOptions = {
+-   theme: 'dracula',
++   // Rename to `themes` and ensure it is an array
++   // (also consider adding a light theme for accessibility)
++   themes: ['dracula'],
+  },
+```
+
+### Config option `styleOverrides` now contains all plugin styles in nested objects
+
+In previous versions, there could be multiple `styleOverrides` scattered through the configuration (one per plugin with configurable style settings). This has been simplified to a single top-level `styleOverrides` object that contains all style overrides.
+
+Plugins can contribute their own style settings to this object as well by nesting them inside under their plugin name.
+
+```diff lang="js"
+  /** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
+  const remarkExpressiveCodeOptions = {
+    frames: {
+      showCopyToClipboardButton: false,
+-     styleOverrides: {
+-       shadowColor: '#124',
+-     },
+    },
++   styleOverrides: {
++     frames: {
++       shadowColor: '#124',
++     },
++     // You could override other plugin styles here as well:
++     // textMarkers: { ... },
++   },
+  },
+```
+
+### Config option `textMarkers` can no longer be an object
+
+In previous versions, the `textMarkers` config option could be an object containing plugin options. This is no longer supported, as the only option that was available (`styleOverrides`) has been nested into the top-level `styleOverrides` object now, as explained in the previous section.
+
+```diff lang="js"
+  /** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
+  const remarkExpressiveCodeOptions = {
+-   textMarkers: {
+-     styleOverrides: {
+-       markHue: '310',
+-     },
+-   },
++   styleOverrides: {
++     textMarkers: {
++       markHue: '310',
++     },
++     // You could override other plugin styles here as well:
++     // frames: { ... },
++   },
+  },
+```
+
+### Rendering multiple themes no longer generates duplicate CSS and HTML output
+
+In previous versions, a full set of CSS styles was generated for each individual theme, and each code block was rendered multiple times to include the HTML for each theme.
+
+In this version, the CSS output has been changed to a single static set of base styles that uses CSS variables to allow efficient switching between themes.
+
+Also, the HTML output for code blocks is now generated only once, and theme-dependent styles are applied using CSS variables.
+
+These changes significantly reduce page size when using multiple themes, especially on pages with many code blocks.
+
+If you have added CSS code to your site that relies on the old output (e.g. by selectively hiding or showing theme-specific code blocks based on their class name), you will need to update it to work with the new output.
+
+> **Note**: Before writing new custom CSS, please consider if you can achieve your desired result out of the box now. For example, if your [`themes`](#themes) option contains one dark and one light theme, the [`useDarkModeMediaQuery`](#usedarkmodemediaquery) option will generate a `prefers-color-scheme` media query for you by default.
+
+### Engine property `configClassName` has been removed
+
+The `configClassName` property was previously used to add a config-dependent class name to the CSS selectors used to style code blocks.
+
+As this property was automatically calculated by hashing the configuration object, it introduced a level of unpredictability, which has now been removed in favor of static base styles.
+
+### Engine property `themeClassName` has been removed
+
+The `themeClassName` property was previously used to add a theme-dependent class name to code blocks. Its format was `ec-theme-<name>`, where `<name>` was the kebab-cased name of the theme.
+
+As code blocks are now styled using CSS variables instead of generating multiple blocks for all themes and attaching class names to them, this property is no longer needed.

@@ -1,0 +1,30 @@
+{
+  "name": "@internal/docs",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Documentation website for Expressive Code",
+  "keywords": [],
+  "author": "Tibor Schiemann",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "release-notes": "tsm --require=./scripts/lib/filter-warnings.cjs ./scripts/release-notes.ts"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.13.1",
+    "astro": "^3.2.3",
+    "astro-expressive-code": "workspace:^",
+    "mdast-util-from-markdown": "^2.0.0",
+    "mdast-util-to-markdown": "^2.1.0",
+    "mdast-util-to-string": "^4.0.0",
+    "sharp": "^0.32.5",
+    "tsm": "^2.3.0",
+    "unist-util-visit": "^4.1.2"
+  },
+  "devDependencies": {
+    "@types/mdast": "^4.0.3"
+  }
+}
