@@ -1,3 +1,211 @@
 ---
 title: Editor & Terminal Frames
 ---
+
+Expressive Code supports rendering frames around your code blocks. By default, the type of frame (editor window or terminal window) is selected automatically based on the language identifier in your code block's opening fence.
+
+Frames can have optional titles, which are either taken from the code block's meta string, or from a file name comment in the first lines of the code.
+
+These features are provided by the plugin `@expressive-code/plugin-frames`, which is **installed by default** in all framework integrations, so you can start using it in markdown / MDX documents right away.
+
+## Usage in markdown / MDX
+
+### Code editor frames
+
+To make code blocks look like an editor window similar to VS Code, you must provide a file name that can be displayed in the open file tab.
+
+To do this, you can either set the `title` attribute in the opening code fence to a file name, or add a file name comment to the first lines of the code.
+
+:::note
+If a file name comment is found and used for a file name tab, it will be removed from the rendered code to prevent repetition. If you don't want file name comments to be detected and removed, you have the following options:
+- Provide a `title` in the opening code fence
+- [Set the frame type](#overriding-frame-types) of individual blocks to `none`
+- Disable the feature globally by setting the config option `extractFileNameFromCode` to `false`
+:::
+
+See the markdown code below for examples of both methods:
+
+````md title="editor-example.md" ins=/title=".*?"/ ins=/<!--.*?-->/
+```js title="my-test-file.js"
+console.log('Hello World!')
+```
+
+```html
+<!-- src/content/index.html -->
+<div>This is HTML</div>
+```
+````
+
+The rendered result looks like this:
+
+```js title="my-test-file.js"
+console.log('Hello World!')
+```
+
+```html
+<!-- src/content/index.html -->
+<div>This is HTML</div>
+```
+
+### Terminal frames
+
+When encountering code blocks with a language identifier that is typically used for terminal sessions or shell scripts (`ansi`, `bash`, `bat`, `batch`, `cmd`, `console`, `powershell`, `ps`, `ps1`, `psd1`, `psm1`, `sh`, `shell`, `shellscript`, `shellsession`, `zsh`), Expressive Code performs additional checks to detect the frame type to use:
+
+- If the code block contains a shell script file name in the `title` attribute of the opening code fence, or in a comment in the first lines of the code, or the code starts with a shebang (`#!`), it is considered to be a script file instead of a terminal session, and is rendered with a code editor frame if a file name was provided, or as a plain code block otherwise.
+- In all other cases, the code block is considered to be a terminal session and rendered with a terminal frame.
+
+In contrast to code editor frames, terminal frames do not require a title. The title bar will always be rendered, and you can optionally add a title using the `title` attribute:
+
+````md
+```bash
+echo "This terminal frame has no title"
+```
+
+```powershell title="PowerShell terminal example"
+Write-Output "This one has a title!"
+```
+````
+
+The rendered result looks like this:
+
+```bash
+echo "This frame has no title"
+```
+
+```powershell title="PowerShell terminal example"
+Write-Output "This one has a title!"
+```
+
+### Overriding frame types
+
+If you want to override the automatic frame type detection for some code blocks, you can add the `frame="..."` attribute to the opening code fence.
+
+The supported values for this attribute are `code`, `terminal`, `none` and `auto`. The default value is `auto`.
+
+:::tip
+Setting the frame type to `none` can reduce visual clutter when showing many single-line terminal blocks on a page, e.g. in a tutorial.
+:::
+
+````md
+```sh frame="none"
+echo "Look ma, no frame!"
+```
+
+```ps frame="code" title="PowerShell Profile.ps1"
+# Without overriding, this would be a terminal frame
+function Watch-Tail { Get-Content -Tail 20 -Wait $args }
+New-Alias tail Watch-Tail
+```
+````
+
+The rendered result looks like this:
+
+```sh frame="none"
+echo "Look ma, no frame!"
+```
+
+```ps frame="code" title="PowerShell Profile.ps1"
+# Without overriding, this would be a terminal frame
+function Watch-Tail { Get-Content -Tail 20 -Wait $args }
+New-Alias tail Watch-Tail
+```
+
+## Configuration
+
+When using this plugin through higher-level integration packages, you can configure it by passing options to the higher-level package.
+
+Here are configuration examples for some popular site generators:
+
+### Astro configuration example
+
+We assume that you're using our Astro integration [`astro-expressive-code`](https://www.npmjs.com/package/astro-expressive-code).
+
+In your Astro config file, you can pass options to the frames plugin like this:
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+import astroExpressiveCode from 'astro-expressive-code'
+
+/** @type {import('astro-expressive-code').AstroExpressiveCodeOptions} */
+const astroExpressiveCodeOptions = {
+  // You can optionally override the plugin's default settings here
+  frames: {
+    // Example: Hide the "Copy to clipboard" button
+    showCopyToClipboardButton: false,
+  },
+  styleOverrides: {
+    // You can optionally override the plugin's default styles here
+    frames: {
+      shadowColor: '#124',
+    },
+  },
+}
+
+export default defineConfig({
+  integrations: [
+    astroExpressiveCode(astroExpressiveCodeOptions),
+  ],
+})
+```
+
+### Next.js configuration example using `@next/mdx`
+
+```js
+// next.config.mjs
+import createMDX from '@next/mdx'
+import remarkExpressiveCode from 'remark-expressive-code'
+
+/** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
+const remarkExpressiveCodeOptions = {
+  // You can optionally override the plugin's default settings here
+  frames: {
+    // Example: Hide the "Copy to clipboard" button
+    showCopyToClipboardButton: false,
+  },
+  styleOverrides: {
+    // You can optionally override the plugin's default styles here
+    frames: {
+      shadowColor: '#124',
+    },
+  },
+}
+
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  pageExtensions: ["js", "jsx", "ts", "tsx", "md", "mdx"],
+}
+
+const withMDX = createMDX({
+  extension: /\.mdx?$/,
+  options: {
+    remarkPlugins: [
+      // The nested array structure is required to pass options
+      // to a remark plugin
+      [remarkExpressiveCode, remarkExpressiveCodeOptions],
+    ],
+    rehypePlugins: [],
+  },
+})
+
+export default withMDX(nextConfig)
+```
+
+### Available plugin options
+
+You can pass the following options to the plugin:
+
+- `extractFileNameFromCode: boolean`
+
+  If `true` (which is the default), and no title was found in the code block's meta string, the plugin will try to find and extract a comment line containing the code block file name from the first 4 lines of the code.
+
+- `showCopyToClipboardButton: boolean`
+
+  If `true` (which is the default), a "Copy to clipboard" button will be shown for each code block.
+
+- `removeCommentsWhenCopyingTerminalFrames: boolean`
+
+  If `true` (which is the default), the "Copy to clipboard" button of terminal window frames will remove comment lines starting with `#` from the copied text.
+  
+  This is useful to reduce the copied text to the actual commands users need to run, instead of also copying explanatory comments or instructions.
