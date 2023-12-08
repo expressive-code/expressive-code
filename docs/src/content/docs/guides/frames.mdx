@@ -2,11 +2,15 @@
 title: Editor & Terminal Frames
 ---
 
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
 Expressive Code supports rendering frames around your code blocks. By default, the type of frame (editor window or terminal window) is selected automatically based on the language identifier in your code block's opening fence.
 
 Frames can have optional titles, which are either taken from the code block's meta string, or from a file name comment in the first lines of the code.
 
-These features are provided by the plugin `@expressive-code/plugin-frames`, which is **installed by default** in all framework integrations, so you can start using it in markdown / MDX documents right away.
+:::tip[No installation required]
+These features are provided by `@expressive-code/plugin-frames`, which is installed & enabled by default in all framework integrations. You can start using it right away in your documents!
+:::
 
 ## Usage in markdown / MDX
 
@@ -14,14 +18,7 @@ These features are provided by the plugin `@expressive-code/plugin-frames`, whic
 
 To make code blocks look like an editor window similar to VS Code, you must provide a file name that can be displayed in the open file tab.
 
-To do this, you can either set the `title` attribute in the opening code fence to a file name, or add a file name comment to the first lines of the code.
-
-:::note
-If a file name comment is found and used for a file name tab, it will be removed from the rendered code to prevent repetition. If you don't want file name comments to be detected and removed, you have the following options:
-- Provide a `title` in the opening code fence
-- [Set the frame type](#overriding-frame-types) of individual blocks to `none`
-- Disable the feature globally by setting the config option `extractFileNameFromCode` to `false`
-:::
+To do this, you can either set the `title` attribute in the opening code fence to a file name, or add a [file name comment](#file-name-comments) to the first lines of the code.
 
 See the markdown code below for examples of both methods:
 
@@ -51,7 +48,7 @@ console.log('Hello World!')
 
 When encountering code blocks with a language identifier that is typically used for terminal sessions or shell scripts (`ansi`, `bash`, `bat`, `batch`, `cmd`, `console`, `powershell`, `ps`, `ps1`, `psd1`, `psm1`, `sh`, `shell`, `shellscript`, `shellsession`, `zsh`), Expressive Code performs additional checks to detect the frame type to use:
 
-- If the code block contains a shell script file name in the `title` attribute of the opening code fence, or in a comment in the first lines of the code, or the code starts with a shebang (`#!`), it is considered to be a script file instead of a terminal session, and is rendered with a code editor frame if a file name was provided, or as a plain code block otherwise.
+- If the code block contains a shell script file name in the `title` attribute of the opening code fence or a [file name comment](#file-name-comments), or if the code starts with a shebang (`#!`), it is considered to be a script file instead of a terminal session, and is rendered with a code editor frame if a file name was provided, or as a plain code block otherwise.
 - In all other cases, the code block is considered to be a terminal session and rendered with a terminal frame.
 
 In contrast to code editor frames, terminal frames do not require a title. The title bar will always be rendered, and you can optionally add a title using the `title` attribute:
@@ -75,6 +72,28 @@ echo "This frame has no title"
 ```powershell title="PowerShell terminal example"
 Write-Output "This one has a title!"
 ```
+
+### File name comments
+
+If a code block does not have a `title` attribute, Expressive Code supports automatically extracting a title from a file name comment inside your code.
+
+The following conditions must be met for a comment to be recognized as a file name comment:
+
+- It must appear within the first 4 lines of the code block.
+- Its line must start with `//`, `<!--`, `/*` or `#`, but not `#!`. Although not required, we recommend using the comment syntax matching your code block's language.
+- It can optionally have a prefix that ends with a colon (`:`). This allows you to prefix the file name with some text: `// File name: index.js`
+- The file name appears to be valid in the context of the code block's language. For example, a comment containing a CSS file name in a JavaScript code block will be ignored.
+
+Once a file name comment is found, it is removed from the code block's content, and the extracted file name is used as the code block's title.
+
+:::note
+You can prevent automatic file name comment extraction using any of the following options:
+- Provide a `title` in the opening code fence
+- [Set the frame type](#overriding-frame-types) of the code block to `none`
+- Disable it globally by setting `extractFileNameFromCode` to `false` in the configuration
+:::
+
+
 
 ### Overriding frame types
 
@@ -116,81 +135,82 @@ When using this plugin through higher-level integration packages, you can config
 
 Here are configuration examples for some popular site generators:
 
-### Astro configuration example
+<Tabs>
+  <TabItem label="Astro">
+    The following example shows how to configure `astro-expressive-code` in Astro:
 
-We assume that you're using our Astro integration [`astro-expressive-code`](https://www.npmjs.com/package/astro-expressive-code).
+    ```js
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config'
+    import astroExpressiveCode from 'astro-expressive-code'
 
-In your Astro config file, you can pass options to the frames plugin like this:
+    /** @type {import('astro-expressive-code').AstroExpressiveCodeOptions} */
+    const astroExpressiveCodeOptions = {
+      // You can optionally override the plugin's default settings here
+      frames: {
+        // Example: Hide the "Copy to clipboard" button
+        showCopyToClipboardButton: false,
+      },
+      styleOverrides: {
+        // You can optionally override the plugin's default styles here
+        frames: {
+          shadowColor: '#124',
+        },
+      },
+    }
 
-```js
-// astro.config.mjs
-import { defineConfig } from 'astro/config'
-import astroExpressiveCode from 'astro-expressive-code'
+    export default defineConfig({
+      integrations: [
+        astroExpressiveCode(astroExpressiveCodeOptions),
+      ],
+    })
+    ```
+  </TabItem>
+  <TabItem label="Next.js">
+    The following example shows how to configure `remark-expressive-code` in Next.js:
 
-/** @type {import('astro-expressive-code').AstroExpressiveCodeOptions} */
-const astroExpressiveCodeOptions = {
-  // You can optionally override the plugin's default settings here
-  frames: {
-    // Example: Hide the "Copy to clipboard" button
-    showCopyToClipboardButton: false,
-  },
-  styleOverrides: {
-    // You can optionally override the plugin's default styles here
-    frames: {
-      shadowColor: '#124',
-    },
-  },
-}
+    ```js
+    // next.config.mjs
+    import createMDX from '@next/mdx'
+    import remarkExpressiveCode from 'remark-expressive-code'
 
-export default defineConfig({
-  integrations: [
-    astroExpressiveCode(astroExpressiveCodeOptions),
-  ],
-})
-```
+    /** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
+    const remarkExpressiveCodeOptions = {
+      // You can optionally override the plugin's default settings here
+      frames: {
+        // Example: Hide the "Copy to clipboard" button
+        showCopyToClipboardButton: false,
+      },
+      styleOverrides: {
+        // You can optionally override the plugin's default styles here
+        frames: {
+          shadowColor: '#124',
+        },
+      },
+    }
 
-### Next.js configuration example using `@next/mdx`
+    /** @type {import('next').NextConfig} */
+    const nextConfig = {
+      reactStrictMode: true,
+      pageExtensions: ["js", "jsx", "ts", "tsx", "md", "mdx"],
+    }
 
-```js
-// next.config.mjs
-import createMDX from '@next/mdx'
-import remarkExpressiveCode from 'remark-expressive-code'
+    const withMDX = createMDX({
+      extension: /\.mdx?$/,
+      options: {
+        remarkPlugins: [
+          // The nested array structure is required to pass options
+          // to a remark plugin
+          [remarkExpressiveCode, remarkExpressiveCodeOptions],
+        ],
+        rehypePlugins: [],
+      },
+    })
 
-/** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
-const remarkExpressiveCodeOptions = {
-  // You can optionally override the plugin's default settings here
-  frames: {
-    // Example: Hide the "Copy to clipboard" button
-    showCopyToClipboardButton: false,
-  },
-  styleOverrides: {
-    // You can optionally override the plugin's default styles here
-    frames: {
-      shadowColor: '#124',
-    },
-  },
-}
-
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  reactStrictMode: true,
-  pageExtensions: ["js", "jsx", "ts", "tsx", "md", "mdx"],
-}
-
-const withMDX = createMDX({
-  extension: /\.mdx?$/,
-  options: {
-    remarkPlugins: [
-      // The nested array structure is required to pass options
-      // to a remark plugin
-      [remarkExpressiveCode, remarkExpressiveCodeOptions],
-    ],
-    rehypePlugins: [],
-  },
-})
-
-export default withMDX(nextConfig)
-```
+    export default withMDX(nextConfig)
+    ```
+  </TabItem>
+</Tabs>
 
 ### Available plugin options
 
