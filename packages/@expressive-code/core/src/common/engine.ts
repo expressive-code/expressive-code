@@ -7,6 +7,7 @@ import { PluginStyles, scopeAndMinifyNestedCss, processPluginStyles, wrapInCasca
 import { getCoreBaseStyles, getCoreThemeStyles } from '../internal/core-styles'
 import { StyleVariant, resolveStyleVariants } from './style-variants'
 import { StyleOverrides, StyleSettingPath, getCssVarName } from './style-settings'
+import { ExpressiveCodeLogger, ExpressiveCodeLoggerOptions } from './logger'
 
 export interface ExpressiveCodeEngineConfig {
 	/**
@@ -147,6 +148,7 @@ export interface ExpressiveCodeEngineConfig {
 	 * before processing.
 	 */
 	plugins?: (ExpressiveCodePlugin | ExpressiveCodePlugin[])[] | undefined
+	logger?: Partial<ExpressiveCodeLoggerOptions> | undefined
 
 	/**
 	 * @deprecated Efficient multi-theme support is now a core feature, so the `theme` option
@@ -159,10 +161,11 @@ export interface ExpressiveCodeEngineConfig {
 }
 
 export type ResolvedExpressiveCodeEngineConfig = {
-	[P in keyof Omit<ExpressiveCodeEngineConfig, 'customizeTheme' | 'plugins' | 'theme'>]-?: Exclude<ExpressiveCodeEngineConfig[P], undefined>
+	[P in keyof Omit<ExpressiveCodeEngineConfig, 'customizeTheme' | 'plugins' | 'theme' | 'logger'>]-?: Exclude<ExpressiveCodeEngineConfig[P], undefined>
 } & {
 	customizeTheme: ExpressiveCodeEngineConfig['customizeTheme']
 	plugins: readonly ExpressiveCodePlugin[]
+	logger: ExpressiveCodeLogger
 }
 
 export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig {
@@ -185,6 +188,7 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 		this.styleOverrides = { ...config.styleOverrides }
 		this.defaultLocale = config.defaultLocale || 'en-US'
 		this.plugins = config.plugins?.flat() || []
+		this.logger = new ExpressiveCodeLogger(config.logger)
 
 		// Allow customizing the loaded themes
 		this.themes = this.themes.map((theme) => {
@@ -409,4 +413,5 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 	readonly styleVariants: StyleVariant[]
 	readonly defaultLocale: string
 	readonly plugins: readonly ExpressiveCodePlugin[]
+	readonly logger: ExpressiveCodeLogger
 }

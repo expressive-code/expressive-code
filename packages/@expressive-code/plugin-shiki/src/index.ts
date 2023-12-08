@@ -29,7 +29,7 @@ export function pluginShiki(): ExpressiveCodePlugin {
 	return {
 		name: 'Shiki',
 		hooks: {
-			performSyntaxAnalysis: async ({ codeBlock, styleVariants }) => {
+			performSyntaxAnalysis: async ({ codeBlock, styleVariants, config: { logger } }) => {
 				const codeLines = codeBlock.getLines()
 				let code = codeBlock.code
 
@@ -47,11 +47,25 @@ export function pluginShiki(): ExpressiveCodePlugin {
 					const cacheKey = getThemeCacheKey(theme)
 					const highlighter = await getCachedHighlighter({ theme, cacheKey })
 
-					// Run Shiki on the code (without explanations to improve performance)
-					const tokenLines =
-						codeBlock.language === 'ansi'
-							? highlighter.ansiToThemedTokens(code, cacheKey)
-							: highlighter.codeToThemedTokens(code, codeBlock.language, cacheKey, { includeExplanation: false })
+					// Run Shiki on the code
+					let tokenLines: IThemedToken[][] | undefined
+					if (codeBlock.language === 'ansi') {
+						// Run ANSI highlighter
+						tokenLines = highlighter.ansiToThemedTokens(code, cacheKey)
+					} else {
+						// Check if the language is supported by Shiki
+						const loadedLanguages = highlighter.getLoadedLanguages().map((lang) => lang.toString())
+						const highlighterLanguage = loadedLanguages.includes(codeBlock.language) ? codeBlock.language : 'txt'
+						if (highlighterLanguage !== codeBlock.language && styleVariantIndex === 0) {
+							logger.warn(
+								`Found unknown code block language "${codeBlock.language}" in ${
+									codeBlock.parentDocument?.sourceFilePath ? `document "${codeBlock.parentDocument?.sourceFilePath}"` : 'markdown/MDX document'
+								}. Using "${highlighterLanguage}" instead.`
+							)
+						}
+						// Run regular highlighter (without explanations to improve performance)
+						tokenLines = highlighter.codeToThemedTokens(code, highlighterLanguage, cacheKey, { includeExplanation: false })
+					}
 
 					tokenLines.forEach((line, lineIndex) => {
 						if (codeBlock.language === 'ansi' && styleVariantIndex === 0) removeAnsiSequencesFromCodeLine(codeLines[lineIndex], line)

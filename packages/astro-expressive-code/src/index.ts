@@ -40,7 +40,7 @@ export function astroExpressiveCode(options: AstroExpressiveCodeOptions = {}) {
 		name: 'astro-expressive-code',
 		hooks: {
 			'astro:config:setup': async (args: unknown) => {
-				const { config, updateConfig, injectRoute } = args as ConfigSetupHookArgs
+				const { config, updateConfig, injectRoute, logger } = args as ConfigSetupHookArgs
 				const { emitExternalStylesheet = true, customCreateRenderer, plugins = [], ...rest } = options ?? {}
 
 				// Validate Astro configuration
@@ -102,6 +102,7 @@ export function astroExpressiveCode(options: AstroExpressiveCodeOptions = {}) {
 				// Create the renderer
 				const renderer = await (customCreateRenderer ?? createRenderer)({
 					plugins,
+					logger,
 					...rest,
 				})
 
@@ -144,6 +145,7 @@ export function astroExpressiveCode(options: AstroExpressiveCodeOptions = {}) {
 				const remarkExpressiveCodeOptions: RemarkExpressiveCodeOptions = {
 					customCreateRenderer: () => renderer,
 					plugins,
+					logger,
 					...rest,
 				}
 

@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'vitest'
 import { toHtml } from 'hast-util-to-html'
-import { renderAndOutputHtmlSnapshot, buildThemeFixtures, loadTestThemes } from '@internal/test-utils'
+import { renderAndOutputHtmlSnapshot, buildThemeFixtures, loadTestThemes, loadBundledShikiTheme } from '@internal/test-utils'
 // import dracula from 'shiki/themes/dracula.json'
 import { pluginShiki } from '../src'
 
@@ -224,6 +224,58 @@ describe('Renders syntax highlighting', async () => {
 			})
 
 			expect(colorAssertionExecuted).toBe(true)
+		},
+		{ timeout: 5 * 1000 }
+	)
+})
+
+describe('Language handling', async () => {
+	const themes = [await loadBundledShikiTheme('dracula')]
+
+	test(
+		'Falls back to plaintext and logs a warning for unknown languages',
+		async ({ meta: { name: testName } }) => {
+			let colorAssertionExecuted = false
+			const warnings: string[] = []
+
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: [
+					{
+						fixtureName: '',
+						themes,
+						code: astroTestCode,
+						language: 'unknown-test-language',
+						meta: '',
+						plugins: [pluginShiki()],
+						engineOptions: {
+							logger: {
+								warn: (message) => warnings.push(message),
+							},
+						},
+						blockValidationFn: ({ renderedGroupAst }) => {
+							const html = toHtml(renderedGroupAst)
+							expect(html).not.toMatch(ansiEscapeCode)
+
+							// Select all inline colors and expect them to match
+							// the default dracula theme foreground color
+							const colors = [...html.matchAll(/<span [^>]*?style="--0:([^"]*?)">/g)].map((match) => match[1])
+							const colorsNotMatchingDraculaFg = colors.filter((color) => color !== themes[0].fg)
+							expect(colors.length).toBeGreaterThan(0)
+							expect(colorsNotMatchingDraculaFg.length).toBe(0)
+
+							colorAssertionExecuted = true
+						},
+					},
+				],
+			})
+
+			expect(colorAssertionExecuted).toBe(true)
+
+			// Ensure that the logger was called with a warning
+			expect(warnings.length).toBe(1)
+			expect(warnings[0]).toContain('unknown-test-language')
 		},
 		{ timeout: 5 * 1000 }
 	)
