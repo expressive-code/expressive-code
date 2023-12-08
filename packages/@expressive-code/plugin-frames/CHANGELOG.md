@@ -323,7 +323,7 @@
 
 ### Minor Changes
 
-- e010774: Fix copy button on Firefox (still missing :has() support)
+- e010774: Fix copy button on Firefox (still missing `:has()` support)
 
 ## 0.9.1
 

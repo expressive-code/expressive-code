@@ -3,3 +3,4 @@ packages:
   - 'packages/*'
   - 'internal/*'
   - 'packages/astro-expressive-code/test/fixtures/*'
+  - 'docs'

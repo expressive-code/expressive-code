@@ -1,0 +1,353 @@
+---
+title: Text & Line Annotations
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Expressive Code allows you to add annotations to lines & line ranges, as well as individual text inside your lines. You can use them to highlight important parts of your code, or to indicate changes between different versions of your code.
+
+**Good to know:** No matter how much color you add to your code snippets, Expressive Code automatically ensures accessible color contrast, tweaking the text colors if necessary while keeping syntax highlighting intact.
+
+:::tip[No installation required]
+These features are provided by `@expressive-code/plugin-text-markers`, which is installed & enabled by default in all framework integrations. You can start using it right away in your documents!
+:::
+
+## Usage in markdown / MDX
+
+### Marking full lines & line ranges
+
+Lines can be marked by adding their **line numbers inside curly brackets** to a code block's meta information. Line numbers start at 1, just like in VS Code and other popular editors.
+
+You can either mark a single line, or a range of lines, and you can combine multiple line markers by separating them with commas:
+
+- Single line: `{4}`
+- Three separate lines: `{4, 8, 12}`
+- Range of lines defined by a start and end: `{4-8}`
+- Multiple selectors combined: `{1, 4, 7-8}`
+
+Here's an example combining multiple line number & line range selectors:
+
+````md
+```js {1, 4, 7-8}
+// Line 1 - targeted by line number
+// Line 2
+// Line 3
+// Line 4 - targeted by line number
+// Line 5
+// Line 6
+// Line 7 - targeted by range "7-8"
+// Line 8 - targeted by range "7-8"
+```
+````
+
+This will render as follows:
+
+```js {1, 4, 7-8}
+// Line 1 - targeted by line number
+// Line 2
+// Line 3
+// Line 4 - targeted by line number
+// Line 5
+// Line 6
+// Line 7 - targeted by range "7-8"
+// Line 8 - targeted by range "7-8"
+```
+
+#### Selecting line marker types (`mark`, `ins`, `del`)
+
+By default, all targeted lines will use the marker type `mark`, which is rendered in a neutral color that just highlights the line without adding any semantic meaning to it.
+
+There are two other marker types available that add semantic meaning to your lines: `ins` (inserted) and `del` (deleted). These are rendered in green and red, respectively, and are commonly used to indicate changes to your code.
+
+To specify the marker type for targeted lines, add it in front of their opening curly brace, followed by an equals sign. For example, `ins={4}` would mark line 4 as inserted, and `del={7-12}` would mark lines 7 to 12 as deleted.
+
+Here's an example combining all three marker types:
+
+````md
+```js title="line-markers.js" del={2} ins={3-4} {6}
+function demo() {
+  console.log('this line is marked as deleted')
+  // This line and the next one are marked as inserted
+  console.log('this is the second inserted line')
+
+  return 'this line uses the neutral default marker type'
+}
+```
+````
+
+This will render as follows:
+
+```js title="line-markers.js" del={2} ins={3-4} {6}
+function demo() {
+  console.log('this line is marked as deleted')
+  // This line and the next one are marked as inserted
+  console.log('this is the second inserted line')
+
+  return 'this line uses the neutral default marker type'
+}
+```
+
+#### Using `diff`-like syntax
+
+Instead of adding line numbers to the opening code fence as shown above, you can also use the `diff` language, which is supported on many platforms (e.g. GitHub). Set the language in the opening code fence to `diff` and add a `+` or `-` marker to the first column of any line:
+
+````md
+```diff
++this line will be marked as inserted
+-this line will be marked as deleted
+this is a regular line
+```
+````
+
+To make the raw contents in your markdown / MDX document more readable, you can add whitespace after the `+` or `-` marker (not before), and align unchanged lines with the changed ones. This additional whitespace will be automatically detected and removed from the rendered code block:
+
+````md
+```diff
++ this line will be marked as inserted
+- this line will be marked as deleted
+  this is a regular line
+```
+````
+
+Both variants above will render as follows:
+
+```diff
++ this line will be marked as inserted
+- this line will be marked as deleted
+  this is a regular line
+```
+
+To avoid unexpected modifications of actual diff files (which would make them unusable), this plugin will automatically detect diff content based on its common metadata lines. It will detect unified and context mode diff syntax like `***`, `+++`, `---`, `@@`, as well as the default mode location syntax (e.g. `0a1`, `1,2c1,2`, `1,2d1`):
+
+````md
+```diff
+--- a/README.md
++++ b/README.md
+@@ -1,3 +1,4 @@
++this is an actual diff file
+-all contents will remain unmodified
+ no whitespace will be removed either
+```
+````
+
+#### Combining syntax highlighting with `diff`-like syntax
+
+Usually, a downside of using the `diff` language is that you lose syntax highlighting of the actual code's language. To work around this, this plugin allows you to specify a second language identifier by adding a `lang="..."` attribute to the opening code fence. The value of this attribute will then be used for syntax highlighting, while the `diff`-like syntax can be used for marking lines:
+
+````md
+```diff lang="js"
+  function thisIsJavaScript() {
+    // This entire block gets highlighted as JavaScript,
+    // and we can still add diff markers to it!
+-   console.log('Old code to be removed')
++   console.log('New and shiny code!')
+  }
+```
+````
+
+This will render as follows:
+
+```diff lang="js"
+  function thisIsJavaScript() {
+    // This entire block gets highlighted as JavaScript,
+    // and we can still add diff markers to it!
+-   console.log('Old code to be removed')
++   console.log('New and shiny code!')
+  }
+```
+
+### Marking individual text inside lines
+
+#### Plaintext search strings
+
+To match a string of text inside your code block's lines, simply **wrap it in quotes**. You can use either double or single quotes:
+
+- `"this will be marked"`
+- `'this will be marked'`
+
+If the text you want to match contains quotes itself, you can use the other quote type to wrap it without having to escape the nested quotes:
+
+- `"these 'single' quotes need no escaping"`
+- `'these "double" quotes need no escaping'`
+
+If you cannot avoid nested quotes of the same type, you can escape them using a backslash:
+
+- `"this contains both \"double\" and 'single' quotes"`
+- `'this contains both "double" and \'single\' quotes'`
+
+Example:
+
+````md
+```js "given text"
+function demo() {
+  // Mark any given text inside lines
+  return 'Multiple matches of the given text are supported';
+}
+```
+````
+
+This will render as follows:
+
+```js "given text"
+function demo() {
+  // Mark any given text inside lines
+  return 'Multiple matches of the given text are supported';
+}
+```
+
+#### Regular expressions
+
+To match a regular expression inside your code block's lines, **wrap it in forward slashes**:
+
+````md
+```ts /ye[sp]/
+console.log('The words yes and yep will be marked.')
+```
+````
+
+This will render as follows:
+
+```ts /ye[sp]/
+console.log('The words yes and yep will be marked.')
+```
+
+##### Escaping forward slashes
+
+To match a forward slash inside your regular expression, you can escape it using a backslash:
+
+````md
+```sh /\/ho.*\//
+echo "Test" > /home/test.txt
+```
+````
+
+This will render as follows:
+
+```sh /\/ho.*\//
+echo "Test" > /home/test.txt
+```
+
+##### Marking capture group contents
+
+If you only want to mark certain parts matched by your regular expression, you can use capture groups. For example, the expression `/ye(s|p)/` will match `yes` and `yep`, but only mark the character `s` or `p`:
+
+  ```txt /ye(s|p)/
+  The word "yes" will have the letter "s" marked.
+  This also works for the "p" in "yep".
+  ```
+
+To prevent this special treatment of capture groups, you can convert them to non-capturing groups by adding `?:` after the opening parenthesis. For example:
+
+````md /ye(?:s|p)/
+This block uses `/ye(?:s|p)/`, which causes the full
+matching words "yes" and "yep" to be marked.
+````
+
+#### Selecting inline marker types (`mark`, `ins`, `del`)
+
+Just like with line markers, you can select the marker type for plaintext and regular expression markers by adding it in front of the opening quote or forward slash, followed by an equals sign. Here's an example:
+
+````md
+```js "return true;" ins="inserted" del="deleted"
+function demo() {
+  console.log('These are inserted and deleted marker types');
+  // The return statement uses the default marker type
+  return true;
+}
+```
+````
+
+This will render as follows:
+
+```js "return true;" ins="inserted" del="deleted"
+function demo() {
+  console.log('These are inserted and deleted marker types');
+  // The return statement uses the default marker type
+  return true;
+}
+```
+
+## Configuration
+
+When using this plugin through higher-level integration packages, you can configure it by passing options to the higher-level package.
+
+Here are configuration examples for some popular site generators:
+
+<Tabs>
+  <TabItem label="Astro">
+    The following example shows how to configure `astro-expressive-code` in Astro:
+
+    ```js
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config'
+    import astroExpressiveCode from 'astro-expressive-code'
+
+    /** @type {import('astro-expressive-code').AstroExpressiveCodeOptions} */
+    const astroExpressiveCodeOptions = {
+      styleOverrides: {
+        // You can optionally override the plugin's default styles here
+        textMarkers: {
+          // Make default marker color slightly purple
+          markHue: '310',
+          // Reduce marker border opacity
+          borderOpacity: '50%',
+        },
+      },
+    }
+
+    export default defineConfig({
+      integrations: [
+        astroExpressiveCode(astroExpressiveCodeOptions),
+      ],
+    })
+    ```
+  </TabItem>
+  <TabItem label="Next.js">
+    The following example shows how to configure `remark-expressive-code` in Next.js:
+
+    ```js
+    // next.config.mjs
+    import createMDX from '@next/mdx'
+    import remarkExpressiveCode from 'remark-expressive-code'
+
+    /** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
+    const remarkExpressiveCodeOptions = {
+      styleOverrides: {
+        // You can optionally override the plugin's default styles here
+        textMarkers: {
+          // Make default marker color slightly purple
+          markHue: '310',
+          // Reduce marker border opacity
+          borderOpacity: '50%',
+        },
+      },
+    }
+
+    /** @type {import('next').NextConfig} */
+    const nextConfig = {
+      reactStrictMode: true,
+      pageExtensions: ["js", "jsx", "ts", "tsx", "md", "mdx"],
+    }
+
+    const withMDX = createMDX({
+      extension: /\.mdx?$/,
+      options: {
+        remarkPlugins: [
+          // The nested array structure is required to pass options
+          // to a remark plugin
+          [remarkExpressiveCode, remarkExpressiveCodeOptions],
+        ],
+        rehypePlugins: [],
+      },
+    })
+
+    export default withMDX(nextConfig)
+    ```
+  </TabItem>
+</Tabs>
+
+### Available plugin options
+
+This plugin does not provide any configuration options that can be passed to its initialization function.
+
+However, you can override its default styles inside the `styleOverrides` engine config option. See the [configuration examples](#configuration) above for more information.
