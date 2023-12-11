@@ -83,6 +83,16 @@ export interface ExpressiveCodeEngineConfig {
 	 */
 	cascadeLayer?: string | undefined
 	/**
+	 * Determines if code blocks should be protected against influence from site-wide styles.
+	 *
+	 * Defaults to `true`, which causes Expressive Code to use the declaration `all: revert`
+	 * to revert all CSS properties to the values they would have had without any site-wide styles.
+	 * This ensures the most predictable results out of the box.
+	 *
+	 * You can set this to `false` if you want your site-wide styles to influence the code blocks.
+	 */
+	useStyleReset?: boolean | undefined
+	/**
 	 * This optional function is called once per theme during engine initialization
 	 * with the loaded theme as its only argument.
 	 *
@@ -182,6 +192,7 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 		this.themeCssRoot = config.themeCssRoot ?? ':root'
 		this.themeCssSelector = config.themeCssSelector ?? ((theme) => `[data-theme='${theme.name}']`)
 		this.cascadeLayer = config.cascadeLayer ?? ''
+		this.useStyleReset = config.useStyleReset ?? true
 		this.customizeTheme = config.customizeTheme
 		this.useThemedScrollbars = config.useThemedScrollbars ?? true
 		this.useThemedSelectionColors = config.useThemedSelectionColors ?? false
@@ -242,6 +253,7 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 			pluginName: 'core',
 			styles: getCoreBaseStyles({
 				...resolverContext,
+				useStyleReset: this.useStyleReset,
 				useThemedScrollbars: this.useThemedScrollbars,
 				useThemedSelectionColors: this.useThemedSelectionColors,
 			}),
@@ -406,6 +418,7 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 	readonly themeCssRoot: string
 	readonly themeCssSelector: NonNullable<ExpressiveCodeEngineConfig['themeCssSelector']>
 	readonly cascadeLayer: string
+	readonly useStyleReset: boolean
 	readonly customizeTheme: ExpressiveCodeEngineConfig['customizeTheme']
 	readonly useThemedScrollbars: boolean
 	readonly useThemedSelectionColors: boolean
