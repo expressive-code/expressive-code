@@ -1,4 +1,4 @@
-import { Highlighter, Theme, getHighlighter } from 'shiki'
+import { Highlighter, ThemeRegistration, getHighlighter } from 'shikiji'
 import { ExpressiveCodeTheme, getStableObjectHash } from '@expressive-code/core'
 
 let highlighterPromise: Promise<Highlighter> | undefined
@@ -21,12 +21,12 @@ export function getThemeCacheKey(theme: ExpressiveCodeTheme) {
  * whenever the theme contents change. This is done by using a content-dependent cache key.
  */
 export async function getCachedHighlighter({ theme, cacheKey }: { theme: ExpressiveCodeTheme; cacheKey: string }): Promise<Highlighter> {
-	const themeUsingCacheKey = { ...theme, name: cacheKey }
+	const themeUsingCacheKey = { ...theme, name: cacheKey, settings: theme.settings as ThemeRegistration['settings'] }
 	if (highlighterPromise === undefined) {
-		highlighterPromise = getHighlighter({ theme: themeUsingCacheKey })
+		highlighterPromise = getHighlighter({ themes: [themeUsingCacheKey] })
 	}
 	const highlighter = await highlighterPromise
-	if (!highlighter.getLoadedThemes().includes(cacheKey as Theme)) {
+	if (!highlighter.getLoadedThemes().includes(cacheKey)) {
 		await highlighter.loadTheme(themeUsingCacheKey)
 	}
 	return highlighter

@@ -1,11 +1,15 @@
 import { describe, expect, test } from 'vitest'
 import fs from 'fs'
 import path from 'path'
-import { loadTheme as shikiLoadTheme } from 'shiki'
-import dracula from 'shiki/themes/dracula.json'
-import githubLight from 'shiki/themes/github-light.json'
+import draculaRaw from 'shikiji/themes/dracula.mjs'
+import githubLightRaw from 'shikiji/themes/github-light.mjs'
+import type { ThemeRegistration } from 'shikiji'
+import { loadTheme as shikiLoadTheme } from 'shikiji-compat'
 import { ExpressiveCodeTheme } from '../src/common/theme'
 import { ExpressiveCodeEngine } from '../src/common/engine'
+
+const dracula = draculaRaw as ThemeRegistration
+const githubLight = githubLightRaw as ThemeRegistration
 
 describe('ExpressiveCodeTheme', () => {
 	describe('Throws on invalid themes', () => {
@@ -148,7 +152,7 @@ describe('ExpressiveCodeTheme', () => {
 
 	describe('Can import themes loaded by Shiki', () => {
 		test('dracula', async () => {
-			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('themes/dracula.json'))
+			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('dracula'))
 
 			// Expect the guessed theme type to be correct (it's not contained in most Shiki themes)
 			expect(theme.type).toBe('dark')
@@ -162,7 +166,7 @@ describe('ExpressiveCodeTheme', () => {
 
 	describe('Can be copied by passing an existing instance', () => {
 		test('Properties are copied correctly', async () => {
-			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('themes/dracula.json'))
+			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('dracula'))
 			const copy = new ExpressiveCodeTheme(theme)
 
 			// Expect the copied theme to have the same main properties
@@ -174,7 +178,7 @@ describe('ExpressiveCodeTheme', () => {
 			expect(copy.settings).toEqual(theme.settings)
 		})
 		test('Copy can be modified without affecting the original', async () => {
-			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('themes/dracula.json'))
+			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('dracula'))
 			const copy = new ExpressiveCodeTheme(theme)
 
 			// Expect the copied theme to have the same colors
@@ -198,7 +202,7 @@ describe('ExpressiveCodeTheme', () => {
 
 	describe('Can apply color adjustments to themes', () => {
 		test('Can adjust colors of "github-dark"', async () => {
-			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('themes/github-dark.json'))
+			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('github-dark'))
 			theme.applyHueAndChromaAdjustments({
 				backgrounds: '#3b82f6',
 				accents: '#a3e635',
@@ -244,7 +248,7 @@ describe('ExpressiveCodeTheme', () => {
 
 	describe('Can override core styles using the "styleOverrides" property', () => {
 		test('Themes can override the default styles', async () => {
-			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('themes/github-dark.json'))
+			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('github-dark'))
 			theme.styleOverrides.codeBackground = 'var(--test-code-bg)'
 			theme.styleOverrides.uiFontFamily = 'MyUiTestFont'
 
@@ -262,7 +266,7 @@ describe('ExpressiveCodeTheme', () => {
 			expect(themeStyles).toContain('MyUiTestFont')
 		})
 		test('Theme styleOverrides take precedence over global styleOverrides', async () => {
-			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('themes/github-dark.json'))
+			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('github-dark'))
 			theme.styleOverrides.codeBackground = '#fedcba98'
 			theme.styleOverrides.uiFontFamily = 'MyThemeProvidedFont'
 

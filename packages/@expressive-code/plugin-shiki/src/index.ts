@@ -1,11 +1,21 @@
 import { ExpressiveCodeLine, ExpressiveCodePlugin, ExpressiveCodeTheme, InlineStyleAnnotation } from '@expressive-code/core'
 import { getCachedHighlighter, getThemeCacheKey } from './cache'
-import { BUNDLED_THEMES, loadTheme, FontStyle, IThemedToken } from 'shiki'
+import { BuiltinLanguage, ThemedToken, bundledLanguages } from 'shikiji'
+import { BUNDLED_THEMES, loadTheme } from 'shikiji-compat'
+
+// export interface PluginShikiOptions {
+// 	/**
+// 	 * A list of languages that should be loaded by Shiki.
+// 	 *
+// 	 * By default, Shiki will load all languages it supports.
+// 	 */
+// 	langs?: ILanguageRegistration[] | undefined
+// }
 
 /**
  * A list of all themes bundled with Shiki.
  */
-export type BundledShikiTheme = Exclude<(typeof BUNDLED_THEMES)[number], 'css-variables'>
+export type BundledShikiTheme = Exclude<keyof typeof BUNDLED_THEMES, 'css-variables'>
 
 /**
  * Loads a theme bundled with Shiki for use with Expressive Code.
@@ -13,7 +23,7 @@ export type BundledShikiTheme = Exclude<(typeof BUNDLED_THEMES)[number], 'css-va
  * If the given theme name is not a bundled theme, it will be treated as a path to a theme file.
  */
 export async function loadShikiTheme(bundledThemeName: BundledShikiTheme) {
-	const shikiTheme = await loadTheme(BUNDLED_THEMES.includes(bundledThemeName) ? `themes/${bundledThemeName}.json` : bundledThemeName)
+	const shikiTheme = await loadTheme(bundledThemeName)
 
 	// Unfortunately, some of the themes bundled with Shiki have an undefined theme type,
 	// and Shiki always defaults to 'dark' in this case, leading to incorrect UI colors.
@@ -25,7 +35,17 @@ export async function loadShikiTheme(bundledThemeName: BundledShikiTheme) {
 	return new ExpressiveCodeTheme(shikiThemeWithoutType)
 }
 
-export function pluginShiki(): ExpressiveCodePlugin {
+// Workaround: Shikiji exports this as an ambient enum, which throws an error when trying to
+// access its values at runtime, so we're defining it ourselves here as a regular enum.
+enum FontStyle {
+	NotSet = -1,
+	None = 0,
+	Italic = 1,
+	Bold = 2,
+	Underline = 4,
+}
+
+export function pluginShiki(/*options: PluginShikiOptions = {}*/): ExpressiveCodePlugin {
 	return {
 		name: 'Shiki',
 		hooks: {
@@ -47,25 +67,24 @@ export function pluginShiki(): ExpressiveCodePlugin {
 					const cacheKey = getThemeCacheKey(theme)
 					const highlighter = await getCachedHighlighter({ theme, cacheKey })
 
-					// Run Shiki on the code
-					let tokenLines: IThemedToken[][] | undefined
-					if (codeBlock.language === 'ansi') {
-						// Run ANSI highlighter
-						tokenLines = highlighter.ansiToThemedTokens(code, cacheKey)
-					} else {
-						// Check if the language is supported by Shiki
-						const loadedLanguages = highlighter.getLoadedLanguages().map((lang) => lang.toString())
-						const highlighterLanguage = loadedLanguages.includes(codeBlock.language) ? codeBlock.language : 'txt'
-						if (highlighterLanguage !== codeBlock.language && styleVariantIndex === 0) {
-							logger.warn(
-								`Found unknown code block language "${codeBlock.language}" in ${
-									codeBlock.parentDocument?.sourceFilePath ? `document "${codeBlock.parentDocument?.sourceFilePath}"` : 'markdown/MDX document'
-								}. Using "${highlighterLanguage}" instead.`
-							)
-						}
-						// Run regular highlighter (without explanations to improve performance)
-						tokenLines = highlighter.codeToThemedTokens(code, highlighterLanguage, cacheKey, { includeExplanation: false })
+					// Check if the language is supported by Shikiji
+					const availableLanguages = new Set(Object.keys(bundledLanguages))
+					availableLanguages.add('ansi')
+					const highlighterLanguage = availableLanguages.has(codeBlock.language) ? codeBlock.language : 'txt'
+					if (highlighterLanguage !== 'ansi') await highlighter.loadLanguage(highlighterLanguage as BuiltinLanguage)
+					if (highlighterLanguage !== codeBlock.language && styleVariantIndex === 0) {
+						logger.warn(
+							`Found unknown code block language "${codeBlock.language}" in ${
+								codeBlock.parentDocument?.sourceFilePath ? `document "${codeBlock.parentDocument?.sourceFilePath}"` : 'markdown/MDX document'
+							}. Using "${highlighterLanguage}" instead.`
+						)
 					}
+					// Run highlighter (without explanations to improve performance)
+					const tokenLines = highlighter.codeToThemedTokens(code, {
+						lang: highlighterLanguage,
+						theme: cacheKey,
+						includeExplanation: false,
+					})
 
 					tokenLines.forEach((line, lineIndex) => {
 						if (codeBlock.language === 'ansi' && styleVariantIndex === 0) removeAnsiSequencesFromCodeLine(codeLines[lineIndex], line)
@@ -104,7 +123,7 @@ function isTerminalLanguage(language: string) {
 /**
  * Removes ANSI sequences processed by Shiki from the provided codeline
  */
-function removeAnsiSequencesFromCodeLine(codeLine: ExpressiveCodeLine, lineTokens: IThemedToken[]): void {
+function removeAnsiSequencesFromCodeLine(codeLine: ExpressiveCodeLine, lineTokens: ThemedToken[]): void {
 	// The provided tokens from Shiki will already be stripped for control characters
 	const newLine = lineTokens.map((token) => token.content).join('')
 	// Removing sequences by ranges instead of whole line to avoid breaking any existing annotations

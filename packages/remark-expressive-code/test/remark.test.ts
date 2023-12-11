@@ -4,10 +4,12 @@ import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
 import rehypeRaw from 'rehype-raw'
 import toHtml from 'rehype-stringify'
-import dracula from 'shiki/themes/dracula.json'
+import draculaRaw from 'shikiji/themes/dracula.mjs'
+import { ThemeRegistration } from 'shikiji/types.mjs'
 import remarkExpressiveCode, { ExpressiveCodeTheme, RemarkExpressiveCodeOptions, StyleSettingPath, getCssVarName } from '../src'
 import { buildSampleCodeHtmlRegExp, sampleCodeMarkdown } from './utils'
 
+const dracula = draculaRaw as Required<ThemeRegistration>
 const buildCssVarValuesRegex = (setting: StyleSettingPath) => new RegExp(`${getCssVarName(setting)}:(.*?)[;}]`, 'g')
 const regexCodeBg = buildCssVarValuesRegex('codeBackground')
 const regexCodeColor = buildCssVarValuesRegex('codeForeground')

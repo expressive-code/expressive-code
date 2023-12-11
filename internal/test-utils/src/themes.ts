@@ -1,7 +1,8 @@
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import { ExpressiveCodeTheme } from '@expressive-code/core'
-import { loadTheme } from 'shiki'
+import { BuiltinTheme } from 'shikiji'
+import { loadTheme } from 'shikiji-compat'
 
 export const testThemeNames = ['ayu-green-dark-bordered', 'empty-light', 'shades-of-purple', 'synthwave-color-theme', 'vim-dark-medium']
 
@@ -11,7 +12,7 @@ export const loadTestTheme = (themeName: (typeof testThemeNames)[number]) => {
 }
 
 export async function loadBundledShikiTheme(bundledThemeName: string) {
-	const shikiTheme = await loadTheme(`themes/${bundledThemeName}.json`)
+	const shikiTheme = await loadTheme(bundledThemeName as BuiltinTheme)
 
 	// Unfortunately, some of the themes bundled with Shiki have an undefined theme type,
 	// and Shiki always defaults to 'dark' in this case, leading to incorrect UI colors.

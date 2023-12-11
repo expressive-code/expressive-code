@@ -1,7 +1,6 @@
 import { describe, test, expect } from 'vitest'
 import { toHtml } from 'hast-util-to-html'
 import { renderAndOutputHtmlSnapshot, buildThemeFixtures, loadTestThemes, loadBundledShikiTheme } from '@internal/test-utils'
-// import dracula from 'shiki/themes/dracula.json'
 import { pluginShiki } from '../src'
 
 const jsTestCode = `

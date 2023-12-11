@@ -1,10 +1,11 @@
 import { describe, expect, test } from 'vitest'
 import { sanitize } from 'hast-util-sanitize'
 import { toHtml } from 'hast-util-to-html'
-import githubDark from 'shiki/themes/github-dark.json'
-import githubLight from 'shiki/themes/github-light.json'
-import dracula from 'shiki/themes/dracula.json'
-import solarizedLight from 'shiki/themes/solarized-light.json'
+import githubDarkRaw from 'shikiji/themes/github-dark.mjs'
+import githubLightRaw from 'shikiji/themes/github-light.mjs'
+import draculaRaw from 'shikiji/themes/dracula.mjs'
+import solarizedLightRaw from 'shikiji/themes/solarized-light.mjs'
+import type { ThemeRegistration } from 'shikiji'
 import { WrapperAnnotation, getHookTestResult, getMultiPluginTestResult, nonArrayValues, nonObjectValues } from './utils'
 import { ExpressiveCodeEngine, ExpressiveCodeEngineConfig } from '../src/common/engine'
 import { ExpressiveCodeBlock } from '../src/common/block'
@@ -14,6 +15,11 @@ import { ExpressiveCodeTheme } from '../src/common/theme'
 import { groupWrapperClassName } from '../src/internal/css'
 import { codeLineClass } from '../src/common/style-settings'
 import { escapeRegExp } from '../src/internal/escaping'
+
+const githubDark = githubDarkRaw as Required<ThemeRegistration>
+const githubLight = githubLightRaw as Required<ThemeRegistration>
+const dracula = draculaRaw as Required<ThemeRegistration>
+const solarizedLight = solarizedLightRaw as Required<ThemeRegistration>
 
 describe('ExpressiveCodeEngine', () => {
 	describe('render()', () => {

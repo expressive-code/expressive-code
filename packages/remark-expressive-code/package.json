@@ -42,7 +42,7 @@
     "rehype-stringify": "^9.0.3",
     "remark-parse": "^10.0.1",
     "remark-rehype": "^10.1.0",
-    "shiki": "^0.14.1",
+    "shikiji": "^0.8.0",
     "unified": "^10.1.2"
   }
 }
