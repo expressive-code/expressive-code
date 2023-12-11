@@ -2,6 +2,8 @@
 import type { APIRoute } from 'astro'
 import { styles } from 'virtual:astro-expressive-code/styles'
 
+export const prerender = true
+
 export const GET: APIRoute = ({ url }) => {
 	const match = styles.find(([route]) => url.pathname.endsWith(route))
 	if (!match) throw new Error(`No styles found for route ${url.pathname}`)

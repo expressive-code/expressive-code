@@ -176,10 +176,12 @@ export const coreStyleSettings = new PluginStyleSettings({
 
 export function getCoreBaseStyles({
 	cssVar,
+	useStyleReset,
 	useThemedScrollbars,
 	useThemedSelectionColors,
 }: {
 	cssVar: ResolverContext['cssVar']
+	useStyleReset: boolean
 	useThemedScrollbars: boolean
 	useThemedSelectionColors: boolean
 }) {
@@ -194,7 +196,7 @@ export function getCoreBaseStyles({
 		-webkit-text-size-adjust: none;
 
 		*:not(path) {
-			all: revert;
+			${useStyleReset ? 'all: revert;' : ''}
 			box-sizing: border-box;
 		}
 

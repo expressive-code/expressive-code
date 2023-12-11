@@ -7,6 +7,7 @@ import { PluginStyles, scopeAndMinifyNestedCss, processPluginStyles, wrapInCasca
 import { getCoreBaseStyles, getCoreThemeStyles } from '../internal/core-styles'
 import { StyleVariant, resolveStyleVariants } from './style-variants'
 import { StyleOverrides, StyleSettingPath, getCssVarName } from './style-settings'
+import { ExpressiveCodeLogger, ExpressiveCodeLoggerOptions } from './logger'
 
 export interface ExpressiveCodeEngineConfig {
 	/**
@@ -82,6 +83,16 @@ export interface ExpressiveCodeEngineConfig {
 	 */
 	cascadeLayer?: string | undefined
 	/**
+	 * Determines if code blocks should be protected against influence from site-wide styles.
+	 *
+	 * Defaults to `true`, which causes Expressive Code to use the declaration `all: revert`
+	 * to revert all CSS properties to the values they would have had without any site-wide styles.
+	 * This ensures the most predictable results out of the box.
+	 *
+	 * You can set this to `false` if you want your site-wide styles to influence the code blocks.
+	 */
+	useStyleReset?: boolean | undefined
+	/**
 	 * This optional function is called once per theme during engine initialization
 	 * with the loaded theme as its only argument.
 	 *
@@ -147,6 +158,7 @@ export interface ExpressiveCodeEngineConfig {
 	 * before processing.
 	 */
 	plugins?: (ExpressiveCodePlugin | ExpressiveCodePlugin[])[] | undefined
+	logger?: Partial<ExpressiveCodeLoggerOptions> | undefined
 
 	/**
 	 * @deprecated Efficient multi-theme support is now a core feature, so the `theme` option
@@ -159,10 +171,11 @@ export interface ExpressiveCodeEngineConfig {
 }
 
 export type ResolvedExpressiveCodeEngineConfig = {
-	[P in keyof Omit<ExpressiveCodeEngineConfig, 'customizeTheme' | 'plugins' | 'theme'>]-?: Exclude<ExpressiveCodeEngineConfig[P], undefined>
+	[P in keyof Omit<ExpressiveCodeEngineConfig, 'customizeTheme' | 'plugins' | 'theme' | 'logger'>]-?: Exclude<ExpressiveCodeEngineConfig[P], undefined>
 } & {
 	customizeTheme: ExpressiveCodeEngineConfig['customizeTheme']
 	plugins: readonly ExpressiveCodePlugin[]
+	logger: ExpressiveCodeLogger
 }
 
 export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig {
@@ -179,12 +192,14 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 		this.themeCssRoot = config.themeCssRoot ?? ':root'
 		this.themeCssSelector = config.themeCssSelector ?? ((theme) => `[data-theme='${theme.name}']`)
 		this.cascadeLayer = config.cascadeLayer ?? ''
+		this.useStyleReset = config.useStyleReset ?? true
 		this.customizeTheme = config.customizeTheme
 		this.useThemedScrollbars = config.useThemedScrollbars ?? true
 		this.useThemedSelectionColors = config.useThemedSelectionColors ?? false
 		this.styleOverrides = { ...config.styleOverrides }
 		this.defaultLocale = config.defaultLocale || 'en-US'
 		this.plugins = config.plugins?.flat() || []
+		this.logger = new ExpressiveCodeLogger(config.logger)
 
 		// Allow customizing the loaded themes
 		this.themes = this.themes.map((theme) => {
@@ -238,6 +253,7 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 			pluginName: 'core',
 			styles: getCoreBaseStyles({
 				...resolverContext,
+				useStyleReset: this.useStyleReset,
 				useThemedScrollbars: this.useThemedScrollbars,
 				useThemedSelectionColors: this.useThemedSelectionColors,
 			}),
@@ -402,6 +418,7 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 	readonly themeCssRoot: string
 	readonly themeCssSelector: NonNullable<ExpressiveCodeEngineConfig['themeCssSelector']>
 	readonly cascadeLayer: string
+	readonly useStyleReset: boolean
 	readonly customizeTheme: ExpressiveCodeEngineConfig['customizeTheme']
 	readonly useThemedScrollbars: boolean
 	readonly useThemedSelectionColors: boolean
@@ -409,4 +426,5 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 	readonly styleVariants: StyleVariant[]
 	readonly defaultLocale: string
 	readonly plugins: readonly ExpressiveCodePlugin[]
+	readonly logger: ExpressiveCodeLogger
 }
