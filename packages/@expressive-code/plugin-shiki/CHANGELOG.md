@@ -1,5 +1,14 @@
 # @expressive-code/plugin-shiki
 
+## 0.29.4
+
+### Patch Changes
+
+- 765dd00: Unknown code block languages now log a warning and render as plaintext instead of throwing an error.
+- Updated dependencies [765dd00]
+- Updated dependencies [765dd00]
+  - @expressive-code/core@0.29.4
+
 ## 0.29.3
 
 ### Patch Changes

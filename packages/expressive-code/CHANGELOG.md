@@ -1,5 +1,25 @@
 # expressive-code
 
+## 0.29.4
+
+### Patch Changes
+
+- 765dd00: Unknown code block languages now log a warning and render as plaintext instead of throwing an error.
+- 765dd00: Adds the config option `useStyleReset`.
+
+  This option determines if code blocks should be protected against influence from site-wide styles. This protection was always enabled before this release and could not be turned off.
+
+  When enabled, Expressive Code uses the declaration `all: revert` to revert all CSS properties to the values they would have had without any site-wide styles. This ensures the most predictable results out of the box.
+
+  You can now set this to `false` if you want your site-wide styles to influence the code blocks.
+
+- Updated dependencies [765dd00]
+- Updated dependencies [765dd00]
+  - @expressive-code/plugin-shiki@0.29.4
+  - @expressive-code/core@0.29.4
+  - @expressive-code/plugin-frames@0.29.4
+  - @expressive-code/plugin-text-markers@0.29.4
+
 ## 0.29.3
 
 ### Patch Changes
