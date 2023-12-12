@@ -21,12 +21,12 @@ const complexHtmlRegExp = buildSampleCodeHtmlRegExp({
 	],
 })
 
-describe('Integration into Astro ^3.0.0', () => {
+describe('Integration into Astro 3.3.0', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	beforeAll(async () => {
 		fixture = await buildFixture({
-			fixtureDir: 'astro-3.0.0',
+			fixtureDir: 'astro-3.3.0',
 			buildCommand: 'pnpm',
 			buildArgs: ['astro', 'build'],
 			outputDir: 'dist',
