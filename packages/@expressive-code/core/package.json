@@ -46,7 +46,6 @@
     "html-escaper": "^3.0.3",
     "htmlparser2": "^8.0.2",
     "shikiji": "^0.8.0",
-    "shikiji-compat": "^0.8.0",
     "strip-json-comments": "^5.0.0"
   }
 }

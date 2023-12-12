@@ -109,9 +109,6 @@ importers:
       shikiji:
         specifier: ^0.8.0
         version: 0.8.0
-      shikiji-compat:
-        specifier: ^0.8.0
-        version: 0.8.0
       typescript:
         specifier: ^5.0.4
         version: 5.0.4
@@ -156,9 +153,6 @@ importers:
         specifier: ^8.0.2
         version: 8.0.2
       shikiji:
-        specifier: ^0.8.0
-        version: 0.8.0
-      shikiji-compat:
         specifier: ^0.8.0
         version: 0.8.0
       strip-json-comments:
@@ -221,9 +215,6 @@ importers:
         specifier: workspace:^0.29.4
         version: link:../core
       shikiji:
-        specifier: ^0.8.0
-        version: 0.8.0
-      shikiji-compat:
         specifier: ^0.8.0
         version: 0.8.0
     devDependencies:
@@ -7684,17 +7675,6 @@ packages:
   /shebang-regex@3.0.0:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
-
-  /shikiji-compat@0.8.0:
-    resolution: {integrity: sha512-T8wI25EdD0zX0bwzkcdhs1z7OLMwKFkDSjSx/8WCjVuwxcIZtS1fsrVAmIO6ONA/L6yGs8U1AIf12vguC8lZUg==}
-    dependencies:
-      shikiji: 0.8.0
-      shikiji-transformers: 0.8.0
-
-  /shikiji-transformers@0.8.0:
-    resolution: {integrity: sha512-2ccqDYt9OBZC/InvekD7COZ8jRKW6ELVIQ+GQxHaGfv37cufCDy4uxgoIPeC9rOAjVdSxc+5riwQNtM2SdcRZw==}
-    dependencies:
-      shikiji: 0.8.0
 
   /shikiji@0.6.13:
     resolution: {integrity: sha512-4T7X39csvhT0p7GDnq9vysWddf2b6BeioiN3Ymhnt3xcy9tXmDcnsEFVxX18Z4YcQgEE/w48dLJ4pPPUcG9KkA==}

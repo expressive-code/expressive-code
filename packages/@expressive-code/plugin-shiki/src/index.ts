@@ -1,38 +1,27 @@
 import { ExpressiveCodeLine, ExpressiveCodePlugin, ExpressiveCodeTheme, InlineStyleAnnotation } from '@expressive-code/core'
 import { getCachedHighlighter, getThemeCacheKey } from './cache'
-import { BuiltinLanguage, ThemedToken, bundledLanguages } from 'shikiji'
-import { BUNDLED_THEMES, loadTheme } from 'shikiji-compat'
+import { BuiltinLanguage, LanguageRegistration, ThemedToken, bundledLanguages, bundledThemes } from 'shikiji'
 
-// export interface PluginShikiOptions {
-// 	/**
-// 	 * A list of languages that should be loaded by Shiki.
-// 	 *
-// 	 * By default, Shiki will load all languages it supports.
-// 	 */
-// 	langs?: ILanguageRegistration[] | undefined
-// }
+export interface PluginShikiOptions {
+	/**
+	 * A list of additional languages that should be available for syntax highlighting.
+	 *
+	 * Note that you do not need to include languages that are already supported by Shiki.
+	 */
+	langs?: LanguageRegistration[] | undefined
+}
 
 /**
  * A list of all themes bundled with Shiki.
  */
-export type BundledShikiTheme = Exclude<keyof typeof BUNDLED_THEMES, 'css-variables'>
+export type BundledShikiTheme = Exclude<keyof typeof bundledThemes, 'css-variables'>
 
 /**
  * Loads a theme bundled with Shiki for use with Expressive Code.
- *
- * If the given theme name is not a bundled theme, it will be treated as a path to a theme file.
  */
 export async function loadShikiTheme(bundledThemeName: BundledShikiTheme) {
-	const shikiTheme = await loadTheme(bundledThemeName)
-
-	// Unfortunately, some of the themes bundled with Shiki have an undefined theme type,
-	// and Shiki always defaults to 'dark' in this case, leading to incorrect UI colors.
-	// To fix this, we remove the type property here, which causes the ExpressiveCodeTheme
-	// constructor to autodetect the correct type.
-	const shikiThemeWithoutType: Partial<typeof shikiTheme> = { ...shikiTheme }
-	delete shikiThemeWithoutType.type
-
-	return new ExpressiveCodeTheme(shikiThemeWithoutType)
+	const shikiTheme = (await bundledThemes[bundledThemeName]()).default
+	return new ExpressiveCodeTheme(shikiTheme)
 }
 
 // Workaround: Shikiji exports this as an ambient enum, which throws an error when trying to
