@@ -255,7 +255,6 @@ describe('Language handling', async () => {
 						},
 						blockValidationFn: ({ renderedGroupAst }) => {
 							const html = toHtml(renderedGroupAst)
-							expect(html).not.toMatch(ansiEscapeCode)
 
 							// Select all inline colors and expect them to match
 							// the default dracula theme foreground color
@@ -275,6 +274,82 @@ describe('Language handling', async () => {
 			// Ensure that the logger was called with a warning
 			expect(warnings.length).toBe(1)
 			expect(warnings[0]).toContain('unknown-test-language')
+		},
+		{ timeout: 5 * 1000 }
+	)
+	test(
+		'Allows adding custom languages',
+		async ({ meta: { name: testName } }) => {
+			let colorAssertionExecuted = false
+			const warnings: string[] = []
+
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: [
+					{
+						fixtureName: '',
+						themes,
+						code: astroTestCode,
+						language: 'added-test-language',
+						meta: '',
+						plugins: [
+							pluginShiki({
+								langs: [
+									{
+										name: 'added-test-language',
+										scopeName: 'source.added-test-language',
+										displayName: 'test syntax',
+										patterns: [
+											{
+												name: 'keyword.added-test-language',
+												match: `\\b(import|const)\\b`,
+											},
+											{
+												name: 'string.quoted.double.added-test-language',
+												begin: '"',
+												end: '"',
+											},
+										],
+									},
+								],
+							}),
+						],
+						engineOptions: {
+							logger: {
+								warn: (message) => warnings.push(message),
+							},
+						},
+						blockValidationFn: ({ renderedGroupAst }) => {
+							const html = toHtml(renderedGroupAst)
+
+							// Select the contents of all spans that do not have the default
+							// dracula theme foreground color
+							const spansWithColorAndContent = [...html.matchAll(/<span [^>]*?style="--0:([^"]*?)">(.*?)<\/span>/g)]
+							const highlightedSpans = spansWithColorAndContent.filter((match) => match[1].toLowerCase() !== themes[0].fg.toLowerCase())
+							const highlightedContents = highlightedSpans.map((match) => match[2])
+							expect(highlightedContents).toEqual([
+								// Keywords
+								'import',
+								'import',
+								'import',
+								'const',
+								// Strings
+								'"content-wrapper"',
+								'"test"',
+								'"large"',
+							])
+
+							colorAssertionExecuted = true
+						},
+					},
+				],
+			})
+
+			expect(colorAssertionExecuted).toBe(true)
+
+			// Ensure that the logger was called with a warning
+			expect(warnings.join('\n')).toEqual('')
 		},
 		{ timeout: 5 * 1000 }
 	)

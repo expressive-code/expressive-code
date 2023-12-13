@@ -1,14 +1,14 @@
 import { ExpressiveCodeLine, ExpressiveCodePlugin, ExpressiveCodeTheme, InlineStyleAnnotation } from '@expressive-code/core'
-import { getCachedHighlighter, getThemeCacheKey } from './cache'
-import { BuiltinLanguage, LanguageRegistration, ThemedToken, bundledLanguages, bundledThemes } from 'shikiji'
+import { type LanguageInput, ensureLanguageIsLoaded, ensureThemeIsLoaded, getCachedHighlighter } from './highlighter'
+import { ThemedToken, bundledThemes } from 'shikiji'
 
 export interface PluginShikiOptions {
 	/**
-	 * A list of additional languages that should be available for syntax highlighting.
+	 * An optional list of additional languages that should be available for syntax highlighting.
 	 *
 	 * Note that you do not need to include languages that are already supported by Shiki.
 	 */
-	langs?: LanguageRegistration[] | undefined
+	langs?: LanguageInput[] | undefined
 }
 
 /**
@@ -34,7 +34,8 @@ enum FontStyle {
 	Underline = 4,
 }
 
-export function pluginShiki(/*options: PluginShikiOptions = {}*/): ExpressiveCodePlugin {
+export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlugin {
+	const { langs } = options
 	return {
 		name: 'Shiki',
 		hooks: {
@@ -51,27 +52,38 @@ export function pluginShiki(/*options: PluginShikiOptions = {}*/): ExpressiveCod
 					code = code.replace(/<([^>]*[^>\s])>/g, 'X$1X')
 				}
 
+				let highlighter
+				try {
+					highlighter = await getCachedHighlighter({ langs })
+				} catch (error) {
+					/* c8 ignore next */
+					const msg = error instanceof Error ? error.message : (error as string)
+					throw new Error(`Failed to load syntax highlighter. Please ensure that the configured langs are supported by Shikiji. Received error message: "${msg}"`, {
+						cause: error,
+					})
+				}
+
+				// Load language if necessary
+				const loadedLanguageName = await ensureLanguageIsLoaded(highlighter, codeBlock.language)
+				// If the requested language wasn't available, log a warning
+				if (loadedLanguageName !== codeBlock.language) {
+					logger.warn(
+						`Found unknown code block language "${codeBlock.language}" in ${
+							codeBlock.parentDocument?.sourceFilePath ? `document "${codeBlock.parentDocument?.sourceFilePath}"` : 'markdown/MDX document'
+						}. Using "${loadedLanguageName}" instead. You can add custom languages using the "langs" config option.`
+					)
+				}
+
 				for (let styleVariantIndex = 0; styleVariantIndex < styleVariants.length; styleVariantIndex++) {
 					const theme = styleVariants[styleVariantIndex].theme
-					const cacheKey = getThemeCacheKey(theme)
-					const highlighter = await getCachedHighlighter({ theme, cacheKey })
 
-					// Check if the language is supported by Shikiji
-					const availableLanguages = new Set(Object.keys(bundledLanguages))
-					availableLanguages.add('ansi')
-					const highlighterLanguage = availableLanguages.has(codeBlock.language) ? codeBlock.language : 'txt'
-					if (highlighterLanguage !== 'ansi') await highlighter.loadLanguage(highlighterLanguage as BuiltinLanguage)
-					if (highlighterLanguage !== codeBlock.language && styleVariantIndex === 0) {
-						logger.warn(
-							`Found unknown code block language "${codeBlock.language}" in ${
-								codeBlock.parentDocument?.sourceFilePath ? `document "${codeBlock.parentDocument?.sourceFilePath}"` : 'markdown/MDX document'
-							}. Using "${highlighterLanguage}" instead.`
-						)
-					}
+					// Load theme if necessary
+					const loadedThemeName = await ensureThemeIsLoaded(highlighter, theme)
+
 					// Run highlighter (without explanations to improve performance)
 					const tokenLines = highlighter.codeToThemedTokens(code, {
-						lang: highlighterLanguage,
-						theme: cacheKey,
+						lang: loadedLanguageName,
+						theme: loadedThemeName,
 						includeExplanation: false,
 					})
 

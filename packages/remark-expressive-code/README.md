@@ -354,10 +354,14 @@ The following options are available:
 
 ### `shiki`
 
-- Type: `boolean`
+- Type: `PluginShikiOptions | boolean`
 - Default: `true`
 
-- Configures the Shiki plugin, which adds syntax highlighting to code blocks. You can set this to `false` to disable it.
+- Configures the Shiki plugin, which adds syntax highlighting to code blocks.
+
+  This plugin is enabled by default. Set this to `false` to disable it.
+
+  You can also configure the plugin by setting this to an [options object](https://github.com/expressive-code/expressive-code/blob/main/packages/%40expressive-code/plugin-shiki/README.md#available-plugin-options).
 
 ### `textMarkers`
 
