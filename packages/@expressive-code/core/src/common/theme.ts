@@ -1,10 +1,10 @@
 import { groupedDefaultWorkbenchColorKeys, guessThemeTypeFromEditorColors, resolveVSCodeWorkbenchColors, VSCodeThemeType, VSCodeWorkbenchColors } from '../internal/vscode-colors'
 import stripJsonComments from 'strip-json-comments'
-import type { IShikiTheme } from 'shiki'
+import type { ThemeRegistration } from 'shikiji'
 import { chromaticRecolor, ChromaticRecolorTarget, ensureColorContrastOnBackground } from '../helpers/color-transforms'
 import { StyleOverrides } from './style-settings'
 
-export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'> {
+export class ExpressiveCodeTheme implements Omit<ThemeRegistration, 'type' | 'colors' | 'settings'> {
 	name: string
 	type: VSCodeThemeType
 	colors: VSCodeWorkbenchColors
@@ -153,7 +153,7 @@ export class ExpressiveCodeTheme implements Omit<IShikiTheme, 'type' | 'colors'>
 	}
 }
 
-export type ExpressiveCodeThemeInput = Partial<Omit<ExpressiveCodeTheme | IShikiTheme, 'type'>> & {
+export type ExpressiveCodeThemeInput = Partial<Omit<ExpressiveCodeTheme | ThemeRegistration, 'type'>> & {
 	type?: VSCodeThemeType | string | undefined
 	tokenColors?: unknown | undefined
 	semanticHighlighting?: boolean | undefined

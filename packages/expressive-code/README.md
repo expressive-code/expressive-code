@@ -76,11 +76,13 @@ The main class of `expressive-code`. It extends the [`ExpressiveCodeEngine`](htt
 
 In addition to the [options provided by the core engine](https://github.com/expressive-code/expressive-code/blob/main/packages/%40expressive-code/core/README.md#expressivecodeengine-constructor), the following options are available:
 
-- `shiki: boolean`
+- `shiki: PluginShikiOptions | boolean`
 
-  The Shiki plugin adds syntax highlighting to code blocks.
+  Configures the Shiki plugin, which adds syntax highlighting to code blocks.
 
   This plugin is enabled by default. Set this to `false` to disable it.
+
+  You can also configure the plugin by setting this to an [options object](https://github.com/expressive-code/expressive-code/blob/main/packages/%40expressive-code/plugin-shiki/README.md#available-plugin-options).
 
 - `textMarkers: boolean`
 

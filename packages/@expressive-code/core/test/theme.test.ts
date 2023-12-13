@@ -1,11 +1,13 @@
 import { describe, expect, test } from 'vitest'
 import fs from 'fs'
 import path from 'path'
-import { loadTheme as shikiLoadTheme } from 'shiki'
-import dracula from 'shiki/themes/dracula.json'
-import githubLight from 'shiki/themes/github-light.json'
+import { bundledThemes, type ThemeRegistration, type BuiltinTheme } from 'shikiji'
 import { ExpressiveCodeTheme } from '../src/common/theme'
 import { ExpressiveCodeEngine } from '../src/common/engine'
+
+const dracula = await getBundledShikiTheme('dracula')
+const githubLight = await getBundledShikiTheme('github-light')
+const githubDark = await getBundledShikiTheme('github-dark')
 
 describe('ExpressiveCodeTheme', () => {
 	describe('Throws on invalid themes', () => {
@@ -147,8 +149,8 @@ describe('ExpressiveCodeTheme', () => {
 	})
 
 	describe('Can import themes loaded by Shiki', () => {
-		test('dracula', async () => {
-			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('themes/dracula.json'))
+		test('dracula', () => {
+			const theme = new ExpressiveCodeTheme(dracula)
 
 			// Expect the guessed theme type to be correct (it's not contained in most Shiki themes)
 			expect(theme.type).toBe('dark')
@@ -161,8 +163,8 @@ describe('ExpressiveCodeTheme', () => {
 	})
 
 	describe('Can be copied by passing an existing instance', () => {
-		test('Properties are copied correctly', async () => {
-			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('themes/dracula.json'))
+		test('Properties are copied correctly', () => {
+			const theme = new ExpressiveCodeTheme(dracula)
 			const copy = new ExpressiveCodeTheme(theme)
 
 			// Expect the copied theme to have the same main properties
@@ -173,8 +175,8 @@ describe('ExpressiveCodeTheme', () => {
 			expect(copy.colors).toEqual(theme.colors)
 			expect(copy.settings).toEqual(theme.settings)
 		})
-		test('Copy can be modified without affecting the original', async () => {
-			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('themes/dracula.json'))
+		test('Copy can be modified without affecting the original', () => {
+			const theme = new ExpressiveCodeTheme(dracula)
 			const copy = new ExpressiveCodeTheme(theme)
 
 			// Expect the copied theme to have the same colors
@@ -197,8 +199,8 @@ describe('ExpressiveCodeTheme', () => {
 	})
 
 	describe('Can apply color adjustments to themes', () => {
-		test('Can adjust colors of "github-dark"', async () => {
-			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('themes/github-dark.json'))
+		test('Can adjust colors of "github-dark"', () => {
+			const theme = new ExpressiveCodeTheme(githubDark)
 			theme.applyHueAndChromaAdjustments({
 				backgrounds: '#3b82f6',
 				accents: '#a3e635',
@@ -244,7 +246,7 @@ describe('ExpressiveCodeTheme', () => {
 
 	describe('Can override core styles using the "styleOverrides" property', () => {
 		test('Themes can override the default styles', async () => {
-			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('themes/github-dark.json'))
+			const theme = new ExpressiveCodeTheme(githubDark)
 			theme.styleOverrides.codeBackground = 'var(--test-code-bg)'
 			theme.styleOverrides.uiFontFamily = 'MyUiTestFont'
 
@@ -262,7 +264,7 @@ describe('ExpressiveCodeTheme', () => {
 			expect(themeStyles).toContain('MyUiTestFont')
 		})
 		test('Theme styleOverrides take precedence over global styleOverrides', async () => {
-			const theme = new ExpressiveCodeTheme(await shikiLoadTheme('themes/github-dark.json'))
+			const theme = new ExpressiveCodeTheme(githubDark)
 			theme.styleOverrides.codeBackground = '#fedcba98'
 			theme.styleOverrides.uiFontFamily = 'MyThemeProvidedFont'
 
@@ -289,4 +291,8 @@ describe('ExpressiveCodeTheme', () => {
 function loadThemeFromJsonFile(fileName: string) {
 	const jsonString = fs.readFileSync(path.join(__dirname, 'themes', fileName), 'utf8')
 	return ExpressiveCodeTheme.fromJSONString(jsonString)
+}
+
+async function getBundledShikiTheme(bundledThemeName: string) {
+	return (await bundledThemes[bundledThemeName as BuiltinTheme]()).default as ThemeRegistration
 }

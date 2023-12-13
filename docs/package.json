@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@astrojs/starlight": "^0.13.1",
-    "astro": "^3.2.3",
+    "astro": "^3.3.0",
     "astro-expressive-code": "workspace:^",
     "mdast-util-from-markdown": "^2.0.0",
     "mdast-util-to-markdown": "^2.1.0",

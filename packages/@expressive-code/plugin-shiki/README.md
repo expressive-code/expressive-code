@@ -10,6 +10,7 @@
 - [Configuration](#configuration)
   - [Astro configuration example](#astro-configuration-example)
   - [Next.js configuration example using `@next/mdx`](#nextjs-configuration-example-using-nextmdx)
+  - [Available plugin options](#available-plugin-options)
 - [Advanced use cases](#advanced-use-cases)
   - [Manual installation](#manual-installation)
   - [Manual usage from the core package](#manual-usage-from-the-core-package)
@@ -48,9 +49,9 @@ The full list of languages can be found in the [Shiki documentation](https://git
 
 ## Configuration
 
-This plugin does not have any configuration options. It automatically uses all themes defined in the Expressive Code configuration under the option `themes`.
+When using this plugin through higher-level integration packages, you can configure it by passing options to the higher-level package. It automatically uses all themes defined in the Expressive Code configuration under the option `themes`.
 
-Here are configuration examples on how to select themes in some popular site generators:
+Here are configuration examples on how to select themes and add custom language grammars in some popular site generators:
 
 ### Astro configuration example
 
@@ -69,6 +70,13 @@ const astroExpressiveCodeOptions = {
   // specify a path to JSON theme file, or pass an instance
   // of the `ExpressiveCodeTheme` class here:
   themes: ['dracula', 'solarized-light'],
+  shiki: {
+    // You can pass additional plugin options here, e.g. to load custom language grammars:
+    // langs: [
+    //   import('./some-exported-grammar.mjs'),
+    //   async () => JSON.parse(await fs.readFile('some-json-grammar.json', 'utf-8'))
+    // ]
+  },
 }
 
 export default defineConfig({
@@ -91,6 +99,13 @@ const remarkExpressiveCodeOptions = {
   // specify a path to JSON theme file, or pass an instance
   // of the `ExpressiveCodeTheme` class here:
   themes: ['dracula', 'solarized-light'],
+  shiki: {
+    // You can pass additional plugin options here, e.g. to load custom language grammars:
+    // langs: [
+    //   import('./some-exported-grammar.mjs'),
+    //   async () => JSON.parse(await fs.readFile('some-json-grammar.json', 'utf-8'))
+    // ]
+  },
 }
 
 /** @type {import('next').NextConfig} */
@@ -113,6 +128,22 @@ const withMDX = createMDX({
 
 export default withMDX(nextConfig)
 ```
+
+### Available plugin options
+
+You can pass the following options to the plugin:
+
+- `langs?: LanguageInput[]`
+
+  A list of additional languages that should be available for syntax highlighting.
+
+  You can pass any of the language input types supported by Shikiji, e.g.:
+  - `import('./some-exported-grammar.mjs')`
+  - `async () => JSON.parse(await fs.readFile('some-json-grammar.json', 'utf-8'))`
+
+  See the [Shikiji documentation](https://github.com/antfu/shikiji) for more information.
+
+  Note that you do not need to include languages that are already supported by Shiki.
 
 ## Advanced use cases
 

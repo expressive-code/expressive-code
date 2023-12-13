@@ -1,11 +1,11 @@
 {
-  "name": "astro-3-0-0-fixture",
+  "name": "astro-3-3-0-fixture",
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "@astrojs/mdx": "^1.0.3",
+    "@astrojs/mdx": "1.1.2",
     "@expressive-code/plugin-collapsible-sections": "workspace:^",
-    "astro": "^3.0.13",
+    "astro": "3.3.0",
     "astro-expressive-code": "workspace:^",
     "summer-time": "^3.1.7"
   },

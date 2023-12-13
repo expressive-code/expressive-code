@@ -184,7 +184,7 @@ export async function runHooks<HookType extends keyof ExpressiveCodePluginHooks>
 		} catch (error) {
 			/* c8 ignore next */
 			const msg = error instanceof Error ? error.message : (error as string)
-			throw new Error(`Plugin "${plugin.name}" caused an error in its "${key}" hook. Error message: ${msg}`)
+			throw new Error(`Plugin "${plugin.name}" caused an error in its "${key}" hook. Error message: ${msg}`, { cause: error })
 		}
 	}
 }

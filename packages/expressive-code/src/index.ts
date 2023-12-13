@@ -1,5 +1,6 @@
 import { ExpressiveCodeEngine, ExpressiveCodeEngineConfig, ExpressiveCodePlugin } from '@expressive-code/core'
 import { PluginFramesOptions, pluginFrames } from '@expressive-code/plugin-frames'
+import { PluginShikiOptions } from '@expressive-code/plugin-shiki'
 import { pluginShiki } from '@expressive-code/plugin-shiki'
 import { pluginTextMarkers } from '@expressive-code/plugin-text-markers'
 
@@ -13,8 +14,9 @@ export interface ExpressiveCodeConfig extends ExpressiveCodeEngineConfig {
 	 * The Shiki plugin adds syntax highlighting to code blocks.
 	 *
 	 * This plugin is enabled by default. Set this to `false` to disable it.
+	 * You can also configure the plugin by setting this to an options object.
 	 */
-	shiki?: boolean | undefined
+	shiki?: PluginShikiOptions | boolean | undefined
 	/**
 	 * The Text Markers plugin allows to highlight lines and inline ranges
 	 * in code blocks in various styles (e.g. marked, inserted, deleted).
@@ -40,7 +42,7 @@ export class ExpressiveCode extends ExpressiveCodeEngine {
 		const baseConfigPlugins = baseConfig.plugins?.flat() || []
 		const notPresentInPlugins = (name: string) => baseConfigPlugins.every((plugin) => plugin.name !== name)
 		if (shiki !== false && notPresentInPlugins('Shiki')) {
-			pluginsToPrepend.push(pluginShiki())
+			pluginsToPrepend.push(pluginShiki(shiki !== true ? shiki : undefined))
 		}
 		if (textMarkers !== false && notPresentInPlugins('TextMarkers')) {
 			if (typeof textMarkers === 'object' && (textMarkers as { styleOverrides: unknown }).styleOverrides) {

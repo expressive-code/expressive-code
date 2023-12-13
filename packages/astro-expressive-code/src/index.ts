@@ -41,7 +41,7 @@ export function astroExpressiveCode(options: AstroExpressiveCodeOptions = {}) {
 		hooks: {
 			'astro:config:setup': async (args: unknown) => {
 				const { config, updateConfig, injectRoute, logger } = args as ConfigSetupHookArgs
-				const { emitExternalStylesheet = true, customCreateRenderer, plugins = [], ...rest } = options ?? {}
+				const { emitExternalStylesheet = true, customCreateRenderer, plugins = [], shiki = true, ...rest } = options ?? {}
 
 				// Validate Astro configuration
 				const ownPosition = config.integrations.findIndex((integration) => integration.name === 'astro-expressive-code')
@@ -99,10 +99,18 @@ export function astroExpressiveCode(options: AstroExpressiveCodeOptions = {}) {
 					},
 				})
 
+				// Unless Shiki was disabled, merge any supported Shiki settings
+				// from the Astro config into the plugin options
+				const mergedShikiConfig = shiki === true ? {} : shiki
+				if (mergedShikiConfig && !mergedShikiConfig.langs && config.markdown?.shikiConfig?.langs) {
+					mergedShikiConfig.langs = config.markdown.shikiConfig.langs as NonNullable<typeof mergedShikiConfig.langs>
+				}
+
 				// Create the renderer
 				const renderer = await (customCreateRenderer ?? createRenderer)({
 					plugins,
 					logger,
+					shiki: mergedShikiConfig,
 					...rest,
 				})
 
@@ -146,6 +154,7 @@ export function astroExpressiveCode(options: AstroExpressiveCodeOptions = {}) {
 					customCreateRenderer: () => renderer,
 					plugins,
 					logger,
+					shiki: mergedShikiConfig,
 					...rest,
 				}
 
