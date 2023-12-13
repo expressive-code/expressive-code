@@ -1,5 +1,17 @@
 # @expressive-code/plugin-shiki
 
+## 0.30.0
+
+### Minor Changes
+
+- 05c6ad8: Changes the syntax highlighter used by `plugin-shiki` to Shikiji. Adds a `shiki: { langs: [...] }` option for loading custom languages.
+
+  This change should not cause any differences in HTML output as all rendering is done by Expressive Code. The new `langs` option allows registering custom TextMate grammars in JSON form.
+
+### Patch Changes
+
+- @expressive-code/core@0.30.0
+
 ## 0.29.4
 
 ### Patch Changes
