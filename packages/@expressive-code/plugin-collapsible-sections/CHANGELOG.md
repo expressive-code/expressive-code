@@ -1,5 +1,11 @@
 # @expressive-code/plugin-collapsible-sections
 
+## 0.30.1
+
+### Patch Changes
+
+- @expressive-code/core@0.30.1
+
 ## 0.30.0
 
 ### Patch Changes
