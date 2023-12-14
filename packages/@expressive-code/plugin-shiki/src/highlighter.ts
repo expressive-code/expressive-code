@@ -14,6 +14,7 @@ export interface LanguageRegistration extends Omit<ShikijiLanguageRegistration, 
 export type LanguageInput = MaybeGetter<MaybeArray<LanguageRegistration>>
 
 const highlighterPromiseByConfig = new Map<string, Promise<Highlighter>>()
+const promisesByHighlighter = new WeakMap<Highlighter, Map<string, Promise<void>>>()
 const themeCacheKeys = new WeakMap<ExpressiveCodeTheme, string>()
 
 /**
@@ -26,22 +27,25 @@ export async function getCachedHighlighter(config: { langs?: LanguageInput[] | u
 		highlighterPromise = getHighlighter({
 			...(config.langs ? { langs: config.langs as ShikijiLanguageInput[] } : {}),
 		})
+		highlighterPromiseByConfig.set(configCacheKey, highlighterPromise)
 	}
-	return await highlighterPromise
+	return highlighterPromise
 }
 
 export async function ensureThemeIsLoaded(highlighter: Highlighter, theme: ExpressiveCodeTheme) {
 	// Unfortunately, Shiki caches themes by name, so we need to ensure that the theme name changes
 	// whenever the theme contents change by appending a content hash
-	let cacheKey = themeCacheKeys.get(theme)
-	if (!cacheKey) {
-		cacheKey = `${theme.name}-${getStableObjectHash({ bg: theme.bg, fg: theme.fg, settings: theme.settings })}`
-		themeCacheKeys.set(theme, cacheKey)
-	}
+	const existingCacheKey = themeCacheKeys.get(theme)
+	const cacheKey = existingCacheKey ?? `${theme.name}-${getStableObjectHash({ bg: theme.bg, fg: theme.fg, settings: theme.settings })}`
+	if (!existingCacheKey) themeCacheKeys.set(theme, cacheKey)
+
 	// Only load the theme if it hasn't been loaded yet
 	if (!highlighter.getLoadedThemes().includes(cacheKey)) {
-		const themeUsingCacheKey = { ...theme, name: cacheKey, settings: theme.settings as ThemeRegistration['settings'] }
-		await highlighter.loadTheme(themeUsingCacheKey)
+		// Load the theme or wait for an existing load task to finish
+		await memoizeHighlighterTask(highlighter, `loadTheme:${cacheKey}`, () => {
+			const themeUsingCacheKey = { ...theme, name: cacheKey, settings: theme.settings as ThemeRegistration['settings'] }
+			return highlighter.loadTheme(themeUsingCacheKey)
+		})
 	}
 	return cacheKey
 }
@@ -54,7 +58,29 @@ export async function ensureLanguageIsLoaded(highlighter: Highlighter, language:
 			language = 'txt'
 		}
 
-		await highlighter.loadLanguage(language as BuiltinLanguage)
+		// Load the language or wait for an existing load task to finish
+		await memoizeHighlighterTask(highlighter, `loadLanguage:${language}`, () => highlighter.loadLanguage(language as BuiltinLanguage))
 	}
 	return language
+}
+
+/**
+ * Memoizes a task by ID for a given highlighter instance.
+ *
+ * This is necessary because SSGs can process multiple pages in parallel and we don't want to
+ * start the same async task multiple times, but instead return the same promise for all calls
+ * to improve performance and reduce memory usage.
+ */
+function memoizeHighlighterTask(highlighter: Highlighter, taskId: string, taskFn: () => Promise<void>) {
+	let promises = promisesByHighlighter.get(highlighter)
+	if (!promises) {
+		promises = new Map()
+		promisesByHighlighter.set(highlighter, promises)
+	}
+	let promise = promises.get(taskId)
+	if (promise === undefined) {
+		promise = taskFn()
+		promises.set(taskId, promise)
+	}
+	return promise
 }
