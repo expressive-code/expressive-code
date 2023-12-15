@@ -4,7 +4,13 @@ import { ThemedToken, bundledThemes } from 'shikiji'
 
 export interface PluginShikiOptions {
 	/**
-	 * An optional list of additional languages that should be available for syntax highlighting.
+	 * A list of additional languages that should be available for syntax highlighting.
+	 *
+	 * You can pass any of the language input types supported by Shikiji, e.g.:
+	 * - `import('./some-exported-grammar.mjs')`
+	 * - `async () => JSON.parse(await fs.readFile('some-json-grammar.json', 'utf-8'))`
+	 *
+	 * See the [Shikiji documentation](https://github.com/antfu/shikiji) for more information.
 	 *
 	 * Note that you do not need to include languages that are already supported by Shiki.
 	 */

@@ -1,104 +1,143 @@
 ---
-title: How to Upgrade
+title: Upgrading Expressive Code
 ---
 
-## TODO
+import { Tabs, TabItem } from '@astrojs/starlight/components'
 
-- Framework selector buttons:
-    - Astro
-    - Starlight
-    - Next.js
-    - Other
+If your site is already using Expressive Code, this page guides you through the process of upgrading it to the latest version.
 
-If you are already using Expressive Code and want to upgrade to a newer version, this page will guide you through the process.
+Please select your framework to jump to the respective upgrade instructions:
 
-## Breaking changes in v0.27.0
+- [Astro](#astro)
+- [Starlight](#starlight)
+- [Next.js](#nextjs)
 
-### Config option `theme` has been renamed to `themes`
+## Astro
 
-Efficient multi-theme support using CSS variables is now a core feature, so the `theme` option was deprecated in favor of the new array `themes`.
+To upgrade your Astro site to the latest version of Expressive Code, follow these steps:
 
-Please migrate your existing config to use `themes` and ensure it is an array. If you only need a single theme, your `themes` array can contain just this one theme. However, please consider the benefits of providing multiple themes. See the [`themes`](#themes) option for more details.
+1. Change into the directory of your Astro site.
 
-```diff lang="js"
-  /** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
-  const remarkExpressiveCodeOptions = {
--   theme: 'dracula',
-+   // Rename to `themes` and ensure it is an array
-+   // (also consider adding a light theme for accessibility)
-+   themes: ['dracula'],
-  },
-```
+2. Install the latest version of `astro-expressive-code`:
 
-### Config option `styleOverrides` now contains all plugin styles in nested objects
+    <Tabs>
+      <TabItem label="npm">
+      ```sh
+      npm i astro-expressive-code@latest
+      ```
+      </TabItem>
+      <TabItem label="pnpm">
+      ```sh
+      pnpm i astro-expressive-code@latest
+      ```
+      </TabItem>
+      <TabItem label="yarn">
+      ```sh
+      yarn add astro-expressive-code@latest
+      ```
+      </TabItem>
+    </Tabs>
 
-In previous versions, there could be multiple `styleOverrides` scattered through the configuration (one per plugin with configurable style settings). This has been simplified to a single top-level `styleOverrides` object that contains all style overrides.
+3. Check our [release history](/releases/) for breaking changes that might affect your site, and apply any necessary changes.
 
-Plugins can contribute their own style settings to this object as well by nesting them inside under their plugin name.
+4. You're done! 🎉
 
-```diff lang="js"
-  /** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
-  const remarkExpressiveCodeOptions = {
-    frames: {
-      showCopyToClipboardButton: false,
--     styleOverrides: {
--       shadowColor: '#124',
--     },
-    },
-+   styleOverrides: {
-+     frames: {
-+       shadowColor: '#124',
-+     },
-+     // You could override other plugin styles here as well:
-+     // textMarkers: { ... },
-+   },
-  },
-```
+## Starlight
 
-### Config option `textMarkers` can no longer be an object
+Starlight already has a dependency on `astro-expressive-code`, so you don't need to install or upgrade Expressive Code separately on Starlight sites.
 
-In previous versions, the `textMarkers` config option could be an object containing plugin options. This is no longer supported, as the only option that was available (`styleOverrides`) has been nested into the top-level `styleOverrides` object now, as explained in the previous section.
+We always try to keep Starlight's dependencies up to date, so upgrading Starlight should automatically upgrade Expressive Code as well:
 
-```diff lang="js"
-  /** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
-  const remarkExpressiveCodeOptions = {
--   textMarkers: {
--     styleOverrides: {
--       markHue: '310',
--     },
--   },
-+   styleOverrides: {
-+     textMarkers: {
-+       markHue: '310',
-+     },
-+     // You could override other plugin styles here as well:
-+     // frames: { ... },
-+   },
-  },
-```
+1. Follow the instructions in [Starlight's documentation](https://starlight.astro.build/getting-started/#updating-starlight) to upgrade your site to the latest version of Starlight.
 
-### Rendering multiple themes no longer generates duplicate CSS and HTML output
+2. You're done! 🎉
 
-In previous versions, a full set of CSS styles was generated for each individual theme, and each code block was rendered multiple times to include the HTML for each theme.
+### Overriding Expressive Code within Starlight
 
-In this version, the CSS output has been changed to a single static set of base styles that uses CSS variables to allow efficient switching between themes.
+If you've already installed the latest version of Starlight and want to use a later version of `astro-expressive-code` than the one it comes with, you can use the **overrides** feature of your package manager.
 
-Also, the HTML output for code blocks is now generated only once, and theme-dependent styles are applied using CSS variables.
+:::caution
+This is an advanced strategy that might lead to incompatibilities, and we recommend waiting for the next Starlight release instead. If you continue, please check if your site still works as expected after the upgrade.
+:::
 
-These changes significantly reduce page size when using multiple themes, especially on pages with many code blocks.
+1. Add the following `overrides` section to your `package.json`:
 
-If you have added CSS code to your site that relies on the old output (e.g. by selectively hiding or showing theme-specific code blocks based on their class name), you will need to update it to work with the new output.
+    ```json title="package.json" collapse={11-18} ins={20-22}
+    {
+      "name": "my-starlight-site",
+      "version": "0.0.1",
+      "type": "module",
+      "scripts": {
+        "dev": "astro dev",
+        "build": "astro build",
+        "preview": "astro preview",
+      },
+      "dependencies": {
+        "@astrojs/starlight": "^0.13.1",
+        "astro": "^3.3.0",
+        "mdast-util-from-markdown": "^2.0.0",
+        "mdast-util-to-markdown": "^2.1.0",
+        "mdast-util-to-string": "^4.0.0",
+        "sharp": "^0.32.5",
+        "tsm": "^2.3.0",
+        "unist-util-visit": "^4.1.2"
+      },
+      "overrides": {
+        "astro-expressive-code": "latest"
+      }
+    }
+    ```
 
-> **Note**: Before writing new custom CSS, please consider if you can achieve your desired result out of the box now. For example, if your [`themes`](#themes) option contains one dark and one light theme, the [`useDarkModeMediaQuery`](#usedarkmodemediaquery) option will generate a `prefers-color-scheme` media query for you by default.
+  2. Run the install command of your package manager to apply the override:
 
-### Engine property `configClassName` has been removed
+      <Tabs>
+        <TabItem label="npm">
+        ```sh
+        npm i
+        ```
+        </TabItem>
+        <TabItem label="pnpm">
+        ```sh
+        pnpm i
+        ```
+        </TabItem>
+        <TabItem label="yarn">
+        ```sh
+        yarn
+        ```
+        </TabItem>
+      </Tabs>
 
-The `configClassName` property was previously used to add a config-dependent class name to the CSS selectors used to style code blocks.
+  3. Check our [release history](/releases/) for breaking changes that might affect your site, and apply any necessary changes.
 
-As this property was automatically calculated by hashing the configuration object, it introduced a level of unpredictability, which has now been removed in favor of static base styles.
+  4. You're done! 🎉
 
-### Engine property `themeClassName` has been removed
+## Next.js
 
-The `themeClassName` property was previously used to add a theme-dependent class name to code blocks. Its format was `ec-theme-<name>`, where `<name>` was the kebab-cased name of the theme.
+To upgrade your Next.js site to the latest version of Expressive Code, follow these steps:
 
-As code blocks are now styled using CSS variables instead of generating multiple blocks for all themes and attaching class names to them, this property is no longer needed.
+1. Change into the directory of your Next.js site.
+
+2. Install the latest version of `remark-expressive-code`:
+
+    <Tabs>
+      <TabItem label="npm">
+      ```sh
+      npm i remark-expressive-code@latest
+      ```
+      </TabItem>
+      <TabItem label="pnpm">
+      ```sh
+      pnpm i remark-expressive-code@latest
+      ```
+      </TabItem>
+      <TabItem label="yarn">
+      ```sh
+      yarn add remark-expressive-code@latest
+      ```
+      </TabItem>
+    </Tabs>
+
+3. Check our [release history](/releases/) for breaking changes that might affect your site, and apply any necessary changes.
+
+4. You're done! 🎉

@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config'
 import starlight from '@astrojs/starlight'
+import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
 
 // https://astro.build/config
 export default defineConfig({
@@ -36,8 +37,8 @@ export default defineConfig({
 							link: '/guides/frames/',
 						},
 						{
-							label: 'Text & Line Annotations',
-							link: '/guides/annotations/',
+							label: 'Text & Line Markers',
+							link: '/guides/text-markers/',
 						},
 					],
 				},
@@ -55,6 +56,9 @@ export default defineConfig({
 					autogenerate: { directory: 'reference' },
 				},
 			],
+			expressiveCode: {
+				plugins: [pluginCollapsibleSections()],
+			},
 		}),
 	],
 })

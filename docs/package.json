@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@astrojs/starlight": "^0.13.1",
+    "@expressive-code/plugin-collapsible-sections": "workspace:^",
     "astro": "^3.3.0",
     "astro-expressive-code": "workspace:^",
     "mdast-util-from-markdown": "^2.0.0",

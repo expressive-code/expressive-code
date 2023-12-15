@@ -62,6 +62,9 @@ importers:
       '@astrojs/starlight':
         specifier: ^0.13.1
         version: 0.13.1(astro@3.5.0)
+      '@expressive-code/plugin-collapsible-sections':
+        specifier: workspace:^
+        version: link:../packages/@expressive-code/plugin-collapsible-sections
       astro:
         specifier: ^3.3.0
         version: 3.5.0(typescript@5.2.2)

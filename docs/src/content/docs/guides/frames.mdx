@@ -2,7 +2,7 @@
 title: Editor & Terminal Frames
 ---
 
-import { Tabs, TabItem } from '@astrojs/starlight/components';
+import { Tabs, TabItem } from '@astrojs/starlight/components'
 
 Expressive Code supports rendering frames around your code blocks. By default, the type of frame (editor window or terminal window) is selected automatically based on the language identifier in your code block's opening fence.
 
@@ -24,24 +24,24 @@ See the markdown code below for examples of both methods:
 
 ````md title="editor-example.md" ins=/title=".*?"/ ins=/<!--.*?-->/
 ```js title="my-test-file.js"
-console.log('Hello World!')
+console.log('Title attribute example')
 ```
 
 ```html
 <!-- src/content/index.html -->
-<div>This is HTML</div>
+<div>File name comment example</div>
 ```
 ````
 
 The rendered result looks like this:
 
 ```js title="my-test-file.js"
-console.log('Hello World!')
+console.log('Title attribute example')
 ```
 
 ```html
 <!-- src/content/index.html -->
-<div>This is HTML</div>
+<div>File name comment example</div>
 ```
 
 ### Terminal frames
@@ -53,7 +53,7 @@ When encountering code blocks with a language identifier that is typically used 
 
 In contrast to code editor frames, terminal frames do not require a title. The title bar will always be rendered, and you can optionally add a title using the `title` attribute:
 
-````md
+````md ins=/title=".*?"/
 ```bash
 echo "This terminal frame has no title"
 ```
@@ -93,8 +93,6 @@ You can prevent automatic file name comment extraction using any of the followin
 - Disable it globally by setting `extractFileNameFromCode` to `false` in the configuration
 :::
 
-
-
 ### Overriding frame types
 
 If you want to override the automatic frame type detection for some code blocks, you can add the `frame="..."` attribute to the opening code fence.
@@ -105,7 +103,7 @@ The supported values for this attribute are `code`, `terminal`, `none` and `auto
 Setting the frame type to `none` can reduce visual clutter when showing many single-line terminal blocks on a page, e.g. in a tutorial.
 :::
 
-````md
+````md ins=/frame=".*?"/
 ```sh frame="none"
 echo "Look ma, no frame!"
 ```
@@ -131,14 +129,12 @@ New-Alias tail Watch-Tail
 
 ## Configuration
 
-When using this plugin through higher-level integration packages, you can configure it by passing options to the higher-level package.
+When using this plugin through a framework integration, you can configure it by passing options to the integration. In addition, you can also override its default styles inside the `styleOverrides` engine config option.
 
 Here are configuration examples for some popular site generators:
 
 <Tabs>
   <TabItem label="Astro">
-    The following example shows how to configure `astro-expressive-code` in Astro:
-
     ```js
     // astro.config.mjs
     import { defineConfig } from 'astro/config'
@@ -167,8 +163,6 @@ Here are configuration examples for some popular site generators:
     ```
   </TabItem>
   <TabItem label="Next.js">
-    The following example shows how to configure `remark-expressive-code` in Next.js:
-
     ```js
     // next.config.mjs
     import createMDX from '@next/mdx'

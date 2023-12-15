@@ -1,8 +1,8 @@
 ---
-title: Text & Line Annotations
+title: Text & Line Markers
 ---
 
-import { Tabs, TabItem } from '@astrojs/starlight/components';
+import { Tabs, TabItem } from '@astrojs/starlight/components'
 
 Expressive Code allows you to add annotations to lines & line ranges, as well as individual text inside your lines. You can use them to highlight important parts of your code, or to indicate changes between different versions of your code.
 
@@ -269,14 +269,12 @@ function demo() {
 
 ## Configuration
 
-When using this plugin through higher-level integration packages, you can configure it by passing options to the higher-level package.
+This plugin does not provide any configuration options that can be passed to its initialization function. However, you can override its default styles inside the `styleOverrides` engine config option.
 
 Here are configuration examples for some popular site generators:
 
 <Tabs>
   <TabItem label="Astro">
-    The following example shows how to configure `astro-expressive-code` in Astro:
-
     ```js
     // astro.config.mjs
     import { defineConfig } from 'astro/config'
@@ -303,8 +301,6 @@ Here are configuration examples for some popular site generators:
     ```
   </TabItem>
   <TabItem label="Next.js">
-    The following example shows how to configure `remark-expressive-code` in Next.js:
-
     ```js
     // next.config.mjs
     import createMDX from '@next/mdx'

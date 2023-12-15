@@ -7,6 +7,38 @@ This page combines all release notes of the Expressive Code monorepo.
 You can find the source changelogs on GitHub in the subfolders of
 [`packages`](https://github.com/expressive-code/expressive-code/tree/main/packages).
 
+## 0.30.1
+
+- Fixes parallel execution of multiple syntax highlighter creations and tasks.
+
+  The Shiki plugin now ensures that async tasks like creating syntax highlighters, loading themes or languages are never started multiple times in parallel. This improves performance, reduces memory usage and prevents build errors on large sites.
+
+## 0.30.0
+
+- Potentially breaking: Increases minimum supported Astro version to 3.3.0 (when Astro switched to Shikiji).
+
+- Changes the syntax highlighter used by `plugin-shiki` to Shikiji. Adds a `shiki: { langs: [...] }` option for loading custom languages.
+
+  This change should not cause any differences in HTML output as all rendering is done by Expressive Code. The new `langs` option allows registering custom TextMate grammars in JSON form.
+
+## 0.29.4
+
+- Unknown code block languages now log a warning and render as plaintext instead of throwing an error.
+
+- Adds the config option `useStyleReset`.
+
+  This option determines if code blocks should be protected against influence from site-wide styles. This protection was always enabled before this release and could not be turned off.
+
+  When enabled, Expressive Code uses the declaration `all: revert` to revert all CSS properties to the values they would have had without any site-wide styles. This ensures the most predictable results out of the box.
+
+  You can now set this to `false` if you want your site-wide styles to influence the code blocks.
+
+- Set `prerender = true` for injected routes to improve adapter support.
+
+## 0.29.3
+
+- Fix warning in Astro 4 due to renamed "entryPoint" property. Add Astro 4 to allowed peer dependencies.
+
 ## 0.29.2
 
 - Comments like `// ...` are now no longer incorrectly detected as file names. Thanks [@kdheepak](https://github.com/kdheepak)!

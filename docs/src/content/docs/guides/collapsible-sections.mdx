@@ -1,3 +1,182 @@
 ---
 title: Collapsible Sections
 ---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components'
+
+This optional plugin allows you to reduce long code examples to their relevant parts by collapsing any line ranges that are not relevant to the example.
+
+The lines of collapsed sections will be replaced by a clickable `X collapsed lines` element. When clicked, the collapsed section will be expanded, showing the previously hidden lines.
+
+## Installation
+
+Before being able to use collapsible sections in your code blocks, you need to install the plugin as a dependency and add it to your configuration:
+
+1. Add the package to your site's dependencies:
+
+    <Tabs>
+      <TabItem label="npm">
+      ```sh
+      npm i @expressive-code/plugin-collapsible-sections
+      ```
+      </TabItem>
+      <TabItem label="pnpm">
+      ```sh
+      pnpm i @expressive-code/plugin-collapsible-sections
+      ```
+      </TabItem>
+      <TabItem label="yarn">
+      ```sh
+      yarn add @expressive-code/plugin-collapsible-sections
+      ```
+      </TabItem>
+    </Tabs>
+
+2. Add the integration to your site's configuration by passing it in the `plugins` list. This is how it works with our Astro integration [`astro-expressive-code`](https://www.npmjs.com/package/astro-expressive-code):
+
+    ```js ins={4,9-11}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config'
+    import astroExpressiveCode from 'astro-expressive-code'
+    import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
+
+    export default defineConfig({
+      integrations: [
+        astroExpressiveCode({
+          plugins: [
+            pluginCollapsibleSections(),
+          ],
+        }),
+      ],
+    })
+    ```
+
+## Usage in markdown / MDX
+
+To mark a section as collapsible, you need to add **meta information** to your code blocks. This is done by appending `collapse={X-Y}` to your opening code fence, indicating a collapsed section from line `X` to (and including) line `Y`.
+
+You can also collapse multiple sections in a single code block by separating them with commas:
+
+````md ins="collapse={1-5, 12-14}"
+```js collapse={1-5, 12-14}
+// All this boilerplate setup code will be collapsed
+import { someBoilerplateEngine } from '@example/some-boilerplate'
+import { evenMoreBoilerplate } from '@example/even-more-boilerplate'
+
+const engine = someBoilerplateEngine(evenMoreBoilerplate())
+
+// This part of the code will be visible by default
+engine.doSomething(1, 2, 3, calcFn)
+
+function calcFn() {
+  // You can have multiple collapsed sections
+  const a = 1
+  const b = 2
+  return a + b
+}
+```
+````
+
+The above code block will be rendered like this:
+
+```js collapse={1-5, 12-14}
+// All this boilerplate setup code will be collapsed
+import { someBoilerplateEngine } from '@example/some-boilerplate'
+import { evenMoreBoilerplate } from '@example/even-more-boilerplate'
+
+const engine = someBoilerplateEngine(evenMoreBoilerplate())
+
+// This part of the code will be visible by default
+engine.doSomething(1, 2, 3, calcFn)
+
+function calcFn() {
+  // You can have multiple collapsed sections
+  const a = 1
+  const b = 2
+  return a + b
+}
+```
+
+
+## Configuration
+
+This plugin does not provide any configuration options that can be passed to its initialization function. However, you can override its default styles inside the `styleOverrides` engine config option.
+
+Here are configuration examples for some popular site generators:
+
+<Tabs>
+  <TabItem label="Astro">
+    ```js
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config'
+    import astroExpressiveCode from 'astro-expressive-code'
+    import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
+
+    /** @type {import('astro-expressive-code').AstroExpressiveCodeOptions} */
+    const astroExpressiveCodeOptions = {
+      plugins: [
+        pluginCollapsibleSections(),
+      ],
+      styleOverrides: {
+        // You can optionally override the plugin's default styles here
+        collapsibleSections: {
+          closedBackgroundColor: '#68F',
+        },
+      },
+    }
+
+    export default defineConfig({
+      integrations: [
+        astroExpressiveCode(astroExpressiveCodeOptions),
+      ],
+    })
+    ```
+  </TabItem>
+  <TabItem label="Next.js">
+    ```js
+    // next.config.mjs
+    import createMDX from '@next/mdx'
+    import remarkExpressiveCode from 'remark-expressive-code'
+    import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
+
+    /** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
+    const remarkExpressiveCodeOptions = {
+      plugins: [
+        pluginCollapsibleSections(),
+      ],
+      styleOverrides: {
+        // You can optionally override the plugin's default styles here
+        collapsibleSections: {
+          closedBackgroundColor: '#68F',
+        },
+      },
+    }
+
+    /** @type {import('next').NextConfig} */
+    const nextConfig = {
+      reactStrictMode: true,
+      pageExtensions: ["js", "jsx", "ts", "tsx", "md", "mdx"],
+    }
+
+    const withMDX = createMDX({
+      extension: /\.mdx?$/,
+      options: {
+        remarkPlugins: [
+          // The nested array structure is required to pass options
+          // to a remark plugin
+          [remarkExpressiveCode, remarkExpressiveCodeOptions],
+        ],
+        rehypePlugins: [],
+      },
+    })
+
+    export default withMDX(nextConfig)
+    ```
+  </TabItem>
+</Tabs>
+
+### Available plugin options
+
+This plugin does not provide any configuration options that can be passed to its initialization function.
+
+However, you can override its default styles inside the `styleOverrides` engine config option. See the [configuration examples](#configuration) above for more information.
