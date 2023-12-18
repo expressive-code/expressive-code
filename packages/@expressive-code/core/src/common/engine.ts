@@ -298,13 +298,36 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 		const renderDeclarations = (declarations: Map<string, string>) => [...declarations].map(([varName, varValue]) => `${varName}:${varValue}`).join(';')
 
 		// Generate CSS styles for the first theme (the "base theme")
-		const baseVars = this.styleVariants[0].cssVarDeclarations
+		const { cssVarDeclarations: baseVars, theme: baseTheme } = this.styleVariants[0]
+		// Generate an optional override selector with higher specificity
+		// to allow selecting the base theme at the block level
+		const baseThemeSelector = this.themeCssSelector && this.themeCssSelector(baseTheme, { styleVariants: this.styleVariants })
+		const notBaseThemeSelector = baseThemeSelector ? `:not(${baseThemeSelector})` : ''
+		const baseThemeBlockInsideAlternateThemeRoot = notBaseThemeSelector && `${this.themeCssRoot}${notBaseThemeSelector} &${baseThemeSelector}`
+		const baseVarSelectors = [
+			// Root selector without any specific theme selectors
+			this.themeCssRoot,
+			// Code blocks with base theme selector inside root with non-base theme selector
+			baseThemeBlockInsideAlternateThemeRoot,
+		]
+			.filter((selector) => selector)
+			.join(',')
+		const baseThemeStyleSelectors = [
+			// Code blocks with no specific theme selector
+			'&',
+			// Code blocks with base theme selector inside root with non-base theme selector
+			baseThemeBlockInsideAlternateThemeRoot,
+		]
+			.filter((selector) => selector)
+			.join(',')
 		themeStyles.push(
 			await scopeAndMinifyNestedCss(`
-				${this.themeCssRoot} {
+				${baseVarSelectors} {
 					${renderDeclarations(baseVars)}
 				}
-				${getCoreThemeStyles(0)}
+				${baseThemeStyleSelectors} {
+					${getCoreThemeStyles(0)}
+				}
 			`)
 		)
 
@@ -342,8 +365,6 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 						this.themes.map((theme) => `${theme.name} (${theme.type})`).join(', '),
 					].join(' ')
 				)
-			const baseThemeSelector = this.themeCssSelector && this.themeCssSelector(baseTheme, { styleVariants: this.styleVariants })
-			const notBaseThemeSelector = baseThemeSelector ? `:not(${baseThemeSelector})` : ''
 			const darkModeMediaQuery = await scopeAndMinifyNestedCss(`
 				@media (prefers-color-scheme: ${altType}) {
 					${this.themeCssRoot}${notBaseThemeSelector} {
@@ -365,7 +386,7 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 
 				themeStyles.push(
 					await scopeAndMinifyNestedCss(`
-						${this.themeCssRoot}${themeSelector} &, &${themeSelector} {
+						${this.themeCssRoot}${themeSelector} &${notBaseThemeSelector}, &${themeSelector} {
 							${cssVars};
 							${coreStyles}
 						}

@@ -152,6 +152,9 @@ describe('ExpressiveCodeEngine', () => {
 	})
 	describe('getThemeStyles()', () => {
 		const inlineStyleSelector = `.${codeLineClass} span[style^='--']:not([class])`
+		const getBaseVarSelectors = ({ baseThemeName = 'github-dark', themeCssRoot = ':root' }: { baseThemeName?: string | undefined; themeCssRoot?: string | undefined } = {}) => [
+			`${themeCssRoot},${themeCssRoot}:not([data-theme='${baseThemeName}']) .${groupWrapperClassName}[data-theme='${baseThemeName}']`,
+		]
 
 		test('Contains CSS variables for `github-dark` and `github-light` by default', async () => {
 			const engine = new ExpressiveCodeEngine({})
@@ -160,7 +163,7 @@ describe('ExpressiveCodeEngine', () => {
 			expect(findDeclsByStyleSetting(parsedStyles, 'codeForeground')).toMatchObject([
 				{
 					value: githubDark.colors['editor.foreground'],
-					nestedSelectors: [':root'],
+					nestedSelectors: getBaseVarSelectors(),
 				},
 				{
 					value: githubLight.colors['editor.foreground'],
@@ -174,7 +177,7 @@ describe('ExpressiveCodeEngine', () => {
 			expect(findDeclsByStyleSetting(parsedStyles, 'codeBackground')).toMatchObject([
 				{
 					value: githubDark.colors['editor.background'],
-					nestedSelectors: [':root'],
+					nestedSelectors: getBaseVarSelectors(),
 				},
 				{
 					value: githubLight.colors['editor.background'],
@@ -194,7 +197,9 @@ describe('ExpressiveCodeEngine', () => {
 			expect(inlineDecls).toMatchObject([
 				{
 					value: 'var(--0, inherit)',
-					nestedSelectors: [`.${groupWrapperClassName} ${inlineStyleSelector}`],
+					nestedSelectors: [
+						`.${groupWrapperClassName} ${inlineStyleSelector},:root:not([data-theme='github-dark']) .${groupWrapperClassName}[data-theme='github-dark'] ${inlineStyleSelector}`,
+					],
 				},
 				{
 					value: 'var(--1, inherit)',
@@ -203,7 +208,7 @@ describe('ExpressiveCodeEngine', () => {
 				{
 					value: 'var(--1, inherit)',
 					nestedSelectors: [
-						`:root[data-theme='github-light'] .${groupWrapperClassName} ${inlineStyleSelector},.${groupWrapperClassName}[data-theme='github-light'] ${inlineStyleSelector}`,
+						`:root[data-theme='github-light'] .${groupWrapperClassName}:not([data-theme='github-dark']) ${inlineStyleSelector},.${groupWrapperClassName}[data-theme='github-light'] ${inlineStyleSelector}`,
 					],
 				},
 			])
@@ -216,7 +221,7 @@ describe('ExpressiveCodeEngine', () => {
 				expect(backgroundDecls).toContainEqual(
 					expect.objectContaining({
 						value: githubLight.colors['editor.background'],
-						selector: `:root[data-theme='github-light'] .${groupWrapperClassName},.${groupWrapperClassName}[data-theme='github-light']`,
+						selector: `:root[data-theme='github-light'] .${groupWrapperClassName}:not([data-theme='github-dark']),.${groupWrapperClassName}[data-theme='github-light']`,
 					})
 				)
 			})
@@ -230,7 +235,7 @@ describe('ExpressiveCodeEngine', () => {
 					expect(backgroundDecls).toContainEqual(
 						expect.objectContaining({
 							value: githubLight.colors['editor.background'],
-							selector: `body[data-theme='github-light'] .${groupWrapperClassName},.${groupWrapperClassName}[data-theme='github-light']`,
+							selector: `body[data-theme='github-light'] .${groupWrapperClassName}:not([data-theme='github-dark']),.${groupWrapperClassName}[data-theme='github-light']`,
 						})
 					)
 				})
@@ -244,7 +249,9 @@ describe('ExpressiveCodeEngine', () => {
 					expect(inlineDecls).toMatchObject([
 						{
 							value: 'var(--0, inherit)',
-							nestedSelectors: [`.${groupWrapperClassName} ${inlineStyleSelector}`],
+							nestedSelectors: [
+								`.${groupWrapperClassName} ${inlineStyleSelector},body:not([data-theme='github-dark']) .${groupWrapperClassName}[data-theme='github-dark'] ${inlineStyleSelector}`,
+							],
 						},
 						{
 							value: 'var(--1, inherit)',
@@ -253,7 +260,7 @@ describe('ExpressiveCodeEngine', () => {
 						{
 							value: 'var(--1, inherit)',
 							nestedSelectors: [
-								`body[data-theme='github-light'] .${groupWrapperClassName} ${inlineStyleSelector},.${groupWrapperClassName}[data-theme='github-light'] ${inlineStyleSelector}`,
+								`body[data-theme='github-light'] .${groupWrapperClassName}:not([data-theme='github-dark']) ${inlineStyleSelector},.${groupWrapperClassName}[data-theme='github-light'] ${inlineStyleSelector}`,
 							],
 						},
 					])
@@ -269,7 +276,7 @@ describe('ExpressiveCodeEngine', () => {
 					expect(backgroundDecls).toContainEqual(
 						expect.objectContaining({
 							value: githubLight.colors['editor.background'],
-							selector: `:root.theme-github-light .${groupWrapperClassName},.${groupWrapperClassName}.theme-github-light`,
+							selector: `:root.theme-github-light .${groupWrapperClassName}:not(.theme-github-dark),.${groupWrapperClassName}.theme-github-light`,
 						})
 					)
 				})
@@ -283,7 +290,9 @@ describe('ExpressiveCodeEngine', () => {
 					expect(inlineDecls).toMatchObject([
 						{
 							value: 'var(--0, inherit)',
-							nestedSelectors: [`.${groupWrapperClassName} ${inlineStyleSelector}`],
+							nestedSelectors: [
+								`.${groupWrapperClassName} ${inlineStyleSelector},:root:not(.theme-github-dark) .${groupWrapperClassName}.theme-github-dark ${inlineStyleSelector}`,
+							],
 						},
 						{
 							value: 'var(--1, inherit)',
@@ -291,7 +300,9 @@ describe('ExpressiveCodeEngine', () => {
 						},
 						{
 							value: 'var(--1, inherit)',
-							nestedSelectors: [`:root.theme-github-light .${groupWrapperClassName} ${inlineStyleSelector},.${groupWrapperClassName}.theme-github-light ${inlineStyleSelector}`],
+							nestedSelectors: [
+								`:root.theme-github-light .${groupWrapperClassName}:not(.theme-github-dark) ${inlineStyleSelector},.${groupWrapperClassName}.theme-github-light ${inlineStyleSelector}`,
+							],
 						},
 					])
 				})
@@ -339,7 +350,7 @@ describe('ExpressiveCodeEngine', () => {
 				expect(backgroundDecls).toContainEqual(
 					expect.objectContaining({
 						value: githubDark.colors['editor.background'],
-						nestedSelectors: [':root'],
+						nestedSelectors: getBaseVarSelectors(),
 					})
 				)
 				// Expect a declaration for the light theme by media query
@@ -360,7 +371,7 @@ describe('ExpressiveCodeEngine', () => {
 				expect(backgroundDecls).toContainEqual(
 					expect.objectContaining({
 						value: githubDark.colors['editor.background'],
-						nestedSelectors: ['body'],
+						nestedSelectors: getBaseVarSelectors({ themeCssRoot: 'body' }),
 					})
 				)
 				// Expect a declaration for the light theme by media query
@@ -386,7 +397,7 @@ describe('ExpressiveCodeEngine', () => {
 				expect(backgroundDecls).toContainEqual(
 					expect.objectContaining({
 						value: githubLight.colors['editor.background'],
-						nestedSelectors: [':root'],
+						nestedSelectors: getBaseVarSelectors({ baseThemeName: 'github-light' }),
 					})
 				)
 				// Expect a declaration for the dark theme by media query
@@ -448,7 +459,7 @@ describe('ExpressiveCodeEngine', () => {
 					expect(backgroundDecls).toContainEqual(
 						expect.objectContaining({
 							value: githubDark.colors['editor.background'],
-							nestedSelectors: [':root'],
+							nestedSelectors: getBaseVarSelectors(),
 						})
 					)
 					// Expect a declaration for the first theme of opposite type by media query
