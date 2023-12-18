@@ -1,7 +1,14 @@
-import { groupedDefaultWorkbenchColorKeys, guessThemeTypeFromEditorColors, resolveVSCodeWorkbenchColors, VSCodeThemeType, VSCodeWorkbenchColors } from '../internal/vscode-colors'
+import {
+	groupedDefaultWorkbenchColorKeys,
+	guessThemeTypeFromEditorColors,
+	resolveVSCodeWorkbenchColors,
+	VSCodeDefaultColorKey,
+	VSCodeThemeType,
+	VSCodeWorkbenchColors,
+} from '../internal/vscode-colors'
 import stripJsonComments from 'strip-json-comments'
 import type { ThemeRegistration } from 'shikiji'
-import { chromaticRecolor, ChromaticRecolorTarget, ensureColorContrastOnBackground } from '../helpers/color-transforms'
+import { chromaticRecolor, ChromaticRecolorTarget, ensureColorContrastOnBackground, onBackground } from '../helpers/color-transforms'
 import { StyleOverrides } from './style-settings'
 
 export class ExpressiveCodeTheme implements Omit<ThemeRegistration, 'type' | 'colors' | 'settings'> {
@@ -44,6 +51,12 @@ export class ExpressiveCodeTheme implements Omit<ThemeRegistration, 'type' | 'co
 		this.fg = theme.fg || this.colors['editor.foreground']
 		this.bg = theme.bg || this.colors['editor.background']
 		this.semanticHighlighting = theme.semanticHighlighting || false
+		// Fix themes that use transparency in unexpected places (e.g. the `rose-pine` themes)
+		// by premultiplying the colors of certain elements with the color of their parent element
+		const premultiplyTable: [VSCodeDefaultColorKey, VSCodeDefaultColorKey][] = [['editorGroupHeader.tabsBackground', 'editor.background']]
+		premultiplyTable.forEach(([colorKey, bgKey]) => {
+			this.colors[colorKey] = onBackground(this.colors[colorKey], this.colors[bgKey])
+		})
 		// Shiki uses the `settings` property for theme tokens, VS Code uses `tokenColors`.
 		// To allow passing both types of themes to this constructor, and to also allow passing
 		// an ExpressiveCodeTheme instance directly to Shiki, we mimic Shiki's theme loader
