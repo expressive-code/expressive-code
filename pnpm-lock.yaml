@@ -71,6 +71,12 @@ importers:
       astro-expressive-code:
         specifier: workspace:^
         version: link:../packages/astro-expressive-code
+      expressive-code:
+        specifier: workspace:^
+        version: link:../packages/expressive-code
+      hast-util-to-html:
+        specifier: ^8.0.4
+        version: 8.0.4
       mdast-util-from-markdown:
         specifier: ^2.0.0
         version: 2.0.0

@@ -18,6 +18,8 @@
     "@expressive-code/plugin-collapsible-sections": "workspace:^",
     "astro": "^3.3.0",
     "astro-expressive-code": "workspace:^",
+    "expressive-code": "workspace:^",
+    "hast-util-to-html": "^8.0.4",
     "mdast-util-from-markdown": "^2.0.0",
     "mdast-util-to-markdown": "^2.1.0",
     "mdast-util-to-string": "^4.0.0",

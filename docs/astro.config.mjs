@@ -15,14 +15,17 @@ export default defineConfig({
 				{
 					label: 'Start Here',
 					items: [
-						{ label: 'Welcome', link: '/' },
+						{
+							label: 'Welcome',
+							link: '/',
+							badge: 'TODO',
+						},
 						{ label: 'Installation', link: '/installation/' },
 						{ label: 'Upgrading', link: '/upgrading/' },
-						{ label: 'Release History', link: '/releases/' },
 					],
 				},
 				{
-					label: 'Core Features',
+					label: 'Key Features',
 					items: [
 						{
 							label: 'Themes',
@@ -53,7 +56,19 @@ export default defineConfig({
 				},
 				{
 					label: 'Reference',
-					autogenerate: { directory: 'reference' },
+					items: [
+						{
+							label: 'Configuration Reference',
+							link: '/reference/configuration/',
+							badge: 'TODO',
+						},
+						{
+							label: 'Plugin Reference',
+							link: '/reference/plugins/',
+							badge: 'TODO',
+						},
+						{ label: 'Release Notes', link: '/releases/' },
+					],
 				},
 			],
 			expressiveCode: {

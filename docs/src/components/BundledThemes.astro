@@ -1,0 +1,46 @@
+---
+import type { BundledShikiTheme } from 'expressive-code';
+import ThemePreview from './ThemePreview.astro'
+
+const themes: BundledShikiTheme[] = [
+	'dark-plus',
+	'dracula',
+	'dracula-soft',
+	'github-dark',
+	'github-dark-dimmed',
+	'github-light',
+	'light-plus',
+	'material-theme',
+    'material-theme-darker',
+    'material-theme-lighter',
+    'material-theme-ocean',
+    'material-theme-palenight',
+    'min-dark',
+    'min-light',
+    'monokai',
+    'nord',
+    'one-dark-pro',
+    'poimandres',
+    'rose-pine',
+    'rose-pine-dawn',
+    'rose-pine-moon',
+    'slack-dark',
+    'slack-ochin',
+    'solarized-dark',
+    'solarized-light',
+    'vitesse-dark',
+    'vitesse-light',
+]
+---
+
+<style>
+	.theme-gallery {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+		grid-gap: 2rem 1rem;
+	}
+</style>
+
+<div class="theme-gallery not-content">
+	{themes.map(theme => <ThemePreview theme={theme}/>)}
+</div>

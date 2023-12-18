@@ -1,0 +1,65 @@
+---
+import { ExpressiveCode, loadShikiTheme, type BundledShikiTheme, setProperty } from 'expressive-code'
+import { toHtml } from 'hast-util-to-html'
+
+interface Props {
+	theme: string
+}
+
+const { theme = 'solarized-light' } = Astro.props
+
+const scalePercentage = 85
+
+const engine = new ExpressiveCode({
+	themes: [await loadShikiTheme(theme as BundledShikiTheme)],
+	styleOverrides: {
+		codeFontSize: `${Math.round(0.85 * scalePercentage) / 100}rem`,
+		uiFontSize: `${Math.round(0.9 * scalePercentage) / 100}rem`,
+	},
+	frames: {
+		showCopyToClipboardButton: false,
+	},
+})
+
+const renderDeclarations = (declarations: Map<string, string>) => [...declarations].map(([varName, varValue]) => `${varName}:${varValue}`).join(';')
+const themeStyles = renderDeclarations(engine.styleVariants[0]?.cssVarDeclarations ?? new Map())
+
+const { renderedGroupAst } = await engine.render({
+	language: 'js',
+	meta: '"num % 2 === 0" ins="is even" del="\'Wait, what?\'"',
+	code: `
+// example.js
+function isEven(num) {
+  return num % 2 === 0;
+}
+
+// Testing the function
+const num = 4;
+if (isEven(num)) {
+  console.log(\`\${num} is even.\`);
+} else {
+  throw new Error('Wait, what?');
+}
+	`,
+})
+
+if (renderedGroupAst.type === 'element') {
+	setProperty(renderedGroupAst, 'data-theme', 'dark')
+	setProperty(renderedGroupAst, 'style', themeStyles)
+}
+
+const htmlContent = toHtml(renderedGroupAst)
+---
+
+<style>
+	.theme-name {
+		text-align: center;
+		font-weight: 600;
+		margin-bottom: 0.25rem;
+	}
+</style>
+
+<div class="theme-preview not-content">
+	<div class="theme-name">{theme}</div>
+	<Fragment set:html={htmlContent} />
+</div>
