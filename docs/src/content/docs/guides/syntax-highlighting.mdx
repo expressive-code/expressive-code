@@ -172,19 +172,21 @@ Here are configuration examples for some popular site generators:
 
 You can pass the following options to the plugin:
 
-- `langs: LanguageInput[]`
+#### langs
 
-  A list of additional languages that should be available for syntax highlighting.
+Type: <code class="property-type">LanguageInput[]</code>
 
-  You can pass any of the language input types supported by Shikiji, e.g.:
-  - `import('./some-exported-grammar.mjs')`
-  - `async () => JSON.parse(await fs.readFile('some-json-grammar.json', 'utf-8'))`
+A list of additional languages that should be available for syntax highlighting.
 
-  See the [Shikiji documentation](https://github.com/antfu/shikiji) for more information.
+You can pass any of the language input types supported by Shikiji, e.g.:
+- `import('./some-exported-grammar.mjs')`
+- `async () => JSON.parse(await fs.readFile('some-json-grammar.json', 'utf-8'))`
 
-  :::note
-  Unlike Shiki, Shikiji does not require you to add the bundled default languages to this array. These languages are always available.
-  :::
+See the [Shikiji documentation](https://github.com/antfu/shikiji) for more information.
+
+:::note
+Unlike Shiki, Shikiji does not require you to add the bundled default languages to this array. These languages are always available.
+:::
 
 ### Using another syntax highlighter
 
