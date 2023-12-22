@@ -64,6 +64,7 @@ export interface PostprocessRenderedBlockGroupContext {
 
 export type ExpressiveCodeHook<ContextType = ExpressiveCodeHookContext> = (context: ContextType) => void | Promise<void>
 
+/** @internal */
 export interface ExpressiveCodePluginHooks_BeforeRendering {
 	/**
 	 * Allows preprocessing the meta string and the language before any plugins can
@@ -129,6 +130,7 @@ export interface ExpressiveCodePluginHooks_BeforeRendering {
 	postprocessAnnotations?: ExpressiveCodeHook | undefined
 }
 
+/** @internal */
 export interface ExpressiveCodePluginHooks_Rendering {
 	/**
 	 * Allows editing the AST of a single line of code after all annotations were rendered.

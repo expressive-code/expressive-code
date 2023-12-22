@@ -5,11 +5,7 @@ import { ExpressiveCodeTheme } from './theme'
 export interface StyleSettings extends CoreStyleSettings {}
 
 export type StyleValueOrValues = string | [dark: string, light: string]
-export type StyleResolverFn = ({
-	theme,
-	styleVariantIndex,
-	resolveSetting,
-}: {
+export type StyleResolverFn = (context: {
 	theme: ExpressiveCodeTheme
 	/** The index in the engine's `styleVariants` array that's currently being resolved. */
 	styleVariantIndex: number
