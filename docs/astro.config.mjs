@@ -60,7 +60,10 @@ export default defineConfig({
 						{
 							label: 'Configuration Reference',
 							link: '/reference/configuration/',
-							badge: 'TODO',
+						},
+						{
+							label: 'Style Overrides',
+							link: '/reference/style-overrides/',
 						},
 						{
 							label: 'Plugin Reference',

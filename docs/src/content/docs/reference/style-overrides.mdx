@@ -1,0 +1,255 @@
+---
+title: Style Overrides
+---
+
+import TypeProperties from '@components/TypeProperties.astro'
+
+You can add a `styleOverrides` object to the [engine configuration](/reference/configuration/) to customize the appearance of the rendered code blocks without having to write custom CSS.
+
+The root level of this object contains [core style settings](#core-style-settings) like colors, fonts, paddings and more. Plugins can contribute their [plugin style settings](#plugin-style-settings) by adding a nested object with the plugin's name as key. For example, if the `frames` plugin is enabled, you can override its `shadowColor` by setting `styleOverrides.frames.shadowColor` to a color value.
+
+If any of the settings are not given, default values will be used or derived from the theme.
+
+:::tip
+If your site uses CSS variables for styling, you can also use these overrides to replace styles with CSS variable references, e.g. `var(--your-css-var)`.
+:::
+
+## Core style settings
+
+<TypeProperties>
+
+### borderColor
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Default: ``({ theme }) => theme.colors['titleBar.border'] || lighten(theme.colors['editor.background'], theme.type === 'dark' ? 0.5 : -0.15) || 'transparent'``
+
+Border color of code blocks.
+
+### borderRadius
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Default: ``'0.3rem'``
+
+Border radius of code blocks.
+
+### borderWidth
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Default: ``'1.5px'``
+
+Border width of code blocks.
+
+### codeBackground
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Default: ``({ theme }) => theme.colors['editor.background']``
+
+Background color of code blocks.
+
+### codeFontFamily
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Default: ``"ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace"``
+
+Font family of code content.
+
+### codeFontSize
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Default: ``'0.85rem'``
+
+Font size of code content.
+
+### codeFontWeight
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Default: ``'400'``
+
+Font weight of code content.
+
+### codeForeground
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Default: ``({ theme }) => theme.colors['editor.foreground']``
+
+Foreground color of code, unless overwritten by syntax highlighting.
+
+### codeLineHeight
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Default: ``'1.65'``
+
+Font line height of code content.
+
+### codePaddingBlock
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Default: ``'1rem'``
+
+Block-level padding (= top and bottom padding in horizontal writing mode) around the code content inside code blocks.
+
+### codePaddingInline
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Default: ``'1.35rem'``
+
+Inline-level padding (= left and right padding in horizontal writing mode) around the code content inside code blocks.
+
+### codeSelectionBackground
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Default: ``({ theme }) => theme.colors['editor.selectionBackground']``
+
+Background color of selected code, unless selection color customization is disabled by the option `useThemedSelectionColors`.
+
+### focusBorder
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Default: ``({ theme }) => theme.colors['focusBorder']``
+
+Color of the focus border around focused elements.
+
+### scrollbarThumbColor
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Default: ``({ theme }) => theme.colors['scrollbarSlider.background']``
+
+Color of the scrollbar thumb, unless scrollbar color customization is disabled by the option `useThemedScrollbars`.
+
+### scrollbarThumbHoverColor
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Default: ``({ theme }) => theme.colors['scrollbarSlider.hoverBackground']``
+
+Color of the scrollbar thumb when hovered, unless scrollbar color customization is disabled by the option `useThemedScrollbars`.
+
+### uiFontFamily
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Default: ``"ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'"``
+
+Font family of UI elements.
+
+### uiFontSize
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Default: ``'0.9rem'``
+
+Font size of UI elements.
+
+### uiFontWeight
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Default: ``'400'``
+
+Font weight of UI elements.
+
+### uiLineHeight
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Default: ``'1.65'``
+
+Font line height of UI elements.
+
+### uiPaddingBlock
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Default: ``'0.25rem'``
+
+Block-level padding (= top and bottom padding in horizontal writing mode) of UI elements like tabs, buttons etc.
+
+### uiPaddingInline
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Default: ``'1rem'``
+
+Inline-level padding (= left and right padding in horizontal writing mode) of UI elements like tabs, buttons etc.
+
+### uiSelectionBackground
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Default: ``({ theme }) => theme.colors['menu.selectionBackground']``
+
+Background color of selected UI elements, unless selection color customization is disabled by the option `useThemedSelectionColors`.
+
+### uiSelectionForeground
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Default: ``({ theme }) => theme.colors['menu.selectionForeground']``
+
+Foreground color of selected UI elements, unless selection color customization is disabled by the option `useThemedSelectionColors`.
+
+</TypeProperties>
+
+## Plugin style settings
+
+<TypeProperties>
+
+### frames
+
+> Type: [FramesStyleSettings](/guides/frames/#available-styleoverrides)\
+> Default: ``{}``
+
+Allows you to override [frames style settings](/guides/frames/#available-styleoverrides) to customize the appearance of the frames rendered around code blocks.
+
+### textMarkers
+
+> Type: [TextMarkersStyleSettings](/guides/text-markers/#available-styleoverrides)\
+> Default: ``{}``
+
+Allows you to override [text markers style settings](/guides/text-markers/#available-styleoverrides) to customize the appearance of the text markers used to highlight parts inside code blocks.
+
+### collapsibleSections
+
+> Type: [CollapsibleSectionsStyleSettings](/guides/collapsible-sections/#available-styleoverrides)\
+> Default: ``{}``
+
+Allows you to override [collapsible sections style settings](/guides/collapsible-sections/#available-styleoverrides) to customize the appearance of collapsed and expanded sections inside code blocks.
+
+:::note
+As `plugin-collapsible-sections` is not a default plugin, you must [install the plugin](/guides/collapsible-sections/#installation) first before being able to override its style settings.
+:::
+
+</TypeProperties>
+
+## Type definitions
+
+<TypeProperties>
+
+### UnresolvedStyleValue
+
+> Type: [StyleValueOrValues](#stylevalueorvalues) \| [StyleResolverFn](#styleresolverfn)
+
+This is the value type for all style overrides. It allows either static style values or a resolver function.
+
+### StyleValueOrValues
+
+> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue) \| [string, string]
+
+You can set a style value to a string or an array of two strings.
+
+If you use the array form, the first value will be used for dark themes, and the second value for light themes.
+
+### StyleResolverFn
+
+> Type: (context) => [StyleValueOrValues](#stylevalueorvalues)
+
+You can make styles dynamic by setting their value to a resolver function instead of a static value.
+
+This function gets called once per style variant (theme) by the engine and is expected to return a style value.
+
+It receives a `context` object containing properties that can be used to resolve the value, e.g. by looking up a color from the `theme` or by referencing another style setting via `resolveSetting`.
+
+#### Parameters
+
+- **context**: `Object`
+
+- **context\.resolveSetting**: (`settingPath`) => `string`
+
+- **context\.styleVariantIndex**: `number`
+
+  The index in the engine's `styleVariants` array that's currently being resolved.
+
+- **context\.theme**: [`ExpressiveCodeTheme`](/api/expressive-code/core/classes/expressivecodetheme/)
+
+</TypeProperties>

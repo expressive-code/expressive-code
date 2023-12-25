@@ -2,13 +2,91 @@
 title: Configuration Reference
 ---
 
+import TypeProperties from '@components/TypeProperties.astro'
+import { Tabs, TabItem } from '@astrojs/starlight/components'
+
+Expressive Code comes with default settings that should work out of the box for most sites. However, you can customize the configuration to match your needs by passing an options object to the initialization function of the integration you are using.
+
+Here are configuration examples for some popular site generators:
+
+<Tabs>
+  <TabItem label="Astro">
+    ```js ins={5-16} ins=/(?<=[(])astroExpressiveCodeOptions/
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config'
+    import astroExpressiveCode from 'astro-expressive-code'
+
+    /** @type {import('astro-expressive-code').AstroExpressiveCodeOptions} */
+    const astroExpressiveCodeOptions = {
+      // You can set configuration options here
+      themes: ['dracula', 'github-light'],
+      styleOverrides: {
+        // You can also override styles
+        borderRadius: '0.5rem',
+        frames: {
+          shadowColor: '#124',
+        },
+      },
+    }
+
+    export default defineConfig({
+      integrations: [
+        astroExpressiveCode(astroExpressiveCodeOptions),
+      ],
+    })
+    ```
+  </TabItem>
+  <TabItem label="Next.js">
+    ```js ins={5-16} ins=/(?<=, )remarkExpressiveCodeOptions/
+    // next.config.mjs
+    import createMDX from '@next/mdx'
+    import remarkExpressiveCode from 'remark-expressive-code'
+
+    /** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
+    const remarkExpressiveCodeOptions = {
+      // You can set configuration options here
+      themes: ['dracula', 'github-light'],
+      styleOverrides: {
+        // You can also override styles
+        borderRadius: '0.5rem',
+        frames: {
+          shadowColor: '#124',
+        },
+      },
+    }
+
+    /** @type {import('next').NextConfig} */
+    const nextConfig = {
+      reactStrictMode: true,
+      pageExtensions: ["js", "jsx", "ts", "tsx", "md", "mdx"],
+    }
+
+    const withMDX = createMDX({
+      extension: /\.mdx?$/,
+      options: {
+        remarkPlugins: [
+          // The nested array structure is required to pass options
+          // to a remark plugin
+          [remarkExpressiveCode, remarkExpressiveCodeOptions],
+        ],
+        rehypePlugins: [],
+      },
+    })
+
+    export default withMDX(nextConfig)
+    ```
+  </TabItem>
+</Tabs>
+
 ## Core options
 
 The following options are supported by the core package and all integrations:
 
+<TypeProperties>
+
 ### cascadeLayer
 
-> Type: <code class="property-type">string</code>\
+> Type: string\
 > Default: `undefined`
 
 Allows to specify a CSS cascade layer name that should be used for all generated CSS.
@@ -17,7 +95,7 @@ If you are using [cascade layers](https://developer.mozilla.org/en-US/docs/Learn
 
 ### customizeTheme
 
-> Type: <code class="property-type">(theme) => void \| [ExpressiveCodeTheme](/api/expressive-code/core/classes/expressivecodetheme/)</code>\
+> Type: (theme) => void \| [ExpressiveCodeTheme](/api/expressive-code/core/classes/expressivecodetheme/)\
 > Default: `undefined`
 
 This optional function is called once per theme during engine initialization with the loaded theme as its only argument.
@@ -32,18 +110,37 @@ You can optionally return an `ExpressiveCodeTheme` instance from this function t
 
 ### defaultLocale
 
-> Type: <code class="property-type">string</code>\
+> Type: string\
 > Default: `'en-US'`
 
 The locale that should be used for text content.
 
 ### logger
 
-> Type: <code class="property-type">Partial\<ExpressiveCodeLoggerOptions\></code>
+> Type: Partial\<[ExpressiveCodeLoggerOptions](#available-logger-options)\>
+
+Allows to customize how Expressive Code logs messages. The default implementation logs all messages to the console and prepends them with the label `expressive-code` like this:
+
+```text
+[expressive-code] This is a debug message.
+```
+
+#### Available logger options
+
+- **label**: `string`\
+  The label to use as a prefix for all log messages. Defaults to `'expressive-code'`.
+- **debug**: `(message: string) => void`\
+  A function to log a debug message.
+- **info**: `(message: string) => void`\
+  A function that logs an info message.
+- **warn**: `(message: string) => void`\
+  A function that logs a warning message.
+- **error**: `(message: string) => void`\
+  A function that logs an error message.
 
 ### minSyntaxHighlightingColorContrast
 
-> Type: <code class="property-type">number</code>\
+> Type: number\
 > Default: `5.5`
 
 Determines if Expressive Code should process the syntax highlighting colors of all themes to ensure an accessible minimum contrast ratio between foreground and background colors.
@@ -52,7 +149,7 @@ The default of `5.5` ensures a contrast ratio of at least 5.5:1. You can change 
 
 ### plugins
 
-> Type: <code class="property-type">([ExpressiveCodePlugin](/api/expressive-code/core/interfaces/expressivecodeplugin/) \| [ExpressiveCodePlugin](/api/expressive-code/core/interfaces/expressivecodeplugin/)[])[]</code>\
+> Type: ([ExpressiveCodePlugin](/reference/plugins/) \| [ExpressiveCodePlugin](/reference/plugins/)[])[]\
 > Default: `[]`
 
 An optional array of plugins that should be used when rendering code blocks.
@@ -65,298 +162,16 @@ If any nested arrays are found inside the `plugins` array, they will be flattene
 
 ### styleOverrides
 
-> Type: <code class="property-type">Partial\<Object\></code>\
+> Type: [StyleOverrides](/reference/style-overrides/)\
 > Default: `{}`
 
 An optional set of style overrides that can be used to customize the appearance of the rendered code blocks without having to write custom CSS.
 
-The root level of this nested object contains core styles like colors, fonts, paddings and more. Plugins can contribute their own style settings to this object as well. For example, if the `frames` plugin is enabled, you can override its `shadowColor` by setting `styleOverrides.frames.shadowColor` to a color value.
-
-If any of the settings are not given, default values will be used or derived from the theme.
-
-**Tip:** If your site uses CSS variables for styling, you can also use these overrides to replace any core style with a CSS variable reference, e.g. `var(--your-css-var)`.
-
-#### Type declaration
-
-##### borderColor
-
-> Type: <code class="property-type">[UnresolvedStyleValue](/api/expressive-code/core/type-aliases/unresolvedstylevalue/)</code>
-
-Border color of code blocks.
-
-###### Default
-
-```ts
-({ theme }) => theme.colors['titleBar.border'] || lighten(theme.colors['editor.background'], theme.type === 'dark' ? 0.5 : -0.15) || 'transparent'
-```
-
-##### borderRadius
-
-> Type: <code class="property-type">[UnresolvedStyleValue](/api/expressive-code/core/type-aliases/unresolvedstylevalue/)</code>
-
-Border radius of code blocks.
-
-###### Default
-
-```ts
-'0.3rem'
-```
-
-##### borderWidth
-
-> Type: <code class="property-type">[UnresolvedStyleValue](/api/expressive-code/core/type-aliases/unresolvedstylevalue/)</code>
-
-Border width of code blocks.
-
-###### Default
-
-```ts
-'1.5px'
-```
-
-##### codeBackground
-
-> Type: <code class="property-type">[UnresolvedStyleValue](/api/expressive-code/core/type-aliases/unresolvedstylevalue/)</code>
-
-Background color of code blocks.
-
-###### Default
-
-```ts
-({ theme }) => theme.colors['editor.background']
-```
-
-##### codeFontFamily
-
-> Type: <code class="property-type">[UnresolvedStyleValue](/api/expressive-code/core/type-aliases/unresolvedstylevalue/)</code>
-
-Font family of code content.
-
-###### Default
-
-```ts
-"ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace"
-```
-
-##### codeFontSize
-
-> Type: <code class="property-type">[UnresolvedStyleValue](/api/expressive-code/core/type-aliases/unresolvedstylevalue/)</code>
-
-Font size of code content.
-
-###### Default
-
-```ts
-'0.85rem'
-```
-
-##### codeFontWeight
-
-> Type: <code class="property-type">[UnresolvedStyleValue](/api/expressive-code/core/type-aliases/unresolvedstylevalue/)</code>
-
-Font weight of code content.
-
-###### Default
-
-```ts
-'400'
-```
-
-##### codeForeground
-
-> Type: <code class="property-type">[UnresolvedStyleValue](/api/expressive-code/core/type-aliases/unresolvedstylevalue/)</code>
-
-Foreground color of code, unless overwritten by syntax highlighting.
-
-###### Default
-
-```ts
-({ theme }) => theme.colors['editor.foreground']
-```
-
-##### codeLineHeight
-
-> Type: <code class="property-type">[UnresolvedStyleValue](/api/expressive-code/core/type-aliases/unresolvedstylevalue/)</code>
-
-Font line height of code content.
-
-###### Default
-
-```ts
-'1.65'
-```
-
-##### codePaddingBlock
-
-> Type: <code class="property-type">[UnresolvedStyleValue](/api/expressive-code/core/type-aliases/unresolvedstylevalue/)</code>
-
-Block-level padding (= top and bottom padding in horizontal writing mode) around the code content inside code blocks.
-
-###### Default
-
-```ts
-'1rem'
-```
-
-##### codePaddingInline
-
-> Type: <code class="property-type">[UnresolvedStyleValue](/api/expressive-code/core/type-aliases/unresolvedstylevalue/)</code>
-
-Inline-level padding (= left and right padding in horizontal writing mode) around the code content inside code blocks.
-
-###### Default
-
-```ts
-'1.35rem'
-```
-
-##### codeSelectionBackground
-
-> Type: <code class="property-type">[UnresolvedStyleValue](/api/expressive-code/core/type-aliases/unresolvedstylevalue/)</code>
-
-Background color of selected code, unless selection color customization is disabled by the option `useThemedSelectionColors`.
-
-###### Default
-
-```ts
-({ theme }) => theme.colors['editor.selectionBackground']
-```
-
-##### focusBorder
-
-> Type: <code class="property-type">[UnresolvedStyleValue](/api/expressive-code/core/type-aliases/unresolvedstylevalue/)</code>
-
-Color of the focus border around focused elements.
-
-###### Default
-
-```ts
-({ theme }) => theme.colors['focusBorder']
-```
-
-##### scrollbarThumbColor
-
-> Type: <code class="property-type">[UnresolvedStyleValue](/api/expressive-code/core/type-aliases/unresolvedstylevalue/)</code>
-
-Color of the scrollbar thumb, unless scrollbar color customization is disabled by the option `useThemedScrollbars`.
-
-###### Default
-
-```ts
-({ theme }) => theme.colors['scrollbarSlider.background']
-```
-
-##### scrollbarThumbHoverColor
-
-> Type: <code class="property-type">[UnresolvedStyleValue](/api/expressive-code/core/type-aliases/unresolvedstylevalue/)</code>
-
-Color of the scrollbar thumb when hovered, unless scrollbar color customization is disabled by the option `useThemedScrollbars`.
-
-###### Default
-
-```ts
-({ theme }) => theme.colors['scrollbarSlider.hoverBackground']
-```
-
-##### uiFontFamily
-
-> Type: <code class="property-type">[UnresolvedStyleValue](/api/expressive-code/core/type-aliases/unresolvedstylevalue/)</code>
-
-Font family of UI elements.
-
-###### Default
-
-```ts
-"ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'"
-```
-
-##### uiFontSize
-
-> Type: <code class="property-type">[UnresolvedStyleValue](/api/expressive-code/core/type-aliases/unresolvedstylevalue/)</code>
-
-Font size of UI elements.
-
-###### Default
-
-```ts
-'0.9rem'
-```
-
-##### uiFontWeight
-
-> Type: <code class="property-type">[UnresolvedStyleValue](/api/expressive-code/core/type-aliases/unresolvedstylevalue/)</code>
-
-Font weight of UI elements.
-
-###### Default
-
-```ts
-'400'
-```
-
-##### uiLineHeight
-
-> Type: <code class="property-type">[UnresolvedStyleValue](/api/expressive-code/core/type-aliases/unresolvedstylevalue/)</code>
-
-Font line height of UI elements.
-
-###### Default
-
-```ts
-'1.65'
-```
-
-##### uiPaddingBlock
-
-> Type: <code class="property-type">[UnresolvedStyleValue](/api/expressive-code/core/type-aliases/unresolvedstylevalue/)</code>
-
-Block-level padding (= top and bottom padding in horizontal writing mode) of UI elements like tabs, buttons etc.
-
-###### Default
-
-```ts
-'0.25rem'
-```
-
-##### uiPaddingInline
-
-> Type: <code class="property-type">[UnresolvedStyleValue](/api/expressive-code/core/type-aliases/unresolvedstylevalue/)</code>
-
-Inline-level padding (= left and right padding in horizontal writing mode) of UI elements like tabs, buttons etc.
-
-###### Default
-
-```ts
-'1rem'
-```
-
-##### uiSelectionBackground
-
-> Type: <code class="property-type">[UnresolvedStyleValue](/api/expressive-code/core/type-aliases/unresolvedstylevalue/)</code>
-
-Background color of selected UI elements, unless selection color customization is disabled by the option `useThemedSelectionColors`.
-
-###### Default
-
-```ts
-({ theme }) => theme.colors['menu.selectionBackground']
-```
-
-##### uiSelectionForeground
-
-> Type: <code class="property-type">[UnresolvedStyleValue](/api/expressive-code/core/type-aliases/unresolvedstylevalue/)</code>
-
-Foreground color of selected UI elements, unless selection color customization is disabled by the option `useThemedSelectionColors`.
-
-###### Default
-
-```ts
-({ theme }) => theme.colors['menu.selectionForeground']
-```
+See the [Style Overrides](/reference/style-overrides/) page for more details.
 
 ### ~~theme~~
 
-> Type: <code class="property-type">[ExpressiveCodeTheme](/api/expressive-code/core/classes/expressivecodetheme/)</code>
+> Type: [ExpressiveCodeTheme](/api/expressive-code/core/classes/expressivecodetheme/)
 
 :::caution[Deprecated]
 Efficient multi-theme support is now a core feature, so the `theme` option
@@ -368,7 +183,7 @@ multiple themes. See the `themes` option for more details.
 
 ### themeCssRoot
 
-> Type: <code class="property-type">string</code>\
+> Type: string\
 > Default: `':root'`
 
 Allows to customize the base selector used to scope theme-dependent CSS styles.
@@ -377,7 +192,7 @@ The default selector `':root'` ensures that all required CSS variables are globa
 
 ### themeCssSelector
 
-> Type: <code class="property-type">false \| ((theme, context) => string \| false)</code>\
+> Type: false \| ((theme, context) => string \| false)\
 > Default: ``(theme) => `[data-theme='${theme.name}']` ``
 
 Allows to customize the selectors used to manually switch between multiple themes.
@@ -397,7 +212,7 @@ If you want to prevent the generation of theme-specific CSS rules altogether, yo
 
 ### themes
 
-> Type: <code class="property-type">[ExpressiveCodeTheme](/api/expressive-code/core/classes/expressivecodetheme/)[]</code>
+> Type: [ExpressiveCodeTheme](/api/expressive-code/core/classes/expressivecodetheme/)[]
 
 The color themes that should be available for your code blocks.
 
@@ -407,7 +222,7 @@ Defaults to the `github-dark` and `github-light` themes.
 
 ### useDarkModeMediaQuery
 
-> Type: <code class="property-type">boolean</code>
+> Type: boolean
 
 Determines if CSS code is generated that uses a `prefers-color-scheme` media query to automatically switch between light and dark themes based on the user's system preferences.
 
@@ -415,7 +230,7 @@ Defaults to `true` if your `themes` option is set to one dark and one light them
 
 ### useStyleReset
 
-> Type: <code class="property-type">boolean</code>\
+> Type: boolean\
 > Default: `true`
 
 Determines if code blocks should be protected against influence from site-wide styles.
@@ -426,7 +241,7 @@ You can set this to `false` if you want your site-wide styles to influence the c
 
 ### useThemedScrollbars
 
-> Type: <code class="property-type">boolean</code>\
+> Type: boolean\
 > Default: `true`
 
 Whether the themes are allowed to style the scrollbars.
@@ -437,7 +252,7 @@ Note that you can override the individual scrollbar colors defined by the theme 
 
 ### useThemedSelectionColors
 
-> Type: <code class="property-type">boolean</code>\
+> Type: boolean\
 > Default: `false`
 
 Whether the themes are allowed to style selected text.
@@ -446,13 +261,17 @@ By default, Expressive Code renders selected text in code blocks using the brows
 
 Note that you can override the individual selection colors defined by the theme using the `styleOverrides` option.
 
+</TypeProperties>
+
 ## Options of `expressive-code`
 
 The `expressive-code` package bundles the core package with all default plugin packages. To allow controlling the plugins, it also supports the following options in addition to the ones above:
 
+<TypeProperties>
+
 ### frames
 
-> Type: <code class="property-type">boolean \| [PluginFramesOptions](/api/expressive-code/plugin-frames/interfaces/pluginframesoptions/)</code>\
+> Type: boolean \| [PluginFramesOptions](/guides/frames/#available-plugin-options)\
 > Default: `true`
 
 The Frames plugin adds an editor or terminal frame around code blocks, including an optional title displayed as a tab or window caption.
@@ -461,7 +280,7 @@ This plugin is enabled by default. Set this to `false` to disable it. You can al
 
 ### shiki
 
-> Type: <code class="property-type">boolean \| [PluginShikiOptions](/api/expressive-code/plugin-shiki/interfaces/pluginshikioptions/)</code>\
+> Type: boolean \| [PluginShikiOptions](/guides/syntax-highlighting/#available-plugin-options)\
 > Default: `true`
 
 The Shiki plugin adds syntax highlighting to code blocks.
@@ -470,20 +289,24 @@ This plugin is enabled by default. Set this to `false` to disable it. You can al
 
 ### textMarkers
 
-> Type: <code class="property-type">boolean</code>\
+> Type: boolean\
 > Default: `true`
 
 The Text Markers plugin allows to highlight lines and inline ranges in code blocks in various styles (e.g. marked, inserted, deleted).
 
 This plugin is enabled by default. Set this to `false` to disable it.
 
+</TypeProperties>
+
 ## Options of `remark-expressive-code`
 
 In addition to the options above, the remark integration also supports the following options:
 
+<TypeProperties>
+
 ### customCreateBlock
 
-> Type: <code class="property-type">(\{ input, file }) => [ExpressiveCodeBlock](/api/expressive-code/core/classes/expressivecodeblock/) \| Promise\<[ExpressiveCodeBlock](/api/expressive-code/core/classes/expressivecodeblock/)\></code>\
+> Type: (\{ input, file }) => [ExpressiveCodeBlock](/api/expressive-code/core/classes/expressivecodeblock/) \| Promise\<[ExpressiveCodeBlock](/api/expressive-code/core/classes/expressivecodeblock/)\>\
 > Default: `undefined`
 
 This optional function allows you to customize how `ExpressiveCodeBlock` instances are created from code blocks found in the Markdown document.
@@ -492,15 +315,15 @@ The function is expected to return an `ExpressiveCodeBlock` instance or a promis
 
 #### Parameters
 
-- **input**: <code>[ExpressiveCodeBlockOptions](/api/expressive-code/core/interfaces/expressivecodeblockoptions/)</code>\
+- **input**: [ExpressiveCodeBlockOptions](/api/expressive-code/core/interfaces/expressivecodeblockoptions/)\
   Block data for the `ExpressiveCodeBlock` constructor.
 
-- **file**: <code>VFileWithOutput\<null\></code>\
+- **file**: VFileWithOutput\<null\>\
   A `VFile` instance representing the Markdown document.
 
 ### customCreateRenderer
 
-> Type: <code class="property-type">(options) => Promise\<[RemarkExpressiveCodeRenderer](/api/remark-expressive-code/type-aliases/remarkexpressivecoderenderer/)\> \| [RemarkExpressiveCodeRenderer](/api/remark-expressive-code/type-aliases/remarkexpressivecoderenderer/)</code>\
+> Type: (options) => Promise\<RemarkExpressiveCodeRenderer\> \| RemarkExpressiveCodeRenderer\
 > Default: `undefined`
 
 This advanced option allows you to influence the rendering process by creating your own `ExpressiveCode` instance or processing the base styles and JS modules added to every page.
@@ -509,11 +332,11 @@ The return value will be cached and used for all code blocks in the document.
 
 #### Parameters
 
-- **options**: [`RemarkExpressiveCodeOptions`](/api/remark-expressive-code/type-aliases/remarkexpressivecodeoptions/)
+- **options**: `RemarkExpressiveCodeOptions`
 
 ### getBlockLocale
 
-> Type: <code class="property-type">(\{ input, file }) => string \| undefined \| Promise\<string \| undefined\></code>\
+> Type: (\{ input, file }) => string \| undefined \| Promise\<string \| undefined\>\
 > Default: `undefined`
 
 This optional function provides support for multi-language sites by allowing you to customize the locale used for a given code block.
@@ -522,15 +345,15 @@ If the function returns `undefined`, the default locale provided in the Expressi
 
 #### Parameters
 
-- **input**: <code>[ExpressiveCodeBlockOptions](/api/expressive-code/core/interfaces/expressivecodeblockoptions/)</code>\
+- **input**: [ExpressiveCodeBlockOptions](/api/expressive-code/core/interfaces/expressivecodeblockoptions/)\
   Block data for the `ExpressiveCodeBlock` constructor.
 
-- **file**: <code>VFileWithOutput\<null\></code>\
+- **file**: VFileWithOutput\<null\>\
   A `VFile` instance representing the Markdown document.
 
 ### tabWidth
 
-> Type: <code class="property-type">number</code>\
+> Type: number\
 > Default: `2`
 
 The number of spaces that should be used to render tabs.
@@ -541,22 +364,29 @@ If you want to preserve tabs in your code blocks, set this option to 0.
 
 ### themes
 
-> Type: <code class="property-type">[ThemeObjectOrShikiThemeName](/api/remark-expressive-code/type-aliases/themeobjectorshikithemename/)[]</code>\
+> Type: [ThemeObjectOrShikiThemeName](/api/remark-expressive-code/type-aliases/themeobjectorshikithemename/)[]\
 > Default: `['github-dark', 'github-light']`
 
 The color themes that should be available for your code blocks.
 
 CSS variables will be generated for all themes, allowing to select the theme to display using CSS. If you specify one dark and one light theme, a `prefers-color-scheme` media query will also be generated by default. You can customize this to match your site's needs through the `useDarkModeMediaQuery` and `themeCssSelector` options.
 
-The following item types are supported in this array: - any theme name bundled with Shiki (e.g. `dracula`) - any theme object compatible with VS Code or Shiki (e.g. imported from an NPM theme package) - any ExpressiveCodeTheme instance (e.g. using `ExpressiveCodeTheme.fromJSONString(...)`   to load a custom JSON/JSONC theme file yourself)
+The following item types are supported in this array:
+- any theme name bundled with Shiki (e.g. `dracula`)
+- any theme object compatible with VS Code or Shiki (e.g. imported from an NPM theme package)
+- any ExpressiveCodeTheme instance (e.g. using `ExpressiveCodeTheme.fromJSONString(...)` to load a custom JSON/JSONC theme file yourself)
+
+</TypeProperties>
 
 ## Options of `astro-expressive-code`
 
 In addition to the options above, the Astro integration also supports the following options:
 
+<TypeProperties>
+
 ### emitExternalStylesheet
 
-> Type: <code class="property-type">boolean</code>\
+> Type: boolean\
 > Default: `true`
 
 Determines if the styles required to display code blocks should be emitted into a separate CSS file rather than being inlined into the rendered HTML of the first code block per page.
@@ -569,17 +399,4 @@ The generated URL is located inside Astro's assets directory and includes a cont
 To actually benefit from caching, please ensure that your hosting provider serves the contents of the assets directory as immutable files with a long cache lifetime, e.g. `Cache-Control: public,max-age=31536000,immutable`.
 :::
 
-## TODO
-
-- Configuring Expressive Code
-    - Where the config file is located, with an example per Framework
-    - Framework selector buttons:
-        - Astro
-        - Starlight
-        - Next.js
-        - Other
-- Style Overrides
-    - Core
-    - Frames
-    - Text Markers
-    - Collapsible Sections
+</TypeProperties>

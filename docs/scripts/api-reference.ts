@@ -191,7 +191,7 @@ function onRendererPageEnd(event: PageEvent<DeclarationReflection>) {
 	}
 
 	// Remove sections containing inheritance information
-	event.contents = event.contents.replace(/##+ (Inherited from|Extends|Extended By|Implements|Implementation of|Overrides)\n\n([^\n]+\n)+\n/g, '')
+	event.contents = event.contents.replace(/##+ (Implements)\n\n([^\n]+\n)+\n/g, '')
 
 	event.contents = addFrontmatter(event.contents, {
 		editUrl: false,

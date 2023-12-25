@@ -7,14 +7,18 @@ import {
 	type CommentTag,
 	type Options,
 	type PageEvent,
+	type DeclarationHierarchy,
 	ParameterReflection,
 	TypeParameterReflection,
 	DeclarationReflection,
 	ReflectionKind,
 	SignatureReflection,
+	ContainerReflection,
+	ReflectionCategory,
 } from 'typedoc'
 import { MarkdownTheme, MarkdownThemeRenderContext } from 'typedoc-plugin-markdown'
-import { comment as commentPartial } from 'typedoc-plugin-markdown/dist/theme/resources/partials/comment.js'
+import { bold, heading } from 'typedoc-plugin-markdown/dist/support/elements.js'
+import { camelToTitleCase, escapeAngleBrackets, escapeChars } from 'typedoc-plugin-markdown/dist/support/utils.js'
 import { member as memberPartial } from 'typedoc-plugin-markdown/dist/theme/resources/partials/member.js'
 import { declarationMemberIdentifier as declarationMemberIdentifierPartial } from 'typedoc-plugin-markdown/dist/theme/resources/partials/member.declaration.identifier.js'
 import { signatureMemberIdentifier as signatureMemberIdentifierPartial } from 'typedoc-plugin-markdown/dist/theme/resources/partials/member.signature.identifier.js'
@@ -96,7 +100,7 @@ class StarlightTypeDocThemeRenderContext extends MarkdownThemeRenderContext {
 			return part
 		})
 
-		let markdown = commentPartial(this, filteredComment, headingLevel, showSummary, showTags)
+		let markdown = this.#commentPartial(filteredComment, headingLevel, showSummary, showTags)
 
 		if (showTags === true && showSummary === false) {
 			return markdown
@@ -127,9 +131,74 @@ class StarlightTypeDocThemeRenderContext extends MarkdownThemeRenderContext {
 	}
 
 	override member = (member: DeclarationReflection, headingLevel: number, nested?: boolean) => {
-		const markdown = memberPartial(this, member, headingLevel, nested)
+		let markdown = memberPartial(this, member, headingLevel, nested)
+
+		// Remove "Implements" section
+		markdown = markdown.replace(/##+ (Implements)\n\n([^\n]+\n)+\n/g, '')
+
 		// Remove trailing question marks from headings
-		return markdown.replace(/(?<=^#.*)\?$/gm, '')
+		markdown = markdown.replace(/(?<=^#.*)\?$/gm, '')
+
+		return markdown
+	}
+
+	/**
+	 * We only remove the `***` lines here
+	 */
+	override members = (container: ContainerReflection, headingLevel: number) => {
+		const md: string[] = []
+
+		const pushCategories = (categories: ReflectionCategory[], headingLevel: number) => {
+			categories
+				?.filter((category) => !category.allChildrenHaveOwnDocument())
+				.forEach((item) => {
+					md.push(heading(headingLevel, item.title))
+					pushChildren(item.children, headingLevel + 1)
+				})
+		}
+
+		const pushChildren = (children?: DeclarationReflection[], memberHeadingLevel?: number) => {
+			const items = children?.filter((item) => !item.hasOwnDocument)
+			items?.forEach((item) => {
+				md.push(this.member(item, memberHeadingLevel || headingLevel))
+			})
+		}
+
+		if (container.categories?.length) {
+			pushCategories(container.categories, headingLevel)
+		} else {
+			if (this.options.getValue('excludeGroups') && container.kindOf([ReflectionKind.Project, ReflectionKind.Module, ReflectionKind.Namespace])) {
+				if (container.categories?.length) {
+					pushCategories(container.categories, headingLevel)
+				} else {
+					pushChildren(container.children, headingLevel)
+				}
+			} else {
+				const groupsWithChildren = container.groups?.filter((group) => !group.allChildrenHaveOwnDocument())
+				groupsWithChildren?.forEach((group) => {
+					if (group.categories) {
+						md.push(heading(headingLevel, group.title))
+						pushCategories(group.categories, headingLevel + 1)
+					} else {
+						const isPropertiesGroup = group.children.every((child) => child.kindOf(ReflectionKind.Property))
+
+						const isEnumGroup = group.children.every((child) => child.kindOf(ReflectionKind.EnumMember))
+
+						md.push(heading(headingLevel, group.title))
+
+						if (isPropertiesGroup && this.options.getValue('propertiesFormat') === 'table') {
+							md.push(this.propertiesTable(group.children))
+						} else if (isEnumGroup && this.options.getValue('enumMembersFormat') === 'table') {
+							md.push(this.enumMembersTable(group.children))
+						} else {
+							pushChildren(group.children, headingLevel + 1)
+						}
+					}
+				})
+			}
+		}
+
+		return md.join('\n\n')
 	}
 
 	/**
@@ -142,7 +211,12 @@ class StarlightTypeDocThemeRenderContext extends MarkdownThemeRenderContext {
 		markdown = markdown.replace(/`/g, '')
 		if (reflection.kind === ReflectionKind.Property) {
 			markdown = markdown.replace(/^> .*?: /, '')
-			markdown = `Type: <code class="property-type">${markdown}</code>`
+			markdown = `> Type: <code class="property-type">${markdown}</code>`
+			// Add default value (if any)
+			const defaultValue = this.#getDefaultValue(reflection)
+			if (defaultValue) {
+				markdown += `\\\n> Default: <span class="property-default">${defaultValue}</span>`
+			}
 		}
 		return markdown
 	}
@@ -165,6 +239,53 @@ class StarlightTypeDocThemeRenderContext extends MarkdownThemeRenderContext {
 	override typeParametersList = (parameters: TypeParameterReflection[], headingLevel: number) => {
 		const markdown = typeParametersListPartial(this, parameters, headingLevel)
 		return markdown.replace(/^• /gm, '- ').replace(/^(?!- )(?=.+)/gm, '  ')
+	}
+
+	/** Remove hierarchy information (extends, extended by) */
+	override memberHierarchy = (_hierarchy: DeclarationHierarchy, _headingLevel: number) => {
+		return ''
+	}
+
+	/** Remove inheritance information (implementation of, inherited from, overrides) */
+	override inheritance = (_reflection: DeclarationReflection | SignatureReflection, _headingLevel: number) => {
+		return ''
+	}
+
+	#getDefaultValue = (reflection: DeclarationReflection) => {
+		const defaultTag = reflection.comment?.blockTags?.find((tag) => tag.tag === '@default')
+		if (!defaultTag) return
+		let markdown = this.commentParts(defaultTag.content).trim().replace(/\r\n/g, '\n')
+		const codeBlockRegExp = /^```[a-zA-Z0-9-]*(?:\s+[^\n]*)?\n([\s\S]*?)\n```$/g
+		markdown = markdown.replace(codeBlockRegExp, (_, code: string) => {
+			return '``' + code + (code.endsWith('`') ? ' ' : '') + '``'
+		})
+		return markdown
+	}
+
+	/**
+	 * We don't output `@default` tags in our version
+	 */
+	#commentPartial(comment: Comment, headingLevel?: number, showSummary = true, showTags = true): string {
+		const md: string[] = []
+
+		if (showSummary && comment.summary?.length > 0) {
+			md.push(this.commentParts(comment.summary))
+		}
+
+		if (showTags && comment.blockTags?.length) {
+			const tags = comment.blockTags
+				.filter((tag) => tag.tag !== '@returns' && tag.tag !== '@default')
+				.map((tag) => {
+					const tagName = tag.tag.substring(1)
+					const tagText = camelToTitleCase(tagName)
+					const tagMd = [headingLevel ? heading(headingLevel, tagText) + '\n' : bold(tagText)]
+					tagMd.push(this.commentParts(tag.content))
+					return tagMd.join('\n')
+				})
+			md.push(tags.join('\n\n'))
+		}
+
+		return escapeAngleBrackets(md.join('\n\n'))
 	}
 
 	#isCustomBlockCommentTagType = (tag: string): tag is CustomBlockTagType => {

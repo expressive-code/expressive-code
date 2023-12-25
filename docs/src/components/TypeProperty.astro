@@ -1,0 +1,60 @@
+---
+let body = (await Astro.slots.render('default')).trim();
+let heading = '';
+let signature = '';
+body = body.replace(/^<(h[1-5]).*?>.*?<\/\1>/, (match) => {
+  heading = match;
+  return '';
+});
+body = body.replace(/^<blockquote>\s*<p>([\s\S]*?)<\/p>\s*<\/blockquote>/, (_, contents) => {
+  signature = contents;
+  return '';
+});
+const signatureParts = signature.split(/<br\s*\/?>\n*/);
+const extractSignaturePart = (name: string) => {
+	name = `${name}: `;
+	const idx = signatureParts.findIndex((part) => part.startsWith(name));
+	if (idx === -1) return;
+	const part = (signatureParts[idx] ?? '').replace(name, '').trim();
+	signatureParts.splice(idx, 1);
+	return part;
+};
+const propertyType = extractSignaturePart('Type')
+const defaultValue = extractSignaturePart('Default')
+---
+
+<style>
+	.property-signature {
+		display: grid;
+		grid-template-columns: max-content auto;
+		justify-items: start;
+		align-items: baseline;
+		grid-gap: 0.2rem 0.5rem;
+	}
+	.property-signature .name {
+		font-weight: bold;
+		grid-column: 1;
+	}
+	.property-signature .value {
+		grid-column: 2;
+		font-family: var(--__sl-font-mono);
+    font-size: var(--sl-text-code-sm);
+		background-color: rgba(128, 128, 128, 0.12);
+    padding: 0.125rem 0.375rem;
+	}
+</style>
+
+<Fragment set:html={heading} />
+
+<div class="property-signature not-content">
+	{propertyType && (
+		<span class="name">Type:</span>
+		<span class="value" set:html={propertyType} />
+	)}
+	{defaultValue && (
+		<span class="name">Default:</span>
+		<span class="value" set:html={defaultValue} />
+	)}
+</div>
+
+<Fragment set:html={body} />
