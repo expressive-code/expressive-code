@@ -95,7 +95,7 @@ If you are using [cascade layers](https://developer.mozilla.org/en-US/docs/Learn
 
 ### customizeTheme
 
-> Type: (theme) => void \| [ExpressiveCodeTheme](/api/expressive-code/core/classes/expressivecodetheme/)\
+> Type: (theme) => void \| [ExpressiveCodeTheme](/guides/themes/#expressivecodetheme-api)\
 > Default: `undefined`
 
 This optional function is called once per theme during engine initialization with the loaded theme as its only argument.
@@ -106,7 +106,7 @@ You can optionally return an `ExpressiveCodeTheme` instance from this function t
 
 #### Parameters
 
-- **theme**: [`ExpressiveCodeTheme`](/api/expressive-code/core/classes/expressivecodetheme/)
+- **theme**: [`ExpressiveCodeTheme`](/guides/themes/#expressivecodetheme-api)
 
 ### defaultLocale
 
@@ -171,7 +171,7 @@ See the [Style Overrides](/reference/style-overrides/) page for more details.
 
 ### ~~theme~~
 
-> Type: [ExpressiveCodeTheme](/api/expressive-code/core/classes/expressivecodetheme/)
+> Type: [ExpressiveCodeTheme](/guides/themes/#expressivecodetheme-api)
 
 :::caution[Deprecated]
 Efficient multi-theme support is now a core feature, so the `theme` option
@@ -212,7 +212,7 @@ If you want to prevent the generation of theme-specific CSS rules altogether, yo
 
 ### themes
 
-> Type: [ExpressiveCodeTheme](/api/expressive-code/core/classes/expressivecodetheme/)[]
+> Type: [ExpressiveCodeTheme](/guides/themes/#expressivecodetheme-api)[]
 
 The color themes that should be available for your code blocks.
 

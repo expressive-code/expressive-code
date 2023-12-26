@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config'
 import starlight from '@astrojs/starlight'
 import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
+import starlightLinksValidator from 'starlight-links-validator'
 
 // https://astro.build/config
 export default defineConfig({
@@ -77,6 +78,7 @@ export default defineConfig({
 			expressiveCode: {
 				plugins: [pluginCollapsibleSections()],
 			},
+			plugins: [starlightLinksValidator()],
 		}),
 	],
 })

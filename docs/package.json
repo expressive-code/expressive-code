@@ -26,11 +26,12 @@
     "mdast-util-to-markdown": "^2.1.0",
     "mdast-util-to-string": "^4.0.0",
     "sharp": "^0.32.5",
+    "starlight-links-validator": "^0.5.1",
     "tsm": "^2.3.0",
     "typedoc": "^0.25.4",
     "typedoc-plugin-markdown": "^4.0.0-next.21",
-    "typedoc-plugin-merge-modules": "^5.1.0",
     "typedoc-plugin-missing-exports": "^2.1.0",
+    "typedoc-plugin-rename-defaults": "^0.7.0",
     "unist-util-visit": "^4.1.2"
   },
   "devDependencies": {

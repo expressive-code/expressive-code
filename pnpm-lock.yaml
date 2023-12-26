@@ -92,6 +92,9 @@ importers:
       sharp:
         specifier: ^0.32.5
         version: 0.32.6
+      starlight-links-validator:
+        specifier: ^0.5.1
+        version: 0.5.1(@astrojs/starlight@0.15.1)(astro@4.0.7)
       tsm:
         specifier: ^2.3.0
         version: 2.3.0
@@ -101,12 +104,12 @@ importers:
       typedoc-plugin-markdown:
         specifier: ^4.0.0-next.21
         version: 4.0.0-next.38(typedoc@0.25.4)
-      typedoc-plugin-merge-modules:
-        specifier: ^5.1.0
-        version: 5.1.0(typedoc@0.25.4)
       typedoc-plugin-missing-exports:
         specifier: ^2.1.0
         version: 2.1.0(typedoc@0.25.4)
+      typedoc-plugin-rename-defaults:
+        specifier: ^0.7.0
+        version: 0.7.0(typedoc@0.25.4)
       unist-util-visit:
         specifier: ^4.1.2
         version: 4.1.2
@@ -3019,6 +3022,11 @@ packages:
   /camelcase@7.0.1:
     resolution: {integrity: sha512-xlx1yCK2Oc1APsPXDL2LdlNP6+uu8OCDdhOBSVT279M/S+y75O30C2VuD8T2ogdePBBl7PfPF4504tnLgX3zfw==}
     engines: {node: '>=14.16'}
+    dev: false
+
+  /camelcase@8.0.0:
+    resolution: {integrity: sha512-8WB3Jcas3swSvjIeA2yvCJ+Miyz5l1ZmB6HFb9R1317dt9LCQoswg/BGrmAmkWVEszSrrg4RwmO46qIm2OEnSA==}
+    engines: {node: '>=16'}
     dev: false
 
   /caniuse-lite@1.0.30001534:
@@ -8075,6 +8083,23 @@ packages:
     resolution: {integrity: sha512-1XMJE5fQo1jGH6Y/7ebnwPOBEkIEnT4QF32d5R1+VXdXveM0IBMJt8zfaxX1P3QhVwrYe+576+jkANtSS2mBbw==}
     dev: true
 
+  /starlight-links-validator@0.5.1(@astrojs/starlight@0.15.1)(astro@4.0.7):
+    resolution: {integrity: sha512-6iNl/bTTFN65T3fx1oMdspZltlYyonmrnno4dWjMzJuFHO79ZGKyzrtuMD59kiM9Y85eSy3MOpU1wuPoY28fMg==}
+    engines: {node: '>=18.14.1'}
+    peerDependencies:
+      '@astrojs/starlight': '>=0.15.0'
+      astro: '>=4.0.0'
+    dependencies:
+      '@astrojs/starlight': 0.15.1(astro@4.0.7)
+      astro: 4.0.7(typescript@5.2.2)
+      github-slugger: 2.0.0
+      hast-util-from-html: 2.0.1
+      hast-util-has-property: 3.0.0
+      kleur: 4.1.5
+      mdast-util-to-string: 4.0.0
+      unist-util-visit: 5.0.0
+    dev: false
+
   /std-env@3.4.3:
     resolution: {integrity: sha512-f9aPhy8fYBuMN+sNfakZV18U39PbalgjXG3lLB9WkaYTxijru61wb57V9wxxNthXM5Sd88ETBWi29qLAsHO52Q==}
     dev: true
@@ -8616,19 +8641,20 @@ packages:
       typedoc: 0.25.4(typescript@5.2.2)
     dev: false
 
-  /typedoc-plugin-merge-modules@5.1.0(typedoc@0.25.4):
-    resolution: {integrity: sha512-jXH27L/wlxFjErgBXleh3opVgjVTXFEuBo68Yfl18S9Oh/IqxK6NV94jlEJ9hl4TXc9Zm2l7Rfk41CEkcCyvFQ==}
+  /typedoc-plugin-missing-exports@2.1.0(typedoc@0.25.4):
+    resolution: {integrity: sha512-+1DhqZCEu7Vu5APnrqpPwl31D+hXpt1fV0Le9ycCRL1eLVdatdl6KVt4SEVwPxnEpKwgOn2dNX6I9+0F1aO2aA==}
     peerDependencies:
       typedoc: 0.24.x || 0.25.x
     dependencies:
       typedoc: 0.25.4(typescript@5.2.2)
     dev: false
 
-  /typedoc-plugin-missing-exports@2.1.0(typedoc@0.25.4):
-    resolution: {integrity: sha512-+1DhqZCEu7Vu5APnrqpPwl31D+hXpt1fV0Le9ycCRL1eLVdatdl6KVt4SEVwPxnEpKwgOn2dNX6I9+0F1aO2aA==}
+  /typedoc-plugin-rename-defaults@0.7.0(typedoc@0.25.4):
+    resolution: {integrity: sha512-NudSQ1o/XLHNF9c4y7LzIZxfE9ltz09yCDklBPJpP5VMRvuBpYGIbQ0ZgmPz+EIV8vPx9Z/OyKwzp4HT2vDtfg==}
     peerDependencies:
-      typedoc: 0.24.x || 0.25.x
+      typedoc: 0.22.x || 0.23.x || 0.24.x || 0.25.x
     dependencies:
+      camelcase: 8.0.0
       typedoc: 0.25.4(typescript@5.2.2)
     dev: false
 

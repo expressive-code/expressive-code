@@ -14,10 +14,9 @@ import {
 	type TypeDocOptions,
 } from 'typedoc'
 import type { PluginOptions as MarkdownPluginOptions } from 'typedoc-plugin-markdown'
-import type { Config as MergeModulesPluginOptions } from 'typedoc-plugin-merge-modules'
 import { StarlightTypeDocTheme } from './typedoc/starlight-theme'
 
-type PartialConfig = Partial<TypeDocOptions & MarkdownPluginOptions & MergeModulesPluginOptions>
+type PartialConfig = Partial<TypeDocOptions & MarkdownPluginOptions>
 
 const packages = [
 	'@expressive-code/core',
@@ -84,13 +83,13 @@ const typedocConfig: PartialConfig = {
 
 	theme: 'starlight-theme',
 
-	plugin: [/*'typedoc-plugin-missing-exports',*/ /*'typedoc-plugin-merge-modules',*/ 'typedoc-plugin-markdown'],
+	plugin: ['typedoc-plugin-rename-defaults', 'typedoc-plugin-markdown'],
 }
 
 async function generateTypeDoc() {
-	const baseOutputPath = path.resolve('.', 'scripts/dist')
 	const outputDirectory = 'api'
-	const outputPath = path.join(baseOutputPath, outputDirectory)
+	const docsOutputPath = path.resolve('./scripts/dist', outputDirectory)
+	const jsonOutputPath = path.resolve('./scripts/dist/api.json')
 
 	const app = await Application.bootstrapWithPlugins(typedocConfig)
 	//app.options.addReader(new TSConfigReader())
@@ -165,10 +164,10 @@ async function generateTypeDoc() {
 		throw new Error('Failed to generate TypeDoc documentation.')
 	}
 
-	await app.generateDocs(reflections, outputPath)
-	await app.generateJson(reflections, path.join(baseOutputPath, 'api.json'))
+	await app.generateDocs(reflections, docsOutputPath)
+	await app.generateJson(reflections, jsonOutputPath)
 
-	return { outputPath, reflections }
+	return { outputPath: docsOutputPath, reflections }
 }
 
 export function addFrontmatter(content: string, frontmatter: Record<string, boolean | string>) {
@@ -193,11 +192,18 @@ function onRendererPageEnd(event: PageEvent<DeclarationReflection>) {
 	// Remove sections containing inheritance information
 	event.contents = event.contents.replace(/##+ (Implements)\n\n([^\n]+\n)+\n/g, '')
 
+	// Auto-import known components
+	if (event.contents.includes('<TypeProperties>')) {
+		event.contents = `import TypeProperties from '@components/TypeProperties.astro'\n\n${event.contents}`
+	}
+
 	event.contents = addFrontmatter(event.contents, {
 		editUrl: false,
 		// Wrap in quotes to prevent issue with special characters in frontmatter
 		title: `"${event.model.name}"`,
 	})
+
+	event.filename = event.filename.replace(/\.md$/, '.mdx')
 }
 
 await generateTypeDoc()
