@@ -1,0 +1,161 @@
+---
+title: Core API
+---
+
+## Engine
+
+````yml include
+file: "@expressive-code/core/classes/ExpressiveCodeEngine.mdx"
+headingLevel: 3
+editSections:
+- path: "ExpressiveCodeEngine/Properties"
+  replaceWith: |
+    All config options that can be passed to the constructor are also available
+    on the instance as read-only properties.
+````
+
+## Code blocks
+
+````yml include
+file: "@expressive-code/core/classes/ExpressiveCodeBlock.mdx"
+headingLevel: 3
+editSections:
+- path: "ExpressiveCodeBlock"
+  append: |
+    #### Usage example
+
+    ```js
+    // codeBlockExample.js
+    import { ExpressiveCodeBlock } from 'expressive-code'
+
+    const codePlaintext = `
+    // Perform very important calculations
+    const a = 1 + 2
+    `
+
+    const codeBlock = new ExpressiveCodeBlock({
+      code: codePlaintext.trim(),
+      language: 'js',
+    })
+
+    // Delete the first line and output the remaining code
+    codeBlock.deleteLine(0)
+    console.dir(codeBlock.code)
+    // --> 'const a = 1 + 2'
+    ```
+- path: "ExpressiveCodeBlock/Constructors/new ExpressiveCodeBlock(options)"
+  append: |
+    :::note
+    You usually don't need to create code blocks manually. Instead, you can pass
+    `ExpressiveCodeBlockOptions` to the `render` method of the `ExpressiveCodeEngine` class,
+    and the engine will create the code blocks for you.
+
+    Manually creating code blocks may still be useful in some cases, e.g. to allow
+    integration authors to attach custom annotations to code blocks before passing them
+    to the engine, or to attach custom data to a code block.
+    :::
+````
+
+````yml include
+file: "@expressive-code/core/interfaces/ExpressiveCodeBlockOptions.mdx"
+headingLevel: 3
+````
+
+````yml include
+file: "@expressive-code/core/classes/ExpressiveCodeLine.mdx"
+headingLevel: 3
+````
+
+## Themes
+
+````yml include
+file: "@expressive-code/core/classes/ExpressiveCodeTheme.mdx"
+headingLevel: 3
+editSections:
+- path: "ExpressiveCodeTheme/Properties/styleOverrides"
+  replaceWith: |
+    An optional set of style overrides that can be used to customize the appearance
+    of the rendered code blocks without having to write custom CSS.
+    
+    See [Overriding Styles](/reference/style-overrides) for a list of all available settings.
+replacements:
+- search: '\[`VSCodeThemeType`\]\(.*?\)'
+  replace: '`"dark"` \| `"light"`'
+- search: '\[`VSCodeWorkbenchColors`\]\(.*?\)'
+  replace: '`Object` (mapping VS Code workbench color keys to values)'
+````
+
+## Annotations
+
+In Expressive Code, annotations are used by plugins to attach semantic information to lines or inline ranges of code. They are used to represent things like syntax highlighting, text markers, comments, errors, warnings, and other semantic information.
+
+Annotations must provide a `render` function that transforms its contained AST nodes, e.g. by wrapping them in HTML tags. This function is called by the engine when it's time to render the line the annotation has been attached to.
+
+````yml include
+file: "@expressive-code/core/classes/ExpressiveCodeAnnotation.mdx"
+headingLevel: 3
+editSections:
+- path: "ExpressiveCodeAnnotation/Constructors"
+  replaceWith: |
+    :::note
+    As an abstract class, `ExpressiveCodeAnnotation` cannot be instantiated directly.
+    You should create a subclass that extends `ExpressiveCodeAnnotation` instead.
+    :::
+````
+
+````yml include
+file: "@expressive-code/core/classes/InlineStyleAnnotation.mdx"
+headingLevel: 3
+````
+
+## Referenced types
+
+````yml include
+file: "@expressive-code/core/type-aliases/AnnotationBaseOptions.mdx"
+headingLevel: 3
+````
+
+````yml include
+file: "@expressive-code/core/type-aliases/AnnotationRenderOptions.mdx"
+headingLevel: 3
+````
+
+````yml include
+file: "@expressive-code/core/type-aliases/AnnotationRenderPhase.mdx"
+headingLevel: 3
+````
+
+````yml include
+file: "@expressive-code/core/type-aliases/ChromaticRecolorTarget.mdx"
+headingLevel: 3
+````
+
+````yml include
+file: "@expressive-code/core/type-aliases/ExpressiveCodeInlineRange.mdx"
+headingLevel: 3
+````
+
+````yml include
+file: "expressive-code/-internal-/interfaces/ExpressiveCodeProcessingState.mdx"
+headingLevel: 3
+````
+
+````yml include
+file: "@expressive-code/core/type-aliases/InlineStyleAnnotationOptions.mdx"
+headingLevel: 3
+````
+
+````yml include
+file: "expressive-code/-internal-/type-aliases/RenderInput.mdx"
+headingLevel: 3
+````
+
+````yml include
+file: "expressive-code/-internal-/interfaces/RenderOptions.mdx"
+headingLevel: 3
+````
+
+````yml include
+file: "@expressive-code/core/type-aliases/ThemeSetting.mdx"
+headingLevel: 3
+````

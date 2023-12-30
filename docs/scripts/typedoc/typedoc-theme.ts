@@ -157,21 +157,15 @@ class StarlightTypeDocThemeRenderContext extends MarkdownThemeRenderContext {
 				?.filter((category) => !category.allChildrenHaveOwnDocument())
 				.forEach((item) => {
 					md.push(heading(headingLevel, item.title))
-					pushChildren(item.title, item.children, headingLevel + 1)
+					pushChildren(item.children, headingLevel + 1)
 				})
 		}
 
-		const pushChildren = (parentHeading: string, children?: DeclarationReflection[], memberHeadingLevel?: number) => {
+		const pushChildren = (children?: DeclarationReflection[], memberHeadingLevel?: number) => {
 			const items = children?.filter((item) => !item.hasOwnDocument)
-			if (parentHeading === 'Properties') {
-				md.push('<TypeProperties>')
-			}
 			items?.forEach((item) => {
 				md.push(this.member(item, memberHeadingLevel || headingLevel))
 			})
-			if (parentHeading === 'Properties') {
-				md.push('</TypeProperties>')
-			}
 		}
 
 		if (container.categories?.length) {
@@ -181,7 +175,7 @@ class StarlightTypeDocThemeRenderContext extends MarkdownThemeRenderContext {
 				if (container.categories?.length) {
 					pushCategories(container.categories, headingLevel)
 				} else {
-					pushChildren('', container.children, headingLevel)
+					pushChildren(container.children, headingLevel)
 				}
 			} else {
 				const groupsWithChildren = container.groups?.filter((group) => !group.allChildrenHaveOwnDocument())
@@ -201,7 +195,7 @@ class StarlightTypeDocThemeRenderContext extends MarkdownThemeRenderContext {
 						} else if (isEnumGroup && this.options.getValue('enumMembersFormat') === 'table') {
 							md.push(this.enumMembersTable(group.children))
 						} else {
-							pushChildren(group.title, group.children, headingLevel + 1)
+							pushChildren(group.children, headingLevel + 1)
 						}
 					}
 				})
@@ -218,7 +212,7 @@ class StarlightTypeDocThemeRenderContext extends MarkdownThemeRenderContext {
 		markdown = markdown.replace(/##+ (Implements)\n\n([^\n]+\n)+\n/g, '')
 
 		// Remove trailing question marks from headings
-		markdown = markdown.replace(/(?<=^#.*)\?$/gm, '')
+		//markdown = markdown.replace(/(?<=^#.*)\?$/gm, '')
 
 		return typeWrapper(`member(${ReflectionKind.singularString(member.kind)})`, markdown)
 	}
@@ -267,11 +261,11 @@ class StarlightTypeDocThemeRenderContext extends MarkdownThemeRenderContext {
 				md.push(this.typeDeclarationTable(typeDeclaration.children))
 			} else {
 				const declarations = flattenDeclarations(typeDeclaration.children)
-				md.push('<TypeProperties>')
+				// md.push('<TypeProperties>')
 				declarations.forEach((declaration: DeclarationReflection) => {
 					md.push(this.member(declaration, headingLevel + 1, true))
 				})
-				md.push('</TypeProperties>')
+				// md.push('</TypeProperties>')
 			}
 		}
 		return typeWrapper(`typeDeclarationMember`, md.join('\n\n'))
@@ -307,11 +301,12 @@ class StarlightTypeDocThemeRenderContext extends MarkdownThemeRenderContext {
 	 */
 	override signatureMemberReturns = (signature: SignatureReflection, headingLevel: number) => {
 		let markdown = signatureMemberReturnsPartial(this, signature, headingLevel)
-		const typeDeclaration = (signature.type as { declaration?: DeclarationReflection | undefined })?.declaration
-		const isObjectReturnValue = typeDeclaration?.children
-		if (!isObjectReturnValue) {
+		// Remove return value sections that do not contain type definitions
+		if (markdown.split('\n').filter((line) => line.trim().length).length <= 2) {
 			markdown = ''
 		}
+		// Remove topmost blockquotes from the return value section
+		markdown = markdown.replace(/^>( |$)/gm, '')
 		return typeWrapper('signatureMemberReturns', markdown)
 	}
 
@@ -429,7 +424,7 @@ class StarlightTypeDocThemeRenderContext extends MarkdownThemeRenderContext {
 		// }
 
 		const result = md.join('')
-		return `> Type: ${result}`
+		return `- Type: ${result}`
 		// return useCodeBlocks ? codeBlock(result) : `> ${result}`;
 	}
 

@@ -3,8 +3,21 @@ import { isNumber, isString, newTypeError } from '../internal/type-checks'
 import { ExpressiveCodeLine } from './line'
 
 export interface ExpressiveCodeBlockOptions {
+	/**
+	 * The plaintext contents of the code block.
+	 */
 	code: string
+	/**
+	 * The code block’s language.
+	 *
+	 * Please use one of the [language identifiers](https://github.com/antfu/textmate-grammars-themes/blob/main/packages/tm-grammars/README.md)
+	 * supported by Shikiji to ensure proper syntax highlighting.
+	 */
 	language: string
+	/**
+	 * An optional meta string. In markdown or MDX documents, this is the part of the
+	 * code block's opening fence that comes after the language name.
+	 */
 	meta?: string | undefined
 	/**
 	 * The code block's locale (e.g. `en-US` or `de-DE`). This is used by plugins to display
@@ -52,6 +65,9 @@ export interface ExpressiveCodeBlockOptions {
 		| undefined
 }
 
+/**
+ * Represents a single code block that can be rendered by the Expressive Code engine.
+ */
 export class ExpressiveCodeBlock {
 	constructor(options: ExpressiveCodeBlockOptions) {
 		const { code, language, meta = '', locale, parentDocument } = options
@@ -87,6 +103,9 @@ export class ExpressiveCodeBlock {
 	#parentDocument: ExpressiveCodeBlockOptions['parentDocument']
 	#state: ExpressiveCodeProcessingState | undefined
 
+	/**
+	 * Provides read-only access to the code block’s plaintext contents.
+	 */
 	get code() {
 		return this.#lines.map((line) => line.text).join('\n')
 	}
@@ -95,6 +114,11 @@ export class ExpressiveCodeBlock {
 		return this.#language
 	}
 
+	/**
+	 * Allows getting and setting the code block’s language.
+	 *
+	 * Setting this property may throw an error if not allowed in the current {@link state}.
+	 */
 	set language(value: string) {
 		if (this.#state?.canEditMetadata === false) throw new Error('Cannot edit code block property "language" in the current state.')
 		this.#language = value
@@ -104,19 +128,49 @@ export class ExpressiveCodeBlock {
 		return this.#meta
 	}
 
+	/**
+	 * Allows getting or setting the code block’s meta string. In markdown or MDX documents,
+	 * this is the part of the code block’s opening fence that comes after the language name.
+	 *
+	 * Setting this property may throw an error if not allowed in the current {@link state}.
+	 */
 	set meta(value: string) {
 		if (this.#state?.canEditMetadata === false) throw new Error('Cannot edit code block property "meta" in the current state.')
 		this.#meta = value
 	}
 
+	/**
+	 * Allows getting the code block's locale (e.g. `en-US` or `de-DE`). It is used by plugins
+	 * to display localized strings depending on the language of the containing page.
+	 *
+	 * Integrations like `remark-expressive-code` support multi-language sites by allowing you
+	 * to provide custom logic to determine a block's locale (e.g. based on its parent document).
+	 *
+	 * If no locale is defined here, `ExpressiveCodeEngine` will render the code block
+	 * using the `defaultLocale` provided in its configuration.
+	 */
 	get locale() {
 		return this.#locale
 	}
 
+	/**
+	 * Provides read-only access to optional data about the parent document
+	 * the code block is located in.
+	 *
+	 * Integrations like `remark-expressive-code` can provide this information based on
+	 * the source document being processed. There may be cases where no document is available,
+	 * e.g. when the code block was created dynamically.
+	 */
 	get parentDocument() {
 		return this.#parentDocument
 	}
 
+	/**
+	 * Provides read-only access to the code block’s processing state.
+	 *
+	 * The processing state controls which properties of the code block can be modified.
+	 * The engine updates it automatically during rendering.
+	 */
 	get state() {
 		if (this.#state) {
 			const result: ExpressiveCodeProcessingState = { ...this.#state }
@@ -124,6 +178,10 @@ export class ExpressiveCodeBlock {
 			return result
 		}
 	}
+
+	/**
+	 * @internal
+	 */
 	set state(value) {
 		validateExpressiveCodeProcessingState(value)
 		if (this.#state) {
@@ -133,19 +191,40 @@ export class ExpressiveCodeBlock {
 		this.#state = value
 	}
 
+	/**
+	 * Returns the line at the given index, or `undefined` if the index is out of range.
+	 */
 	getLine(index: number): ExpressiveCodeLine | undefined {
 		if (!isNumber(index) || index < 0) throw new Error('Line index must be a non-negative number.')
 		return this.getLines(index, index + 1)[0]
 	}
 
+	/**
+	 * Returns a readonly array of lines starting at the given index and ending before
+	 * the given index (exclusive). The indices support the same syntax as JavaScript’s
+	 * `Array.slice` method.
+	 */
 	getLines(startIndex?: number, endIndex?: number) {
 		return Object.freeze(this.#lines.slice(startIndex, endIndex))
 	}
 
+	/**
+	 * Deletes the line at the given index.
+	 *
+	 * May throw an error if not allowed in the current {@link state}.
+	 */
 	deleteLine(index: number) {
 		this.deleteLines([index])
 	}
 
+	/**
+	 * Deletes the lines at the given indices.
+	 *
+	 * This function automatically sorts the indices in descending order before deleting the lines,
+	 * so you do not need to worry about indices shifting after deleting a line.
+	 *
+	 * May throw an error if not allowed in the current {@link state}.
+	 */
 	deleteLines(indices: number[]) {
 		// Validate arguments
 		if (!Array.isArray(indices) || indices.length === 0 || indices.some((index) => !isNumber(index) || index < 0)) throw newTypeError('non-empty non-negative number[]', indices)
@@ -164,10 +243,20 @@ export class ExpressiveCodeBlock {
 		})
 	}
 
+	/**
+	 * Inserts a new line at the given index.
+	 *
+	 * May throw an error if not allowed in the current {@link state}.
+	 */
 	insertLine(index: number, textLine: string) {
 		return this.insertLines(index, [textLine])[0]
 	}
 
+	/**
+	 * Inserts multiple new lines at the given index.
+	 *
+	 * May throw an error if not allowed in the current {@link state}.
+	 */
 	insertLines(index: number, textLines: string[]) {
 		// Validate arguments
 		if (!isNumber(index) || index < 0) throw newTypeError('non-negative number', index)

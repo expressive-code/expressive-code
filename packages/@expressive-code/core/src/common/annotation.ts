@@ -27,6 +27,13 @@ export function annotationSortFn(a: ExpressiveCodeAnnotation, b: ExpressiveCodeA
 
 export type AnnotationBaseOptions = { inlineRange?: ExpressiveCodeInlineRange | undefined; renderPhase?: AnnotationRenderPhase | undefined }
 
+/**
+ * An abstract class representing a single annotation attached to a code line.
+ *
+ * You can develop your own annotations by extending this class and providing
+ * implementations for its abstract methods. See the implementation of the
+ * {@link InlineStyleAnnotation} class for an example.
+ */
 export abstract class ExpressiveCodeAnnotation {
 	constructor({ inlineRange, renderPhase }: AnnotationBaseOptions) {
 		if (inlineRange) validateExpressiveCodeInlineRange(inlineRange)
@@ -77,9 +84,23 @@ export type InlineStyleAnnotationOptions = AnnotationBaseOptions & {
 	 * the annotation applies to.
 	 */
 	styleVariantIndex: number
+	/**
+	 * The color of the annotation. This is expected to be a hex color string, e.g. `#888`.
+	 * Using CSS variables or other color formats is possible, but prevents automatic
+	 * color contrast checks from working.
+	 */
 	color?: string | undefined
+	/**
+	 * Whether the annotation should be rendered in italics.
+	 */
 	italic?: boolean | undefined
+	/**
+	 * Whether the annotation should be rendered in bold.
+	 */
 	bold?: boolean | undefined
+	/**
+	 * Whether the annotation should be rendered with an underline.
+	 */
 	underline?: boolean | undefined
 }
 

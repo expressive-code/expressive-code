@@ -1,0 +1,61 @@
+---
+title: Plugin API
+---
+
+````yml include
+file: "@expressive-code/core/interfaces/ExpressiveCodePlugin.mdx"
+headingLevel: 2
+````
+
+````yml include
+file: "@expressive-code/core/classes/AttachedPluginData.mdx"
+headingLevel: 2
+editSections:
+- path: "AttachedPluginData"
+  append: |
+    ### Usage example
+
+    ```ts
+    // pluginDataExample.ts
+    import { AttachedPluginData, ExpressiveCodePlugin } from '@expressive-code/core'
+
+    export function pluginDataExample(): ExpressiveCodePlugin {
+      return {
+        name: 'AttachedPluginDataExample',
+        hooks: {
+          preprocessMetadata: ({ codeBlock }) => {
+            // Get a reference to the block's data object
+            const blockData = pluginFramesData.getOrCreateFor(codeBlock)
+
+            // Example: Store the meta string in the data object
+            // and remove it from the block
+            blockData.extractedMeta = codeBlock.meta
+            codeBlock.meta = ''
+          },
+          postprocessRenderedBlock: ({ codeBlock }) => {
+            // Try to retrieve the stored title from the block's data object
+            const blockData = pluginFramesData.getOrCreateFor(codeBlock)
+
+            // Log the extracted data
+            console.dir(blockData)
+          },
+        },
+      }
+    }
+
+    // Define the data object type
+    export interface PluginFramesData {
+      extractedMeta?: string
+    }
+
+    // Create a singleton instance that allows attaching this type of data
+    // to any object and to retrieve it later.
+    // Note: Exporting is optional. This can be useful if multiple plugins
+    //       need to work together.
+    export const pluginFramesData = new AttachedPluginData<PluginFramesData>(
+      // This function initializes the attached data
+      // in case nothing was attached to an object yet
+      () => ({})
+    )
+    ```
+````

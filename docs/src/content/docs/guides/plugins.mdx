@@ -1,0 +1,66 @@
+---
+title: Plugin Development
+---
+
+In Expressive Code, all processing of your code blocks and their metadata is performed by plugins and annotations. To render markup around lines or inline ranges of characters, plugins create annotations and attach them to the target lines.
+
+### Using plugins
+
+To add a plugin to your Expressive Code configuration, import its initialization function and call it inside the `plugins` array passed to the [ExpressiveCodeEngine constructor](#expressivecodeengine-constructor).
+
+If the plugin has any configuration options, you can pass them to the initialization function as an object containing your desired property values.
+
+**Example**:
+
+```js
+import { ExpressiveCodeEngine } from '@expressive-code/core'
+// Import the frames plugin
+import { pluginFrames } from '@expressive-code/plugin-frames'
+
+const engine = new ExpressiveCodeEngine({
+  plugins: [
+    // Add the plugin to the engine configuration
+    pluginFrames({
+      // Set the plugin's options (if any)
+      extractFileNameFromCode: false,
+    }),
+  ],
+})
+```
+
+### Writing your own plugins
+
+To write a new plugin, you need to create a **plugin initialization function** that returns an object matching the interface [`ExpressiveCodePlugin`](#expressivecodeplugin).
+
+```js
+// my-example-plugin.js
+export function pluginExample() {
+  return {
+    name: 'Example',
+    hooks: {
+      // Add your hooks here
+    },
+  }
+}
+```
+
+If your plugin has any configuration options, you can add a single `options` argument to your initialization function. This argument must be an object type containing the desired configuration properties.
+
+> **Note**:
+> Please use sensible default values for all options wherever possible, so that users ideally do not need to pass any options for your plugin to work.
+
+### Automatic CSS style scoping
+
+Plugins can add CSS styles to a document in multiple ways:
+
+- By providing a [`styleSettings`](#stylesettings-pluginstylesettings) property in the plugin object returned by the plugin's initialization function, which will be used to generate CSS variables automatically.
+- By providing a [`baseStyles`](#basestyles-string--basestylesresolverfn) property in the plugin object returned by the plugin's initialization function.
+- By calling the [`addStyles`](#addstyles-css-string--void) function provided to hooks by the engine.
+
+All provided styles will be **scoped by default** to Expressive Code, so they will not affect the rest of the page. This means that you can define styles like `font-weight: 800`, or `del { text-decoration: line-through }`, and they will only apply to code blocks. SASS-like nesting is also supported.
+
+If you explicitly want to add **global styles**, you can use the `@at-root` rule or target `:root`, `html` or `body` in your selectors. Please be careful with global styles, as users may not expect your plugin to contain a style like `body { color: red }` that changes the look of the entire page.
+
+### Accessing theme and style settings from plugins
+
+If you need to access theme-dependent data like CSS variables to generate your plugin's base styles, you can set `baseStyles` to a function instead of a string. This function will then be called by the engine with a single object argument with the properties `{ cssVar: (styleSetting: StyleSettingPath, fallbackValue?: string) => string; cssVarName: (styleSetting: StyleSettingPath) => string; styleVariants: StyleVariant[] }`, which you can then use to generate your styles.

@@ -56,6 +56,20 @@ export default defineConfig({
 					],
 				},
 				{
+					label: 'Customization',
+					items: [
+						{
+							label: 'Overriding Styles',
+							link: '/reference/style-overrides/',
+						},
+						{
+							label: 'Developing Plugins',
+							link: '/guides/plugins/',
+							badge: 'TODO',
+						},
+					],
+				},
+				{
 					label: 'Reference',
 					items: [
 						{
@@ -63,12 +77,18 @@ export default defineConfig({
 							link: '/reference/configuration/',
 						},
 						{
-							label: 'Style Overrides',
-							link: '/reference/style-overrides/',
+							label: 'Core API',
+							link: '/reference/core-api/',
+							badge: 'TODO',
 						},
 						{
-							label: 'Plugin Reference',
-							link: '/reference/plugins/',
+							label: 'Plugin API',
+							link: '/reference/plugin-api/',
+							badge: 'TODO',
+						},
+						{
+							label: 'Plugin Hooks',
+							link: '/reference/plugin-hooks/',
 							badge: 'TODO',
 						},
 						{ label: 'Release Notes', link: '/releases/' },

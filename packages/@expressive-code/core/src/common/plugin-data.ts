@@ -3,6 +3,10 @@ import { ExpressiveCodeBlock } from './block'
 
 export type PluginDataTarget = ExpressiveCodeBlock | GroupContents | RenderedGroupContents
 
+/**
+ * A class that allows plugins to attach custom data to objects like code blocks,
+ * and to optionally allow external access to this data in a type-safe manner.
+ */
 export class AttachedPluginData<PluginDataType> {
 	private readonly dataStorage = new WeakMap<object, PluginDataType>()
 	private readonly getInitialValueFn: () => PluginDataType
