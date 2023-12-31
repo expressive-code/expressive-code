@@ -1,15 +1,18 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import { globSync } from 'glob'
 import { parse } from 'yaml'
 
 type IncludeDirective = {
-	file: string
+	name: string
 	headingLevel: number
+	removeSections?: string[] | undefined
 	editSections?:
 		| {
 				path: string
 				// Possible edits
 				replaceWith?: string | undefined
+				replaceHeading?: string | undefined
 				append?: string | undefined
 		  }[]
 		| undefined
@@ -21,8 +24,9 @@ export function processTemplate({ apiDocsPath, templateFilePath, outputFilePath 
 	let markdown = fs.readFileSync(templateFilePath, 'utf8')
 	markdown = markdown.replace(/````ya?ml include\n([\s\S]+?)\n````/g, (_, yaml: string) => {
 		const directive = parse(yaml) as IncludeDirective
-		if (!directive.file || !(directive.headingLevel > 1)) throw new Error(`Invalid template directive: ${yaml}`)
-		const lines = fs.readFileSync(path.join(apiDocsPath, directive.file), 'utf8').split(/\r?\n/)
+		if (!directive.name || !(directive.headingLevel > 1)) throw new Error(`Invalid include directive: ${yaml}`)
+		const filePath = findApiDocsFile(apiDocsPath, directive.name)
+		const lines = fs.readFileSync(filePath, 'utf8').split(/\r?\n/)
 		// Change heading levels to match the template
 		let headings = collectHeadings(lines)
 		if (headings.length) {
@@ -33,22 +37,52 @@ export function processTemplate({ apiDocsPath, templateFilePath, outputFilePath 
 			})
 		}
 
+		directive.removeSections?.forEach((path) => {
+			const pathRegExp = new RegExp(path)
+			let headingIdx: number
+			let matches = 0
+			while ((headingIdx = headings.findIndex((h) => h.textPath.match(pathRegExp))) !== -1) {
+				matches++
+				const heading = headings[headingIdx]!
+				// Find the end line index of the section
+				const nextSectionHeading = headings.slice(headingIdx + 1).find((h) => h.level <= heading.level)
+				const sectionEndLineIdx = (nextSectionHeading?.lineIdx ?? lines.length) - 1
+				// Remove the section
+				lines.splice(heading.lineIdx, sectionEndLineIdx - heading.lineIdx + 1)
+				// Update the headings
+				headings = collectHeadings(lines)
+			}
+			if (!matches) throw new Error(`No headings found for removeSections path "${path}". Available paths: ${headings.map((h) => `"${h.textPath}"`).join(', ')}`)
+		})
+
 		directive.editSections?.forEach((edit) => {
 			const headingIdx = headings.findIndex((h) => h.textPath === edit.path)
 			const heading = headings[headingIdx]
 			if (!heading)
 				throw new Error(
-					`No headings found for path "${edit.path}". Possible matches: ${headings
+					`No headings found for editSections path "${edit.path}". Possible matches: ${headings
 						.filter((h) => h.textPath.endsWith(edit.path))
 						.map((h) => `"${h.textPath}"`)
 						.join(', ')}?`
 				)
-			if (edit.replaceWith) {
+			if (edit.replaceWith !== undefined) {
 				// Find the end line index of the section
 				const nextSectionHeading = headings.slice(headingIdx + 1).find((h) => h.level <= heading.level)
 				const sectionEndLineIdx = (nextSectionHeading?.lineIdx ?? lines.length) - 1
-				// Replace the section contents
-				lines.splice(heading.lineIdx + 1, sectionEndLineIdx - heading.lineIdx, '', ...edit.replaceWith.split(/\r?\n/))
+				if (edit.replaceWith.length) {
+					// Replace the section contents
+					lines.splice(heading.lineIdx + 1, sectionEndLineIdx - heading.lineIdx, '', ...edit.replaceWith.split(/\r?\n/))
+				} else {
+					// Remove the section
+					lines.splice(heading.lineIdx, sectionEndLineIdx - heading.lineIdx + 1)
+				}
+				// Update the headings
+				headings = collectHeadings(lines)
+				return
+			}
+			if (edit.replaceHeading) {
+				// Replace the heading
+				lines[heading.lineIdx] = '#'.repeat(heading.level) + ' ' + edit.replaceHeading
 				// Update the headings
 				headings = collectHeadings(lines)
 				return
@@ -110,9 +144,9 @@ function collectHeadings(lines: string[]) {
 	}
 	headings.forEach((heading) => {
 		let parentHeading = findParentHeading(heading)
-		let textPath = heading.text
+		let textPath = heading !== headings[0] ? heading.text : ''
 		while (parentHeading) {
-			textPath = parentHeading.text + '/' + textPath
+			if (parentHeading !== headings[0]) textPath = parentHeading.text + '/' + textPath
 			parentHeading = findParentHeading(parentHeading)
 		}
 		heading.textPath = textPath
@@ -121,5 +155,19 @@ function collectHeadings(lines: string[]) {
 }
 
 function addAfterEndOfFrontmatter(markdown: string, addition: string) {
-	return markdown.replace(/^(---\n[\s\S]+?\n---\n)/, `$1${addition}`)
+	return markdown.replace(/^(---\n[\s\S]+?\n---\n\n?)/, `$1${addition}\n`)
+}
+
+let apiDocsIndex: string[]
+
+function findApiDocsFile(apiDocsPath: string, name: string) {
+	if (!apiDocsIndex) {
+		apiDocsIndex = globSync(`**/*.mdx`, {
+			cwd: apiDocsPath,
+		})
+	}
+	const matches = apiDocsIndex.filter((n) => n.endsWith(`/${name}.mdx`))
+	if (matches.length === 0) throw new Error(`No API docs file found for "${name}"`)
+	if (matches.length > 1) throw new Error(`Multiple API docs files found for "${name}": ${matches.join(', ')}`)
+	return path.join(apiDocsPath, matches[0]!)
 }

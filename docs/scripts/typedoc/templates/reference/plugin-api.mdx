@@ -3,15 +3,20 @@ title: Plugin API
 ---
 
 ````yml include
-file: "@expressive-code/core/interfaces/ExpressiveCodePlugin.mdx"
+name: "ExpressiveCodePlugin"
 headingLevel: 2
 ````
 
 ````yml include
-file: "@expressive-code/core/classes/AttachedPluginData.mdx"
+name: "PluginStyleSettings"
+headingLevel: 2
+````
+
+````yml include
+name: "AttachedPluginData"
 headingLevel: 2
 editSections:
-- path: "AttachedPluginData"
+- path: ""
   append: |
     ### Usage example
 
@@ -58,4 +63,74 @@ editSections:
       () => ({})
     )
     ```
+````
+
+## Referenced types
+
+````yml include
+name: "BaseStylesResolverFn"
+headingLevel: 3
+editSections:
+- path: ""
+  append: |
+    A function that you can assign to the [`baseStyles`](#basestyles) property of an
+    [`ExpressiveCodePlugin`](#expressivecodeplugin).
+
+    The engine will call it when going through all registered plugins and collecting
+    their base styles.
+
+    :::tip
+    You can use this to include CSS variables generated from any style settings,
+    including your own [`PluginStyleSettings`](#pluginstylesettings), into your
+    plugin's base styles.
+    
+    The function will be called with a `context` argument of type
+    [`ResolverContext`](#resolvercontext) that provides helpful functions like
+    `cssVar` to access any generated CSS variable by its style setting path.
+    :::
+````
+
+````yml include
+name: "ResolverContext"
+headingLevel: 3
+````
+
+````yml include
+name: "ResolvedStyleSettingsByPath"
+headingLevel: 3
+````
+
+````yml include
+name: "StyleResolverFn"
+headingLevel: 3
+````
+
+````yml include
+name: "StyleSettingPath"
+headingLevel: 3
+````
+
+````yml include
+name: "StyleValueOrValues"
+headingLevel: 3
+````
+
+````yml include
+name: "StyleVariant"
+headingLevel: 3
+````
+
+````yml include
+name: "UnresolvedPluginStyleSettings"
+headingLevel: 3
+````
+
+````yml include
+name: "UnresolvedStyleValue"
+headingLevel: 3
+````
+
+````yml include
+name: "UnresolvedStyleSettings"
+headingLevel: 3
 ````

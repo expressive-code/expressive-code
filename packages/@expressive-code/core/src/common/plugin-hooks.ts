@@ -39,29 +39,114 @@ export interface ExpressiveCodeHookContext extends ResolverContext {
 	addStyles: (css: string) => void
 }
 
+/**
+ * A context object that the engine passes to the `postprocessRenderedLine` hook function.
+ *
+ * In addition to the properties made available by {@link ExpressiveCodeHookContext},
+ * it provides access to information about the line currently being rendered,
+ * and allows modifying the rendered output.
+ */
 export interface PostprocessRenderedLineContext extends ExpressiveCodeHookContext {
+	/**
+	 * A reference to the line that is currently being rendered. It is read-only at this point,
+	 * but you can access all line properties, including its source code and annotations.
+	 */
 	line: ExpressiveCodeLine
+	/**
+	 * The 0-based index of the line inside the code block.
+	 */
 	lineIndex: number
+	/**
+	 * Allows modifying the line's rendered output. The `lineAst` property of this object contains
+	 * the [Hypertext Abstract Syntax Tree (HAST)](https://github.com/syntax-tree/hast) node
+	 * representing the rendered line.
+	 *
+	 * You have full control over the `lineAst` property to modify the rendered output.
+	 * For example, you could add a class name to the line's root element, or you could wrap
+	 * the entire line in a custom element.
+	 *
+	 * There is a wide range of existing utility packages that you can use to manipulate
+	 * HAST elements. For more information, see the
+	 * [list of utilities](https://github.com/syntax-tree/hast#list-of-utilities) in the
+	 * HAST documentation.
+	 */
 	renderData: {
 		lineAst: Element
 	}
 }
 
+/**
+ * A context object that the engine passes to the `postprocessRenderedBlock` hook function.
+ *
+ * In addition to the properties made available by {@link ExpressiveCodeHookContext},
+ * it provides access to render data of the code block currently being rendered,
+ * and allows modifying the rendered output.
+ */
 export interface PostprocessRenderedBlockContext extends ExpressiveCodeHookContext {
+	/**
+	 * Allows modifying the block's rendered output. The `blockAst` property of this object contains
+	 * the [Hypertext Abstract Syntax Tree (HAST)](https://github.com/syntax-tree/hast) node
+	 * representing the rendered block.
+	 *
+	 * You have full control over the `blockAst` property to modify the rendered output.
+	 * For example, you could add a class name to the block’s root element,
+	 * wrap the entire block in a custom element, or traverse its children
+	 * to find specific elements and modify them.
+	 *
+	 * There is a wide range of existing utility packages that you can use to manipulate
+	 * HAST elements. For more information, see the
+	 * [list of utilities](https://github.com/syntax-tree/hast#list-of-utilities) in the
+	 * HAST documentation.
+	 */
 	renderData: {
 		blockAst: Element
 	}
 }
 
+/**
+ * A context object that the engine passes to the `postprocessRenderedBlockGroup` hook function.
+ *
+ * It provides access to information about the code block group currently being rendered,
+ * and allows modifying the rendered output.
+ */
 export interface PostprocessRenderedBlockGroupContext {
+	/**
+	 * An array of objects, each containing a reference to the code block,
+	 * and its rendered HAST output. This is the same HAST element per block that is also available
+	 * in the `renderData` property of the `postprocessRenderedBlock` hook context.
+	 */
 	renderedGroupContents: RenderedGroupContents
+	/**
+	 * A list of styles that plugins added to the current code block group using the `addStyles`
+	 * hook context function. Each item contains the plugin name and the styles it added.
+	 * You have full control over the styles at this point and can add, modify or remove them
+	 * as needed.
+	 */
 	pluginStyles: PluginStyles[]
+	/**
+	 * See {@link ExpressiveCodeHookContext.addStyles}.
+	 */
 	addStyles: (css: string) => void
+	/**
+	 * Allows modifying the rendered output of a group of code blocks. The `groupAst` property of this object contains
+	 * the [Hypertext Abstract Syntax Tree (HAST)](https://github.com/syntax-tree/hast) parent node
+	 * surrounding all rendered blocks.
+	 *
+	 * This is the only property that allows you to modify the wrapper element of the entire group.
+	 * You have full control over it to modify the rendered output.
+	 * For example, you could add a class name to the group’s root element,
+	 * or you could wrap the entire group in a custom element.
+	 */
 	renderData: {
 		groupAst: Parent
 	}
 }
 
+/**
+ * The base type of all hooks. It is a function that gets called by the engine
+ * and receives a context object. The context type defaults to {@link ExpressiveCodeHookContext},
+ * but can vary by hook, so see the list of available hooks for the correct type.
+ */
 export type ExpressiveCodeHook<ContextType = ExpressiveCodeHookContext> = (context: ContextType) => void | Promise<void>
 
 /** @internal */

@@ -532,7 +532,7 @@ type CustomTag =
 type AsideType = 'caution' | 'danger' | 'note' | 'tip'
 
 function typeWrapper(type: string, content: string) {
-	return debug ? `{/*<${type}>*/}${content}{/*</${type}>*/}` : content
+	return debug ? `\\<${type}\\>\n${content}\n\\</${type}\\>` : content
 }
 
 function getAsideMarkdown(type: AsideType, title: string, content: string) {

@@ -55,6 +55,85 @@ The calling code must take care of actually adding the collected scripts to the 
 An instance of `PluginStyleSettings` that is used to define the plugin's CSS variables.
 
 
+## PluginStyleSettings
+
+Represents a strongly typed set of style settings provided by a plugin (or core).
+
+The constructor expects an object with a `defaultSettings` property. This property must contain the default values for all settings and will be made available as a public instance property. Allowed default value types are plain values (e.g. strings), an array of two values to provide a dark and light variant, or resolver functions that return one of these types.
+
+If you are writing a plugin that provides style overrides, please merge your style overrides into the `StyleOverrides` interface declaration provided by the `@expressive-code/core` module. You can see an example of this below.
+
+As a plugin author, you should also assign an instance of this class to your plugin's
+`styleSettings` property. This allows the engine to automatically declare CSS variables for your style settings in all theme variants defined in the config.
+
+To consume the CSS variables in your plugin's `baseStyles` or anywhere else, see the
+cssVar method to get a CSS variable reference to any style setting.
+
+If CSS variables should not be generated for some of your style settings, you can exclude them using the `cssVarExclusions` property of the object passed to the constructor.
+
+### Example
+
+```ts
+// When using TypeScript: Declare the types of your style settings
+interface FramesStyleSettings {
+  fontFamily: string
+  fontSize: string
+  minContrast: string
+  titleBarForeground: string
+}
+
+// When using TypeScript: Merge your style settings into the core module's `StyleSettings`
+declare module '@expressive-code/core' {
+  export interface StyleSettings {
+    frames: FramesStyleSettings
+  }
+}
+
+const framesStyleSettings = new PluginStyleSettings({
+  defaultValues: {
+    frames: {
+      fontFamily: 'sans-serif',
+      fontSize: '1rem',
+      minContrast: '5',
+      titleBarForeground: ({ theme }) => theme.colors['editor.foreground'],
+    }
+  },
+  cssVarExclusions: ['frames.minContrast'],
+})
+
+// ↓↓↓
+
+framesStyleSettings.defaultValues.frames.fontFamily         // 'sans-serif'
+framesStyleSettings.defaultValues.frames.fontSize           // '1rem'
+framesStyleSettings.defaultValues.frames.minContrast        // '5'
+framesStyleSettings.defaultValues.frames.titleBarForeground // ({ theme }) => theme.colors['editor.foreground']
+```
+
+### Constructors
+
+#### new PluginStyleSettings(options)
+
+- <code class="function-signature">**new PluginStyleSettings**(options): [PluginStyleSettings](/api/expressive-code/core/classes/pluginstylesettings/)</code>
+
+##### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `options` | `Object` |
+| `options.defaultValues` | `Partial`\<[`UnresolvedStyleSettings`](/api/expressive-code/core/type-aliases/unresolvedstylesettings/)\> |
+| `options.cssVarExclusions`? | [`StyleSettingPath`](/api/expressive-code/core/type-aliases/stylesettingpath/)[] |
+
+### Properties
+
+#### cssVarExclusions
+
+- Type: **readonly** [`StyleSettingPath`](/api/expressive-code/core/type-aliases/stylesettingpath/)[]
+
+#### defaultValues
+
+- Type: **readonly** `Partial`\<[`UnresolvedStyleSettings`](/api/expressive-code/core/type-aliases/unresolvedstylesettings/)\>
+
+
 ## AttachedPluginData
 
 A class that allows plugins to attach custom data to objects like code blocks, and to optionally allow external access to this data in a type-safe manner.
@@ -145,4 +224,125 @@ export const pluginFramesData = new AttachedPluginData<PluginFramesData>(
 | :------ | :------ |
 | `target` | [`PluginDataTarget`](/api/expressive-code/core/type-aliases/plugindatatarget/) |
 | `data` | `PluginDataType` |
+
+
+## Referenced types
+
+### BaseStylesResolverFn
+
+- Type: (`context`) => `string` \| `Promise`\<`string`\>
+
+A function that you can assign to the [`baseStyles`](#basestyles) property of an
+[`ExpressiveCodePlugin`](#expressivecodeplugin).
+
+The engine will call it when going through all registered plugins and collecting
+their base styles.
+
+:::tip
+You can use this to include CSS variables generated from any style settings,
+including your own [`PluginStyleSettings`](#pluginstylesettings), into your
+plugin's base styles.
+
+The function will be called with a `context` argument of type
+[`ResolverContext`](#resolvercontext) that provides helpful functions like
+`cssVar` to access any generated CSS variable by its style setting path.
+:::
+
+#### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `context` | [`ResolverContext`](/api/expressive-code/core/type-aliases/resolvercontext/) |
+
+
+### ResolverContext
+
+- Type: `Object`
+
+A context object that the engine passes to most hook functions.
+
+It provides access to theme-dependent CSS variables, all resolved style variants based on the configured themes and settings, and the config-dependent wrapper class name.
+
+#### Type declaration
+
+| Member | Type | Description |
+| :------ | :------ | :------ |
+| `cssVar` | (`styleSetting`, `fallbackValue`?) => `string` | - |
+| `cssVarName` | (`styleSetting`) => `string` | - |
+| `styleVariants` | [`StyleVariant`](/api/expressive-code/core/type-aliases/stylevariant/)[] | - |
+
+
+### ResolvedStyleSettingsByPath
+
+- Type: `Map`\<[`StyleSettingPath`](/api/expressive-code/core/type-aliases/stylesettingpath/), `string`\>
+
+
+### StyleResolverFn
+
+- Type: (`context`) => [`StyleValueOrValues`](/api/expressive-code/core/type-aliases/stylevalueorvalues/)
+
+A function that resolves a single style setting to a [StyleValueOrValues](/api/expressive-code/core/type-aliases/stylevalueorvalues/).
+
+You can assign this to any style setting to dynamically generate style values based on the current theme.
+
+This function is called once for each style variant in the engine's `styleVariants` array, which includes one entry per theme in the engine's `themes` configuration option.
+
+#### Arguments
+
+| Parameter | Type | Description |
+| :------ | :------ | :------ |
+| `context` | `Object` | - |
+| `context.resolveSetting` | (`settingPath`) => `string` | - |
+| `context.styleVariantIndex` | `number` | The index in the engine's `styleVariants` array that's currently being resolved. |
+| `context.theme` | [`ExpressiveCodeTheme`](/api/expressive-code/core/classes/expressivecodetheme/) | - |
+
+
+### StyleSettingPath
+
+- Type: [`FlattenKeys`](/api/expressive-code/-internal-/type-aliases/flattenkeys/)\<`StyleSettings`\>
+
+
+### StyleValueOrValues
+
+- Type: `string` \| \[`string`, `string`\]
+
+The value of a single style setting. You can either set it to a string, or an array of two strings.
+
+If you use the array form, the first value will be used for dark themes, and the second value for light themes.
+
+
+### StyleVariant
+
+- Type: `Object`
+
+#### Type declaration
+
+| Member | Type | Description |
+| :------ | :------ | :------ |
+| `cssVarDeclarations` | `Map`\<`string`, `string`\> | - |
+| `resolvedStyleSettings` | [`ResolvedStyleSettingsByPath`](/api/expressive-code/core/type-aliases/resolvedstylesettingsbypath/) | - |
+| `theme` | [`ExpressiveCodeTheme`](/api/expressive-code/core/classes/expressivecodetheme/) | - |
+
+
+### UnresolvedPluginStyleSettings
+
+- Type: `{ [SettingName in keyof T]: UnresolvedStyleValue }`
+
+#### Type parameters
+
+| Parameter |
+| :------ |
+| `T` |
+
+
+### UnresolvedStyleValue
+
+- Type: [`StyleValueOrValues`](/api/expressive-code/core/type-aliases/stylevalueorvalues/) \| [`StyleResolverFn`](/api/expressive-code/core/type-aliases/styleresolverfn/)
+
+This is the value type for all style overrides. It allows either static style values or a resolver function.
+
+
+### UnresolvedStyleSettings
+
+- Type: `{ [K in keyof StyleSettings]: StyleSettings[K] extends object ? UnresolvedPluginStyleSettings<StyleSettings[K]> : UnresolvedStyleValue }`
 

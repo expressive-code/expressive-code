@@ -579,21 +579,8 @@ For example, you could use the `hastscript` library to wrap the received nodes i
 
 #### Properties
 
-##### inlineRange
-
-- Type: **readonly** `undefined` \| [`ExpressiveCodeInlineRange`](/api/expressive-code/core/type-aliases/expressivecodeinlinerange/)
-
-An optional range of columns within the line that this annotation applies to. If not provided, the annotation will apply to the entire line.
-
-##### renderPhase
-
-- Type: **readonly** [`AnnotationRenderPhase`](/api/expressive-code/core/type-aliases/annotationrenderphase/)
-
-Determines the phase in which this annotation should be rendered. Rendering is done in phases, from `earliest` to `latest`. Annotations with the same phase are rendered in the order they were added.
-
-The earlier an annotation is rendered, the more likely it is to be split, modified or wrapped by later annotations. Syntax highlighting is rendered in the `earliest` phase to allow other annotations to wrap and modify the highlighted code.
-
-The default phase is `normal`.
+All annotation base options are available on the instance as read-only properties.
+See [`AnnotationBaseOptions`](#annotationbaseoptions) for the entire list.
 
 
 ### InlineStyleAnnotation
@@ -634,41 +621,10 @@ For example, you could use the `hastscript` library to wrap the received nodes i
 
 #### Properties
 
-##### bold
-
-- Type: `boolean`
-
-##### color
-
-- Type: `undefined` \| `string`
-
-##### inlineRange
-
-- Type: **readonly** `undefined` \| [`ExpressiveCodeInlineRange`](/api/expressive-code/core/type-aliases/expressivecodeinlinerange/)
-
-An optional range of columns within the line that this annotation applies to. If not provided, the annotation will apply to the entire line.
-
-##### italic
-
-- Type: `boolean`
-
-##### renderPhase
-
-- Type: **readonly** [`AnnotationRenderPhase`](/api/expressive-code/core/type-aliases/annotationrenderphase/)
-
-Determines the phase in which this annotation should be rendered. Rendering is done in phases, from `earliest` to `latest`. Annotations with the same phase are rendered in the order they were added.
-
-The earlier an annotation is rendered, the more likely it is to be split, modified or wrapped by later annotations. Syntax highlighting is rendered in the `earliest` phase to allow other annotations to wrap and modify the highlighted code.
-
-The default phase is `normal`.
-
-##### styleVariantIndex
-
-- Type: `number`
-
-##### underline
-
-- Type: `boolean`
+All config options that can be passed to the constructor are also available
+on the instance as read-only properties.
+See [`InlineStyleAnnotationOptions`](#inlinestyleannotationoptions) for
+the entire list.
 
 
 ## Referenced types
@@ -782,7 +738,7 @@ You can then import the const and set `onInitGroup` to a function that calls `my
 
 | Parameter | Type |
 | :------ | :------ |
-| `groupContents` | [`GroupContents`](/api/expressive-code/-internal-/type-aliases/groupcontents/) |
+| `groupContents` | readonly \{ `codeBlock`: `ExpressiveCodeBlock` \}[] |
 
 
 ### ThemeSetting

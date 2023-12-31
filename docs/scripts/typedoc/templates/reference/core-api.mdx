@@ -5,10 +5,10 @@ title: Core API
 ## Engine
 
 ````yml include
-file: "@expressive-code/core/classes/ExpressiveCodeEngine.mdx"
+name: "ExpressiveCodeEngine"
 headingLevel: 3
 editSections:
-- path: "ExpressiveCodeEngine/Properties"
+- path: "Properties"
   replaceWith: |
     All config options that can be passed to the constructor are also available
     on the instance as read-only properties.
@@ -17,10 +17,10 @@ editSections:
 ## Code blocks
 
 ````yml include
-file: "@expressive-code/core/classes/ExpressiveCodeBlock.mdx"
+name: "ExpressiveCodeBlock"
 headingLevel: 3
 editSections:
-- path: "ExpressiveCodeBlock"
+- path: ""
   append: |
     #### Usage example
 
@@ -43,7 +43,7 @@ editSections:
     console.dir(codeBlock.code)
     // --> 'const a = 1 + 2'
     ```
-- path: "ExpressiveCodeBlock/Constructors/new ExpressiveCodeBlock(options)"
+- path: "Constructors/new ExpressiveCodeBlock(options)"
   append: |
     :::note
     You usually don't need to create code blocks manually. Instead, you can pass
@@ -57,22 +57,22 @@ editSections:
 ````
 
 ````yml include
-file: "@expressive-code/core/interfaces/ExpressiveCodeBlockOptions.mdx"
+name: "ExpressiveCodeBlockOptions"
 headingLevel: 3
 ````
 
 ````yml include
-file: "@expressive-code/core/classes/ExpressiveCodeLine.mdx"
+name: "ExpressiveCodeLine"
 headingLevel: 3
 ````
 
 ## Themes
 
 ````yml include
-file: "@expressive-code/core/classes/ExpressiveCodeTheme.mdx"
+name: "ExpressiveCodeTheme"
 headingLevel: 3
 editSections:
-- path: "ExpressiveCodeTheme/Properties/styleOverrides"
+- path: "Properties/styleOverrides"
   replaceWith: |
     An optional set of style overrides that can be used to customize the appearance
     of the rendered code blocks without having to write custom CSS.
@@ -92,70 +92,84 @@ In Expressive Code, annotations are used by plugins to attach semantic informati
 Annotations must provide a `render` function that transforms its contained AST nodes, e.g. by wrapping them in HTML tags. This function is called by the engine when it's time to render the line the annotation has been attached to.
 
 ````yml include
-file: "@expressive-code/core/classes/ExpressiveCodeAnnotation.mdx"
+name: "ExpressiveCodeAnnotation"
 headingLevel: 3
 editSections:
-- path: "ExpressiveCodeAnnotation/Constructors"
+- path: "Constructors"
   replaceWith: |
     :::note
     As an abstract class, `ExpressiveCodeAnnotation` cannot be instantiated directly.
     You should create a subclass that extends `ExpressiveCodeAnnotation` instead.
     :::
+- path: "Properties"
+  replaceWith: |
+    All annotation base options are available on the instance as read-only properties.
+    See [`AnnotationBaseOptions`](#annotationbaseoptions) for the entire list.
 ````
 
 ````yml include
-file: "@expressive-code/core/classes/InlineStyleAnnotation.mdx"
+name: "InlineStyleAnnotation"
 headingLevel: 3
+editSections:
+- path: "Properties"
+  replaceWith: |
+    All config options that can be passed to the constructor are also available
+    on the instance as read-only properties.
+    See [`InlineStyleAnnotationOptions`](#inlinestyleannotationoptions) for
+    the entire list.
 ````
 
 ## Referenced types
 
 ````yml include
-file: "@expressive-code/core/type-aliases/AnnotationBaseOptions.mdx"
+name: "AnnotationBaseOptions"
 headingLevel: 3
 ````
 
 ````yml include
-file: "@expressive-code/core/type-aliases/AnnotationRenderOptions.mdx"
+name: "AnnotationRenderOptions"
 headingLevel: 3
 ````
 
 ````yml include
-file: "@expressive-code/core/type-aliases/AnnotationRenderPhase.mdx"
+name: "AnnotationRenderPhase"
 headingLevel: 3
 ````
 
 ````yml include
-file: "@expressive-code/core/type-aliases/ChromaticRecolorTarget.mdx"
+name: "ChromaticRecolorTarget"
 headingLevel: 3
 ````
 
 ````yml include
-file: "@expressive-code/core/type-aliases/ExpressiveCodeInlineRange.mdx"
+name: "ExpressiveCodeInlineRange"
 headingLevel: 3
 ````
 
 ````yml include
-file: "expressive-code/-internal-/interfaces/ExpressiveCodeProcessingState.mdx"
+name: "ExpressiveCodeProcessingState"
 headingLevel: 3
 ````
 
 ````yml include
-file: "@expressive-code/core/type-aliases/InlineStyleAnnotationOptions.mdx"
+name: "InlineStyleAnnotationOptions"
 headingLevel: 3
 ````
 
 ````yml include
-file: "expressive-code/-internal-/type-aliases/RenderInput.mdx"
+name: "RenderInput"
 headingLevel: 3
 ````
 
 ````yml include
-file: "expressive-code/-internal-/interfaces/RenderOptions.mdx"
+name: "RenderOptions"
 headingLevel: 3
+replacements:
+- search: '\[`GroupContents`\]\(.*?\)'
+  replace: 'readonly \{ `codeBlock`: `ExpressiveCodeBlock` \}[]'
 ````
 
 ````yml include
-file: "@expressive-code/core/type-aliases/ThemeSetting.mdx"
+name: "ThemeSetting"
 headingLevel: 3
 ````
