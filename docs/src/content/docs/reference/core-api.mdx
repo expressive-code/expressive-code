@@ -16,7 +16,7 @@ It also provides read-only access to all resolved configuration options through 
 
 ##### new ExpressiveCodeEngine(config)
 
-- <code class="function-signature">**new ExpressiveCodeEngine**(config): [ExpressiveCodeEngine](/api/expressive-code/core/classes/expressivecodeengine/)</code>
+- <code class="function-signature">**new ExpressiveCodeEngine**(config): [ExpressiveCodeEngine](/reference/core-api/#expressivecodeengine)</code>
 
 Creates a new instance of the Expressive Code engine.
 
@@ -26,7 +26,7 @@ To minimize overhead caused by loading plugins, you can create a single instance
 
 | Parameter | Type |
 | :------ | :------ |
-| `config` | [`ExpressiveCodeEngineConfig`](/api/expressive-code/core/interfaces/expressivecodeengineconfig/) |
+| `config` | `ExpressiveCodeEngineConfig` |
 
 #### Methods
 
@@ -38,7 +38,7 @@ Returns a string containing all CSS styles that should be added to every page us
 
 The calling code must take care of actually adding the returned styles to the page.
 
-Please note that the styles contain references to CSS variables, which must also be added to the page. These can be obtained by calling [getThemeStyles](/api/expressive-code/core/classes/expressivecodeengine/#getthemestyles).
+Please note that the styles contain references to CSS variables, which must also be added to the page. These can be obtained by calling [getThemeStyles](/reference/core-api/#getthemestyles).
 
 ##### getJsModules()
 
@@ -54,9 +54,9 @@ The calling code must take care of actually adding the collected scripts to the 
 
 - <code class="function-signature">**getThemeStyles**(): Promise\<string\></code>
 
-Returns a string containing theme-dependent styles that should be added to every page using Expressive Code. These styles contain CSS variable declarations that are generated automatically based on the configured [themes](/api/expressive-code/core/interfaces/expressivecodeengineconfig/#themes),
-[useDarkModeMediaQuery](/api/expressive-code/core/interfaces/expressivecodeengineconfig/#usedarkmodemediaquery) and
-[themeCssSelector](/api/expressive-code/core/interfaces/expressivecodeengineconfig/#themecssselector) config options.
+Returns a string containing theme-dependent styles that should be added to every page using Expressive Code. These styles contain CSS variable declarations that are generated automatically based on the configured themes,
+useDarkModeMediaQuery and
+themeCssSelector config options.
 
 The first theme defined in the `themes` option is considered the "base theme", for which a full set of CSS variables is declared and scoped to the selector defined by the `themeCssRoot` option (defaults to `:root`).
 
@@ -64,7 +64,7 @@ For all alternate themes, a differential set of CSS variables is declared for ca
 
 The calling code must take care of actually adding the returned styles to the page.
 
-Please note that these styles must be added to the page together with the base styles returned by [getBaseStyles](/api/expressive-code/core/classes/expressivecodeengine/#getbasestyles).
+Please note that these styles must be added to the page together with the base styles returned by [getBaseStyles](/reference/core-api/#getbasestyles).
 
 ##### render()
 
@@ -78,8 +78,8 @@ In Expressive Code, all processing of your code blocks and their metadata is per
 
 | Parameter | Type | Description |
 | :------ | :------ | :------ |
-| `input` | [`RenderInput`](/api/expressive-code/-internal-/type-aliases/renderinput/) | The code block(s) to render. Can either be an `ExpressiveCodeBlockOptions` object<br />containing the properties required to create a new `ExpressiveCodeBlock` internally,<br />an existing `ExpressiveCodeBlock`, or an array containing any combination of these. |
-| `options`? | [`RenderOptions`](/api/expressive-code/-internal-/interfaces/renderoptions/) | Optional configuration options for the rendering process. |
+| `input` | [`RenderInput`](/reference/core-api/#renderinput) | The code block(s) to render. Can either be an `ExpressiveCodeBlockOptions` object<br />containing the properties required to create a new `ExpressiveCodeBlock` internally,<br />an existing `ExpressiveCodeBlock`, or an array containing any combination of these. |
+| `options`? | [`RenderOptions`](/reference/core-api/#renderoptions) | Optional configuration options for the rendering process. |
 
 ###### Returns
 
@@ -88,7 +88,7 @@ In Expressive Code, all processing of your code blocks and their metadata is per
 | Member | Type | Description |
 | :------ | :------ | :------ |
 | `renderedGroupAst` | `Parent` | - |
-| `renderedGroupContents` | [`RenderedGroupContents`](/api/expressive-code/-internal-/type-aliases/renderedgroupcontents/) | - |
+| `renderedGroupContents` | `RenderedGroupContents` | - |
 | `styles` | `Set`\<`string`\> | - |
 
 #### Properties
@@ -129,7 +129,7 @@ console.dir(codeBlock.code)
 
 ##### new ExpressiveCodeBlock(options)
 
-- <code class="function-signature">**new ExpressiveCodeBlock**(options): [ExpressiveCodeBlock](/api/expressive-code/core/classes/expressivecodeblock/)</code>
+- <code class="function-signature">**new ExpressiveCodeBlock**(options): [ExpressiveCodeBlock](/reference/core-api/#expressivecodeblock)</code>
 
 :::note
 You usually don't need to create code blocks manually. Instead, you can pass
@@ -145,7 +145,7 @@ to the engine, or to attach custom data to a code block.
 
 | Parameter | Type |
 | :------ | :------ |
-| `options` | [`ExpressiveCodeBlockOptions`](/api/expressive-code/core/interfaces/expressivecodeblockoptions/) |
+| `options` | [`ExpressiveCodeBlockOptions`](/reference/core-api/#expressivecodeblockoptions) |
 
 #### Methods
 
@@ -155,7 +155,7 @@ to the engine, or to attach custom data to a code block.
 
 Deletes the line at the given index.
 
-May throw an error if not allowed in the current [state](/api/expressive-code/core/classes/expressivecodeblock/#state).
+May throw an error if not allowed in the current [state](/reference/core-api/#state).
 
 ###### Arguments
 
@@ -171,7 +171,7 @@ Deletes the lines at the given indices.
 
 This function automatically sorts the indices in descending order before deleting the lines, so you do not need to worry about indices shifting after deleting a line.
 
-May throw an error if not allowed in the current [state](/api/expressive-code/core/classes/expressivecodeblock/#state).
+May throw an error if not allowed in the current [state](/reference/core-api/#state).
 
 ###### Arguments
 
@@ -181,7 +181,7 @@ May throw an error if not allowed in the current [state](/api/expressive-code/co
 
 ##### getLine()
 
-- <code class="function-signature">**getLine**(index): undefined \| [ExpressiveCodeLine](/api/expressive-code/core/classes/expressivecodeline/)</code>
+- <code class="function-signature">**getLine**(index): undefined \| [ExpressiveCodeLine](/reference/core-api/#expressivecodeline)</code>
 
 Returns the line at the given index, or `undefined` if the index is out of range.
 
@@ -193,7 +193,7 @@ Returns the line at the given index, or `undefined` if the index is out of range
 
 ##### getLines()
 
-- <code class="function-signature">**getLines**(startIndex?, endIndex?): readonly [ExpressiveCodeLine](/api/expressive-code/core/classes/expressivecodeline/)[]</code>
+- <code class="function-signature">**getLines**(startIndex?, endIndex?): readonly [ExpressiveCodeLine](/reference/core-api/#expressivecodeline)[]</code>
 
 Returns a readonly array of lines starting at the given index and ending before the given index (exclusive). The indices support the same syntax as JavaScript’s
 `Array.slice` method.
@@ -207,11 +207,11 @@ Returns a readonly array of lines starting at the given index and ending before 
 
 ##### insertLine()
 
-- <code class="function-signature">**insertLine**(index, textLine): [ExpressiveCodeLine](/api/expressive-code/core/classes/expressivecodeline/)</code>
+- <code class="function-signature">**insertLine**(index, textLine): [ExpressiveCodeLine](/reference/core-api/#expressivecodeline)</code>
 
 Inserts a new line at the given index.
 
-May throw an error if not allowed in the current [state](/api/expressive-code/core/classes/expressivecodeblock/#state).
+May throw an error if not allowed in the current [state](/reference/core-api/#state).
 
 ###### Arguments
 
@@ -222,11 +222,11 @@ May throw an error if not allowed in the current [state](/api/expressive-code/co
 
 ##### insertLines()
 
-- <code class="function-signature">**insertLines**(index, textLines): [ExpressiveCodeLine](/api/expressive-code/core/classes/expressivecodeline/)[]</code>
+- <code class="function-signature">**insertLines**(index, textLines): [ExpressiveCodeLine](/reference/core-api/#expressivecodeline)[]</code>
 
 Inserts multiple new lines at the given index.
 
-May throw an error if not allowed in the current [state](/api/expressive-code/core/classes/expressivecodeblock/#state).
+May throw an error if not allowed in the current [state](/reference/core-api/#state).
 
 ###### Arguments
 
@@ -251,7 +251,7 @@ Provides read-only access to the code block’s plaintext contents.
 
 Allows getting and setting the code block’s language.
 
-Setting this property may throw an error if not allowed in the current [state](/api/expressive-code/core/classes/expressivecodeblock/#state).
+Setting this property may throw an error if not allowed in the current [state](/reference/core-api/#state).
 
 ###### Parameters
 
@@ -277,7 +277,7 @@ If no locale is defined here, `ExpressiveCodeEngine` will render the code block 
 
 Allows getting or setting the code block’s meta string. In markdown or MDX documents, this is the part of the code block’s opening fence that comes after the language name.
 
-Setting this property may throw an error if not allowed in the current [state](/api/expressive-code/core/classes/expressivecodeblock/#state).
+Setting this property may throw an error if not allowed in the current [state](/reference/core-api/#state).
 
 ###### Parameters
 
@@ -295,7 +295,7 @@ Integrations like `remark-expressive-code` can provide this information based on
 
 ##### state
 
-- <code class="function-signature">**get** **state**(): undefined \| [ExpressiveCodeProcessingState](/api/expressive-code/-internal-/interfaces/expressivecodeprocessingstate/)</code>
+- <code class="function-signature">**get** **state**(): undefined \| [ExpressiveCodeProcessingState](/reference/core-api/#expressivecodeprocessingstate)</code>
 
 Provides read-only access to the code block’s processing state.
 
@@ -361,7 +361,7 @@ Integrations like `remark-expressive-code` can provide this information based on
 
 ##### new ExpressiveCodeLine(text)
 
-- <code class="function-signature">**new ExpressiveCodeLine**(text): [ExpressiveCodeLine](/api/expressive-code/core/classes/expressivecodeline/)</code>
+- <code class="function-signature">**new ExpressiveCodeLine**(text): [ExpressiveCodeLine](/reference/core-api/#expressivecodeline)</code>
 
 ###### Arguments
 
@@ -379,7 +379,7 @@ Integrations like `remark-expressive-code` can provide this information based on
 
 | Parameter | Type |
 | :------ | :------ |
-| `annotation` | [`ExpressiveCodeAnnotation`](/api/expressive-code/core/classes/expressivecodeannotation/) |
+| `annotation` | [`ExpressiveCodeAnnotation`](/reference/core-api/#expressivecodeannotation) |
 
 ##### deleteAnnotation()
 
@@ -389,7 +389,7 @@ Integrations like `remark-expressive-code` can provide this information based on
 
 | Parameter | Type |
 | :------ | :------ |
-| `annotation` | [`ExpressiveCodeAnnotation`](/api/expressive-code/core/classes/expressivecodeannotation/) |
+| `annotation` | [`ExpressiveCodeAnnotation`](/reference/core-api/#expressivecodeannotation) |
 
 ##### editText()
 
@@ -405,13 +405,13 @@ Integrations like `remark-expressive-code` can provide this information based on
 
 ##### getAnnotations()
 
-- <code class="function-signature">**getAnnotations**(): readonly [ExpressiveCodeAnnotation](/api/expressive-code/core/classes/expressivecodeannotation/)[]</code>
+- <code class="function-signature">**getAnnotations**(): readonly [ExpressiveCodeAnnotation](/reference/core-api/#expressivecodeannotation)[]</code>
 
 #### Accessors
 
 ##### parent
 
-- <code class="function-signature">**get** **parent**(): undefined \| [ExpressiveCodeBlock](/api/expressive-code/core/classes/expressivecodeblock/)</code>
+- <code class="function-signature">**get** **parent**(): undefined \| [ExpressiveCodeBlock](/reference/core-api/#expressivecodeblock)</code>
 
 - <code class="function-signature">**set** **parent**(value): void</code>
 
@@ -419,7 +419,7 @@ Integrations like `remark-expressive-code` can provide this information based on
 
 | Parameter | Type |
 | :------ | :------ |
-| `value` | `undefined` \| [`ExpressiveCodeBlock`](/api/expressive-code/core/classes/expressivecodeblock/) |
+| `value` | `undefined` \| [`ExpressiveCodeBlock`](/reference/core-api/#expressivecodeblock) |
 
 ##### text
 
@@ -434,7 +434,7 @@ Integrations like `remark-expressive-code` can provide this information based on
 
 ##### new ExpressiveCodeTheme(theme)
 
-- <code class="function-signature">**new ExpressiveCodeTheme**(theme): [ExpressiveCodeTheme](/api/expressive-code/core/classes/expressivecodetheme/)</code>
+- <code class="function-signature">**new ExpressiveCodeTheme**(theme): [ExpressiveCodeTheme](/reference/core-api/#expressivecodetheme)</code>
 
 Loads the given theme for use with Expressive Code. Supports both Shiki and VS Code themes.
 
@@ -446,13 +446,13 @@ Note: To save on bundle size, this constructor does not support loading themes b
 
 | Parameter | Type |
 | :------ | :------ |
-| `theme` | [`ExpressiveCodeThemeInput`](/api/expressive-code/core/type-aliases/expressivecodethemeinput/) |
+| `theme` | `ExpressiveCodeThemeInput` |
 
 #### Methods
 
 ##### applyHueAndChromaAdjustments()
 
-- <code class="function-signature">**applyHueAndChromaAdjustments**(adjustments): [ExpressiveCodeTheme](/api/expressive-code/core/classes/expressivecodetheme/)</code>
+- <code class="function-signature">**applyHueAndChromaAdjustments**(adjustments): [ExpressiveCodeTheme](/reference/core-api/#expressivecodetheme)</code>
 
 Applies chromatic adjustments to entire groups of theme colors while keeping their relative lightness and alpha components intact. This can be used to quickly create theme variants that fit the color scheme of any website or brand.
 
@@ -467,13 +467,13 @@ Returns the same `ExpressiveCodeTheme` instance to allow chaining.
 | Parameter | Type |
 | :------ | :------ |
 | `adjustments` | `Object` |
-| `adjustments.accents`? | `string` \| [`ChromaticRecolorTarget`](/api/expressive-code/core/type-aliases/chromaticrecolortarget/) |
-| `adjustments.backgrounds`? | `string` \| [`ChromaticRecolorTarget`](/api/expressive-code/core/type-aliases/chromaticrecolortarget/) |
+| `adjustments.accents`? | `string` \| [`ChromaticRecolorTarget`](/reference/core-api/#chromaticrecolortarget) |
+| `adjustments.backgrounds`? | `string` \| [`ChromaticRecolorTarget`](/reference/core-api/#chromaticrecolortarget) |
 | `adjustments.custom`? | `Object`[] |
 
 ##### ensureMinSyntaxHighlightingColorContrast()
 
-- <code class="function-signature">**ensureMinSyntaxHighlightingColorContrast**(minContrast): [ExpressiveCodeTheme](/api/expressive-code/core/classes/expressivecodetheme/)</code>
+- <code class="function-signature">**ensureMinSyntaxHighlightingColorContrast**(minContrast): [ExpressiveCodeTheme](/reference/core-api/#expressivecodetheme)</code>
 
 Processes the theme's syntax highlighting colors to ensure a minimum contrast ratio between foreground and background colors.
 
@@ -489,7 +489,7 @@ Returns the same `ExpressiveCodeTheme` instance to allow chaining.
 
 ##### fromJSONString()
 
-- <code class="function-signature">**static** **fromJSONString**(json): [ExpressiveCodeTheme](/api/expressive-code/core/classes/expressivecodetheme/)</code>
+- <code class="function-signature">**static** **fromJSONString**(json): [ExpressiveCodeTheme](/reference/core-api/#expressivecodetheme)</code>
 
 Attempts to parse the given JSON string as a theme.
 
@@ -525,7 +525,7 @@ As some themes follow the JSONC format and may contain comments and trailing com
 
 ##### settings
 
-- Type: [`ThemeSetting`](/api/expressive-code/core/type-aliases/themesetting/)[]
+- Type: [`ThemeSetting`](/reference/core-api/#themesetting)[]
 
 ##### styleOverrides
 
@@ -550,7 +550,7 @@ Annotations must provide a `render` function that transforms its contained AST n
 An abstract class representing a single annotation attached to a code line.
 
 You can develop your own annotations by extending this class and providing implementations for its abstract methods. See the implementation of the
-[InlineStyleAnnotation](/api/expressive-code/core/classes/inlinestyleannotation/) class for an example.
+[InlineStyleAnnotation](/reference/core-api/#inlinestyleannotation) class for an example.
 
 #### Constructors
 
@@ -575,7 +575,7 @@ For example, you could use the `hastscript` library to wrap the received nodes i
 
 | Parameter | Type |
 | :------ | :------ |
-| `options` | [`AnnotationRenderOptions`](/api/expressive-code/core/type-aliases/annotationrenderoptions/) |
+| `options` | [`AnnotationRenderOptions`](/reference/core-api/#annotationrenderoptions) |
 
 #### Properties
 
@@ -593,13 +593,13 @@ You can add as many inline style annotations to a line as you want, even targeti
 
 ##### new InlineStyleAnnotation(options)
 
-- <code class="function-signature">**new InlineStyleAnnotation**(options): [InlineStyleAnnotation](/api/expressive-code/core/classes/inlinestyleannotation/)</code>
+- <code class="function-signature">**new InlineStyleAnnotation**(options): [InlineStyleAnnotation](/reference/core-api/#inlinestyleannotation)</code>
 
 ###### Arguments
 
 | Parameter | Type |
 | :------ | :------ |
-| `options` | [`InlineStyleAnnotationOptions`](/api/expressive-code/core/type-aliases/inlinestyleannotationoptions/) |
+| `options` | [`InlineStyleAnnotationOptions`](/reference/core-api/#inlinestyleannotationoptions) |
 
 #### Methods
 
@@ -617,7 +617,7 @@ For example, you could use the `hastscript` library to wrap the received nodes i
 
 | Parameter | Type |
 | :------ | :------ |
-| `options` | [`AnnotationRenderOptions`](/api/expressive-code/core/type-aliases/annotationrenderoptions/) |
+| `options` | [`AnnotationRenderOptions`](/reference/core-api/#annotationrenderoptions) |
 
 #### Properties
 
@@ -637,8 +637,8 @@ the entire list.
 
 | Member | Type | Description |
 | :------ | :------ | :------ |
-| `inlineRange` | [`ExpressiveCodeInlineRange`](/api/expressive-code/core/type-aliases/expressivecodeinlinerange/) | - |
-| `renderPhase` | [`AnnotationRenderPhase`](/api/expressive-code/core/type-aliases/annotationrenderphase/) | - |
+| `inlineRange` | [`ExpressiveCodeInlineRange`](/reference/core-api/#expressivecodeinlinerange) | - |
+| `renderPhase` | [`AnnotationRenderPhase`](/reference/core-api/#annotationrenderphase) | - |
 
 
 ### AnnotationRenderOptions
@@ -649,7 +649,7 @@ the entire list.
 
 | Member | Type | Description |
 | :------ | :------ | :------ |
-| `line` | [`ExpressiveCodeLine`](/api/expressive-code/core/classes/expressivecodeline/) | - |
+| `line` | [`ExpressiveCodeLine`](/reference/core-api/#expressivecodeline) | - |
 | `nodesToTransform` | `Parent`[] | - |
 
 
@@ -702,7 +702,7 @@ the entire list.
 
 ### InlineStyleAnnotationOptions
 
-- Type: [`AnnotationBaseOptions`](/api/expressive-code/core/type-aliases/annotationbaseoptions/) & `Object`
+- Type: [`AnnotationBaseOptions`](/reference/core-api/#annotationbaseoptions) & `Object`
 
 #### Type declaration
 
@@ -717,7 +717,7 @@ the entire list.
 
 ### RenderInput
 
-- Type: [`ExpressiveCodeBlockOptions`](/api/expressive-code/core/interfaces/expressivecodeblockoptions/) \| [`ExpressiveCodeBlock`](/api/expressive-code/core/classes/expressivecodeblock/) \| ([`ExpressiveCodeBlockOptions`](/api/expressive-code/core/interfaces/expressivecodeblockoptions/) \| [`ExpressiveCodeBlock`](/api/expressive-code/core/classes/expressivecodeblock/))[]
+- Type: [`ExpressiveCodeBlockOptions`](/reference/core-api/#expressivecodeblockoptions) \| [`ExpressiveCodeBlock`](/reference/core-api/#expressivecodeblock) \| ([`ExpressiveCodeBlockOptions`](/reference/core-api/#expressivecodeblockoptions) \| [`ExpressiveCodeBlock`](/reference/core-api/#expressivecodeblock))[]
 
 
 ### RenderOptions

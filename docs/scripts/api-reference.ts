@@ -1,6 +1,6 @@
 import path from 'node:path'
 import { globSync } from 'glob'
-import { processTemplate } from './typedoc/template-processor'
+import { fixLinks, processTemplate } from './typedoc/template-processor'
 import { generateTypeDoc, type PartialConfig } from './typedoc/typedoc-runner'
 
 const packages = [
@@ -38,3 +38,5 @@ templateFileSubpaths.forEach((templateFileSubpath) => {
 		outputFilePath: path.join(docsDir, templateFileSubpath),
 	})
 })
+
+fixLinks(docsDir, templateFileSubpaths)

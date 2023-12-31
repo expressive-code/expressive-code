@@ -77,7 +77,7 @@ class StarlightTypeDocThemeRenderContext extends MarkdownThemeRenderContext {
 
 		let constructedUrl = typeof baseUrl === 'string' ? baseUrl : ''
 		constructedUrl += segments.length > 0 ? `${segments.join('/')}/` : ''
-		constructedUrl += slug(filePath.name)
+		constructedUrl += slug(filePath.name, true)
 		constructedUrl += '/'
 		constructedUrl += anchor && anchor.length > 0 ? `#${anchor}` : ''
 

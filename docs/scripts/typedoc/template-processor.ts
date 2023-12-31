@@ -2,6 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { globSync } from 'glob'
 import { parse } from 'yaml'
+import GithubSlugger from 'github-slugger'
 
 type IncludeDirective = {
 	name: string
@@ -25,8 +26,7 @@ export function processTemplate({ apiDocsPath, templateFilePath, outputFilePath 
 	markdown = markdown.replace(/````ya?ml include\n([\s\S]+?)\n````/g, (_, yaml: string) => {
 		const directive = parse(yaml) as IncludeDirective
 		if (!directive.name || !(directive.headingLevel > 1)) throw new Error(`Invalid include directive: ${yaml}`)
-		const filePath = findApiDocsFile(apiDocsPath, directive.name)
-		const lines = fs.readFileSync(filePath, 'utf8').split(/\r?\n/)
+		const lines = getFileLines(findApiDocsFile(apiDocsPath, directive.name))
 		// Change heading levels to match the template
 		let headings = collectHeadings(lines)
 		if (headings.length) {
@@ -128,14 +128,19 @@ export function processTemplate({ apiDocsPath, templateFilePath, outputFilePath 
 }
 
 function collectHeadings(lines: string[]) {
+	const slugger = new GithubSlugger()
 	// Get all markdown headings with their line indices
 	const headings = lines
-		.map((line, lineIdx) => ({
-			lineIdx,
-			level: (line.match(/^(#+) /)?.[1] ?? '').length,
-			text: line.replace(/^(#+) /, ''),
-			textPath: '',
-		}))
+		.map((line, lineIdx) => {
+			const text = line.replace(/^(#+) /, '')
+			return {
+				lineIdx,
+				level: (line.match(/^(#+) /)?.[1] ?? '').length,
+				text,
+				textPath: '',
+				anchor: '#' + slugger.slug(text, false),
+			}
+		})
 		.filter((heading) => heading.level > 0)
 	// Go through the headings and build a path of all higher-level headings leading up to each one
 	const findParentHeading = (heading: (typeof headings)[0]) => {
@@ -170,4 +175,64 @@ function findApiDocsFile(apiDocsPath: string, name: string) {
 	if (matches.length === 0) throw new Error(`No API docs file found for "${name}"`)
 	if (matches.length > 1) throw new Error(`Multiple API docs files found for "${name}": ${matches.join(', ')}`)
 	return path.join(apiDocsPath, matches[0]!)
+}
+
+function getFileLines(filePath: string) {
+	return fs.readFileSync(filePath, 'utf8').split(/\r?\n/)
+}
+
+export function fixLinks(docsDir: string, templateFileSubpaths: string[]) {
+	// Collect available anchors per page
+	const nameToLinks = new Map<string, string[]>()
+	const pathToLinks = new Map<string, string[]>()
+	templateFileSubpaths.forEach((templateFileSubpath) => {
+		const lines = getFileLines(path.join(docsDir, templateFileSubpath))
+		const headings = collectHeadings(lines)
+		headings.forEach((heading) => {
+			const newLink = `/${templateFileSubpath.replace(/\.mdx?$/, '')}/${heading.anchor}`
+			let nameLinks = nameToLinks.get(heading.text)
+			if (!nameLinks) nameToLinks.set(heading.text, (nameLinks = []))
+			nameLinks.push(newLink)
+			let pathLinks = pathToLinks.get(heading.textPath)
+			if (!pathLinks) pathToLinks.set(heading.textPath, (pathLinks = []))
+			pathLinks.push(newLink)
+		})
+	})
+
+	// Go through all pages and replace links
+	templateFileSubpaths.forEach((templateFileSubpath) => {
+		const lines = getFileLines(path.join(docsDir, templateFileSubpath))
+		lines.forEach((line, lineIdx) => {
+			lines[lineIdx] = line.replace(/\[(.+?)\]\(([^)]+)\)/g, (match: string, text: string, link: string) => {
+				// Check if the link is an API link
+				const targetMatch = link.match(/^\/api\/.*\/(.+?)\/(?:#([^/]+?))?$/)
+				const apiTargetName = targetMatch?.[1]
+				if (apiTargetName) {
+					const optSubTarget = targetMatch?.[2]
+					let links: string[]
+					if (!optSubTarget) {
+						links = nameToLinks.get(apiTargetName) ?? []
+					} else {
+						links =
+							[...pathToLinks.entries()].find(([path]) => {
+								return path.includes(apiTargetName) && path.toLowerCase().includes(optSubTarget.toLowerCase())
+							})?.[1] ?? []
+					}
+					if (!links.length) {
+						console.warn(`Removing link to "${apiTargetName}${optSubTarget ? `>${optSubTarget}` : ''}" in "${templateFileSubpath}"`)
+						return text
+					}
+					if (links.length > 1) {
+						console.warn(`Multiple links found for "${apiTargetName}": ${links.join(', ')}`)
+						return text
+					}
+					return `[${text}](${links[0]})`
+				}
+				return match
+			})
+		})
+
+		// Update the file
+		fs.writeFileSync(path.join(docsDir, templateFileSubpath), lines.join('\n'))
+	})
 }

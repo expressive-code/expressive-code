@@ -18,7 +18,7 @@ The display name of the plugin. This is the only required property. It is used b
 
 #### baseStyles?
 
-- Type: `string` \| [`BaseStylesResolverFn`](/api/expressive-code/core/type-aliases/basestylesresolverfn/)
+- Type: `string` \| [`BaseStylesResolverFn`](/reference/plugin-api/#basestylesresolverfn)
 
 The CSS styles that should be added to every page containing code blocks.
 
@@ -26,31 +26,31 @@ All styles are scoped to Expressive Code by default, so they will not affect the
 
 The engine's `getBaseStyles` function goes through all registered plugins and collects their base styles.
 
-If you provide a function instead of a string, it is called with an object argument of type [ResolverContext](/api/expressive-code/core/type-aliases/resolvercontext/), and is expected to return a string or a string promise.
+If you provide a function instead of a string, it is called with an object argument of type [ResolverContext](/reference/plugin-api/#resolvercontext), and is expected to return a string or a string promise.
 
 The calling code must take care of actually adding the collected styles to the page. For example, it could create a site-wide CSS stylesheet from the base styles and insert a link to it, or it could insert the base styles into a `<style>` element.
 
 #### hooks?
 
-- Type: [`ExpressiveCodePluginHooks`](/api/expressive-code/core/interfaces/expressivecodepluginhooks/)
+- Type: `ExpressiveCodePluginHooks`
 
-A set of functions that should be called by the engine at specific points in the rendering process. See [ExpressiveCodePluginHooks](/api/expressive-code/core/interfaces/expressivecodepluginhooks/) for a list of available hooks.
+A set of functions that should be called by the engine at specific points in the rendering process. See ExpressiveCodePluginHooks for a list of available hooks.
 
 #### jsModules?
 
-- Type: `string`[] \| [`JsModulesResolverFn`](/api/expressive-code/core/type-aliases/jsmodulesresolverfn/)
+- Type: `string`] \| [`JsModulesResolverFn`
 
 JavaScript modules (pure code without any wrapping `script` tags) that should be added to every page containing code blocks.
 
 The engine's `getJsModules` function goes through all registered plugins, collects their JS modules and deduplicates them.
 
-If you provide a function instead of a string, it is called with an object argument of type [ResolverContext](/api/expressive-code/core/type-aliases/resolvercontext/), and is expected to return a string or a string promise.
+If you provide a function instead of a string, it is called with an object argument of type [ResolverContext](/reference/plugin-api/#resolvercontext), and is expected to return a string or a string promise.
 
 The calling code must take care of actually adding the collected scripts to the page. For example, it could create site-wide JavaScript files from the returned modules and refer to them in a script tag with `type="module"`, or it could insert them into inline `<script type="module">` elements.
 
 #### styleSettings?
 
-- Type: [`PluginStyleSettings`](/api/expressive-code/core/classes/pluginstylesettings/)
+- Type: [`PluginStyleSettings`](/reference/plugin-api/#pluginstylesettings)
 
 An instance of `PluginStyleSettings` that is used to define the plugin's CSS variables.
 
@@ -113,25 +113,25 @@ framesStyleSettings.defaultValues.frames.titleBarForeground // ({ theme }) => th
 
 #### new PluginStyleSettings(options)
 
-- <code class="function-signature">**new PluginStyleSettings**(options): [PluginStyleSettings](/api/expressive-code/core/classes/pluginstylesettings/)</code>
+- <code class="function-signature">**new PluginStyleSettings**(options): [PluginStyleSettings](/reference/plugin-api/#pluginstylesettings)</code>
 
 ##### Arguments
 
 | Parameter | Type |
 | :------ | :------ |
 | `options` | `Object` |
-| `options.defaultValues` | `Partial`\<[`UnresolvedStyleSettings`](/api/expressive-code/core/type-aliases/unresolvedstylesettings/)\> |
-| `options.cssVarExclusions`? | [`StyleSettingPath`](/api/expressive-code/core/type-aliases/stylesettingpath/)[] |
+| `options.defaultValues` | `Partial`\<[`UnresolvedStyleSettings`](/reference/plugin-api/#unresolvedstylesettings)\> |
+| `options.cssVarExclusions`? | [`StyleSettingPath`](/reference/plugin-api/#stylesettingpath)[] |
 
 ### Properties
 
 #### cssVarExclusions
 
-- Type: **readonly** [`StyleSettingPath`](/api/expressive-code/core/type-aliases/stylesettingpath/)[]
+- Type: **readonly** [`StyleSettingPath`](/reference/plugin-api/#stylesettingpath)[]
 
 #### defaultValues
 
-- Type: **readonly** `Partial`\<[`UnresolvedStyleSettings`](/api/expressive-code/core/type-aliases/unresolvedstylesettings/)\>
+- Type: **readonly** `Partial`\<[`UnresolvedStyleSettings`](/reference/plugin-api/#unresolvedstylesettings)\>
 
 
 ## AttachedPluginData
@@ -194,7 +194,7 @@ export const pluginFramesData = new AttachedPluginData<PluginFramesData>(
 
 #### new AttachedPluginData(getInitialValueFn)
 
-- <code class="function-signature">**new AttachedPluginData**\<PluginDataType\>(getInitialValueFn): [AttachedPluginData](/api/expressive-code/core/classes/attachedplugindata/)\<PluginDataType\></code>
+- <code class="function-signature">**new AttachedPluginData**\<PluginDataType\>(getInitialValueFn): [AttachedPluginData](/reference/plugin-api/#attachedplugindata)\<PluginDataType\></code>
 
 ##### Arguments
 
@@ -212,7 +212,7 @@ export const pluginFramesData = new AttachedPluginData<PluginFramesData>(
 
 | Parameter | Type |
 | :------ | :------ |
-| `target` | [`PluginDataTarget`](/api/expressive-code/core/type-aliases/plugindatatarget/) |
+| `target` | `PluginDataTarget` |
 
 #### setFor()
 
@@ -222,7 +222,7 @@ export const pluginFramesData = new AttachedPluginData<PluginFramesData>(
 
 | Parameter | Type |
 | :------ | :------ |
-| `target` | [`PluginDataTarget`](/api/expressive-code/core/type-aliases/plugindatatarget/) |
+| `target` | `PluginDataTarget` |
 | `data` | `PluginDataType` |
 
 
@@ -252,7 +252,7 @@ The function will be called with a `context` argument of type
 
 | Parameter | Type |
 | :------ | :------ |
-| `context` | [`ResolverContext`](/api/expressive-code/core/type-aliases/resolvercontext/) |
+| `context` | [`ResolverContext`](/reference/plugin-api/#resolvercontext) |
 
 
 ### ResolverContext
@@ -269,19 +269,19 @@ It provides access to theme-dependent CSS variables, all resolved style variants
 | :------ | :------ | :------ |
 | `cssVar` | (`styleSetting`, `fallbackValue`?) => `string` | - |
 | `cssVarName` | (`styleSetting`) => `string` | - |
-| `styleVariants` | [`StyleVariant`](/api/expressive-code/core/type-aliases/stylevariant/)[] | - |
+| `styleVariants` | [`StyleVariant`](/reference/plugin-api/#stylevariant)[] | - |
 
 
 ### ResolvedStyleSettingsByPath
 
-- Type: `Map`\<[`StyleSettingPath`](/api/expressive-code/core/type-aliases/stylesettingpath/), `string`\>
+- Type: `Map`\<[`StyleSettingPath`](/reference/plugin-api/#stylesettingpath), `string`\>
 
 
 ### StyleResolverFn
 
-- Type: (`context`) => [`StyleValueOrValues`](/api/expressive-code/core/type-aliases/stylevalueorvalues/)
+- Type: (`context`) => [`StyleValueOrValues`](/reference/plugin-api/#stylevalueorvalues)
 
-A function that resolves a single style setting to a [StyleValueOrValues](/api/expressive-code/core/type-aliases/stylevalueorvalues/).
+A function that resolves a single style setting to a [StyleValueOrValues](/reference/plugin-api/#stylevalueorvalues).
 
 You can assign this to any style setting to dynamically generate style values based on the current theme.
 
@@ -294,12 +294,12 @@ This function is called once for each style variant in the engine's `styleVarian
 | `context` | `Object` | - |
 | `context.resolveSetting` | (`settingPath`) => `string` | - |
 | `context.styleVariantIndex` | `number` | The index in the engine's `styleVariants` array that's currently being resolved. |
-| `context.theme` | [`ExpressiveCodeTheme`](/api/expressive-code/core/classes/expressivecodetheme/) | - |
+| `context.theme` | [`ExpressiveCodeTheme`](/reference/core-api/#expressivecodetheme) | - |
 
 
 ### StyleSettingPath
 
-- Type: [`FlattenKeys`](/api/expressive-code/-internal-/type-aliases/flattenkeys/)\<`StyleSettings`\>
+- Type: `FlattenKeys`\<`StyleSettings`\>
 
 
 ### StyleValueOrValues
@@ -320,8 +320,8 @@ If you use the array form, the first value will be used for dark themes, and the
 | Member | Type | Description |
 | :------ | :------ | :------ |
 | `cssVarDeclarations` | `Map`\<`string`, `string`\> | - |
-| `resolvedStyleSettings` | [`ResolvedStyleSettingsByPath`](/api/expressive-code/core/type-aliases/resolvedstylesettingsbypath/) | - |
-| `theme` | [`ExpressiveCodeTheme`](/api/expressive-code/core/classes/expressivecodetheme/) | - |
+| `resolvedStyleSettings` | [`ResolvedStyleSettingsByPath`](/reference/plugin-api/#resolvedstylesettingsbypath) | - |
+| `theme` | [`ExpressiveCodeTheme`](/reference/core-api/#expressivecodetheme) | - |
 
 
 ### UnresolvedPluginStyleSettings
@@ -337,7 +337,7 @@ If you use the array form, the first value will be used for dark themes, and the
 
 ### UnresolvedStyleValue
 
-- Type: [`StyleValueOrValues`](/api/expressive-code/core/type-aliases/stylevalueorvalues/) \| [`StyleResolverFn`](/api/expressive-code/core/type-aliases/styleresolverfn/)
+- Type: [`StyleValueOrValues`](/reference/plugin-api/#stylevalueorvalues) \| [`StyleResolverFn`](/reference/plugin-api/#styleresolverfn)
 
 This is the value type for all style overrides. It allows either static style values or a resolver function.
 
