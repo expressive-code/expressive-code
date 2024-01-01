@@ -2,7 +2,7 @@
 title: Collapsible Sections
 ---
 
-import TypeProperties from '@components/TypeProperties.astro'
+import PropertySignature from '@components/PropertySignature.astro'
 import { Tabs, TabItem } from '@astrojs/starlight/components'
 
 This optional plugin allows you to reduce long code examples to their relevant parts by collapsing any line ranges that are not relevant to the example.
@@ -184,104 +184,128 @@ This plugin does not provide any configuration options that can be passed to its
 
 This plugin adds a `collapsibleSections` object to the `styleOverrides` engine config option, allowing you to customize the visual appearance of the sections. The object contains the following properties:
 
-<TypeProperties>
-
 #### closedBorderWidth
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'0'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'0'``
+</PropertySignature>
 
 The border width of closed sections.
 
 #### closedPadding
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``({ resolveSetting }) => `4px 0 4px ${resolveSetting('codePaddingInline')}` ``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``({ resolveSetting }) => `4px 0 4px ${resolveSetting('codePaddingInline')}` ``
+</PropertySignature>
 
 The padding of closed sections.
 
 #### closedMargin
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'0'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'0'``
+</PropertySignature>
 
 The margin around closed sections.
 
 #### closedFontFamily
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'inherit'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'inherit'``
+</PropertySignature>
 
 The font family of the closed section summary text.
 
 #### closedFontSize
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'inherit'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'inherit'``
+</PropertySignature>
 
 The font size of the closed section summary text.
 
 #### closedLineHeight
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'inherit'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'inherit'``
+</PropertySignature>
 
 The line height of the closed section summary text.
 
 #### closedTextColor
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'inherit'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'inherit'``
+</PropertySignature>
 
 The text color of the closed section summary text.
 
 #### closedBackgroundColor
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``({ theme }) => setAlpha(theme.colors['editor.foldBackground'], 0.2) || 'rgb(84 174 255 / 20%)'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``({ theme }) => setAlpha(theme.colors['editor.foldBackground'], 0.2) || 'rgb(84 174 255 / 20%)'``
+</PropertySignature>
 
 The background color of closed sections.
 
 #### closedBorderColor
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``({ theme }) => setAlpha(theme.colors['editor.foldBackground'], 0.5) || 'rgb(84 174 255 / 50%)'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``({ theme }) => setAlpha(theme.colors['editor.foldBackground'], 0.5) || 'rgb(84 174 255 / 50%)'``
+</PropertySignature>
 
 The border color of closed sections.
 
 #### openBorderWidth
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'1px'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'1px'``
+</PropertySignature>
 
 The border width of open sections.
 
 #### openPadding
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'0'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'0'``
+</PropertySignature>
 
 The padding of open sections.
 
 #### openMargin
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'0'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'0'``
+</PropertySignature>
 
 The margin around open sections.
 
 #### openBackgroundColor
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'transparent'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'transparent'``
+</PropertySignature>
 
 The background color of open sections.
 
 #### openBorderColor
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'transparent'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'transparent'``
+</PropertySignature>
 
 The border color of open sections.
-
-</TypeProperties>

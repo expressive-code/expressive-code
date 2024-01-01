@@ -4,17 +4,17 @@
 title: Plugin Hooks
 ---
 
-import TypeProperties from '@components/TypeProperties.astro'
+import PropertySignature from '@components/PropertySignature.astro'
 
 ## Available plugin hooks
 
 The engine calls the following hook functions in the order listed here:
 
-<TypeProperties>
-
 ### preprocessMetadata
 
-> Type: [`ExpressiveCodeHook`](/reference/plugin-hooks/#expressivecodehook)\<[`ExpressiveCodeHookContext`](/reference/plugin-hooks/#expressivecodehookcontext)\>
+<PropertySignature>
+- Type: [`ExpressiveCodeHook`](/reference/plugin-hooks/#expressivecodehook)\<[`ExpressiveCodeHookContext`](/reference/plugin-hooks/#expressivecodehookcontext)\>
+</PropertySignature>
 
 Allows preprocessing the meta string and the language before any plugins can modify the code.
 
@@ -24,7 +24,9 @@ As the code still matches the plaintext in the containing Markdown/MDX document 
 
 ### preprocessCode
 
-> Type: [`ExpressiveCodeHook`](/reference/plugin-hooks/#expressivecodehook)\<[`ExpressiveCodeHookContext`](/reference/plugin-hooks/#expressivecodehookcontext)\>
+<PropertySignature>
+- Type: [`ExpressiveCodeHook`](/reference/plugin-hooks/#expressivecodehook)\<[`ExpressiveCodeHookContext`](/reference/plugin-hooks/#expressivecodehookcontext)\>
+</PropertySignature>
 
 Allows preprocessing the code before any language-specific hooks are run.
 
@@ -34,7 +36,9 @@ Plugins can also use this hook to insert new code, e.g. to add type information 
 
 ### performSyntaxAnalysis
 
-> Type: [`ExpressiveCodeHook`](/reference/plugin-hooks/#expressivecodehook)\<[`ExpressiveCodeHookContext`](/reference/plugin-hooks/#expressivecodehookcontext)\>
+<PropertySignature>
+- Type: [`ExpressiveCodeHook`](/reference/plugin-hooks/#expressivecodehook)\<[`ExpressiveCodeHookContext`](/reference/plugin-hooks/#expressivecodehookcontext)\>
+</PropertySignature>
 
 Allows analyzing the preprocessed code and collecting language-specific syntax annotations.
 
@@ -44,7 +48,9 @@ These annotations are then available to the following hooks and will be used dur
 
 ### postprocessAnalyzedCode
 
-> Type: [`ExpressiveCodeHook`](/reference/plugin-hooks/#expressivecodehook)\<[`ExpressiveCodeHookContext`](/reference/plugin-hooks/#expressivecodehookcontext)\>
+<PropertySignature>
+- Type: [`ExpressiveCodeHook`](/reference/plugin-hooks/#expressivecodehook)\<[`ExpressiveCodeHookContext`](/reference/plugin-hooks/#expressivecodehookcontext)\>
+</PropertySignature>
 
 Allows postprocessing the code plaintext after collecting syntax annotations.
 
@@ -54,7 +60,9 @@ After this hook has finished processing, the plaintext of all code lines becomes
 
 ### annotateCode
 
-> Type: [`ExpressiveCodeHook`](/reference/plugin-hooks/#expressivecodehook)\<[`ExpressiveCodeHookContext`](/reference/plugin-hooks/#expressivecodehookcontext)\>
+<PropertySignature>
+- Type: [`ExpressiveCodeHook`](/reference/plugin-hooks/#expressivecodehook)\<[`ExpressiveCodeHookContext`](/reference/plugin-hooks/#expressivecodehookcontext)\>
+</PropertySignature>
 
 Allows annotating the final code plaintext.
 
@@ -62,7 +70,9 @@ As the code is read-only at this point, plugins can use this hook to create anno
 
 ### postprocessAnnotations
 
-> Type: [`ExpressiveCodeHook`](/reference/plugin-hooks/#expressivecodehook)\<[`ExpressiveCodeHookContext`](/reference/plugin-hooks/#expressivecodehookcontext)\>
+<PropertySignature>
+- Type: [`ExpressiveCodeHook`](/reference/plugin-hooks/#expressivecodehook)\<[`ExpressiveCodeHookContext`](/reference/plugin-hooks/#expressivecodehookcontext)\>
+</PropertySignature>
 
 Allows applying final changes to annotations before rendering.
 
@@ -70,19 +80,25 @@ After this hook has finished processing, all annotations become read-only and th
 
 ### postprocessRenderedLine
 
-> Type: [`ExpressiveCodeHook`](/reference/plugin-hooks/#expressivecodehook)\<[`PostprocessRenderedLineContext`](/reference/plugin-hooks/#postprocessrenderedlinecontext)\>
+<PropertySignature>
+- Type: [`ExpressiveCodeHook`](/reference/plugin-hooks/#expressivecodehook)\<[`PostprocessRenderedLineContext`](/reference/plugin-hooks/#postprocessrenderedlinecontext)\>
+</PropertySignature>
 
 Allows editing the AST of a single line of code after all annotations were rendered.
 
 ### postprocessRenderedBlock
 
-> Type: [`ExpressiveCodeHook`](/reference/plugin-hooks/#expressivecodehook)\<[`PostprocessRenderedBlockContext`](/reference/plugin-hooks/#postprocessrenderedblockcontext)\>
+<PropertySignature>
+- Type: [`ExpressiveCodeHook`](/reference/plugin-hooks/#expressivecodehook)\<[`PostprocessRenderedBlockContext`](/reference/plugin-hooks/#postprocessrenderedblockcontext)\>
+</PropertySignature>
 
 Allows editing the AST of the entire code block after all annotations were rendered and all lines were postprocessed.
 
 ### postprocessRenderedBlockGroup
 
-> Type: [`ExpressiveCodeHook`](/reference/plugin-hooks/#expressivecodehook)\<[`PostprocessRenderedBlockGroupContext`](/reference/plugin-hooks/#postprocessrenderedblockgroupcontext)\>
+<PropertySignature>
+- Type: [`ExpressiveCodeHook`](/reference/plugin-hooks/#expressivecodehook)\<[`PostprocessRenderedBlockGroupContext`](/reference/plugin-hooks/#postprocessrenderedblockgroupcontext)\>
+</PropertySignature>
 
 Allows editing the ASTs of all code blocks that were rendered as part of the same group, as well as the AST of the group root element that contains all group blocks.
 
@@ -92,13 +108,13 @@ This hook is used by the frames plugin to display multiple code blocks as editor
 
 Note: Even if a code block is not part of any group, this hook will still be called. Standalone code blocks are treated like a group containing only a single block.
 
-</TypeProperties>
-
 ## Referenced types
 
 ### ExpressiveCodeHook
 
+<PropertySignature>
 - Type: (`context`) => `void` \| `Promise`\<`void`\>
+</PropertySignature>
 
 #### Type parameters
 
@@ -125,7 +141,9 @@ It provides access to theme-dependent CSS variables, all resolved style variants
 
 ##### addStyles
 
+<PropertySignature>
 - Type: (`css`) => `void`
+</PropertySignature>
 
 Adds CSS styles to the document that contains the rendered code.
 
@@ -145,17 +163,23 @@ The engine's `render` function returns all added styles in a string array along 
 
 ##### codeBlock
 
+<PropertySignature>
 - Type: [`ExpressiveCodeBlock`](/reference/core-api/#expressivecodeblock)
+</PropertySignature>
 
 ##### config
 
+<PropertySignature>
 - Type: `ResolvedExpressiveCodeEngineConfig`
+</PropertySignature>
 
 The Expressive Code engine configuration, with all optional properties resolved to their default values.
 
 ##### cssVar
 
+<PropertySignature>
 - Type: (`styleSetting`, `fallbackValue`?) => `string`
+</PropertySignature>
 
 Returns a CSS variable reference for the given style setting. The CSS variable name is automatically generated based on the setting path.
 
@@ -182,7 +206,9 @@ cssVar('frames.fontSize', '2rem')
 
 ##### cssVarName
 
+<PropertySignature>
 - Type: (`styleSetting`) => `string`
+</PropertySignature>
 
 Returns the CSS variable name for the given style setting. The CSS variable name is automatically generated based on the setting path.
 
@@ -202,15 +228,21 @@ cssVarName('frames.fontSize')
 
 ##### groupContents
 
+<PropertySignature>
 - Type: readonly \{ `codeBlock`: `ExpressiveCodeBlock` \}[]
+</PropertySignature>
 
 ##### locale
 
+<PropertySignature>
 - Type: `string`
+</PropertySignature>
 
 ##### styleVariants
 
+<PropertySignature>
 - Type: [`StyleVariant`](/reference/plugin-api/#stylevariant)[]
+</PropertySignature>
 
 
 ### PostprocessRenderedLineContext
@@ -223,19 +255,25 @@ In addition to the properties made available by [ExpressiveCodeHookContext](/ref
 
 ##### line
 
+<PropertySignature>
 - Type: [`ExpressiveCodeLine`](/reference/core-api/#expressivecodeline)
+</PropertySignature>
 
 A reference to the line that is currently being rendered. It is read-only at this point, but you can access all line properties, including its source code and annotations.
 
 ##### lineIndex
 
+<PropertySignature>
 - Type: `number`
+</PropertySignature>
 
 The 0-based index of the line inside the code block.
 
 ##### renderData
 
+<PropertySignature>
 - Type: `Object`
+</PropertySignature>
 
 Allows modifying the line's rendered output. The `lineAst` property of this object contains the [Hypertext Abstract Syntax Tree (HAST)](https://github.com/syntax-tree/hast) node representing the rendered line.
 
@@ -260,7 +298,9 @@ In addition to the properties made available by [ExpressiveCodeHookContext](/ref
 
 ##### renderData
 
+<PropertySignature>
 - Type: `Object`
+</PropertySignature>
 
 Allows modifying the block's rendered output. The `blockAst` property of this object contains the [Hypertext Abstract Syntax Tree (HAST)](https://github.com/syntax-tree/hast) node representing the rendered block.
 
@@ -285,7 +325,9 @@ It provides access to information about the code block group currently being ren
 
 ##### addStyles
 
+<PropertySignature>
 - Type: (`css`) => `void`
+</PropertySignature>
 
 See [ExpressiveCodeHookContext.addStyles](/reference/plugin-hooks/#addstyles).
 
@@ -297,13 +339,17 @@ See [ExpressiveCodeHookContext.addStyles](/reference/plugin-hooks/#addstyles).
 
 ##### pluginStyles
 
+<PropertySignature>
 - Type: \{ `pluginName`: `string`; `styles`: `string` \}[]
+</PropertySignature>
 
 A list of styles that plugins added to the current code block group using the `addStyles` hook context function. Each item contains the plugin name and the styles it added. You have full control over the styles at this point and can add, modify or remove them as needed.
 
 ##### renderData
 
+<PropertySignature>
 - Type: `Object`
+</PropertySignature>
 
 Allows modifying the rendered output of a group of code blocks. The `groupAst` property of this object contains the [Hypertext Abstract Syntax Tree (HAST)](https://github.com/syntax-tree/hast) parent node surrounding all rendered blocks.
 
@@ -317,7 +363,9 @@ This is the only property that allows you to modify the wrapper element of the e
 
 ##### renderedGroupContents
 
+<PropertySignature>
 - Type: readonly \{ `codeBlock`: `ExpressiveCodeBlock`; `renderedBlockAst`: `Element` \}[]
+</PropertySignature>
 
 An array of objects, each containing a reference to the code block, and its rendered HAST output. This is the same HAST element per block that is also available in the `renderData` property of the `postprocessRenderedBlock` hook context.
 

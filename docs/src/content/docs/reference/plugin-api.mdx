@@ -4,6 +4,8 @@
 title: Plugin API
 ---
 
+import PropertySignature from '@components/PropertySignature.astro'
+
 ## ExpressiveCodePlugin
 
 An interface that defines an Expressive Code plugin. To add a custom plugin, you pass an object matching this interface into the `plugins` array property of the engine configuration.
@@ -12,13 +14,17 @@ An interface that defines an Expressive Code plugin. To add a custom plugin, you
 
 #### name
 
+<PropertySignature>
 - Type: `string`
+</PropertySignature>
 
 The display name of the plugin. This is the only required property. It is used by the engine to display messages concerning the plugin, e.g. when it encounters an error.
 
 #### baseStyles?
 
+<PropertySignature>
 - Type: `string` \| [`BaseStylesResolverFn`](/reference/plugin-api/#basestylesresolverfn)
+</PropertySignature>
 
 The CSS styles that should be added to every page containing code blocks.
 
@@ -32,13 +38,17 @@ The calling code must take care of actually adding the collected styles to the p
 
 #### hooks?
 
-- Type: `ExpressiveCodePluginHooks`
+<PropertySignature>
+- Type: [`ExpressiveCodePluginHooks`](/reference/plugin-hooks/)
+</PropertySignature>
 
-A set of functions that should be called by the engine at specific points in the rendering process. See ExpressiveCodePluginHooks for a list of available hooks.
+A set of functions that should be called by the engine at specific points in the rendering process. See [ExpressiveCodePluginHooks](/reference/plugin-hooks/) for a list of available hooks.
 
 #### jsModules?
 
-- Type: `string`] \| [`JsModulesResolverFn`
+<PropertySignature>
+- Type: `string`[] \| [`JsModulesResolverFn`](/reference/plugin-api/#jsmodulesresolverfn)
+</PropertySignature>
 
 JavaScript modules (pure code without any wrapping `script` tags) that should be added to every page containing code blocks.
 
@@ -50,7 +60,9 @@ The calling code must take care of actually adding the collected scripts to the 
 
 #### styleSettings?
 
+<PropertySignature>
 - Type: [`PluginStyleSettings`](/reference/plugin-api/#pluginstylesettings)
+</PropertySignature>
 
 An instance of `PluginStyleSettings` that is used to define the plugin's CSS variables.
 
@@ -127,11 +139,15 @@ framesStyleSettings.defaultValues.frames.titleBarForeground // ({ theme }) => th
 
 #### cssVarExclusions
 
+<PropertySignature>
 - Type: **readonly** [`StyleSettingPath`](/reference/plugin-api/#stylesettingpath)[]
+</PropertySignature>
 
 #### defaultValues
 
+<PropertySignature>
 - Type: **readonly** `Partial`\<[`UnresolvedStyleSettings`](/reference/plugin-api/#unresolvedstylesettings)\>
+</PropertySignature>
 
 
 ## AttachedPluginData
@@ -230,7 +246,9 @@ export const pluginFramesData = new AttachedPluginData<PluginFramesData>(
 
 ### BaseStylesResolverFn
 
+<PropertySignature>
 - Type: (`context`) => `string` \| `Promise`\<`string`\>
+</PropertySignature>
 
 A function that you can assign to the [`baseStyles`](#basestyles) property of an
 [`ExpressiveCodePlugin`](#expressivecodeplugin).
@@ -255,9 +273,30 @@ The function will be called with a `context` argument of type
 | `context` | [`ResolverContext`](/reference/plugin-api/#resolvercontext) |
 
 
+### JsModulesResolverFn
+
+<PropertySignature>
+- Type: (`context`) => `string`[] \| `Promise`\<`string`[]\>
+</PropertySignature>
+
+A function that you can assign to the [`jsModules`](#jsmodules) property of an
+[`ExpressiveCodePlugin`](#expressivecodeplugin).
+
+The engine will call it when going through all registered plugins and collecting
+their JS modules.
+
+#### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `context` | [`ResolverContext`](/reference/plugin-api/#resolvercontext) |
+
+
 ### ResolverContext
 
+<PropertySignature>
 - Type: `Object`
+</PropertySignature>
 
 A context object that the engine passes to most hook functions.
 
@@ -274,12 +313,16 @@ It provides access to theme-dependent CSS variables, all resolved style variants
 
 ### ResolvedStyleSettingsByPath
 
+<PropertySignature>
 - Type: `Map`\<[`StyleSettingPath`](/reference/plugin-api/#stylesettingpath), `string`\>
+</PropertySignature>
 
 
 ### StyleResolverFn
 
+<PropertySignature>
 - Type: (`context`) => [`StyleValueOrValues`](/reference/plugin-api/#stylevalueorvalues)
+</PropertySignature>
 
 A function that resolves a single style setting to a [StyleValueOrValues](/reference/plugin-api/#stylevalueorvalues).
 
@@ -299,12 +342,16 @@ This function is called once for each style variant in the engine's `styleVarian
 
 ### StyleSettingPath
 
+<PropertySignature>
 - Type: `FlattenKeys`\<`StyleSettings`\>
+</PropertySignature>
 
 
 ### StyleValueOrValues
 
+<PropertySignature>
 - Type: `string` \| \[`string`, `string`\]
+</PropertySignature>
 
 The value of a single style setting. You can either set it to a string, or an array of two strings.
 
@@ -313,7 +360,9 @@ If you use the array form, the first value will be used for dark themes, and the
 
 ### StyleVariant
 
+<PropertySignature>
 - Type: `Object`
+</PropertySignature>
 
 #### Type declaration
 
@@ -326,7 +375,9 @@ If you use the array form, the first value will be used for dark themes, and the
 
 ### UnresolvedPluginStyleSettings
 
+<PropertySignature>
 - Type: `{ [SettingName in keyof T]: UnresolvedStyleValue }`
+</PropertySignature>
 
 #### Type parameters
 
@@ -337,12 +388,16 @@ If you use the array form, the first value will be used for dark themes, and the
 
 ### UnresolvedStyleValue
 
+<PropertySignature>
 - Type: [`StyleValueOrValues`](/reference/plugin-api/#stylevalueorvalues) \| [`StyleResolverFn`](/reference/plugin-api/#styleresolverfn)
+</PropertySignature>
 
 This is the value type for all style overrides. It allows either static style values or a resolver function.
 
 
 ### UnresolvedStyleSettings
 
+<PropertySignature>
 - Type: `{ [K in keyof StyleSettings]: StyleSettings[K] extends object ? UnresolvedPluginStyleSettings<StyleSettings[K]> : UnresolvedStyleValue }`
+</PropertySignature>
 

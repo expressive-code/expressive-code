@@ -111,9 +111,12 @@ export function processTemplate({ apiDocsPath, templateFilePath, outputFilePath 
 	})
 
 	// Auto-import known components after frontmatter
-	if (markdown.includes('<TypeProperties>')) {
-		markdown = addAfterEndOfFrontmatter(markdown, `import TypeProperties from '@components/TypeProperties.astro'\n`)
-	}
+	const components = ['PropertySignature']
+	components.forEach((component) => {
+		if (markdown.includes(`<${component}>`)) {
+			markdown = addAfterEndOfFrontmatter(markdown, `import ${component} from '@components/${component}.astro'\n`)
+		}
+	})
 
 	// Add warning about auto-generated content
 	markdown = markdown.replace(
@@ -203,7 +206,7 @@ export function fixLinks(docsDir: string, templateFileSubpaths: string[]) {
 	templateFileSubpaths.forEach((templateFileSubpath) => {
 		const lines = getFileLines(path.join(docsDir, templateFileSubpath))
 		lines.forEach((line, lineIdx) => {
-			lines[lineIdx] = line.replace(/\[(.+?)\]\(([^)]+)\)/g, (match: string, text: string, link: string) => {
+			lines[lineIdx] = line.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match: string, text: string, link: string) => {
 				// Check if the link is an API link
 				const targetMatch = link.match(/^\/api\/.*\/(.+?)\/(?:#([^/]+?))?$/)
 				const apiTargetName = targetMatch?.[1]

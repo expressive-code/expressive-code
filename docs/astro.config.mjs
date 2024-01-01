@@ -79,17 +79,14 @@ export default defineConfig({
 						{
 							label: 'Core API',
 							link: '/reference/core-api/',
-							badge: 'TODO',
 						},
 						{
 							label: 'Plugin API',
 							link: '/reference/plugin-api/',
-							badge: 'TODO',
 						},
 						{
 							label: 'Plugin Hooks',
 							link: '/reference/plugin-hooks/',
-							badge: 'TODO',
 						},
 						{ label: 'Release Notes', link: '/releases/' },
 					],

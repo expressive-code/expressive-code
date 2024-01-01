@@ -2,7 +2,7 @@
 title: Text & Line Markers
 ---
 
-import TypeProperties from '@components/TypeProperties.astro'
+import PropertySignature from '@components/PropertySignature.astro'
 import { Tabs, TabItem } from '@astrojs/starlight/components'
 
 Expressive Code allows you to add annotations to lines & line ranges, as well as individual text inside your lines. You can use them to highlight important parts of your code, or to indicate changes between different versions of your code.
@@ -351,33 +351,39 @@ This plugin does not provide any configuration options that can be passed to its
 
 This plugin adds a `textMarkers` object to the `styleOverrides` engine config option, allowing you to customize the visual appearance of the markers. The object contains the following properties:
 
-<TypeProperties>
-
 #### backgroundOpacity
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'50%'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'50%'``
+</PropertySignature>
 
 The opacity of the background color of all text marker types.
 
 #### borderLuminance
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'48%'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'48%'``
+</PropertySignature>
 
 The LCH luminance to be used for the border color of all text marker types.
 
 #### borderOpacity
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'81.6%'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'81.6%'``
+</PropertySignature>
 
 The opacity of the border color of all text marker types.
 
 #### defaultChroma
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'40'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'40'``
+</PropertySignature>
 
 The LCH chroma to be used for all text marker types.
 
@@ -385,36 +391,46 @@ The chroma value defines the saturation of the color. Higher values lead to more
 
 #### defaultLuminance
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``['32%', '75%'] // 32% for dark themes, 75% for light themes``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``['32%', '75%'] // 32% for dark themes, 75% for light themes``
+</PropertySignature>
 
 The LCH luminance to be used for all text marker types.
 
 #### delBackground
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``lch(<defaultLuminance> <defaultChroma> <delHue> / <backgroundOpacity>)``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``lch(<defaultLuminance> <defaultChroma> <delHue> / <backgroundOpacity>)``
+</PropertySignature>
 
 The background color of deleted text (text marker type `del`).
 
 #### delBorderColor
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``lch(<borderLuminance> <defaultChroma> <delHue> / <borderOpacity>)``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``lch(<borderLuminance> <defaultChroma> <delHue> / <borderOpacity>)``
+</PropertySignature>
 
 The border color of deleted text (text marker type `del`).
 
 #### delDiffIndicatorColor
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``lch(<indicatorLuminance> <defaultChroma> <delHue> / <indicatorOpacity>)``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``lch(<indicatorLuminance> <defaultChroma> <delHue> / <indicatorOpacity>)``
+</PropertySignature>
 
 The color of the diff indicator (e.g. `+` or `-`) of deleted lines.
 
 #### delDiffIndicatorContent
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``"'-'"``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``"'-'"``
+</PropertySignature>
 
 The content to be displayed inside the diff indicator of deleted lines.
 
@@ -422,71 +438,91 @@ Note that this is used as the `content` value in a CSS pseudo-element, so you ne
 
 #### delHue
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'33' (a red hue)``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'33' (a red hue)``
+</PropertySignature>
 
 The LCH hue to be used for deleted text (text marker type `del`).
 
 #### indicatorLuminance
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``['67%', '40%'] // 67% for dark themes, 40% for light themes``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``['67%', '40%'] // 67% for dark themes, 40% for light themes``
+</PropertySignature>
 
 The LCH luminance to be used for the diff indicator (e.g. `+` or `-`).
 
 #### indicatorOpacity
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'81.6%'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'81.6%'``
+</PropertySignature>
 
 The opacity of the diff indicator (e.g. `+` or `-`).
 
 #### inlineMarkerBorderRadius
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'0.2rem'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'0.2rem'``
+</PropertySignature>
 
 The border radius of inline text markers.
 
 #### inlineMarkerBorderWidth
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'1.5px'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'1.5px'``
+</PropertySignature>
 
 The width of the border around inline text markers, rendered in a way that does not cause marked code to shift.
 
 #### inlineMarkerPadding
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'0.15rem'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'0.15rem'``
+</PropertySignature>
 
 The inline padding of inline text markers. Keep this low to prevent marked code from shifting too much compared to the original text.
 
 #### insBackground
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``lch(<defaultLuminance> <defaultChroma> <insHue> / <backgroundOpacity>)``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``lch(<defaultLuminance> <defaultChroma> <insHue> / <backgroundOpacity>)``
+</PropertySignature>
 
 The background color of inserted text (text marker type `ins`).
 
 #### insBorderColor
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``lch(<borderLuminance> <defaultChroma> <insHue> / <borderOpacity>)``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``lch(<borderLuminance> <defaultChroma> <insHue> / <borderOpacity>)``
+</PropertySignature>
 
 The border color of inserted text (text marker type `ins`).
 
 #### insDiffIndicatorColor
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``lch(<indicatorLuminance> <defaultChroma> <insHue> / <indicatorOpacity>)``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``lch(<indicatorLuminance> <defaultChroma> <insHue> / <indicatorOpacity>)``
+</PropertySignature>
 
 The color of the diff indicator (e.g. `+` or `-`) of inserted lines.
 
 #### insDiffIndicatorContent
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``"'+'"``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``"'+'"``
+</PropertySignature>
 
 The content to be displayed inside the diff indicator of inserted lines.
 
@@ -494,51 +530,63 @@ Note that this is used as the `content` value in a CSS pseudo-element, so you ne
 
 #### insHue
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'136' (a green hue)``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'136' (a green hue)``
+</PropertySignature>
 
 The LCH hue to be used for inserted text (text marker type `ins`).
 
 #### lineDiffIndicatorMarginLeft
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'0.5rem'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'0.5rem'``
+</PropertySignature>
 
 The margin between the code block border and the diff indicator (e.g. `+` or `-`) displayed on the left side of a full-line text marker.
 
 #### lineMarkerAccentMargin
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'0rem'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'0rem'``
+</PropertySignature>
 
 The margin between the code block border and the line marker accent bar displayed on the left side of a full-line text marker.
 
 #### lineMarkerAccentWidth
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'0.15rem'``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'0.15rem'``
+</PropertySignature>
 
 The width of the line marker accent bar. This is the vertical border-like bar displayed on the left side of a full-line text marker.
 
 #### markBackground
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``lch(<defaultLuminance> <defaultChroma> <markHue> / <backgroundOpacity>)``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``lch(<defaultLuminance> <defaultChroma> <markHue> / <backgroundOpacity>)``
+</PropertySignature>
 
 The background color of marked text (text marker type `mark`).
 
 #### markBorderColor
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``lch(<borderLuminance> <defaultChroma> <markHue> / <borderOpacity>)``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``lch(<borderLuminance> <defaultChroma> <markHue> / <borderOpacity>)``
+</PropertySignature>
 
 The border color of marked text (text marker type `mark`).
 
 #### markHue
 
-> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
-> Default: ``'284' (a blue hue)``
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'284' (a blue hue)``
+</PropertySignature>
 
 The LCH hue to be used for marked text (text marker type `mark`).
-
-</TypeProperties>

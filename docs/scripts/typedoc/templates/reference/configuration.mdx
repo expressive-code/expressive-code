@@ -81,12 +81,12 @@ Here are configuration examples for some popular site generators:
 
 The following options are supported by the core package and all integrations:
 
-<TypeProperties>
-
 ### cascadeLayer
 
-> Type: string\
-> Default: `undefined`
+<PropertySignature>
+- Type: string
+- Default: `undefined`
+</PropertySignature>
 
 Allows to specify a CSS cascade layer name that should be used for all generated CSS.
 
@@ -94,8 +94,10 @@ If you are using [cascade layers](https://developer.mozilla.org/en-US/docs/Learn
 
 ### customizeTheme
 
-> Type: (theme) => void \| [ExpressiveCodeTheme](/reference/core-api/#expressivecodetheme)\
-> Default: `undefined`
+<PropertySignature>
+- Type: (theme) => void \| [ExpressiveCodeTheme](/reference/core-api/#expressivecodetheme)
+- Default: `undefined`
+</PropertySignature>
 
 This optional function is called once per theme during engine initialization with the loaded theme as its only argument.
 
@@ -109,14 +111,18 @@ You can optionally return an `ExpressiveCodeTheme` instance from this function t
 
 ### defaultLocale
 
-> Type: string\
-> Default: `'en-US'`
+<PropertySignature>
+- Type: string
+- Default: `'en-US'`
+</PropertySignature>
 
 The locale that should be used for text content.
 
 ### logger
 
-> Type: Partial\<[ExpressiveCodeLoggerOptions](#available-logger-options)\>
+<PropertySignature>
+- Type: Partial\<[ExpressiveCodeLoggerOptions](#available-logger-options)\>
+</PropertySignature>
 
 Allows to customize how Expressive Code logs messages. The default implementation logs all messages to the console and prepends them with the label `expressive-code` like this:
 
@@ -139,8 +145,10 @@ Allows to customize how Expressive Code logs messages. The default implementatio
 
 ### minSyntaxHighlightingColorContrast
 
-> Type: number\
-> Default: `5.5`
+<PropertySignature>
+- Type: number
+- Default: `5.5`
+</PropertySignature>
 
 Determines if Expressive Code should process the syntax highlighting colors of all themes to ensure an accessible minimum contrast ratio between foreground and background colors.
 
@@ -148,8 +156,10 @@ The default of `5.5` ensures a contrast ratio of at least 5.5:1. You can change 
 
 ### plugins
 
-> Type: ([ExpressiveCodePlugin](/reference/plugin-api/#expressivecodeplugin) \| [ExpressiveCodePlugin](/reference/plugin-api/#expressivecodeplugin)[])[]\
-> Default: `[]`
+<PropertySignature>
+- Type: ([ExpressiveCodePlugin](/reference/plugin-api/#expressivecodeplugin) \| [ExpressiveCodePlugin](/reference/plugin-api/#expressivecodeplugin)[])[]
+- Default: `[]`
+</PropertySignature>
 
 An optional array of plugins that should be used when rendering code blocks.
 
@@ -161,8 +171,10 @@ If any nested arrays are found inside the `plugins` array, they will be flattene
 
 ### styleOverrides
 
-> Type: [StyleOverrides](/reference/style-overrides/)\
-> Default: `{}`
+<PropertySignature>
+- Type: [StyleOverrides](/reference/style-overrides/)
+- Default: `{}`
+</PropertySignature>
 
 An optional set of style overrides that can be used to customize the appearance of the rendered code blocks without having to write custom CSS.
 
@@ -170,7 +182,9 @@ See the [Style Overrides](/reference/style-overrides/) page for more details.
 
 ### ~~theme~~
 
-> Type: [ExpressiveCodeTheme](/reference/core-api/#expressivecodetheme)
+<PropertySignature>
+- Type: [ExpressiveCodeTheme](/reference/core-api/#expressivecodetheme)
+</PropertySignature>
 
 :::caution[Deprecated]
 Efficient multi-theme support is now a core feature, so the `theme` option
@@ -182,8 +196,10 @@ multiple themes. See the `themes` option for more details.
 
 ### themeCssRoot
 
-> Type: string\
-> Default: `':root'`
+<PropertySignature>
+- Type: string
+- Default: `':root'`
+</PropertySignature>
 
 Allows to customize the base selector used to scope theme-dependent CSS styles.
 
@@ -191,8 +207,10 @@ The default selector `':root'` ensures that all required CSS variables are globa
 
 ### themeCssSelector
 
-> Type: false \| ((theme, context) => string \| false)\
-> Default: ``(theme) => `[data-theme='${theme.name}']` ``
+<PropertySignature>
+- Type: false \| ((theme, context) => string \| false)
+- Default: ``(theme) => `[data-theme='${theme.name}']` ``
+</PropertySignature>
 
 Allows to customize the selectors used to manually switch between multiple themes.
 
@@ -211,7 +229,9 @@ If you want to prevent the generation of theme-specific CSS rules altogether, yo
 
 ### themes
 
-> Type: [ExpressiveCodeTheme](/reference/core-api/#expressivecodetheme)[]
+<PropertySignature>
+- Type: [ExpressiveCodeTheme](/reference/core-api/#expressivecodetheme)[]
+</PropertySignature>
 
 The color themes that should be available for your code blocks.
 
@@ -221,7 +241,9 @@ Defaults to the `github-dark` and `github-light` themes.
 
 ### useDarkModeMediaQuery
 
-> Type: boolean
+<PropertySignature>
+- Type: boolean
+</PropertySignature>
 
 Determines if CSS code is generated that uses a `prefers-color-scheme` media query to automatically switch between light and dark themes based on the user's system preferences.
 
@@ -229,8 +251,10 @@ Defaults to `true` if your `themes` option is set to one dark and one light them
 
 ### useStyleReset
 
-> Type: boolean\
-> Default: `true`
+<PropertySignature>
+- Type: boolean
+- Default: `true`
+</PropertySignature>
 
 Determines if code blocks should be protected against influence from site-wide styles.
 
@@ -240,8 +264,10 @@ You can set this to `false` if you want your site-wide styles to influence the c
 
 ### useThemedScrollbars
 
-> Type: boolean\
-> Default: `true`
+<PropertySignature>
+- Type: boolean
+- Default: `true`
+</PropertySignature>
 
 Whether the themes are allowed to style the scrollbars.
 
@@ -251,8 +277,10 @@ Note that you can override the individual scrollbar colors defined by the theme 
 
 ### useThemedSelectionColors
 
-> Type: boolean\
-> Default: `false`
+<PropertySignature>
+- Type: boolean
+- Default: `false`
+</PropertySignature>
 
 Whether the themes are allowed to style selected text.
 
@@ -260,18 +288,16 @@ By default, Expressive Code renders selected text in code blocks using the brows
 
 Note that you can override the individual selection colors defined by the theme using the `styleOverrides` option.
 
-</TypeProperties>
-
 ## Options of `expressive-code`
 
 The `expressive-code` package bundles the core package with all default plugin packages. To allow controlling the plugins, it also supports the following options in addition to the ones above:
 
-<TypeProperties>
-
 ### frames
 
-> Type: boolean \| [PluginFramesOptions](/key-features/frames/#available-plugin-options)\
-> Default: `true`
+<PropertySignature>
+- Type: boolean \| [PluginFramesOptions](/key-features/frames/#available-plugin-options)
+- Default: `true`
+</PropertySignature>
 
 The Frames plugin adds an editor or terminal frame around code blocks, including an optional title displayed as a tab or window caption.
 
@@ -279,8 +305,10 @@ This plugin is enabled by default. Set this to `false` to disable it. You can al
 
 ### shiki
 
-> Type: boolean \| [PluginShikiOptions](/key-features/syntax-highlighting/#available-plugin-options)\
-> Default: `true`
+<PropertySignature>
+- Type: boolean \| [PluginShikiOptions](/key-features/syntax-highlighting/#available-plugin-options)
+- Default: `true`
+</PropertySignature>
 
 The Shiki plugin adds syntax highlighting to code blocks.
 
@@ -288,25 +316,25 @@ This plugin is enabled by default. Set this to `false` to disable it. You can al
 
 ### textMarkers
 
-> Type: boolean\
-> Default: `true`
+<PropertySignature>
+- Type: boolean
+- Default: `true`
+</PropertySignature>
 
 The Text Markers plugin allows to highlight lines and inline ranges in code blocks in various styles (e.g. marked, inserted, deleted).
 
 This plugin is enabled by default. Set this to `false` to disable it.
 
-</TypeProperties>
-
 ## Options of `remark-expressive-code`
 
 In addition to the options above, the remark integration also supports the following options:
 
-<TypeProperties>
-
 ### customCreateBlock
 
-> Type: (\{ input, file }) => [ExpressiveCodeBlock](/reference/core-api/#expressivecodeblock) \| Promise\<[ExpressiveCodeBlock](/reference/core-api/#expressivecodeblock)\>\
-> Default: `undefined`
+<PropertySignature>
+- Type: (\{ input, file }) => [ExpressiveCodeBlock](/reference/core-api/#expressivecodeblock) \| Promise\<[ExpressiveCodeBlock](/reference/core-api/#expressivecodeblock)\>
+- Default: `undefined`
+</PropertySignature>
 
 This optional function allows you to customize how `ExpressiveCodeBlock` instances are created from code blocks found in the Markdown document.
 
@@ -322,8 +350,10 @@ The function is expected to return an `ExpressiveCodeBlock` instance or a promis
 
 ### customCreateRenderer
 
-> Type: (options) => Promise\<RemarkExpressiveCodeRenderer\> \| RemarkExpressiveCodeRenderer\
-> Default: `undefined`
+<PropertySignature>
+- Type: (options) => Promise\<RemarkExpressiveCodeRenderer\> \| RemarkExpressiveCodeRenderer
+- Default: `undefined`
+</PropertySignature>
 
 This advanced option allows you to influence the rendering process by creating your own `ExpressiveCode` instance or processing the base styles and JS modules added to every page.
 
@@ -335,8 +365,10 @@ The return value will be cached and used for all code blocks in the document.
 
 ### getBlockLocale
 
-> Type: (\{ input, file }) => string \| undefined \| Promise\<string \| undefined\>\
-> Default: `undefined`
+<PropertySignature>
+- Type: (\{ input, file }) => string \| undefined \| Promise\<string \| undefined\>
+- Default: `undefined`
+</PropertySignature>
 
 This optional function provides support for multi-language sites by allowing you to customize the locale used for a given code block.
 
@@ -352,8 +384,10 @@ If the function returns `undefined`, the default locale provided in the Expressi
 
 ### tabWidth
 
-> Type: number\
-> Default: `2`
+<PropertySignature>
+- Type: number
+- Default: `2`
+</PropertySignature>
 
 The number of spaces that should be used to render tabs.
 
@@ -363,8 +397,10 @@ If you want to preserve tabs in your code blocks, set this option to 0.
 
 ### themes
 
-> Type: [ThemeObjectOrShikiThemeName](/api/remark-expressive-code/type-aliases/themeobjectorshikithemename/)[]\
-> Default: `['github-dark', 'github-light']`
+<PropertySignature>
+- Type: [ThemeObjectOrShikiThemeName](/api/remark-expressive-code/type-aliases/themeobjectorshikithemename/)[]
+- Default: `['github-dark', 'github-light']`
+</PropertySignature>
 
 The color themes that should be available for your code blocks.
 
@@ -375,18 +411,16 @@ The following item types are supported in this array:
 - any theme object compatible with VS Code or Shiki (e.g. imported from an NPM theme package)
 - any ExpressiveCodeTheme instance (e.g. using `ExpressiveCodeTheme.fromJSONString(...)` to load a custom JSON/JSONC theme file yourself)
 
-</TypeProperties>
-
 ## Options of `astro-expressive-code`
 
 In addition to the options above, the Astro integration also supports the following options:
 
-<TypeProperties>
-
 ### emitExternalStylesheet
 
-> Type: boolean\
-> Default: `true`
+<PropertySignature>
+- Type: boolean
+- Default: `true`
+</PropertySignature>
 
 Determines if the styles required to display code blocks should be emitted into a separate CSS file rather than being inlined into the rendered HTML of the first code block per page.
 
@@ -397,5 +431,3 @@ The generated URL is located inside Astro's assets directory and includes a cont
 :::caution[Important]
 To actually benefit from caching, please ensure that your hosting provider serves the contents of the assets directory as immutable files with a long cache lifetime, e.g. `Cache-Control: public,max-age=31536000,immutable`.
 :::
-
-</TypeProperties>

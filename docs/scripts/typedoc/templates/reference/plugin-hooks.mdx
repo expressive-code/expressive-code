@@ -6,11 +6,11 @@ title: Plugin Hooks
 
 The engine calls the following hook functions in the order listed here:
 
-<TypeProperties>
-
 ### preprocessMetadata
 
-> Type: [`ExpressiveCodeHook`](/api/expressive-code/core/type-aliases/ExpressiveCodeHook/)\<[`ExpressiveCodeHookContext`](/api/expressive-code/core/interfaces/ExpressiveCodeHookContext/)\>
+<PropertySignature>
+- Type: [`ExpressiveCodeHook`](/api/expressive-code/core/type-aliases/ExpressiveCodeHook/)\<[`ExpressiveCodeHookContext`](/api/expressive-code/core/interfaces/ExpressiveCodeHookContext/)\>
+</PropertySignature>
 
 Allows preprocessing the meta string and the language before any plugins can modify the code.
 
@@ -20,7 +20,9 @@ As the code still matches the plaintext in the containing Markdown/MDX document 
 
 ### preprocessCode
 
-> Type: [`ExpressiveCodeHook`](/api/expressive-code/core/type-aliases/ExpressiveCodeHook/)\<[`ExpressiveCodeHookContext`](/api/expressive-code/core/interfaces/ExpressiveCodeHookContext/)\>
+<PropertySignature>
+- Type: [`ExpressiveCodeHook`](/api/expressive-code/core/type-aliases/ExpressiveCodeHook/)\<[`ExpressiveCodeHookContext`](/api/expressive-code/core/interfaces/ExpressiveCodeHookContext/)\>
+</PropertySignature>
 
 Allows preprocessing the code before any language-specific hooks are run.
 
@@ -30,7 +32,9 @@ Plugins can also use this hook to insert new code, e.g. to add type information 
 
 ### performSyntaxAnalysis
 
-> Type: [`ExpressiveCodeHook`](/api/expressive-code/core/type-aliases/ExpressiveCodeHook/)\<[`ExpressiveCodeHookContext`](/api/expressive-code/core/interfaces/ExpressiveCodeHookContext/)\>
+<PropertySignature>
+- Type: [`ExpressiveCodeHook`](/api/expressive-code/core/type-aliases/ExpressiveCodeHook/)\<[`ExpressiveCodeHookContext`](/api/expressive-code/core/interfaces/ExpressiveCodeHookContext/)\>
+</PropertySignature>
 
 Allows analyzing the preprocessed code and collecting language-specific syntax annotations.
 
@@ -40,7 +44,9 @@ These annotations are then available to the following hooks and will be used dur
 
 ### postprocessAnalyzedCode
 
-> Type: [`ExpressiveCodeHook`](/api/expressive-code/core/type-aliases/ExpressiveCodeHook/)\<[`ExpressiveCodeHookContext`](/api/expressive-code/core/interfaces/ExpressiveCodeHookContext/)\>
+<PropertySignature>
+- Type: [`ExpressiveCodeHook`](/api/expressive-code/core/type-aliases/ExpressiveCodeHook/)\<[`ExpressiveCodeHookContext`](/api/expressive-code/core/interfaces/ExpressiveCodeHookContext/)\>
+</PropertySignature>
 
 Allows postprocessing the code plaintext after collecting syntax annotations.
 
@@ -50,7 +56,9 @@ After this hook has finished processing, the plaintext of all code lines becomes
 
 ### annotateCode
 
-> Type: [`ExpressiveCodeHook`](/api/expressive-code/core/type-aliases/ExpressiveCodeHook/)\<[`ExpressiveCodeHookContext`](/api/expressive-code/core/interfaces/ExpressiveCodeHookContext/)\>
+<PropertySignature>
+- Type: [`ExpressiveCodeHook`](/api/expressive-code/core/type-aliases/ExpressiveCodeHook/)\<[`ExpressiveCodeHookContext`](/api/expressive-code/core/interfaces/ExpressiveCodeHookContext/)\>
+</PropertySignature>
 
 Allows annotating the final code plaintext.
 
@@ -58,7 +66,9 @@ As the code is read-only at this point, plugins can use this hook to create anno
 
 ### postprocessAnnotations
 
-> Type: [`ExpressiveCodeHook`](/api/expressive-code/core/type-aliases/ExpressiveCodeHook/)\<[`ExpressiveCodeHookContext`](/api/expressive-code/core/interfaces/ExpressiveCodeHookContext/)\>
+<PropertySignature>
+- Type: [`ExpressiveCodeHook`](/api/expressive-code/core/type-aliases/ExpressiveCodeHook/)\<[`ExpressiveCodeHookContext`](/api/expressive-code/core/interfaces/ExpressiveCodeHookContext/)\>
+</PropertySignature>
 
 Allows applying final changes to annotations before rendering.
 
@@ -66,19 +76,25 @@ After this hook has finished processing, all annotations become read-only and th
 
 ### postprocessRenderedLine
 
-> Type: [`ExpressiveCodeHook`](/api/expressive-code/core/type-aliases/ExpressiveCodeHook/)\<[`PostprocessRenderedLineContext`](/api/expressive-code/core/interfaces/PostprocessRenderedLineContext/)\>
+<PropertySignature>
+- Type: [`ExpressiveCodeHook`](/api/expressive-code/core/type-aliases/ExpressiveCodeHook/)\<[`PostprocessRenderedLineContext`](/api/expressive-code/core/interfaces/PostprocessRenderedLineContext/)\>
+</PropertySignature>
 
 Allows editing the AST of a single line of code after all annotations were rendered.
 
 ### postprocessRenderedBlock
 
-> Type: [`ExpressiveCodeHook`](/api/expressive-code/core/type-aliases/ExpressiveCodeHook/)\<[`PostprocessRenderedBlockContext`](/api/expressive-code/core/interfaces/PostprocessRenderedBlockContext/)\>
+<PropertySignature>
+- Type: [`ExpressiveCodeHook`](/api/expressive-code/core/type-aliases/ExpressiveCodeHook/)\<[`PostprocessRenderedBlockContext`](/api/expressive-code/core/interfaces/PostprocessRenderedBlockContext/)\>
+</PropertySignature>
 
 Allows editing the AST of the entire code block after all annotations were rendered and all lines were postprocessed.
 
 ### postprocessRenderedBlockGroup
 
-> Type: [`ExpressiveCodeHook`](/api/expressive-code/core/type-aliases/ExpressiveCodeHook/)\<[`PostprocessRenderedBlockGroupContext`](/api/expressive-code/core/interfaces/PostprocessRenderedBlockGroupContext/)\>
+<PropertySignature>
+- Type: [`ExpressiveCodeHook`](/api/expressive-code/core/type-aliases/ExpressiveCodeHook/)\<[`PostprocessRenderedBlockGroupContext`](/api/expressive-code/core/interfaces/PostprocessRenderedBlockGroupContext/)\>
+</PropertySignature>
 
 Allows editing the ASTs of all code blocks that were rendered as part of the same group, as well as the AST of the group root element that contains all group blocks.
 
@@ -87,8 +103,6 @@ Groups are defined by the calling code. For example, a Remark plugin using Expre
 This hook is used by the frames plugin to display multiple code blocks as editor file tabs.
 
 Note: Even if a code block is not part of any group, this hook will still be called. Standalone code blocks are treated like a group containing only a single block.
-
-</TypeProperties>
 
 ## Referenced types
 

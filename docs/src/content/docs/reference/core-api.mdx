@@ -4,6 +4,8 @@
 title: Core API
 ---
 
+import PropertySignature from '@components/PropertySignature.astro'
+
 ## Engine
 
 ### ExpressiveCodeEngine
@@ -26,7 +28,7 @@ To minimize overhead caused by loading plugins, you can create a single instance
 
 | Parameter | Type |
 | :------ | :------ |
-| `config` | `ExpressiveCodeEngineConfig` |
+| `config` | [`ExpressiveCodeEngineConfig`](/reference/configuration/) |
 
 #### Methods
 
@@ -54,9 +56,9 @@ The calling code must take care of actually adding the collected scripts to the 
 
 - <code class="function-signature">**getThemeStyles**(): Promise\<string\></code>
 
-Returns a string containing theme-dependent styles that should be added to every page using Expressive Code. These styles contain CSS variable declarations that are generated automatically based on the configured themes,
-useDarkModeMediaQuery and
-themeCssSelector config options.
+Returns a string containing theme-dependent styles that should be added to every page using Expressive Code. These styles contain CSS variable declarations that are generated automatically based on the configured [themes](/reference/configuration/#themes),
+[useDarkModeMediaQuery](/reference/configuration/#usedarkmodemediaquery) and
+[themeCssSelector](/reference/configuration/#themecssselector) config options.
 
 The first theme defined in the `themes` option is considered the "base theme", for which a full set of CSS variables is declared and scoped to the selector defined by the `themeCssRoot` option (defaults to `:root`).
 
@@ -308,13 +310,17 @@ The processing state controls which properties of the code block can be modified
 
 ##### code
 
+<PropertySignature>
 - Type: `string`
+</PropertySignature>
 
 The plaintext contents of the code block.
 
 ##### language
 
+<PropertySignature>
 - Type: `string`
+</PropertySignature>
 
 The code block’s language.
 
@@ -322,7 +328,9 @@ Please use one of the [language identifiers](https://github.com/antfu/textmate-g
 
 ##### locale?
 
+<PropertySignature>
 - Type: `string`
+</PropertySignature>
 
 The code block's locale (e.g. `en-US` or `de-DE`). This is used by plugins to display localized strings depending on the language of the containing page.
 
@@ -332,13 +340,17 @@ If no locale is defined here, `ExpressiveCodeEngine` will render the code block 
 
 ##### meta?
 
+<PropertySignature>
 - Type: `string`
+</PropertySignature>
 
 An optional meta string. In markdown or MDX documents, this is the part of the code block's opening fence that comes after the language name.
 
 ##### parentDocument?
 
+<PropertySignature>
 - Type: `Object`
+</PropertySignature>
 
 Optional data about the parent document the code block is located in.
 
@@ -505,27 +517,39 @@ As some themes follow the JSONC format and may contain comments and trailing com
 
 ##### bg
 
+<PropertySignature>
 - Type: `string`
+</PropertySignature>
 
 ##### colors
 
+<PropertySignature>
 - Type: `Object` (mapping VS Code workbench color keys to values)
+</PropertySignature>
 
 ##### fg
 
+<PropertySignature>
 - Type: `string`
+</PropertySignature>
 
 ##### name
 
+<PropertySignature>
 - Type: `string`
+</PropertySignature>
 
 ##### semanticHighlighting
 
+<PropertySignature>
 - Type: `boolean`
+</PropertySignature>
 
 ##### settings
 
+<PropertySignature>
 - Type: [`ThemeSetting`](/reference/core-api/#themesetting)[]
+</PropertySignature>
 
 ##### styleOverrides
 
@@ -536,7 +560,9 @@ See [Overriding Styles](/reference/style-overrides) for a list of all available 
 
 ##### type
 
+<PropertySignature>
 - Type: `"dark"` \| `"light"`
+</PropertySignature>
 
 
 ## Annotations
@@ -631,7 +657,9 @@ the entire list.
 
 ### AnnotationBaseOptions
 
+<PropertySignature>
 - Type: `Object`
+</PropertySignature>
 
 #### Type declaration
 
@@ -643,7 +671,9 @@ the entire list.
 
 ### AnnotationRenderOptions
 
+<PropertySignature>
 - Type: `Object`
+</PropertySignature>
 
 #### Type declaration
 
@@ -655,12 +685,16 @@ the entire list.
 
 ### AnnotationRenderPhase
 
+<PropertySignature>
 - Type: `"earliest"` \| `"earlier"` \| `"normal"` \| `"later"` \| `"latest"`
+</PropertySignature>
 
 
 ### ChromaticRecolorTarget
 
+<PropertySignature>
 - Type: `Object`
+</PropertySignature>
 
 #### Type declaration
 
@@ -673,7 +707,9 @@ the entire list.
 
 ### ExpressiveCodeInlineRange
 
+<PropertySignature>
 - Type: `Object`
+</PropertySignature>
 
 #### Type declaration
 
@@ -689,20 +725,28 @@ the entire list.
 
 ##### canEditAnnotations
 
+<PropertySignature>
 - Type: `boolean`
+</PropertySignature>
 
 ##### canEditCode
 
+<PropertySignature>
 - Type: `boolean`
+</PropertySignature>
 
 ##### canEditMetadata
 
+<PropertySignature>
 - Type: `boolean`
+</PropertySignature>
 
 
 ### InlineStyleAnnotationOptions
 
+<PropertySignature>
 - Type: [`AnnotationBaseOptions`](/reference/core-api/#annotationbaseoptions) & `Object`
+</PropertySignature>
 
 #### Type declaration
 
@@ -717,7 +761,9 @@ the entire list.
 
 ### RenderInput
 
+<PropertySignature>
 - Type: [`ExpressiveCodeBlockOptions`](/reference/core-api/#expressivecodeblockoptions) \| [`ExpressiveCodeBlock`](/reference/core-api/#expressivecodeblock) \| ([`ExpressiveCodeBlockOptions`](/reference/core-api/#expressivecodeblockoptions) \| [`ExpressiveCodeBlock`](/reference/core-api/#expressivecodeblock))[]
+</PropertySignature>
 
 
 ### RenderOptions
@@ -726,7 +772,9 @@ the entire list.
 
 ##### onInitGroup?
 
+<PropertySignature>
 - Type: (`groupContents`) => `void`
+</PropertySignature>
 
 An optional handler function that can initialize plugin data for the code block group before processing starts.
 
@@ -743,7 +791,9 @@ You can then import the const and set `onInitGroup` to a function that calls `my
 
 ### ThemeSetting
 
+<PropertySignature>
 - Type: `Object`
+</PropertySignature>
 
 #### Type declaration
 

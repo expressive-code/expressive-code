@@ -5,6 +5,9 @@ title: Plugin API
 ````yml include
 name: "ExpressiveCodePlugin"
 headingLevel: 2
+replacements:
+- search: '(\[`?ExpressiveCodePluginHooks`?\])\(.*?\)'
+  replace: '$1(/reference/plugin-hooks/)'
 ````
 
 ````yml include
@@ -88,6 +91,19 @@ editSections:
     [`ResolverContext`](#resolvercontext) that provides helpful functions like
     `cssVar` to access any generated CSS variable by its style setting path.
     :::
+````
+
+````yml include
+name: "JsModulesResolverFn"
+headingLevel: 3
+editSections:
+- path: ""
+  append: |
+    A function that you can assign to the [`jsModules`](#jsmodules) property of an
+    [`ExpressiveCodePlugin`](#expressivecodeplugin).
+
+    The engine will call it when going through all registered plugins and collecting
+    their JS modules.
 ````
 
 ````yml include

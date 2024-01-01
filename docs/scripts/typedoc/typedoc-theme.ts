@@ -234,6 +234,7 @@ class StarlightTypeDocThemeRenderContext extends MarkdownThemeRenderContext {
 				markdown += `\\\n> Default: ${defaultValue}`
 			}
 		}
+		markdown = `<PropertySignature>\n${markdown}\n</PropertySignature>`
 		return typeWrapper('declarationMemberIdentifier', markdown)
 	}
 
@@ -261,11 +262,9 @@ class StarlightTypeDocThemeRenderContext extends MarkdownThemeRenderContext {
 				md.push(this.typeDeclarationTable(typeDeclaration.children))
 			} else {
 				const declarations = flattenDeclarations(typeDeclaration.children)
-				// md.push('<TypeProperties>')
 				declarations.forEach((declaration: DeclarationReflection) => {
 					md.push(this.member(declaration, headingLevel + 1, true))
 				})
-				// md.push('</TypeProperties>')
 			}
 		}
 		return typeWrapper(`typeDeclarationMember`, md.join('\n\n'))

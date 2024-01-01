@@ -10,8 +10,8 @@ const packages = [
 	'@expressive-code/plugin-text-markers',
 	'@expressive-code/plugin-collapsible-sections',
 	'expressive-code',
-	// 'remark-expressive-code',
-	// 'astro-expressive-code',
+	'remark-expressive-code',
+	'astro-expressive-code',
 ]
 
 const sourceFiles: PartialConfig = {
