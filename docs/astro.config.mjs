@@ -29,20 +29,16 @@ export default defineConfig({
 					label: 'Key Features',
 					items: [
 						{
-							label: 'Themes',
-							link: '/guides/themes/',
-						},
-						{
 							label: 'Syntax Highlighting',
-							link: '/guides/syntax-highlighting/',
+							link: '/key-features/syntax-highlighting/',
 						},
 						{
 							label: 'Editor & Terminal Frames',
-							link: '/guides/frames/',
+							link: '/key-features/frames/',
 						},
 						{
 							label: 'Text & Line Markers',
-							link: '/guides/text-markers/',
+							link: '/key-features/text-markers/',
 						},
 					],
 				},
@@ -51,7 +47,7 @@ export default defineConfig({
 					items: [
 						{
 							label: 'Collapsible Sections',
-							link: '/guides/collapsible-sections/',
+							link: '/plugins/collapsible-sections/',
 						},
 					],
 				},
@@ -59,12 +55,12 @@ export default defineConfig({
 					label: 'Customization',
 					items: [
 						{
-							label: 'Overriding Styles',
-							link: '/reference/style-overrides/',
+							label: 'Themes',
+							link: '/guides/themes/',
 						},
 						{
 							label: 'Developing Plugins',
-							link: '/guides/plugins/',
+							link: '/guides/developing-plugins/',
 							badge: 'TODO',
 						},
 					],
@@ -73,8 +69,12 @@ export default defineConfig({
 					label: 'Reference',
 					items: [
 						{
-							label: 'Configuration Reference',
+							label: 'Configuration Options',
 							link: '/reference/configuration/',
+						},
+						{
+							label: 'Style Overrides',
+							link: '/reference/style-overrides/',
 						},
 						{
 							label: 'Core API',

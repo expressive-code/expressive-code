@@ -132,7 +132,7 @@ New-Alias tail Watch-Tail
 
 When using this plugin through a framework integration, you can configure it by passing options to the integration.
 
-In addition, you can also override its default styles by adding a `frames` object to the `styleOverrides` engine config option. You can find a list of all [overridable styles](#available-styleoverrides) below.
+In addition, you can also override its default styles by adding a `frames` object to the `styleOverrides` engine config option. You can find a list of all [overridable styles](#available-style-overrides) below.
 
 Here are configuration examples for some popular site generators:
 
@@ -237,7 +237,7 @@ If `true` (which is the default), a "Copy to clipboard" button will be shown for
 
 </TypeProperties>
 
-### Available `styleOverrides`
+### Available style overrides
 
 This plugin adds a `frames` object to the `styleOverrides` engine config option, allowing you to customize the visual appearance of the rendered frames. The object contains the following properties:
 
@@ -245,35 +245,35 @@ This plugin adds a `frames` object to the `styleOverrides` engine config option,
 
 #### editorActiveTabBackground
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``({ theme }) => theme.colors['tab.activeBackground']``
 
 The CSS `background` value for the active editor tab.
 
 #### editorActiveTabBorderColor
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``'transparent'``
 
 The border color of the active editor tab.
 
 #### editorActiveTabForeground
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``({ theme }) => theme.colors['tab.activeForeground']``
 
 The foreground color of the active editor tab.
 
 #### editorActiveTabIndicatorBottomColor
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``({ theme }) => theme.colors['tab.activeBorder']``
 
 The color of the indicator line displayed at the bottom border of the active editor tab.
 
 #### editorActiveTabIndicatorHeight
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``({ resolveSetting }) => resolveSetting('borderWidth')``
 
 The height of the indicator lines highlighting the active editor tab. These are colorful lines that appear at the top and/or bottom of the active tab.
@@ -283,70 +283,70 @@ The individual line colors can be set in [editorActiveTabIndicatorTopColor](#edi
 
 #### editorActiveTabIndicatorTopColor
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``({ theme }) => theme.colors['tab.activeBorderTop']``
 
 The color of the indicator line displayed at the top border of the active editor tab.
 
 #### editorBackground
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``({ resolveSetting }) => resolveSetting('codeBackground')``
 
 The background color of the code editor. This color is used for the "code" frame type.
 
 #### editorTabBarBackground
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``({ theme }) => theme.colors['editorGroupHeader.tabsBackground']``
 
 The CSS `background` value of the editor tab bar.
 
 #### editorTabBarBorderBottomColor
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``({ theme }) => theme.colors['editorGroupHeader.tabsBorder'] || 'transparent'``
 
 The color of the bottom border of the editor tab bar. This is an additional border that can be used to display a line between the editor tab bar and the code contents.
 
 #### editorTabBarBorderColor
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``({ resolveSetting }) => resolveSetting('borderColor')``
 
 The border color of the editor tab bar.
 
 #### editorTabBorderRadius
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``({ resolveSetting }) => resolveSetting('borderRadius')``
 
 The border radius to apply to the outer corners of editor tabs.
 
 #### editorTabsMarginBlockStart
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``'0'``
 
 The block margin (= top margin in horizontal writing mode) to apply inside the tab bar before the editor tabs.
 
 #### editorTabsMarginInlineStart
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``'0'``
 
 The inline margin (= left margin in horizontal writing mode) to apply inside the tab bar before the first editor tab.
 
 #### frameBoxShadowCssValue
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``({ resolveSetting }) => `0.1rem 0.1rem 0.2rem ${resolveSetting('frames.shadowColor')}` ``
 
 The CSS value for the box shadow of the frame.
 
 #### inlineButtonBackground
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``({ resolveSetting }) => resolveSetting('frames.inlineButtonForeground')``
 
 The background color of the copy button. This color is modified by the state-dependent opacity values specified in
@@ -354,70 +354,70 @@ The background color of the copy button. This color is modified by the state-dep
 
 #### inlineButtonBackgroundActiveOpacity
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``'0.3'``
 
 The opacity of the copy button background when pressed.
 
 #### inlineButtonBackgroundHoverOrFocusOpacity
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``'0.2'``
 
 The opacity of the copy button background when hovered or focused.
 
 #### inlineButtonBackgroundIdleOpacity
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``'0'``
 
 The opacity of the copy button background when idle.
 
 #### inlineButtonBorder
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``({ resolveSetting }) => resolveSetting('frames.inlineButtonForeground')``
 
 The border color of the copy button.
 
 #### inlineButtonBorderOpacity
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``'0.4'``
 
 The opacity of the copy button border.
 
 #### inlineButtonForeground
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``({ resolveSetting }) => resolveSetting('codeForeground')``
 
 The foreground color of the copy button.
 
 #### shadowColor
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``({ theme, resolveSetting }) => theme.colors['widget.shadow'] || multiplyAlpha(resolveSetting('borderColor'), 0.75)``
 
 The color to use for the shadow of the frame.
 
 #### terminalBackground
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``({ theme }) => theme.colors['terminal.background']``
 
 The background color of the terminal window. This color is used for the "terminal" frame type.
 
 #### terminalTitlebarBackground
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``({ theme }) => theme.colors['titleBar.activeBackground'] || theme.colors['editorGroupHeader.tabsBackground']``
 
 The background color of the terminal title bar.
 
 #### terminalTitlebarBorderBottomColor
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``  theme.colors['titleBar.border'] ||
   onBackground(resolveSetting('borderColor'), theme.type === 'dark' ? '#000000bf' : '#ffffffbf')``
 
@@ -425,35 +425,35 @@ The color of the border between the terminal title bar and the terminal contents
 
 #### terminalTitlebarDotsForeground
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``({ resolveSetting }) => resolveSetting('frames.terminalTitlebarForeground')``
 
 The color of the three dots in the terminal title bar.
 
 #### terminalTitlebarDotsOpacity
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``'0.15'``
 
 The opacity of the three dots in the terminal title bar.
 
 #### terminalTitlebarForeground
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``({ theme }) => theme.colors['titleBar.activeForeground']``
 
 The foreground color of the terminal title bar.
 
 #### tooltipSuccessBackground
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``({ theme }) => setLuminance(theme.colors['terminal.ansiGreen'] || '#0dbc79', 0.18)``
 
 The background color of the tooltip shown after successfully copying the code.
 
 #### tooltipSuccessForeground
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``'white'``
 
 The foreground color of the tooltip shown after successfully copying the code.

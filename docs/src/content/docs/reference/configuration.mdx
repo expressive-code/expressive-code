@@ -1,5 +1,5 @@
 ---
-title: Configuration Reference
+title: Configuration Options
 ---
 
 import TypeProperties from '@components/TypeProperties.astro'
@@ -95,7 +95,7 @@ If you are using [cascade layers](https://developer.mozilla.org/en-US/docs/Learn
 
 ### customizeTheme
 
-> Type: (theme) => void \| [ExpressiveCodeTheme](/guides/themes/#expressivecodetheme-api)\
+> Type: (theme) => void \| [ExpressiveCodeTheme](/reference/core-api/#expressivecodetheme)\
 > Default: `undefined`
 
 This optional function is called once per theme during engine initialization with the loaded theme as its only argument.
@@ -106,7 +106,7 @@ You can optionally return an `ExpressiveCodeTheme` instance from this function t
 
 #### Parameters
 
-- **theme**: [`ExpressiveCodeTheme`](/guides/themes/#expressivecodetheme-api)
+- **theme**: [`ExpressiveCodeTheme`](/reference/core-api/#expressivecodetheme)
 
 ### defaultLocale
 
@@ -149,7 +149,7 @@ The default of `5.5` ensures a contrast ratio of at least 5.5:1. You can change 
 
 ### plugins
 
-> Type: ([ExpressiveCodePlugin](/reference/plugins/) \| [ExpressiveCodePlugin](/reference/plugins/)[])[]\
+> Type: ([ExpressiveCodePlugin](/reference/plugin-api/#expressivecodeplugin) \| [ExpressiveCodePlugin](/reference/plugin-api/#expressivecodeplugin)[])[]\
 > Default: `[]`
 
 An optional array of plugins that should be used when rendering code blocks.
@@ -171,7 +171,7 @@ See the [Style Overrides](/reference/style-overrides/) page for more details.
 
 ### ~~theme~~
 
-> Type: [ExpressiveCodeTheme](/guides/themes/#expressivecodetheme-api)
+> Type: [ExpressiveCodeTheme](/reference/core-api/#expressivecodetheme)
 
 :::caution[Deprecated]
 Efficient multi-theme support is now a core feature, so the `theme` option
@@ -212,7 +212,7 @@ If you want to prevent the generation of theme-specific CSS rules altogether, yo
 
 ### themes
 
-> Type: [ExpressiveCodeTheme](/guides/themes/#expressivecodetheme-api)[]
+> Type: [ExpressiveCodeTheme](/reference/core-api/#expressivecodetheme)[]
 
 The color themes that should be available for your code blocks.
 
@@ -271,7 +271,7 @@ The `expressive-code` package bundles the core package with all default plugin p
 
 ### frames
 
-> Type: boolean \| [PluginFramesOptions](/guides/frames/#available-plugin-options)\
+> Type: boolean \| [PluginFramesOptions](/key-features/frames/#available-plugin-options)\
 > Default: `true`
 
 The Frames plugin adds an editor or terminal frame around code blocks, including an optional title displayed as a tab or window caption.
@@ -280,7 +280,7 @@ This plugin is enabled by default. Set this to `false` to disable it. You can al
 
 ### shiki
 
-> Type: boolean \| [PluginShikiOptions](/guides/syntax-highlighting/#available-plugin-options)\
+> Type: boolean \| [PluginShikiOptions](/key-features/syntax-highlighting/#available-plugin-options)\
 > Default: `true`
 
 The Shiki plugin adds syntax highlighting to code blocks.
@@ -306,7 +306,7 @@ In addition to the options above, the remark integration also supports the follo
 
 ### customCreateBlock
 
-> Type: (\{ input, file }) => [ExpressiveCodeBlock](/api/expressive-code/core/classes/expressivecodeblock/) \| Promise\<[ExpressiveCodeBlock](/api/expressive-code/core/classes/expressivecodeblock/)\>\
+> Type: (\{ input, file }) => [ExpressiveCodeBlock](/reference/core-api/#expressivecodeblock) \| Promise\<[ExpressiveCodeBlock](/reference/core-api/#expressivecodeblock)\>\
 > Default: `undefined`
 
 This optional function allows you to customize how `ExpressiveCodeBlock` instances are created from code blocks found in the Markdown document.
@@ -315,7 +315,7 @@ The function is expected to return an `ExpressiveCodeBlock` instance or a promis
 
 #### Parameters
 
-- **input**: [ExpressiveCodeBlockOptions](/api/expressive-code/core/interfaces/expressivecodeblockoptions/)\
+- **input**: [ExpressiveCodeBlockOptions](/reference/core-api/#expressivecodeblockoptions)\
   Block data for the `ExpressiveCodeBlock` constructor.
 
 - **file**: VFileWithOutput\<null\>\
@@ -345,7 +345,7 @@ If the function returns `undefined`, the default locale provided in the Expressi
 
 #### Parameters
 
-- **input**: [ExpressiveCodeBlockOptions](/api/expressive-code/core/interfaces/expressivecodeblockoptions/)\
+- **input**: [ExpressiveCodeBlockOptions](/reference/core-api/#expressivecodeblockoptions)\
   Block data for the `ExpressiveCodeBlock` constructor.
 
 - **file**: VFileWithOutput\<null\>\

@@ -101,7 +101,7 @@ function calcFn() {
 
 ## Configuration
 
-You can override this plugin's default styles by adding a `collapsibleSections` object to the `styleOverrides` engine config option. You can find a list of all [overridable styles](#available-styleoverrides) below.
+You can override this plugin's default styles by adding a `collapsibleSections` object to the `styleOverrides` engine config option. You can find a list of all [overridable styles](#available-style-overrides) below.
 
 Here are configuration examples for some popular site generators:
 
@@ -180,7 +180,7 @@ Here are configuration examples for some popular site generators:
 
 This plugin does not provide any configuration options that can be passed to its initialization function.
 
-### Available `styleOverrides`
+### Available style overrides
 
 This plugin adds a `collapsibleSections` object to the `styleOverrides` engine config option, allowing you to customize the visual appearance of the sections. The object contains the following properties:
 
@@ -188,98 +188,98 @@ This plugin adds a `collapsibleSections` object to the `styleOverrides` engine c
 
 #### closedBorderWidth
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``'0'``
 
 The border width of closed sections.
 
 #### closedPadding
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``({ resolveSetting }) => `4px 0 4px ${resolveSetting('codePaddingInline')}` ``
 
 The padding of closed sections.
 
 #### closedMargin
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``'0'``
 
 The margin around closed sections.
 
 #### closedFontFamily
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``'inherit'``
 
 The font family of the closed section summary text.
 
 #### closedFontSize
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``'inherit'``
 
 The font size of the closed section summary text.
 
 #### closedLineHeight
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``'inherit'``
 
 The line height of the closed section summary text.
 
 #### closedTextColor
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``'inherit'``
 
 The text color of the closed section summary text.
 
 #### closedBackgroundColor
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``({ theme }) => setAlpha(theme.colors['editor.foldBackground'], 0.2) || 'rgb(84 174 255 / 20%)'``
 
 The background color of closed sections.
 
 #### closedBorderColor
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``({ theme }) => setAlpha(theme.colors['editor.foldBackground'], 0.5) || 'rgb(84 174 255 / 50%)'``
 
 The border color of closed sections.
 
 #### openBorderWidth
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``'1px'``
 
 The border width of open sections.
 
 #### openPadding
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``'0'``
 
 The padding of open sections.
 
 #### openMargin
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``'0'``
 
 The margin around open sections.
 
 #### openBackgroundColor
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``'transparent'``
 
 The background color of open sections.
 
 #### openBorderColor
 
-> Type: [UnresolvedStyleValue](/reference/style-overrides/#unresolvedstylevalue)\
+> Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)\
 > Default: ``'transparent'``
 
 The border color of open sections.
