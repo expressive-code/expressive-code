@@ -211,6 +211,9 @@ class StarlightTypeDocThemeRenderContext extends MarkdownThemeRenderContext {
 		// Remove "Implements" section
 		markdown = markdown.replace(/##+ (Implements)\n\n([^\n]+\n)+\n/g, '')
 
+		// Rename "Type declaration" section
+		markdown = markdown.replace(/(##+) Type declaration\n/g, '$1 Object properties\n')
+
 		// Remove trailing question marks from headings
 		//markdown = markdown.replace(/(?<=^#.*)\?$/gm, '')
 
@@ -231,7 +234,7 @@ class StarlightTypeDocThemeRenderContext extends MarkdownThemeRenderContext {
 			// Add default value (if any)
 			const defaultValue = this.#getDefaultValue(reflection)
 			if (defaultValue) {
-				markdown += `\\\n> Default: ${defaultValue}`
+				markdown += `\\\n- Default: ${defaultValue}`
 			}
 		}
 		markdown = `<PropertySignature>\n${markdown}\n</PropertySignature>`
@@ -252,6 +255,31 @@ class StarlightTypeDocThemeRenderContext extends MarkdownThemeRenderContext {
 		markdown = `- <code class="function-signature">${markdown}</code>`
 		// }
 		return markdown
+	}
+
+	override typeDeclarationTable = (props: DeclarationReflection[]) => {
+		const declarations = flattenDeclarations(props, true)
+
+		const md: string[] = []
+
+		md.push('<dl class="type-declaration-list">')
+
+		declarations.forEach((declaration: DeclarationReflection, _index: number) => {
+			md.push(`<dt>${declaration.name}</dt>`)
+			md.push('<dd>')
+
+			const propertyType = this.someType(declaration.type as SomeType).replace(/\n/g, ' ')
+			md.push(`<PropertySignature>\n- Type: ${propertyType}\n</PropertySignature>`)
+
+			const comments = declaration.comment
+
+			if (comments) md.push(this.comment(comments))
+			md.push('</dd>')
+		})
+
+		md.push('</dl>')
+
+		return md.join('\n')
 	}
 
 	override typeDeclarationMember = (typeDeclaration: DeclarationReflection, headingLevel: number) => {

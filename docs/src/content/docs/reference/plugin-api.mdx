@@ -302,13 +302,28 @@ A context object that the engine passes to most hook functions.
 
 It provides access to theme-dependent CSS variables, all resolved style variants based on the configured themes and settings, and the config-dependent wrapper class name.
 
-#### Type declaration
+#### Object properties
 
-| Member | Type | Description |
-| :------ | :------ | :------ |
-| `cssVar` | (`styleSetting`, `fallbackValue`?) => `string` | - |
-| `cssVarName` | (`styleSetting`) => `string` | - |
-| `styleVariants` | [`StyleVariant`](/reference/plugin-api/#stylevariant)[] | - |
+<dl class="type-declaration-list">
+<dt>cssVar</dt>
+<dd>
+<PropertySignature>
+- Type: (`styleSetting`, `fallbackValue`?) => `string`
+</PropertySignature>
+</dd>
+<dt>cssVarName</dt>
+<dd>
+<PropertySignature>
+- Type: (`styleSetting`) => `string`
+</PropertySignature>
+</dd>
+<dt>styleVariants</dt>
+<dd>
+<PropertySignature>
+- Type: [`StyleVariant`](/reference/plugin-api/#stylevariant)[]
+</PropertySignature>
+</dd>
+</dl>
 
 
 ### ResolvedStyleSettingsByPath
@@ -364,13 +379,28 @@ If you use the array form, the first value will be used for dark themes, and the
 - Type: `Object`
 </PropertySignature>
 
-#### Type declaration
+#### Object properties
 
-| Member | Type | Description |
-| :------ | :------ | :------ |
-| `cssVarDeclarations` | `Map`\<`string`, `string`\> | - |
-| `resolvedStyleSettings` | [`ResolvedStyleSettingsByPath`](/reference/plugin-api/#resolvedstylesettingsbypath) | - |
-| `theme` | [`ExpressiveCodeTheme`](/reference/core-api/#expressivecodetheme) | - |
+<dl class="type-declaration-list">
+<dt>cssVarDeclarations</dt>
+<dd>
+<PropertySignature>
+- Type: `Map`\<`string`, `string`\>
+</PropertySignature>
+</dd>
+<dt>resolvedStyleSettings</dt>
+<dd>
+<PropertySignature>
+- Type: [`ResolvedStyleSettingsByPath`](/reference/plugin-api/#resolvedstylesettingsbypath)
+</PropertySignature>
+</dd>
+<dt>theme</dt>
+<dd>
+<PropertySignature>
+- Type: [`ExpressiveCodeTheme`](/reference/core-api/#expressivecodetheme)
+</PropertySignature>
+</dd>
+</dl>
 
 
 ### UnresolvedPluginStyleSettings

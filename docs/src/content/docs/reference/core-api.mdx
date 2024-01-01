@@ -87,11 +87,26 @@ In Expressive Code, all processing of your code blocks and their metadata is per
 
 `Promise`\<`Object`\>
 
-| Member | Type | Description |
-| :------ | :------ | :------ |
-| `renderedGroupAst` | `Parent` | - |
-| `renderedGroupContents` | `RenderedGroupContents` | - |
-| `styles` | `Set`\<`string`\> | - |
+<dl class="type-declaration-list">
+<dt>renderedGroupAst</dt>
+<dd>
+<PropertySignature>
+- Type: `Parent`
+</PropertySignature>
+</dd>
+<dt>renderedGroupContents</dt>
+<dd>
+<PropertySignature>
+- Type: `RenderedGroupContents`
+</PropertySignature>
+</dd>
+<dt>styles</dt>
+<dd>
+<PropertySignature>
+- Type: `Set`\<`string`\>
+</PropertySignature>
+</dd>
+</dl>
 
 #### Properties
 
@@ -356,15 +371,45 @@ Optional data about the parent document the code block is located in.
 
 Integrations like `remark-expressive-code` can provide this information based on the source document being processed. There may be cases where no document is available, e.g. when the code block was created dynamically.
 
-###### Type declaration
+###### Object properties
 
-| Member | Type | Description |
-| :------ | :------ | :------ |
-| `documentRoot` | `unknown` | A reference to the object representing the parsed source document. This reference will stay the same for all code blocks in the same document.<br /><br />For example, if you are using `remark-expressive-code` to render code blocks in a Markdown file, this would be the `mdast` node representing the file's root node. |
-| `positionInDocument` | `Object` | Data about the position of the code block in the parent document. |
-| `positionInDocument.groupIndex` | `number` | - |
-| `positionInDocument.totalGroups` | `number` | - |
-| `sourceFilePath` | `string` | The full path to the source file containing the code block. |
+<dl class="type-declaration-list">
+<dt>documentRoot</dt>
+<dd>
+<PropertySignature>
+- Type: `unknown`
+</PropertySignature>
+A reference to the object representing the parsed source document. This reference will stay the same for all code blocks in the same document.
+
+For example, if you are using `remark-expressive-code` to render code blocks in a Markdown file, this would be the `mdast` node representing the file's root node.
+</dd>
+<dt>positionInDocument</dt>
+<dd>
+<PropertySignature>
+- Type: `Object`
+</PropertySignature>
+Data about the position of the code block in the parent document.
+</dd>
+<dt>positionInDocument.groupIndex</dt>
+<dd>
+<PropertySignature>
+- Type: `number`
+</PropertySignature>
+</dd>
+<dt>positionInDocument.totalGroups</dt>
+<dd>
+<PropertySignature>
+- Type: `number`
+</PropertySignature>
+</dd>
+<dt>sourceFilePath</dt>
+<dd>
+<PropertySignature>
+- Type: `string`
+</PropertySignature>
+The full path to the source file containing the code block.
+</dd>
+</dl>
 
 
 ### ExpressiveCodeLine
@@ -661,12 +706,22 @@ the entire list.
 - Type: `Object`
 </PropertySignature>
 
-#### Type declaration
+#### Object properties
 
-| Member | Type | Description |
-| :------ | :------ | :------ |
-| `inlineRange` | [`ExpressiveCodeInlineRange`](/reference/core-api/#expressivecodeinlinerange) | - |
-| `renderPhase` | [`AnnotationRenderPhase`](/reference/core-api/#annotationrenderphase) | - |
+<dl class="type-declaration-list">
+<dt>inlineRange</dt>
+<dd>
+<PropertySignature>
+- Type: [`ExpressiveCodeInlineRange`](/reference/core-api/#expressivecodeinlinerange)
+</PropertySignature>
+</dd>
+<dt>renderPhase</dt>
+<dd>
+<PropertySignature>
+- Type: [`AnnotationRenderPhase`](/reference/core-api/#annotationrenderphase)
+</PropertySignature>
+</dd>
+</dl>
 
 
 ### AnnotationRenderOptions
@@ -675,12 +730,22 @@ the entire list.
 - Type: `Object`
 </PropertySignature>
 
-#### Type declaration
+#### Object properties
 
-| Member | Type | Description |
-| :------ | :------ | :------ |
-| `line` | [`ExpressiveCodeLine`](/reference/core-api/#expressivecodeline) | - |
-| `nodesToTransform` | `Parent`[] | - |
+<dl class="type-declaration-list">
+<dt>line</dt>
+<dd>
+<PropertySignature>
+- Type: [`ExpressiveCodeLine`](/reference/core-api/#expressivecodeline)
+</PropertySignature>
+</dd>
+<dt>nodesToTransform</dt>
+<dd>
+<PropertySignature>
+- Type: `Parent`[]
+</PropertySignature>
+</dd>
+</dl>
 
 
 ### AnnotationRenderPhase
@@ -696,13 +761,35 @@ the entire list.
 - Type: `Object`
 </PropertySignature>
 
-#### Type declaration
+#### Object properties
 
-| Member | Type | Description |
-| :------ | :------ | :------ |
-| `chroma` | `number` | The target chroma (0 – 0.4).<br /><br />If the input color's lightness is very high, the resulting chroma may be lower than this value. This avoids results that appear too saturated in comparison to the input color. |
-| `hue` | `number` | The target hue in degrees (0 – 360). |
-| `chromaMeasuredAtLightness` | `number` | The lightness (0 – 1) that the target chroma was measured at.<br /><br />If given, the chroma will be adjusted relative to this lightness before applying it to the input color. |
+<dl class="type-declaration-list">
+<dt>chroma</dt>
+<dd>
+<PropertySignature>
+- Type: `number`
+</PropertySignature>
+The target chroma (0 – 0.4).
+
+If the input color's lightness is very high, the resulting chroma may be lower than this value. This avoids results that appear too saturated in comparison to the input color.
+</dd>
+<dt>hue</dt>
+<dd>
+<PropertySignature>
+- Type: `number`
+</PropertySignature>
+The target hue in degrees (0 – 360).
+</dd>
+<dt>chromaMeasuredAtLightness</dt>
+<dd>
+<PropertySignature>
+- Type: `number`
+</PropertySignature>
+The lightness (0 – 1) that the target chroma was measured at.
+
+If given, the chroma will be adjusted relative to this lightness before applying it to the input color.
+</dd>
+</dl>
 
 
 ### ExpressiveCodeInlineRange
@@ -711,12 +798,22 @@ the entire list.
 - Type: `Object`
 </PropertySignature>
 
-#### Type declaration
+#### Object properties
 
-| Member | Type | Description |
-| :------ | :------ | :------ |
-| `columnEnd` | `number` | - |
-| `columnStart` | `number` | - |
+<dl class="type-declaration-list">
+<dt>columnEnd</dt>
+<dd>
+<PropertySignature>
+- Type: `number`
+</PropertySignature>
+</dd>
+<dt>columnStart</dt>
+<dd>
+<PropertySignature>
+- Type: `number`
+</PropertySignature>
+</dd>
+</dl>
 
 
 ### ExpressiveCodeProcessingState
@@ -748,15 +845,47 @@ the entire list.
 - Type: [`AnnotationBaseOptions`](/reference/core-api/#annotationbaseoptions) & `Object`
 </PropertySignature>
 
-#### Type declaration
+#### Object properties
 
-| Member | Type | Description |
-| :------ | :------ | :------ |
-| `styleVariantIndex` | `number` | Inline styles are theme-dependent, which allows plugins like syntax highlighters to style the same code differently depending on the theme.<br /><br />To support this, the engine creates a style variant for each theme given in the configuration, and plugins can go through the engine's `styleVariants` array to access all the themes. When adding an inline style annotation to a range of code, you must specify the index in this `styleVariants` array to indicate which theme the annotation applies to. |
-| `bold` | `boolean` | Whether the annotation should be rendered in bold. |
-| `color` | `string` | The color of the annotation. This is expected to be a hex color string, e.g. `#888`. Using CSS variables or other color formats is possible, but prevents automatic color contrast checks from working. |
-| `italic` | `boolean` | Whether the annotation should be rendered in italics. |
-| `underline` | `boolean` | Whether the annotation should be rendered with an underline. |
+<dl class="type-declaration-list">
+<dt>styleVariantIndex</dt>
+<dd>
+<PropertySignature>
+- Type: `number`
+</PropertySignature>
+Inline styles are theme-dependent, which allows plugins like syntax highlighters to style the same code differently depending on the theme.
+
+To support this, the engine creates a style variant for each theme given in the configuration, and plugins can go through the engine's `styleVariants` array to access all the themes. When adding an inline style annotation to a range of code, you must specify the index in this `styleVariants` array to indicate which theme the annotation applies to.
+</dd>
+<dt>bold</dt>
+<dd>
+<PropertySignature>
+- Type: `boolean`
+</PropertySignature>
+Whether the annotation should be rendered in bold.
+</dd>
+<dt>color</dt>
+<dd>
+<PropertySignature>
+- Type: `string`
+</PropertySignature>
+The color of the annotation. This is expected to be a hex color string, e.g. `#888`. Using CSS variables or other color formats is possible, but prevents automatic color contrast checks from working.
+</dd>
+<dt>italic</dt>
+<dd>
+<PropertySignature>
+- Type: `boolean`
+</PropertySignature>
+Whether the annotation should be rendered in italics.
+</dd>
+<dt>underline</dt>
+<dd>
+<PropertySignature>
+- Type: `boolean`
+</PropertySignature>
+Whether the annotation should be rendered with an underline.
+</dd>
+</dl>
 
 
 ### RenderInput
@@ -795,13 +924,38 @@ You can then import the const and set `onInitGroup` to a function that calls `my
 - Type: `Object`
 </PropertySignature>
 
-#### Type declaration
+#### Object properties
 
-| Member | Type | Description |
-| :------ | :------ | :------ |
-| `settings` | `Object` | - |
-| `settings.fontStyle` | `string` | - |
-| `settings.foreground` | `string` | - |
-| `name` | `string` | - |
-| `scope` | `string`[] | - |
+<dl class="type-declaration-list">
+<dt>settings</dt>
+<dd>
+<PropertySignature>
+- Type: `Object`
+</PropertySignature>
+</dd>
+<dt>settings.fontStyle</dt>
+<dd>
+<PropertySignature>
+- Type: `string`
+</PropertySignature>
+</dd>
+<dt>settings.foreground</dt>
+<dd>
+<PropertySignature>
+- Type: `string`
+</PropertySignature>
+</dd>
+<dt>name</dt>
+<dd>
+<PropertySignature>
+- Type: `string`
+</PropertySignature>
+</dd>
+<dt>scope</dt>
+<dd>
+<PropertySignature>
+- Type: `string`[]
+</PropertySignature>
+</dd>
+</dl>
 

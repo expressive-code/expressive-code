@@ -217,17 +217,19 @@ You can configure the plugin's features using the following options:
 
 <PropertySignature>
 - Type: boolean
+- Default: true
 </PropertySignature>
 
-If `true` (which is the default), and no title was found in the code block's meta string, the plugin will try to find and extract a comment line containing the code block file name from the first 4 lines of the code.
+If `true`, and no title was found in the code block's meta string, the plugin will try to find and extract a comment line containing the code block file name from the first 4 lines of the code.
 
 #### removeCommentsWhenCopyingTerminalFrames
 
 <PropertySignature>
 - Type: boolean
+- Default: true
 </PropertySignature>
 
-If `true` (which is the default), the "Copy to clipboard" button of terminal window frames will remove comment lines starting with `#` from the copied text.
+If `true`, the "Copy to clipboard" button of terminal window frames will remove comment lines starting with `#` from the copied text.
 
 This is useful to reduce the copied text to the actual commands users need to run, instead of also copying explanatory comments or instructions.
 
@@ -235,9 +237,10 @@ This is useful to reduce the copied text to the actual commands users need to ru
 
 <PropertySignature>
 - Type: boolean
+- Default: true
 </PropertySignature>
 
-If `true` (which is the default), a "Copy to clipboard" button will be shown for each code block.
+If `true`, a "Copy to clipboard" button will be shown for each code block.
 
 ### Available style overrides
 

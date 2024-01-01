@@ -96,6 +96,7 @@ export default defineConfig({
 				plugins: [pluginCollapsibleSections()],
 			},
 			plugins: [starlightLinksValidator()],
+			customCss: ['./src/styles/custom.css'],
 		}),
 	],
 })

@@ -1,0 +1,17 @@
+table td code[dir="auto"] {
+	white-space: nowrap;
+}
+
+dl.type-declaration-list dt {
+	display: list-item;
+	list-style-type: disc;
+	margin-inline-start: 2.5rem;
+	margin-block-end: 1rem;
+	color: var(--sl-color-white);
+	line-height: var(--sl-line-height-headings);
+	font-weight: 600;
+}
+
+dl.type-declaration-list dd {
+	margin-inline-start: 1.5rem;
+}
