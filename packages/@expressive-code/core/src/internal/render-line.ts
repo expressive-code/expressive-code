@@ -3,6 +3,7 @@ import { h } from 'hastscript'
 import { ExpressiveCodeLine } from '../common/line'
 import { annotationSortFn, ExpressiveCodeAnnotation } from '../common/annotation'
 import { codeLineClass } from '../common/style-settings'
+import { ResolverContext } from '../common/plugin'
 
 export function splitLineAtAnnotationBoundaries(line: ExpressiveCodeLine) {
 	const textParts: string[] = []
@@ -53,7 +54,7 @@ export function splitLineAtAnnotationBoundaries(line: ExpressiveCodeLine) {
 	}
 }
 
-export function renderLineToAst(line: ExpressiveCodeLine) {
+export function renderLineToAst({ line, ...restContext }: ResolverContext & { line: ExpressiveCodeLine }) {
 	// Flatten intersecting annotations by splitting the line text into non-intersecting parts
 	// and mapping annotations to the contained parts
 	const { textParts, partIndicesByAnnotation } = splitLineAtAnnotationBoundaries(line)
@@ -125,7 +126,7 @@ export function renderLineToAst(line: ExpressiveCodeLine) {
 
 		// Pass all part nodes to the annotation's render function
 		const renderInput = partIndices.map((partIndex) => partNodes[partIndex])
-		const renderOutput = annotation.render({ nodesToTransform: [...renderInput], line })
+		const renderOutput = annotation.render({ nodesToTransform: [...renderInput], line, ...restContext })
 		validateAnnotationRenderOutput(renderOutput, renderInput.length)
 		partIndices.forEach((partIndex, index) => {
 			partNodes[partIndex] = renderOutput[index]
@@ -143,7 +144,7 @@ export function renderLineToAst(line: ExpressiveCodeLine) {
 	// Render line-level annotations
 	annotations.forEach((annotation) => {
 		if (annotation.inlineRange) return
-		const renderOutput = annotation.render({ nodesToTransform: [lineNode], line })
+		const renderOutput = annotation.render({ nodesToTransform: [lineNode], line, ...restContext })
 		validateAnnotationRenderOutput(renderOutput, 1)
 		lineNode = renderOutput[0]
 	})

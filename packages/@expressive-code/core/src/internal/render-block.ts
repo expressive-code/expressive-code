@@ -78,7 +78,7 @@ export async function renderBlock({
 		// Render the current line to an AST and wrap it in an object that can be passed
 		// through all hooks, allowing plugins to edit or completely replace the AST
 		const lineRenderData = {
-			lineAst: renderLineToAst(line),
+			lineAst: renderLineToAst({ line, ...baseContext }),
 		}
 		// Allow plugins to modify or even completely replace the AST
 		await runHooks('postprocessRenderedLine', plugins, async ({ hookFn, plugin }) => {

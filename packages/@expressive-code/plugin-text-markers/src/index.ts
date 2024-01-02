@@ -232,6 +232,7 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 											columnEnd: Math.min(textEnd, markerEnd),
 										},
 										color: readableTextColor,
+										renderPhase: 'earlier',
 									})
 								)
 							})

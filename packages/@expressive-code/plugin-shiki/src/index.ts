@@ -112,6 +112,7 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 										columnStart: charIndex,
 										columnEnd: tokenEndIndex,
 									},
+									renderPhase: 'earliest',
 								})
 							)
 							charIndex = tokenEndIndex
