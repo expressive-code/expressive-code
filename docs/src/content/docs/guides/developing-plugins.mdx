@@ -219,11 +219,11 @@ export function pluginErrorPreview() {
         background: #f002;
         padding-inline: 0.4rem;
         border-radius: 0.2rem;
-      }
-      /* Prevent inline annotation styles from overriding our styles */
-      .error-message:not(#id) span {
-        color: inherit;
-        font-style: inherit;
+        /* Prevent inline annotations from overriding our styles */
+        & span {
+          color: inherit;
+          font-style: inherit;
+        }
       }
     `,
     hooks: {
