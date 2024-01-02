@@ -656,9 +656,73 @@ See [`AnnotationBaseOptions`](#annotationbaseoptions) for the entire list.
 
 ### InlineStyleAnnotation
 
-A theme-dependent inline style annotation.
+A theme-dependent inline style annotation that allows changing colors, font styles and decorations of the targeted code. This annotation is used by the syntax highlighting plugin to apply colors and styles to syntax tokens, and you can use it in your own plugins as well.
 
 You can add as many inline style annotations to a line as you want, even targeting the same code with multiple fully or partially overlapping annotation ranges. During rendering, these annotations will be automatically optimized to avoid creating unnecessary HTML elements.
+
+:::note
+If you want to publish your own plugin using the `InlineStyleAnnotation` class, import it from
+the `@expressive-code/core` package installed as a **peer dependency** of your plugin package.
+This ensures that your plugin does not cause a version conflict if the user has a different
+version of Expressive Code installed on their site.
+:::
+
+#### Usage example
+
+In the following example, we create a plugin that makes the first word of each code block red in the first theme. We do this by adding an `InlineStyleAnnotation` to the first line of each code block.
+
+```js
+// plugins/make-first-word-red.js
+import { InlineStyleAnnotation } from '@expressive-code/core'
+
+/** @returns {import('@expressive-code/core').ExpressiveCodePlugin} */
+export function pluginFirstWordRed() {
+  return {
+    name: 'Make first word red',
+    hooks: {
+      postprocessAnalyzedCode: (context) => {
+        // Only apply this to code blocks with the `first-word-red` meta
+        if (!context.codeBlock.meta.includes('first-word-red')) return
+
+        // Get the first line of the code block
+        const firstLine = context.codeBlock.getLine(0)
+        if (!firstLine) return
+
+        // Find the end of the first word
+        const firstWordEnd = firstLine.text.match(/\W/)?.index
+        if (!(firstWordEnd > 0)) return
+
+        // Add an annotation that makes the first word red
+        firstLine.addAnnotation(
+          new InlineStyleAnnotation({
+            inlineRange: {
+              columnStart: 0,
+              columnEnd: firstWordEnd,
+            },
+            color: '#ff0000',
+            // Only apply the red color to the first configured theme
+            styleVariantIndex: 0,
+          })
+        )
+      },
+    },
+  }
+}
+```
+
+After adding this plugin to your configuration, you can use it like this:
+
+````
+```js first-word-red
+consule.log('Hello world!')
+```
+````
+
+The rendered code block will now have a red text color applied to the first word, but only in the dark theme (the first theme in the configuration):
+
+```js first-word-red
+consule.log('Hello world!')
+```
 
 #### Constructors
 
@@ -727,7 +791,7 @@ the entire list.
 ### AnnotationRenderOptions
 
 <PropertySignature>
-- Type: `Object`
+- Type: [`ResolverContext`](/reference/plugin-api/#resolvercontext) & `Object`
 </PropertySignature>
 
 #### Object properties
@@ -848,15 +912,6 @@ If given, the chroma will be adjusted relative to this lightness before applying
 #### Object properties
 
 <dl class="type-declaration-list">
-<dt>styleVariantIndex</dt>
-<dd>
-<PropertySignature>
-- Type: `number`
-</PropertySignature>
-Inline styles are theme-dependent, which allows plugins like syntax highlighters to style the same code differently depending on the theme.
-
-To support this, the engine creates a style variant for each theme given in the configuration, and plugins can go through the engine's `styleVariants` array to access all the themes. When adding an inline style annotation to a range of code, you must specify the index in this `styleVariants` array to indicate which theme the annotation applies to.
-</dd>
 <dt>bold</dt>
 <dd>
 <PropertySignature>
@@ -877,6 +932,17 @@ The color of the annotation. This is expected to be a hex color string, e.g. `#8
 - Type: `boolean`
 </PropertySignature>
 Whether the annotation should be rendered in italics.
+</dd>
+<dt>styleVariantIndex</dt>
+<dd>
+<PropertySignature>
+- Type: `number`
+</PropertySignature>
+Inline styles can be theme-dependent, which allows plugins like syntax highlighters to style the same code differently depending on the theme.
+
+To support this, the engine creates a style variant for each theme given in the configuration, and plugins can go through the engine's `styleVariants` array to access all the themes.
+
+When adding an inline style annotation to a range of code, you can optionally set this property to a `styleVariants` array index to indicate that this annotation only applies to a specific theme. If this property is not set, the annotation will apply to all themes.
 </dd>
 <dt>underline</dt>
 <dd>

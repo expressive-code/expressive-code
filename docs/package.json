@@ -9,7 +9,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "pnpm api && pnpm release-notes && astro build",
     "preview": "astro preview",
     "api": "tsm --require=./scripts/lib/filter-warnings.cjs ./scripts/api-reference.ts",
     "release-notes": "tsm --require=./scripts/lib/filter-warnings.cjs ./scripts/release-notes.ts"
@@ -23,6 +23,7 @@
     "github-slugger": "^2.0.0",
     "glob": "^10.3.10",
     "hast-util-to-html": "^8.0.4",
+    "hastscript": "^7.2.0",
     "mdast-util-from-markdown": "^2.0.0",
     "mdast-util-to-markdown": "^2.1.0",
     "mdast-util-to-string": "^4.0.0",
@@ -37,6 +38,10 @@
     "yaml": "^2.3.4"
   },
   "devDependencies": {
+    "@expressive-code/core": "workspace:^",
     "@types/mdast": "^4.0.3"
+  },
+  "peerDependencies": {
+    "@expressive-code/core": "workspace:^"
   }
 }

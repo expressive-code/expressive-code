@@ -114,6 +114,64 @@ editSections:
 name: "InlineStyleAnnotation"
 headingLevel: 3
 editSections:
+- path: ""
+  append: |
+    #### Usage example
+
+    In the following example, we create a plugin that makes the first word of each code block red in the first theme. We do this by adding an `InlineStyleAnnotation` to the first line of each code block.
+
+    ```js
+    // plugins/make-first-word-red.js
+    import { InlineStyleAnnotation } from '@expressive-code/core'
+
+    /** @returns {import('@expressive-code/core').ExpressiveCodePlugin} */
+    export function pluginFirstWordRed() {
+      return {
+        name: 'Make first word red',
+        hooks: {
+          postprocessAnalyzedCode: (context) => {
+            // Only apply this to code blocks with the `first-word-red` meta
+            if (!context.codeBlock.meta.includes('first-word-red')) return
+
+            // Get the first line of the code block
+            const firstLine = context.codeBlock.getLine(0)
+            if (!firstLine) return
+
+            // Find the end of the first word
+            const firstWordEnd = firstLine.text.match(/\W/)?.index
+            if (!(firstWordEnd > 0)) return
+
+            // Add an annotation that makes the first word red
+            firstLine.addAnnotation(
+              new InlineStyleAnnotation({
+                inlineRange: {
+                  columnStart: 0,
+                  columnEnd: firstWordEnd,
+                },
+                color: '#ff0000',
+                // Only apply the red color to the first configured theme
+                styleVariantIndex: 0,
+              })
+            )
+          },
+        },
+      }
+    }
+    ```
+
+    After adding this plugin to your configuration, you can use it like this:
+
+    ````
+    ```js first-word-red
+    consule.log('Hello world!')
+    ```
+    ````
+
+    The rendered code block will now have a red text color applied to the first word, but only in the dark theme (the first theme in the configuration):
+
+    ```js first-word-red
+    consule.log('Hello world!')
+    ```
 - path: "Properties"
   replaceWith: |
     All config options that can be passed to the constructor are also available

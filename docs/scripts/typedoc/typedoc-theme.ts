@@ -42,7 +42,7 @@ import { signatureMemberReturns as signatureMemberReturnsPartial } from 'typedoc
 import { parametersList as parametersListPartial } from 'typedoc-plugin-markdown/dist/theme/resources/partials/list.parameters.js'
 import { typeParametersList as typeParametersListPartial } from 'typedoc-plugin-markdown/dist/theme/resources/partials/list.typeparameters.js'
 
-const customBlockTagTypes = ['@deprecated'] as const
+const customBlockTagTypes = ['@deprecated', '@note'] as const
 const customModifiersTagTypes = ['@alpha', '@beta', '@experimental'] as const
 
 const externalLinkRegex = /^(http|ftp)s?:\/\//
@@ -127,22 +127,21 @@ class StarlightTypeDocThemeRenderContext extends MarkdownThemeRenderContext {
 
 		for (const customCommentTag of customTags) {
 			switch (customCommentTag.type) {
-				case '@alpha': {
+				case '@alpha':
 					markdown = this.#addReleaseStageAside(markdown, 'Alpha')
 					break
-				}
-				case '@beta': {
+				case '@beta':
 					markdown = this.#addReleaseStageAside(markdown, 'Beta')
 					break
-				}
-				case '@deprecated': {
+				case '@deprecated':
 					markdown = this.#addDeprecatedAside(markdown, customCommentTag.blockTag)
 					break
-				}
-				case '@experimental': {
+				case '@experimental':
 					markdown = this.#addReleaseStageAside(markdown, 'Experimental')
 					break
-				}
+				case '@note':
+					markdown = this.#addAside(markdown, customCommentTag.type.slice(1), undefined, this.commentParts(customCommentTag.blockTag.content))
+					break
 			}
 		}
 
@@ -556,14 +555,12 @@ type CustomTag =
 			type: CustomBlockTagType
 	  }
 
-type AsideType = 'caution' | 'danger' | 'note' | 'tip'
-
 function typeWrapper(type: string, content: string) {
 	return debug ? `\\<${type}\\>\n${content}\n\\</${type}\\>` : content
 }
 
-function getAsideMarkdown(type: AsideType, title: string, content: string) {
-	return `:::${type}[${title}]
+function getAsideMarkdown(type: string, title: string | undefined, content: string) {
+	return `:::${type}${title ? `[${title}]` : ''}
 ${content}
 :::`
 }

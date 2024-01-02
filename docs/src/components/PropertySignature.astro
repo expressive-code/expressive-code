@@ -1,7 +1,6 @@
 ---
 const body = (await Astro.slots.render('default')).trim();
 const signature = body.match(/^<ul>\s*<li>\s*([\s\S]*?)\s*<\/li>\s*<\/ul>/)?.[1] ?? '';
-console.dir(body);
 const signatureParts = signature.split(/<\/li>\s*<li>/);
 const extractSignaturePart = (name: string) => {
 	name = `${name}: `;

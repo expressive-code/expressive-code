@@ -83,6 +83,9 @@ importers:
       hast-util-to-html:
         specifier: ^8.0.4
         version: 8.0.4
+      hastscript:
+        specifier: ^7.2.0
+        version: 7.2.0
       mdast-util-from-markdown:
         specifier: ^2.0.0
         version: 2.0.0
@@ -120,6 +123,9 @@ importers:
         specifier: ^2.3.4
         version: 2.3.4
     devDependencies:
+      '@expressive-code/core':
+        specifier: workspace:^
+        version: link:../packages/@expressive-code/core
       '@types/mdast':
         specifier: ^4.0.3
         version: 4.0.3
