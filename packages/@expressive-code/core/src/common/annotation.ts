@@ -1,4 +1,4 @@
-import { Parent } from 'hast-util-to-html/lib/types'
+import { Parent, Element } from 'hast-util-to-html/lib/types'
 import { isNumber, newTypeError } from '../internal/type-checks'
 import { ExpressiveCodeLine } from './line'
 import { h } from 'hastscript'
@@ -156,23 +156,57 @@ export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
 			return [...styles].map(([key, value]) => `${key}:${value}`).join(';')
 		}
 
+		const isInlineStyleNode = (node: Element) =>
+			node.tagName === 'span' &&
+			// Our inline style nodes have no class names
+			!getClassNames(node).length &&
+			// Our inline style nodes contain CSS variable declarations
+			node.properties?.style?.toString().startsWith('--')
+
+		const modifyExistingStyles = (node: Element, remove = false) => {
+			const existingStyles: [string, string][] = (node.properties?.style?.toString() || '').split(';').map((style) => {
+				const declParts = style.split(':')
+				return [declParts[0], declParts.slice(1).join(':')]
+			})
+			const modifiedStylesMap = new Map(existingStyles)
+			newStyles.forEach((value, key) => {
+				if (remove) {
+					modifiedStylesMap.delete(key)
+				} else {
+					modifiedStylesMap.set(key, value)
+				}
+			})
+			const modifiedStyles = buildStyleString(modifiedStylesMap)
+			if (modifiedStyles) {
+				setProperty(node, 'style', modifiedStyles)
+			} else if (node.properties?.style) {
+				delete node.properties.style
+			}
+			return modifiedStyles
+		}
+
 		return nodesToTransform.map((node) => {
-			const isInlineStyleNode =
-				node.type === 'element' &&
-				node.tagName === 'span' &&
-				// Our inline style nodes have no class names
-				!getClassNames(node).length &&
-				// Our inline style nodes contain CSS variable declarations
-				node.properties?.style?.toString().startsWith('--')
-			if (isInlineStyleNode) {
+			if (node.type === 'element' && isInlineStyleNode(node)) {
 				// The node is already an inline style token, so we can modify its existing styles
-				const existingStyles: [string, string][] = (node.properties?.style?.toString() || '').split(';').map((style) => {
-					const declParts = style.split(':')
-					return [declParts[0], declParts.slice(1).join(':')]
-				})
-				setProperty(node, 'style', buildStyleString(new Map([...existingStyles, ...newStyles])))
+				modifyExistingStyles(node)
 				return node
 			}
+			// Remove conflicting styles from all nested inline style nodes
+			const removeNestedConflictingStyles = (node: Parent) => {
+				for (let childIdx = node.children?.length - 1; childIdx >= 0; childIdx--) {
+					const child = node.children[childIdx]
+					if (child.type === 'element') {
+						if (isInlineStyleNode(child)) {
+							if (!modifyExistingStyles(child, true)) {
+								// If the node has no styles left, replace it with its children
+								node.children.splice(childIdx, 1, ...child.children)
+							}
+						}
+						removeNestedConflictingStyles(child)
+					}
+				}
+			}
+			removeNestedConflictingStyles(node)
 			const transformedNode = h('span', { style: buildStyleString(newStyles) }, node)
 			return transformedNode
 		})
