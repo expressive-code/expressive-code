@@ -178,7 +178,22 @@ export type ResolvedExpressiveCodeEngineConfig = {
 	logger: ExpressiveCodeLogger
 }
 
+/**
+ * The Expressive Code engine is responsible for rendering code blocks to a
+ * [Hypertext Abstract Syntax Tree (HAST)](https://github.com/syntax-tree/hast)
+ * that can be serialized to HTML, as well as generating the required CSS styles
+ * and JS modules.
+ *
+ * It also provides read-only access to all resolved configuration options
+ * through its public properties.
+ */
 export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig {
+	/**
+	 * Creates a new instance of the Expressive Code engine.
+	 *
+	 * To minimize overhead caused by loading plugins, you can create a single instance
+	 * for your application and keep using it to render all your code blocks.
+	 */
 	constructor(config: ExpressiveCodeEngineConfig) {
 		// Transfer deprecated `theme` option to `themes` without triggering the deprecation warning
 		const deprecatedConfig: ExpressiveCodeEngineConfig & { theme?: ExpressiveCodeTheme | undefined } = config
@@ -221,6 +236,23 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 		})
 	}
 
+	/**
+	 * Renders the given code block(s) and returns the rendered group & block ASTs,
+	 * the rendered code block contents after all transformations have been applied,
+	 * and a set of non-global CSS styles required by the rendered code blocks.
+	 *
+	 * In Expressive Code, all processing of your code blocks and their metadata
+	 * is performed by plugins. To render markup around lines or inline ranges of characters,
+	 * the `render` method calls the hook functions registered by all added plugins.
+	 *
+	 * @param input
+	 * The code block(s) to render. Can either be an `ExpressiveCodeBlockOptions` object
+	 * containing the properties required to create a new `ExpressiveCodeBlock` internally,
+	 * an existing `ExpressiveCodeBlock`, or an array containing any combination of these.
+	 *
+	 * @param options
+	 * Optional configuration options for the rendering process.
+	 */
 	async render(input: RenderInput, options?: RenderOptions) {
 		return await renderGroup({
 			input,

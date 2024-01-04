@@ -1,16 +1,7 @@
 ---
-let body = (await Astro.slots.render('default')).trim();
-let heading = '';
-let signature = '';
-body = body.replace(/^<(h[1-5]).*?>.*?<\/\1>/, (match) => {
-  heading = match;
-  return '';
-});
-body = body.replace(/^<blockquote>\s*<p>([\s\S]*?)<\/p>\s*<\/blockquote>/, (_, contents) => {
-  signature = contents;
-  return '';
-});
-const signatureParts = signature.split(/<br\s*\/?>\n*/);
+const body = (await Astro.slots.render('default')).trim();
+const signature = body.match(/^<ul>\s*<li>\s*([\s\S]*?)\s*<\/li>\s*<\/ul>/)?.[1] ?? '';
+const signatureParts = signature.split(/<\/li>\s*<li>/);
 const extractSignaturePart = (name: string) => {
 	name = `${name}: `;
 	const idx = signatureParts.findIndex((part) => part.startsWith(name));
@@ -38,13 +29,11 @@ const defaultValue = extractSignaturePart('Default')
 	.property-signature .value {
 		grid-column: 2;
 		font-family: var(--__sl-font-mono);
-    font-size: var(--sl-text-code-sm);
+		font-size: var(--sl-text-code-sm);
 		background-color: rgba(128, 128, 128, 0.12);
-    padding: 0.125rem 0.375rem;
+		padding: 0.125rem 0.375rem;
 	}
 </style>
-
-<Fragment set:html={heading} />
 
 <div class="property-signature not-content">
 	{propertyType && (
@@ -56,5 +45,3 @@ const defaultValue = extractSignaturePart('Default')
 		<span class="value" set:html={defaultValue} />
 	)}
 </div>
-
-<Fragment set:html={body} />

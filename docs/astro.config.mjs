@@ -1,7 +1,10 @@
 // @ts-check
 import { defineConfig } from 'astro/config'
 import starlight from '@astrojs/starlight'
+import starlightLinksValidator from 'starlight-links-validator'
 import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
+import { pluginFirstWordRed } from './plugins/plugin-first-word-red.js'
+import { pluginErrorPreview } from './plugins/plugin-error-preview.js'
 
 // https://astro.build/config
 export default defineConfig({
@@ -11,37 +14,64 @@ export default defineConfig({
 			social: {
 				github: 'https://github.com/expressive-code/expressive-code',
 			},
+			head: [
+				{
+					tag: 'link',
+					attrs: {
+						rel: 'apple-touch-icon',
+						href: '/apple-touch-icon.png',
+					},
+				},
+				{
+					tag: 'link',
+					attrs: {
+						rel: 'icon',
+						type: 'image/png',
+						sizes: '32x32',
+						href: '/favicon-32x32.png',
+					},
+				},
+				{
+					tag: 'link',
+					attrs: {
+						rel: 'icon',
+						type: 'image/png',
+						sizes: '16x16',
+						href: '/favicon-16x16.png',
+					},
+				},
+				{
+					tag: 'link',
+					attrs: {
+						rel: 'mask-icon',
+						href: '/safari-pinned-tab.svg',
+						color: '#603cba',
+					},
+				},
+			],
 			sidebar: [
 				{
-					label: 'Start Here',
+					label: 'Getting Started',
 					items: [
-						{
-							label: 'Welcome',
-							link: '/',
-							badge: 'TODO',
-						},
 						{ label: 'Installation', link: '/installation/' },
 						{ label: 'Upgrading', link: '/upgrading/' },
+						{ label: 'Release History', link: '/releases/' },
 					],
 				},
 				{
 					label: 'Key Features',
 					items: [
 						{
-							label: 'Themes',
-							link: '/guides/themes/',
-						},
-						{
 							label: 'Syntax Highlighting',
-							link: '/guides/syntax-highlighting/',
+							link: '/key-features/syntax-highlighting/',
 						},
 						{
 							label: 'Editor & Terminal Frames',
-							link: '/guides/frames/',
+							link: '/key-features/frames/',
 						},
 						{
 							label: 'Text & Line Markers',
-							link: '/guides/text-markers/',
+							link: '/key-features/text-markers/',
 						},
 					],
 				},
@@ -50,7 +80,20 @@ export default defineConfig({
 					items: [
 						{
 							label: 'Collapsible Sections',
-							link: '/guides/collapsible-sections/',
+							link: '/plugins/collapsible-sections/',
+						},
+					],
+				},
+				{
+					label: 'Customization',
+					items: [
+						{
+							label: 'Themes',
+							link: '/guides/themes/',
+						},
+						{
+							label: 'Developing Plugins',
+							link: '/guides/developing-plugins/',
 						},
 					],
 				},
@@ -58,7 +101,7 @@ export default defineConfig({
 					label: 'Reference',
 					items: [
 						{
-							label: 'Configuration Reference',
+							label: 'Configuration Options',
 							link: '/reference/configuration/',
 						},
 						{
@@ -66,17 +109,25 @@ export default defineConfig({
 							link: '/reference/style-overrides/',
 						},
 						{
-							label: 'Plugin Reference',
-							link: '/reference/plugins/',
-							badge: 'TODO',
+							label: 'Core API',
+							link: '/reference/core-api/',
 						},
-						{ label: 'Release Notes', link: '/releases/' },
+						{
+							label: 'Plugin API',
+							link: '/reference/plugin-api/',
+						},
+						{
+							label: 'Plugin Hooks',
+							link: '/reference/plugin-hooks/',
+						},
 					],
 				},
 			],
 			expressiveCode: {
-				plugins: [pluginCollapsibleSections()],
+				plugins: [pluginCollapsibleSections(), pluginFirstWordRed(), pluginErrorPreview()],
 			},
+			plugins: [starlightLinksValidator()],
+			customCss: ['./src/styles/custom.css'],
 		}),
 	],
 })

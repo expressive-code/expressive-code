@@ -1,7 +1,7 @@
-import { writeFileSync } from 'fs'
 import { toMarkdown } from 'mdast-util-to-markdown'
 import type { List, Root } from 'mdast'
 import { getPackageChangelogs, loadChangelog, mergeIncludes, semverCategories } from './lib/changelogs'
+import { writeFileLines } from './typedoc/utils'
 
 // Find changelog paths on disk
 const changelogPaths = [
@@ -72,4 +72,4 @@ combinedChangelog.versions.forEach((version) => {
 output.push(toMarkdown(ast, { bullet: '-' }))
 
 // Write output to file
-writeFileSync('./src/content/docs/releases.md', output.join('\n'))
+writeFileLines('./src/content/docs/releases.md', output)

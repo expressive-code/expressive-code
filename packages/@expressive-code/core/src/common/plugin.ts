@@ -3,7 +3,17 @@ import { PluginStyleSettings } from './plugin-style-settings'
 import { StyleSettingPath } from './style-settings'
 import { StyleVariant } from './style-variants'
 
+/**
+ * An interface that defines an Expressive Code plugin. To add a custom plugin,
+ * you pass an object matching this interface into the `plugins` array property
+ * of the engine configuration.
+ */
 export interface ExpressiveCodePlugin {
+	/**
+	 * The display name of the plugin. This is the only required property.
+	 * It is used by the engine to display messages concerning the plugin,
+	 * e.g. when it encounters an error.
+	 */
 	name: string
 	/**
 	 * An instance of `PluginStyleSettings` that is used to define the plugin's CSS variables.
@@ -43,6 +53,10 @@ export interface ExpressiveCodePlugin {
 	 * into inline `<script type="module">` elements.
 	 */
 	jsModules?: string[] | JsModulesResolverFn | undefined
+	/**
+	 * A set of functions that should be called by the engine at specific points in the
+	 * rendering process. See {@link ExpressiveCodePluginHooks} for a list of available hooks.
+	 */
 	hooks?: ExpressiveCodePluginHooks | undefined
 }
 

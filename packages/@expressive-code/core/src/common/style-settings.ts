@@ -4,13 +4,35 @@ import { ExpressiveCodeTheme } from './theme'
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface StyleSettings extends CoreStyleSettings {}
 
+/**
+ * The value of a single style setting. You can either set it to a string,
+ * or an array of two strings.
+ *
+ * If you use the array form, the first value will be used for dark themes,
+ * and the second value for light themes.
+ */
 export type StyleValueOrValues = string | [dark: string, light: string]
+
+/**
+ * A function that resolves a single style setting to a {@link StyleValueOrValues}.
+ *
+ * You can assign this to any style setting to dynamically generate style values
+ * based on the current theme.
+ *
+ * This function is called once for each style variant in the engine's `styleVariants` array,
+ * which includes one entry per theme in the engine's `themes` configuration option.
+ */
 export type StyleResolverFn = (context: {
 	theme: ExpressiveCodeTheme
 	/** The index in the engine's `styleVariants` array that's currently being resolved. */
 	styleVariantIndex: number
 	resolveSetting: (settingPath: StyleSettingPath) => string
 }) => StyleValueOrValues
+
+/**
+ * This is the value type for all style overrides.
+ * It allows either static style values or a resolver function.
+ */
 export type UnresolvedStyleValue = StyleValueOrValues | StyleResolverFn
 
 export type UnresolvedPluginStyleSettings<T> = {

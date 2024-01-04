@@ -200,9 +200,9 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 						const textColors = annotations.filter(
 							(annotation) =>
 								annotation instanceof InlineStyleAnnotation &&
-								// Only consider annotations for the current style variant
-								annotation.styleVariantIndex === styleVariantIndex &&
-								annotation.color
+								annotation.color &&
+								// Only consider annotations that apply to the current style variant
+								(annotation.styleVariantIndex === undefined || annotation.styleVariantIndex === styleVariantIndex)
 						) as InlineStyleAnnotation[]
 						// Go through all text color annotations
 						textColors.forEach((textColor) => {
@@ -232,6 +232,7 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 											columnEnd: Math.min(textEnd, markerEnd),
 										},
 										color: readableTextColor,
+										renderPhase: 'earlier',
 									})
 								)
 							})

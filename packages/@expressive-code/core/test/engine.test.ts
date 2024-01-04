@@ -151,7 +151,7 @@ describe('ExpressiveCodeEngine', () => {
 		})
 	})
 	describe('getThemeStyles()', () => {
-		const inlineStyleSelector = `.${codeLineClass} span[style^='--']:not([class])`
+		const inlineStyleSelector = `.${codeLineClass} :where(span[style^='--']:not([class]))`
 		const getBaseVarSelectors = ({ baseThemeName = 'github-dark', themeCssRoot = ':root' }: { baseThemeName?: string | undefined; themeCssRoot?: string | undefined } = {}) => [
 			`${themeCssRoot},${themeCssRoot}:not([data-theme='${baseThemeName}']) .${groupWrapperClassName}[data-theme='${baseThemeName}']`,
 		]

@@ -149,7 +149,7 @@ describe('renderLineToAst()', () => {
 						},
 					})
 				)
-				expect(() => renderLineToAst(line)).toThrow()
+				expect(() => renderLineToAstWrapper(line)).toThrow()
 			})
 		})
 		test('Line-level annotation render function returning invalid values', () => {
@@ -166,7 +166,7 @@ describe('renderLineToAst()', () => {
 			invalidValues.forEach((invalidValue) => {
 				const line = new ExpressiveCodeLine(testText)
 				line.addAnnotation(new InvalidRenderAnnotation({ renderResult: invalidValue }))
-				expect(() => renderLineToAst(line)).toThrow()
+				expect(() => renderLineToAstWrapper(line)).toThrow()
 			})
 		})
 	})
@@ -300,5 +300,15 @@ function expectPartsToMatchAnnotationText(line: ExpressiveCodeLine, actual: Retu
 }
 
 function renderLineToHtml(line: ExpressiveCodeLine) {
-	return toHtml(renderLineToAst(line))
+	return toHtml(renderLineToAstWrapper(line))
+}
+
+function renderLineToAstWrapper(line: ExpressiveCodeLine) {
+	return renderLineToAst({
+		line,
+		// Add mock values for all other context properties
+		cssVar: () => '',
+		cssVarName: () => '',
+		styleVariants: [],
+	})
 }

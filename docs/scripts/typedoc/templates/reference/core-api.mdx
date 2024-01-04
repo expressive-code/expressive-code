@@ -1,0 +1,236 @@
+---
+title: Core API
+---
+
+## Engine
+
+````yml include
+name: "ExpressiveCodeEngine"
+headingLevel: 3
+replacements:
+- search: '/api/expressive-code/core/interfaces/ExpressiveCodeEngineConfig/'
+  replace: '/reference/configuration/'
+editSections:
+- path: "Properties"
+  replaceWith: |
+    All config options that can be passed to the constructor are also available
+    on the instance as read-only properties.
+````
+
+## Code blocks
+
+````yml include
+name: "ExpressiveCodeBlock"
+headingLevel: 3
+editSections:
+- path: ""
+  append: |
+    #### Usage example
+
+    ```js
+    // codeBlockExample.js
+    import { ExpressiveCodeBlock } from 'expressive-code'
+
+    const codePlaintext = `
+    // Perform very important calculations
+    const a = 1 + 2
+    `
+
+    const codeBlock = new ExpressiveCodeBlock({
+      code: codePlaintext.trim(),
+      language: 'js',
+    })
+
+    // Delete the first line and output the remaining code
+    codeBlock.deleteLine(0)
+    console.dir(codeBlock.code)
+    // --> 'const a = 1 + 2'
+    ```
+- path: "Constructors/new ExpressiveCodeBlock(options)"
+  append: |
+    :::note
+    You usually don't need to create code blocks manually. Instead, you can pass
+    `ExpressiveCodeBlockOptions` to the `render` method of the `ExpressiveCodeEngine` class,
+    and the engine will create the code blocks for you.
+
+    Manually creating code blocks may still be useful in some cases, e.g. to allow
+    integration authors to attach custom annotations to code blocks before passing them
+    to the engine, or to attach custom data to a code block.
+    :::
+````
+
+````yml include
+name: "ExpressiveCodeBlockOptions"
+headingLevel: 3
+````
+
+````yml include
+name: "ExpressiveCodeLine"
+headingLevel: 3
+````
+
+## Themes
+
+````yml include
+name: "ExpressiveCodeTheme"
+headingLevel: 3
+editSections:
+- path: "Properties/styleOverrides"
+  replaceWith: |
+    An optional set of style overrides that can be used to customize the appearance
+    of the rendered code blocks without having to write custom CSS.
+    
+    See [Overriding Styles](/reference/style-overrides) for a list of all available settings.
+replacements:
+- search: '\[`VSCodeThemeType`\]\(.*?\)'
+  replace: '`"dark"` \| `"light"`'
+- search: '\[`VSCodeWorkbenchColors`\]\(.*?\)'
+  replace: '`Object` (mapping VS Code workbench color keys to values)'
+````
+
+## Annotations
+
+In Expressive Code, annotations are used by plugins to attach semantic information to lines or inline ranges of code. They are used to represent things like syntax highlighting, text markers, comments, errors, warnings, and other semantic information.
+
+Annotations must provide a `render` function that transforms its contained AST nodes, e.g. by wrapping them in HTML tags. This function is called by the engine when it's time to render the line the annotation has been attached to.
+
+````yml include
+name: "ExpressiveCodeAnnotation"
+headingLevel: 3
+editSections:
+- path: "Constructors"
+  replaceWith: |
+    :::note
+    As an abstract class, `ExpressiveCodeAnnotation` cannot be instantiated directly.
+    You should create a subclass that extends `ExpressiveCodeAnnotation` instead.
+    :::
+- path: "Properties"
+  replaceWith: |
+    All annotation base options are available on the instance as read-only properties.
+    See [`AnnotationBaseOptions`](#annotationbaseoptions) for the entire list.
+````
+
+````yml include
+name: "InlineStyleAnnotation"
+headingLevel: 3
+editSections:
+- path: ""
+  append: |
+    #### Usage example
+
+    In the following example, we create a plugin that makes the first word of each code block red in the first theme. We do this by adding an `InlineStyleAnnotation` to the first line of each code block.
+
+    ```js
+    // plugins/make-first-word-red.js
+    import { InlineStyleAnnotation } from '@expressive-code/core'
+
+    /** @returns {import('@expressive-code/core').ExpressiveCodePlugin} */
+    export function pluginFirstWordRed() {
+      return {
+        name: 'Make first word red',
+        hooks: {
+          postprocessAnalyzedCode: (context) => {
+            // Only apply this to code blocks with the `first-word-red` meta
+            if (!context.codeBlock.meta.includes('first-word-red')) return
+
+            // Get the first line of the code block
+            const firstLine = context.codeBlock.getLine(0)
+            if (!firstLine) return
+
+            // Find the end of the first word
+            const firstWordEnd = firstLine.text.match(/\W/)?.index
+            if (!(firstWordEnd > 0)) return
+
+            // Add an annotation that makes the first word red
+            firstLine.addAnnotation(
+              new InlineStyleAnnotation({
+                inlineRange: {
+                  columnStart: 0,
+                  columnEnd: firstWordEnd,
+                },
+                color: '#ff0000',
+                // Only apply the red color to the first configured theme
+                styleVariantIndex: 0,
+              })
+            )
+          },
+        },
+      }
+    }
+    ```
+
+    After adding this plugin to your configuration, you can use it like this:
+
+    ````
+    ```js first-word-red
+    consule.log('Hello world!')
+    ```
+    ````
+
+    The rendered code block will now have a red text color applied to the first word, but only in the dark theme (the first theme in the configuration):
+
+    ```js first-word-red
+    consule.log('Hello world!')
+    ```
+- path: "Properties"
+  replaceWith: |
+    All config options that can be passed to the constructor are also available
+    on the instance as read-only properties.
+    See [`InlineStyleAnnotationOptions`](#inlinestyleannotationoptions) for
+    the entire list.
+````
+
+## Referenced types
+
+````yml include
+name: "AnnotationBaseOptions"
+headingLevel: 3
+````
+
+````yml include
+name: "AnnotationRenderOptions"
+headingLevel: 3
+````
+
+````yml include
+name: "AnnotationRenderPhase"
+headingLevel: 3
+````
+
+````yml include
+name: "ChromaticRecolorTarget"
+headingLevel: 3
+````
+
+````yml include
+name: "ExpressiveCodeInlineRange"
+headingLevel: 3
+````
+
+````yml include
+name: "ExpressiveCodeProcessingState"
+headingLevel: 3
+````
+
+````yml include
+name: "InlineStyleAnnotationOptions"
+headingLevel: 3
+````
+
+````yml include
+name: "RenderInput"
+headingLevel: 3
+````
+
+````yml include
+name: "RenderOptions"
+headingLevel: 3
+replacements:
+- search: '\[`GroupContents`\]\(.*?\)'
+  replace: 'readonly \{ `codeBlock`: `ExpressiveCodeBlock` \}[]'
+````
+
+````yml include
+name: "ThemeSetting"
+headingLevel: 3
+````

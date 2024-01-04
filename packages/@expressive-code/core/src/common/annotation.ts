@@ -1,8 +1,9 @@
-import { Parent } from 'hast-util-to-html/lib/types'
+import { Parent, Element } from 'hast-util-to-html/lib/types'
 import { isNumber, newTypeError } from '../internal/type-checks'
 import { ExpressiveCodeLine } from './line'
 import { h } from 'hastscript'
 import { getClassNames, setProperty } from '../helpers/ast'
+import { ResolverContext } from './plugin'
 
 export type ExpressiveCodeInlineRange = {
 	columnStart: number
@@ -12,7 +13,7 @@ export type ExpressiveCodeInlineRange = {
 // Note: We need to re-export this type to enable VS Code's "auto-implement interface" feature
 // in external code using this package.
 export type { Parent }
-export type AnnotationRenderOptions = { nodesToTransform: Parent[]; line: ExpressiveCodeLine }
+export type AnnotationRenderOptions = ResolverContext & { nodesToTransform: Parent[]; line: ExpressiveCodeLine }
 
 export type AnnotationRenderPhase = 'earliest' | 'earlier' | 'normal' | 'later' | 'latest'
 
@@ -27,6 +28,13 @@ export function annotationSortFn(a: ExpressiveCodeAnnotation, b: ExpressiveCodeA
 
 export type AnnotationBaseOptions = { inlineRange?: ExpressiveCodeInlineRange | undefined; renderPhase?: AnnotationRenderPhase | undefined }
 
+/**
+ * An abstract class representing a single annotation attached to a code line.
+ *
+ * You can develop your own annotations by extending this class and providing
+ * implementations for its abstract methods. See the implementation of the
+ * {@link InlineStyleAnnotation} class for an example.
+ */
 export abstract class ExpressiveCodeAnnotation {
 	constructor({ inlineRange, renderPhase }: AnnotationBaseOptions) {
 		if (inlineRange) validateExpressiveCodeInlineRange(inlineRange)
@@ -67,75 +75,138 @@ export abstract class ExpressiveCodeAnnotation {
 
 export type InlineStyleAnnotationOptions = AnnotationBaseOptions & {
 	/**
-	 * Inline styles are theme-dependent, which allows plugins like syntax highlighters to
+	 * The color of the annotation. This is expected to be a hex color string, e.g. `#888`.
+	 * Using CSS variables or other color formats is possible, but prevents automatic
+	 * color contrast checks from working.
+	 */
+	color?: string | undefined
+	/**
+	 * Whether the annotation should be rendered in italics.
+	 */
+	italic?: boolean | undefined
+	/**
+	 * Whether the annotation should be rendered in bold.
+	 */
+	bold?: boolean | undefined
+	/**
+	 * Whether the annotation should be rendered with an underline.
+	 */
+	underline?: boolean | undefined
+	/**
+	 * Inline styles can be theme-dependent, which allows plugins like syntax highlighters to
 	 * style the same code differently depending on the theme.
 	 *
 	 * To support this, the engine creates a style variant for each theme given in the
 	 * configuration, and plugins can go through the engine's `styleVariants` array to
-	 * access all the themes. When adding an inline style annotation to a range of code,
-	 * you must specify the index in this `styleVariants` array to indicate which theme
-	 * the annotation applies to.
+	 * access all the themes.
+	 *
+	 * When adding an inline style annotation to a range of code, you can optionally set
+	 * this property to a `styleVariants` array index to indicate that this annotation
+	 * only applies to a specific theme. If this property is not set, the annotation will
+	 * apply to all themes.
 	 */
-	styleVariantIndex: number
-	color?: string | undefined
-	italic?: boolean | undefined
-	bold?: boolean | undefined
-	underline?: boolean | undefined
+	styleVariantIndex?: number | undefined
 }
 
 /**
- * A theme-dependent inline style annotation.
+ * A theme-dependent inline style annotation that allows changing colors, font styles and
+ * decorations of the targeted code. This annotation is used by the syntax highlighting plugin
+ * to apply colors and styles to syntax tokens, and you can use it in your own plugins as well.
  *
  * You can add as many inline style annotations to a line as you want, even targeting the same code
  * with multiple fully or partially overlapping annotation ranges. During rendering, these
  * annotations will be automatically optimized to avoid creating unnecessary HTML elements.
+ *
+ * @note
+ * If you want to publish your own plugin using the `InlineStyleAnnotation` class, import it from
+ * the `@expressive-code/core` package installed as a **peer dependency** of your plugin package.
+ * This ensures that your plugin does not cause a version conflict if the user has a different
+ * version of Expressive Code installed on their site.
  */
 export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
-	styleVariantIndex: number
 	color: string | undefined
 	italic: boolean
 	bold: boolean
 	underline: boolean
+	styleVariantIndex: number | undefined
 
-	constructor({ styleVariantIndex, color, italic = false, bold = false, underline = false, ...baseOptions }: InlineStyleAnnotationOptions) {
-		super({ renderPhase: 'earliest', ...baseOptions })
-		this.styleVariantIndex = styleVariantIndex
+	constructor({ color, italic = false, bold = false, underline = false, styleVariantIndex, ...baseOptions }: InlineStyleAnnotationOptions) {
+		super(baseOptions)
 		this.color = color
 		this.italic = italic
 		this.bold = bold
 		this.underline = underline
+		this.styleVariantIndex = styleVariantIndex
 	}
 
-	render({ nodesToTransform }: AnnotationRenderOptions) {
+	render({ nodesToTransform, styleVariants }: AnnotationRenderOptions) {
 		const newStyles = new Map<string, string>()
-		const varPrefix = `--${this.styleVariantIndex}`
-		if (this.color) newStyles.set(varPrefix, this.color)
-		if (this.italic) newStyles.set(`${varPrefix}fs`, 'italic')
-		if (this.bold) newStyles.set(`${varPrefix}fw`, 'bold')
-		if (this.underline) newStyles.set(`${varPrefix}td`, 'underline')
+		const addStylesForVariantIndex = (variantIndex: number) => {
+			const varPrefix = `--${variantIndex}`
+			if (this.color) newStyles.set(varPrefix, this.color)
+			if (this.italic) newStyles.set(`${varPrefix}fs`, 'italic')
+			if (this.bold) newStyles.set(`${varPrefix}fw`, 'bold')
+			if (this.underline) newStyles.set(`${varPrefix}td`, 'underline')
+		}
+		const variantIndices = this.styleVariantIndex !== undefined ? [this.styleVariantIndex] : styleVariants.map((_, i) => i)
+		variantIndices.forEach(addStylesForVariantIndex)
 		if (newStyles.size === 0) return nodesToTransform
 
 		const buildStyleString = (styles: Map<string, string>) => {
 			return [...styles].map(([key, value]) => `${key}:${value}`).join(';')
 		}
 
+		const isInlineStyleNode = (node: Element) =>
+			node.tagName === 'span' &&
+			// Our inline style nodes have no class names
+			!getClassNames(node).length &&
+			// Our inline style nodes contain CSS variable declarations
+			node.properties?.style?.toString().startsWith('--')
+
+		const modifyExistingStyles = (node: Element, remove = false) => {
+			const existingStyles: [string, string][] = (node.properties?.style?.toString() || '').split(';').map((style) => {
+				const declParts = style.split(':')
+				return [declParts[0], declParts.slice(1).join(':')]
+			})
+			const modifiedStylesMap = new Map(existingStyles)
+			newStyles.forEach((value, key) => {
+				if (remove) {
+					modifiedStylesMap.delete(key)
+				} else {
+					modifiedStylesMap.set(key, value)
+				}
+			})
+			const modifiedStyles = buildStyleString(modifiedStylesMap)
+			if (modifiedStyles) {
+				setProperty(node, 'style', modifiedStyles)
+			} else if (node.properties?.style) {
+				delete node.properties.style
+			}
+			return modifiedStyles
+		}
+
 		return nodesToTransform.map((node) => {
-			const isInlineStyleNode =
-				node.type === 'element' &&
-				node.tagName === 'span' &&
-				// Our inline style nodes have no class names
-				!getClassNames(node).length &&
-				// Our inline style nodes contain CSS variable declarations
-				node.properties?.style?.toString().startsWith('--')
-			if (isInlineStyleNode) {
+			if (node.type === 'element' && isInlineStyleNode(node)) {
 				// The node is already an inline style token, so we can modify its existing styles
-				const existingStyles: [string, string][] = (node.properties?.style?.toString() || '').split(';').map((style) => {
-					const declParts = style.split(':')
-					return [declParts[0], declParts.slice(1).join(':')]
-				})
-				setProperty(node, 'style', buildStyleString(new Map([...existingStyles, ...newStyles])))
+				modifyExistingStyles(node)
 				return node
 			}
+			// Remove conflicting styles from all nested inline style nodes
+			const removeNestedConflictingStyles = (node: Parent) => {
+				for (let childIdx = node.children?.length - 1; childIdx >= 0; childIdx--) {
+					const child = node.children[childIdx]
+					if (child.type === 'element') {
+						if (isInlineStyleNode(child)) {
+							if (!modifyExistingStyles(child, true)) {
+								// If the node has no styles left, replace it with its children
+								node.children.splice(childIdx, 1, ...child.children)
+							}
+						}
+						removeNestedConflictingStyles(child)
+					}
+				}
+			}
+			removeNestedConflictingStyles(node)
 			const transformedNode = h('span', { style: buildStyleString(newStyles) }, node)
 			return transformedNode
 		})

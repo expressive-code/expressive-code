@@ -1,11 +1,11 @@
 ---
 title: Expressive Code
 description: Get started building your docs site with Starlight.
-tableOfContents: false
+template: splash
 hero:
-  tagline: Present your source code on the web, making it easy to understand and visually stunning. All batteries included!
+  tagline: Present your source code on the web, making it easy to understand and visually stunning. All&nbsp;batteries included!
   image:
-    file: ../../assets/houston.webp
+    file: ../../assets/expressive-code.svg
   actions:
     - text: Install it on your site
       link: /installation/
@@ -15,26 +15,17 @@ hero:
 
 import { Card, CardGrid } from '@astrojs/starlight/components'
 
-## TODO
-
-- Intro sentence / slogan
-- Example what it looks like
-- Design Goals / Guiding Principles
-- Button to get started (installation)
-
-## Next steps
-
-<CardGrid stagger>
-	<Card title="Update content" icon="pencil">
-		Edit `src/content/docs/index.mdx` to see this page change.
+<CardGrid>
+	<Card title="Fully-featured" icon="rocket">
+		Full VS Code theme support, accurate syntax highlighting, editor & terminal frames, copy to clipboard, text markers, collapsible sections, and more.
 	</Card>
-	<Card title="Add new content" icon="add-document">
-		Add Markdown or MDX files to `src/content/docs` to create new pages.
+	<Card title="Framework-agnostic" icon="star">
+		Zero dependencies on React, Vue, or any other front-end framework. Works with popular site generators like Astro and Next.js, as well as plain remark and MDX.
 	</Card>
-	<Card title="Configure your site" icon="setting">
-		Edit your `sidebar` and other config in `astro.config.mjs`.
+	<Card title="Plugin-based" icon="puzzle">
+		Built from the ground up to be extensible. Ships with a set of default plugins for all key features, and provides a powerful API for creating your own.
 	</Card>
-	<Card title="Read the docs" icon="open-book">
-		Learn more in [the Starlight Docs](https://starlight.astro.build/).
+	<Card title="Accessible" icon="approve-check-circle">
+		Designed with accessibility in mind. Automatically ensures proper color contrast and supports dark mode. Works with screen readers and keyboard navigation.
 	</Card>
 </CardGrid>
