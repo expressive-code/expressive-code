@@ -14,17 +14,48 @@ export default defineConfig({
 			social: {
 				github: 'https://github.com/expressive-code/expressive-code',
 			},
+			head: [
+				{
+					tag: 'link',
+					attrs: {
+						rel: 'apple-touch-icon',
+						href: '/apple-touch-icon.png',
+					},
+				},
+				{
+					tag: 'link',
+					attrs: {
+						rel: 'icon',
+						type: 'image/png',
+						sizes: '32x32',
+						href: '/favicon-32x32.png',
+					},
+				},
+				{
+					tag: 'link',
+					attrs: {
+						rel: 'icon',
+						type: 'image/png',
+						sizes: '16x16',
+						href: '/favicon-16x16.png',
+					},
+				},
+				{
+					tag: 'link',
+					attrs: {
+						rel: 'mask-icon',
+						href: '/safari-pinned-tab.svg',
+						color: '#603cba',
+					},
+				},
+			],
 			sidebar: [
 				{
-					label: 'Start Here',
+					label: 'Getting Started',
 					items: [
-						{
-							label: 'Welcome',
-							link: '/',
-							badge: 'TODO',
-						},
 						{ label: 'Installation', link: '/installation/' },
 						{ label: 'Upgrading', link: '/upgrading/' },
+						{ label: 'Release History', link: '/releases/' },
 					],
 				},
 				{
@@ -89,7 +120,6 @@ export default defineConfig({
 							label: 'Plugin Hooks',
 							link: '/reference/plugin-hooks/',
 						},
-						{ label: 'Release Notes', link: '/releases/' },
 					],
 				},
 			],
