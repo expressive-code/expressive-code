@@ -191,6 +191,7 @@ export function getCoreBaseStyles({
 	return `
 		font-family: ${cssVar('uiFontFamily')};
 		font-size: ${cssVar('uiFontSize')};
+		font-weight: ${cssVar('uiFontWeight')};
 		line-height: ${cssVar('uiLineHeight')};
 		text-size-adjust: none;
 		-webkit-text-size-adjust: none;
@@ -228,6 +229,7 @@ export function getCoreBaseStyles({
 
 				font-family: ${cssVar('codeFontFamily')};
 				font-size: ${cssVar('codeFontSize')};
+				font-weight: ${cssVar('codeFontWeight')};
 				line-height: ${cssVar('codeLineHeight')};
 			}
 
