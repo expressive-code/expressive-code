@@ -3,6 +3,7 @@ import path from 'node:path'
 import { globSync } from 'glob'
 import { parse } from 'yaml'
 import GithubSlugger from 'github-slugger'
+import { readFileLines, normalizeLineEndings, splitLines, writeFileLines } from './utils'
 
 type IncludeDirective = {
 	name: string
@@ -22,11 +23,11 @@ type IncludeDirective = {
 
 export function processTemplate({ apiDocsPath, templateFilePath, outputFilePath }: { apiDocsPath: string; templateFilePath: string; outputFilePath: string }) {
 	console.log('Processing template:', templateFilePath)
-	let markdown = fs.readFileSync(templateFilePath, 'utf8')
+	let markdown = normalizeLineEndings(fs.readFileSync(templateFilePath, 'utf8'))
 	markdown = markdown.replace(/````ya?ml include\n([\s\S]+?)\n````/g, (_, yaml: string) => {
 		const directive = parse(yaml) as IncludeDirective
 		if (!directive.name || !(directive.headingLevel > 1)) throw new Error(`Invalid include directive: ${yaml}`)
-		const lines = getFileLines(findApiDocsFile(apiDocsPath, directive.name))
+		const lines = readFileLines(findApiDocsFile(apiDocsPath, directive.name))
 		// Change heading levels to match the template
 		let headings = collectHeadings(lines)
 		if (headings.length) {
@@ -71,7 +72,7 @@ export function processTemplate({ apiDocsPath, templateFilePath, outputFilePath 
 				const sectionEndLineIdx = (nextSectionHeading?.lineIdx ?? lines.length) - 1
 				if (edit.replaceWith.length) {
 					// Replace the section contents
-					lines.splice(heading.lineIdx + 1, sectionEndLineIdx - heading.lineIdx, '', ...edit.replaceWith.split(/\r?\n/))
+					lines.splice(heading.lineIdx + 1, sectionEndLineIdx - heading.lineIdx, '', ...splitLines(edit.replaceWith))
 				} else {
 					// Remove the section
 					lines.splice(heading.lineIdx, sectionEndLineIdx - heading.lineIdx + 1)
@@ -92,7 +93,7 @@ export function processTemplate({ apiDocsPath, templateFilePath, outputFilePath 
 				const nextHeading = headings[headingIdx + 1]
 				const nextHeadingLineIdx = nextHeading?.lineIdx ?? lines.length
 				// Insert the new lines before the next heading
-				lines.splice(nextHeadingLineIdx, 0, ...edit.append.split(/\r?\n/))
+				lines.splice(nextHeadingLineIdx, 0, ...splitLines(edit.append))
 				// Update the headings
 				headings = collectHeadings(lines)
 				return
@@ -127,7 +128,7 @@ export function processTemplate({ apiDocsPath, templateFilePath, outputFilePath 
 		`.trim() + '\n'
 	)
 
-	fs.writeFileSync(outputFilePath, markdown)
+	writeFileLines(outputFilePath, markdown)
 }
 
 function collectHeadings(lines: string[]) {
@@ -172,6 +173,7 @@ function findApiDocsFile(apiDocsPath: string, name: string) {
 	if (!apiDocsIndex) {
 		apiDocsIndex = globSync(`**/*.mdx`, {
 			cwd: apiDocsPath,
+			posix: true,
 		})
 	}
 	const matches = apiDocsIndex.filter((n) => n.endsWith(`/${name}.mdx`))
@@ -180,16 +182,12 @@ function findApiDocsFile(apiDocsPath: string, name: string) {
 	return path.join(apiDocsPath, matches[0]!)
 }
 
-function getFileLines(filePath: string) {
-	return fs.readFileSync(filePath, 'utf8').split(/\r?\n/)
-}
-
 export function fixLinks(docsDir: string, templateFileSubpaths: string[]) {
 	// Collect available anchors per page
 	const nameToLinks = new Map<string, string[]>()
 	const pathToLinks = new Map<string, string[]>()
 	templateFileSubpaths.forEach((templateFileSubpath) => {
-		const lines = getFileLines(path.join(docsDir, templateFileSubpath))
+		const lines = readFileLines(path.join(docsDir, templateFileSubpath))
 		const headings = collectHeadings(lines)
 		headings.forEach((heading) => {
 			const newLink = `/${templateFileSubpath.replace(/\.mdx?$/, '')}/${heading.anchor}`
@@ -204,7 +202,7 @@ export function fixLinks(docsDir: string, templateFileSubpaths: string[]) {
 
 	// Go through all pages and replace links
 	templateFileSubpaths.forEach((templateFileSubpath) => {
-		const lines = getFileLines(path.join(docsDir, templateFileSubpath))
+		const lines = readFileLines(path.join(docsDir, templateFileSubpath))
 		lines.forEach((line, lineIdx) => {
 			lines[lineIdx] = line.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match: string, text: string, link: string) => {
 				// Check if the link is an API link
@@ -236,6 +234,6 @@ export function fixLinks(docsDir: string, templateFileSubpaths: string[]) {
 		})
 
 		// Update the file
-		fs.writeFileSync(path.join(docsDir, templateFileSubpath), lines.join('\n'))
+		writeFileLines(path.join(docsDir, templateFileSubpath), lines)
 	})
 }

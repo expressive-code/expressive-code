@@ -343,7 +343,7 @@ class StarlightTypeDocThemeRenderContext extends MarkdownThemeRenderContext {
 	#getDefaultValue = (reflection: DeclarationReflection) => {
 		const defaultTag = reflection.comment?.blockTags?.find((tag) => tag.tag === '@default')
 		if (!defaultTag) return
-		let markdown = this.commentParts(defaultTag.content).trim().replace(/\r\n/g, '\n')
+		let markdown = this.commentParts(defaultTag.content).trim()
 		if (!markdown.startsWith('`')) markdown = '```ts\n' + markdown + '\n```'
 		const codeBlockRegExp = /^```[a-zA-Z0-9-]*(?:\s+[^\n]*)?\n([\s\S]*?)\n```$/g
 		markdown = markdown.replace(codeBlockRegExp, (_, code: string) => {

@@ -80,7 +80,7 @@ In Expressive Code, all processing of your code blocks and their metadata is per
 
 | Parameter | Type | Description |
 | :------ | :------ | :------ |
-| `input` | [`RenderInput`](/reference/core-api/#renderinput) | The code block(s) to render. Can either be an `ExpressiveCodeBlockOptions` object<br />containing the properties required to create a new `ExpressiveCodeBlock` internally,<br />an existing `ExpressiveCodeBlock`, or an array containing any combination of these. |
+| `input` | [`RenderInput`](/reference/core-api/#renderinput) | The code block(s) to render. Can either be an `ExpressiveCodeBlockOptions` object containing the properties required to create a new `ExpressiveCodeBlock` internally, an existing `ExpressiveCodeBlock`, or an array containing any combination of these. |
 | `options`? | [`RenderOptions`](/reference/core-api/#renderoptions) | Optional configuration options for the rendering process. |
 
 ###### Returns
@@ -661,10 +661,7 @@ A theme-dependent inline style annotation that allows changing colors, font styl
 You can add as many inline style annotations to a line as you want, even targeting the same code with multiple fully or partially overlapping annotation ranges. During rendering, these annotations will be automatically optimized to avoid creating unnecessary HTML elements.
 
 :::note
-If you want to publish your own plugin using the `InlineStyleAnnotation` class, import it from
-the `@expressive-code/core` package installed as a **peer dependency** of your plugin package.
-This ensures that your plugin does not cause a version conflict if the user has a different
-version of Expressive Code installed on their site.
+If you want to publish your own plugin using the `InlineStyleAnnotation` class, import it from the `@expressive-code/core` package installed as a **peer dependency** of your plugin package. This ensures that your plugin does not cause a version conflict if the user has a different version of Expressive Code installed on their site.
 :::
 
 #### Usage example

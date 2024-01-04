@@ -2,6 +2,7 @@ import path from 'node:path'
 
 import {
 	Application,
+	Comment,
 	Context,
 	Converter,
 	DeclarationReflection,
@@ -11,10 +12,12 @@ import {
 	Reflection,
 	ReflectionKind,
 	SignatureReflection,
+	type CommentDisplayPart,
 	type TypeDocOptions,
 } from 'typedoc'
 import type { PluginOptions as MarkdownPluginOptions } from 'typedoc-plugin-markdown'
 import { StarlightTypeDocTheme } from './typedoc-theme'
+import { normalizeLineEndings } from './utils'
 
 export type PartialConfig = Partial<TypeDocOptions & MarkdownPluginOptions>
 
@@ -79,11 +82,27 @@ export async function generateTypeDoc(sourceFiles: PartialConfig) {
 	//app.options.addReader(new TSConfigReader())
 
 	const fixComments = (reflection: Reflection) => {
-		reflection.comment?.summary?.forEach((part) => {
-			if (part.kind === 'text' && part.text) {
-				part.text = part.text.replace(/\r\n/g, '\n').replace(/(?<!\n)\n(?!\n|$)/g, ' ')
-			}
-		})
+		const fixCommentParts = (parts: CommentDisplayPart[] | undefined) => {
+			if (!parts) return
+			parts.forEach((part) => {
+				if (part.kind === 'text' && part.text) {
+					part.text = normalizeLineEndings(part.text).replace(/(?<!\n)\n(?!\n|$)/g, ' ')
+				}
+				if (part.kind === 'code' && part.text) {
+					part.text = normalizeLineEndings(part.text)
+				}
+			})
+		}
+
+		const fixComment = (comment: Comment | undefined) => {
+			if (!comment) return
+			fixCommentParts(comment.summary)
+			comment.blockTags?.forEach((tag) => {
+				fixCommentParts(tag.content)
+			})
+		}
+
+		fixComment(reflection.comment)
 	}
 	const fixDestructuredParameterNames = (signature: SignatureReflection) => {
 		signature.parameters?.forEach((param) => {
@@ -123,13 +142,17 @@ export async function generateTypeDoc(sourceFiles: PartialConfig) {
 	})
 
 	app.converter.on(Converter.EVENT_CREATE_DECLARATION, (_context: Context, declaration: DeclarationReflection) => {
-		fixComments(declaration)
 		renameModules(declaration)
 	})
 
 	app.converter.on(Converter.EVENT_CREATE_SIGNATURE, (_context: Context, signature: SignatureReflection) => {
-		fixComments(signature)
 		fixDestructuredParameterNames(signature)
+	})
+
+	app.converter.on(Converter.EVENT_END, (context: Context) => {
+		Object.values(context.project.reflections).forEach((reflection: Reflection) => {
+			fixComments(reflection)
+		})
 	})
 
 	app.renderer.defineTheme('starlight-theme', StarlightTypeDocTheme)

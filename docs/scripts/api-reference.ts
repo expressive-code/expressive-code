@@ -30,6 +30,7 @@ const templateDir = './scripts/typedoc/templates'
 const docsDir = './src/content/docs'
 const templateFileSubpaths = globSync(`**/*.mdx`, {
 	cwd: templateDir,
+	posix: true,
 })
 templateFileSubpaths.forEach((templateFileSubpath) => {
 	processTemplate({
