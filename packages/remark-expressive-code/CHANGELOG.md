@@ -1,5 +1,28 @@
 # remark-expressive-code
 
+## 0.30.2
+
+### Patch Changes
+
+- a9bbb5c: Fixes missing CSS output for `uiFontWeight` and `codeFontWeight` style settings. Changed font weights are now properly respected. Thank you @depatchedmode!
+- 1a3ae04: Individual code blocks can now be switched to the base theme while an alternate theme is selected on the page level.
+
+  Expressive Code differentiates between your base theme (= the first theme in `themes`) and your alternate themes (= any other entries in `themes`). Previously, as soon as an alternate theme was selected on the page level, e.g. by using `<html data-theme="some-theme-name">`, it wasn't possible to switch individual code blocks to the base theme anymore because of selector specificity issues. This has been resolved and block-level overrides should work as expected now.
+
+- a9bbb5c: Fixes unexpected `InlineStyleAnnotation` behaviors to improve DX for plugin authors.
+
+  - Inline styles now use `:where()` in selectors to reduce specificity and make them easier to override.
+  - When applying multiple overlapping inline styles to the same line, render phases are now properly respected and later styles override earlier ones.
+  - The `styleVariantIndex` property is no longer required. Inline styles without an index now apply to all style variants.
+  - The default `InlineStyleAnnotation` render phase is now `normal`. The previous default setting `earliest` is now explicitly applied by `plugin-shiki` instead. This improves the API while still rendering syntax highlighting in the `earliest` phase to allow other annotations to wrap and modify the highlighted code.
+
+- 1a3ae04: Themes that use transparency in unexpected places (e.g. the `rose-pine` themes) are now displayed correctly.
+- Updated dependencies [a9bbb5c]
+- Updated dependencies [1a3ae04]
+- Updated dependencies [a9bbb5c]
+- Updated dependencies [1a3ae04]
+  - expressive-code@0.30.2
+
 ## 0.30.1
 
 ### Patch Changes
