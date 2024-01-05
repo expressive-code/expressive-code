@@ -71,6 +71,9 @@ importers:
       astro-expressive-code:
         specifier: workspace:^
         version: link:../packages/astro-expressive-code
+      astro-og-canvas:
+        specifier: ^0.4.2
+        version: 0.4.2(astro@4.0.7)
       expressive-code:
         specifier: workspace:^
         version: link:../packages/expressive-code
@@ -2526,6 +2529,18 @@ packages:
     hasBin: true
     dev: false
 
+  /astro-og-canvas@0.4.2(astro@4.0.7):
+    resolution: {integrity: sha512-OQsH6Gr2HX9ZRHdVy2OcXVBIPI65WvEtLG/60krnphh8d3ldhuAFunymYaNGcrdSZcYgXkHWejbPt//3qaRidA==}
+    engines: {node: '>=18.14.1'}
+    peerDependencies:
+      astro: ^3.0.0 || ^4.0.0
+    dependencies:
+      astro: 4.0.7(typescript@5.2.2)
+      canvaskit-wasm: 0.37.2
+      deterministic-object-hash: 2.0.2
+      entities: 4.5.0
+    dev: false
+
   /astro@3.3.0(typescript@5.2.2):
     resolution: {integrity: sha512-O3MsXULamxQMy6sBgv07iVe5teJ41o+9tVScB/Yo2Io0XwvLXVhjVrjAxKpulBcKpU3/LyOpVfj/x63fcONbPA==}
     engines: {node: '>=18.14.1', npm: '>=6.14.0'}
@@ -3040,6 +3055,10 @@ packages:
 
   /caniuse-lite@1.0.30001534:
     resolution: {integrity: sha512-vlPVrhsCS7XaSh2VvWluIQEzVhefrUQcEsQWSS5A5V+dM07uv1qHeQzAOTGIMy9i3e9bH15+muvI/UHojVgS/Q==}
+    dev: false
+
+  /canvaskit-wasm@0.37.2:
+    resolution: {integrity: sha512-212imazRF98gLOTiU4JAXM7xDvaknI7jaPtAg4ETXGW5rLQs6pomgIvVPUSfoKnQVTdGgzj+B4e+/u0Da20aGg==}
     dev: false
 
   /ccount@2.0.1:
