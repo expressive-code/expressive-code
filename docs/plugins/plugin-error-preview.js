@@ -24,7 +24,12 @@ export function pluginErrorPreview() {
 		name: 'Error Preview',
 		baseStyles: `
 			.error-squiggles {
-				text-decoration: underline wavy #f22;
+				text-decoration-style: wavy;
+				text-decoration-color: #f22;
+				text-decoration-line: underline;
+				& span {
+					text-decoration: unset;
+				}
 			}
 			.error-message {
 				color: #f22;
