@@ -8,6 +8,7 @@ import { pluginErrorPreview } from './plugins/plugin-error-preview.js'
 
 // https://astro.build/config
 export default defineConfig({
+	site: (process.env.CONTEXT !== 'production' && process.env.DEPLOY_URL) || 'https://expressive-code.com',
 	integrations: [
 		starlight({
 			title: 'Expressive Code',
@@ -49,6 +50,14 @@ export default defineConfig({
 					},
 				},
 			],
+			expressiveCode: {
+				plugins: [pluginCollapsibleSections(), pluginFirstWordRed(), pluginErrorPreview()],
+			},
+			plugins: [starlightLinksValidator()],
+			customCss: ['./src/styles/custom.css'],
+			components: {
+				Head: './src/components/starlight/Head.astro',
+			},
 			sidebar: [
 				{
 					label: 'Getting Started',
@@ -123,11 +132,6 @@ export default defineConfig({
 					],
 				},
 			],
-			expressiveCode: {
-				plugins: [pluginCollapsibleSections(), pluginFirstWordRed(), pluginErrorPreview()],
-			},
-			plugins: [starlightLinksValidator()],
-			customCss: ['./src/styles/custom.css'],
 		}),
 	],
 })

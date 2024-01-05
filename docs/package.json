@@ -19,6 +19,7 @@
     "@expressive-code/plugin-collapsible-sections": "workspace:^",
     "astro": "^4.0.7",
     "astro-expressive-code": "workspace:^",
+    "astro-og-canvas": "^0.4.2",
     "expressive-code": "workspace:^",
     "github-slugger": "^2.0.0",
     "glob": "^10.3.10",
