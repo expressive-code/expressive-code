@@ -1,16 +1,5 @@
 # expressive-code [![NPM version](https://img.shields.io/npm/v/expressive-code.svg)](https://www.npmjs.com/package/expressive-code) [![NPM downloads](https://img.shields.io/npm/dm/expressive-code.svg)](https://npmjs.org/package/expressive-code)
 
-## Contents
-
-- [What is this?](#what-is-this)
-- [When should I use this?](#when-should-i-use-this)
-- [Installation](#installation)
-- [Usage example](#usage-example)
-- [API](#api)
-  - [`ExpressiveCode`](#expressivecode)
-
-## What is this?
-
 A framework-agnostic wrapper package that provides convenient access to the key packages of Expressive Code, an engine for presenting source code on the web.
 
 Instead of having to install and manage multiple Expressive Code packages separately, this package includes both the core engine and all default plugins as dependencies and exports them.
@@ -27,6 +16,10 @@ Included packages:
 Using this package directly is **only recommended for advanced use cases**, e.g. to create integrations of Expressive Code into other tools and frameworks.
 
 If you just want to render code blocks on your website, you should use one of the higher-level packages instead, e.g. [`astro-expressive-code`](https://www.npmjs.com/package/astro-expressive-code) or [`remark-expressive-code`](https://www.npmjs.com/package/remark-expressive-code) for code blocks in markdown / MDX documents.
+
+## Documentation
+
+[Read the Expressive Code docs](https://expressive-code.com/) to learn more about the features provided by Expressive Code.
 
 ## Installation
 
@@ -67,33 +60,3 @@ if (stylesToPrepend.length) {
 // Output HTML to the console
 console.log(htmlContent)
 ```
-
-## API
-
-### `ExpressiveCode`
-
-The main class of `expressive-code`. It extends the [`ExpressiveCodeEngine`](https://github.com/expressive-code/expressive-code/blob/main/packages/%40expressive-code/core/README.md#expressivecodeengine) class and adds some configuration options.
-
-In addition to the [options provided by the core engine](https://github.com/expressive-code/expressive-code/blob/main/packages/%40expressive-code/core/README.md#expressivecodeengine-constructor), the following options are available:
-
-- `shiki: PluginShikiOptions | boolean`
-
-  Configures the Shiki plugin, which adds syntax highlighting to code blocks.
-
-  This plugin is enabled by default. Set this to `false` to disable it.
-
-  You can also configure the plugin by setting this to an [options object](https://github.com/expressive-code/expressive-code/blob/main/packages/%40expressive-code/plugin-shiki/README.md#available-plugin-options).
-
-- `textMarkers: boolean`
-
-  The Text Markers plugin allows to highlight lines and inline ranges in code blocks in various styles (e.g. marked, inserted, deleted).
-
-  This plugin is enabled by default. Set this to `false` to disable it.
-
-- `frames: PluginFramesOptions | boolean`
-
-  The Frames plugin adds an editor or terminal frame around code blocks, including an optional title displayed as a tab or window caption.
-
-  This plugin is enabled by default. Set this to `false` to disable it.
-
-  You can also configure the plugin by setting this to an [options object](https://github.com/expressive-code/expressive-code/blob/main/packages/%40expressive-code/plugin-frames/README.md#available-plugin-options).
