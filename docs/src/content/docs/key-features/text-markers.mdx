@@ -91,6 +91,54 @@ function demo() {
 }
 ```
 
+#### Adding labels to line markers
+
+You can add a text label to any line marker, which will be rendered as a colorful box in the first line of the marked line range. This allows you to reference specific parts of your code in the surrounding text.
+
+To add any text as a label, enclose it in single or double quotes and add it directly after the opening curly brace, followed by a colon (`:`). For example, `ins={"A":6-10}` would mark lines 6 to 10 as inserted and add the label `A` to them.
+
+Here's an example:
+
+````md
+```jsx {"1":5} del={"2":7-8} ins={"3":10-12}
+// labeled-line-markers.jsx
+<button
+  role="button"
+  {...props}
+  value={value}
+  className={buttonClassName}
+  disabled={disabled}
+  active={active}
+>
+  {children &&
+    !active &&
+    (typeof children === 'string' ? <span>{children}</span> : children)}
+</button>
+```
+````
+
+This will render as follows:
+
+```jsx {"1":5} del={"2":7-8} ins={"3":10-12}
+// labeled-line-markers.jsx
+<button
+  role="button"
+  {...props}
+  value={value}
+  className={buttonClassName}
+  disabled={disabled}
+  active={active}
+>
+  {children &&
+    !active &&
+    (typeof children === 'string' ? <span>{children}</span> : children)}
+</button>
+```
+
+:::tip
+If you want to use longer labels and they start to overlap with your code, consider increasing the core style setting [`codePaddingInline`](/reference/style-overrides/#codepaddinginline).
+:::
+
 #### Using `diff`-like syntax
 
 Instead of adding line numbers to the opening code fence as shown above, you can also use the `diff` language, which is supported on many platforms (e.g. GitHub). Set the language in the opening code fence to `diff` and add a `+` or `-` marker to the first column of any line:
