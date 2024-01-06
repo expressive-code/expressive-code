@@ -318,7 +318,6 @@ Provides read-only access to the code block’s processing state.
 
 The processing state controls which properties of the code block can be modified. The engine updates it automatically during rendering.
 
-
 ### ExpressiveCodeBlockOptions
 
 #### Properties
@@ -411,7 +410,6 @@ The full path to the source file containing the code block.
 </dd>
 </dl>
 
-
 ### ExpressiveCodeLine
 
 #### Constructors
@@ -481,7 +479,6 @@ The full path to the source file containing the code block.
 ##### text
 
 - <code class="function-signature">**get** **text**(): string</code>
-
 
 ## Themes
 
@@ -608,7 +605,6 @@ See [Overriding Styles](/reference/style-overrides) for a list of all available 
 <PropertySignature>
 - Type: `"dark"` \| `"light"`
 </PropertySignature>
-
 
 ## Annotations
 
@@ -784,7 +780,6 @@ the entire list.
 </dd>
 </dl>
 
-
 ### AnnotationRenderOptions
 
 <PropertySignature>
@@ -808,13 +803,11 @@ the entire list.
 </dd>
 </dl>
 
-
 ### AnnotationRenderPhase
 
 <PropertySignature>
 - Type: `"earliest"` \| `"earlier"` \| `"normal"` \| `"later"` \| `"latest"`
 </PropertySignature>
-
 
 ### ChromaticRecolorTarget
 
@@ -852,7 +845,6 @@ If given, the chroma will be adjusted relative to this lightness before applying
 </dd>
 </dl>
 
-
 ### ExpressiveCodeInlineRange
 
 <PropertySignature>
@@ -876,7 +868,6 @@ If given, the chroma will be adjusted relative to this lightness before applying
 </dd>
 </dl>
 
-
 ### ExpressiveCodeProcessingState
 
 #### Properties
@@ -898,7 +889,6 @@ If given, the chroma will be adjusted relative to this lightness before applying
 <PropertySignature>
 - Type: `boolean`
 </PropertySignature>
-
 
 ### InlineStyleAnnotationOptions
 
@@ -950,13 +940,11 @@ Whether the annotation should be rendered with an underline.
 </dd>
 </dl>
 
-
 ### RenderInput
 
 <PropertySignature>
 - Type: [`ExpressiveCodeBlockOptions`](/reference/core-api/#expressivecodeblockoptions) \| [`ExpressiveCodeBlock`](/reference/core-api/#expressivecodeblock) \| ([`ExpressiveCodeBlockOptions`](/reference/core-api/#expressivecodeblockoptions) \| [`ExpressiveCodeBlock`](/reference/core-api/#expressivecodeblock))[]
 </PropertySignature>
-
 
 ### RenderOptions
 
@@ -979,7 +967,6 @@ You can then import the const and set `onInitGroup` to a function that calls `my
 | Parameter | Type |
 | :------ | :------ |
 | `groupContents` | readonly \{ `codeBlock`: `ExpressiveCodeBlock` \}[] |
-
 
 ### ThemeSetting
 
@@ -1021,4 +1008,3 @@ You can then import the const and set `onInitGroup` to a function that calls `my
 </PropertySignature>
 </dd>
 </dl>
-

@@ -66,7 +66,6 @@ The calling code must take care of actually adding the collected scripts to the 
 
 An instance of `PluginStyleSettings` that is used to define the plugin's CSS variables.
 
-
 ## PluginStyleSettings
 
 Represents a strongly typed set of style settings provided by a plugin (or core).
@@ -148,7 +147,6 @@ framesStyleSettings.defaultValues.frames.titleBarForeground // ({ theme }) => th
 <PropertySignature>
 - Type: **readonly** `Partial`\<[`UnresolvedStyleSettings`](/reference/plugin-api/#unresolvedstylesettings)\>
 </PropertySignature>
-
 
 ## AttachedPluginData
 
@@ -241,7 +239,6 @@ export const pluginFramesData = new AttachedPluginData<PluginFramesData>(
 | `target` | `PluginDataTarget` |
 | `data` | `PluginDataType` |
 
-
 ## Referenced types
 
 ### BaseStylesResolverFn
@@ -272,7 +269,6 @@ The function will be called with a `context` argument of type
 | :------ | :------ |
 | `context` | [`ResolverContext`](/reference/plugin-api/#resolvercontext) |
 
-
 ### JsModulesResolverFn
 
 <PropertySignature>
@@ -290,7 +286,6 @@ their JS modules.
 | Parameter | Type |
 | :------ | :------ |
 | `context` | [`ResolverContext`](/reference/plugin-api/#resolvercontext) |
-
 
 ### ResolverContext
 
@@ -325,13 +320,11 @@ It provides access to theme-dependent CSS variables, all resolved style variants
 </dd>
 </dl>
 
-
 ### ResolvedStyleSettingsByPath
 
 <PropertySignature>
 - Type: `Map`\<[`StyleSettingPath`](/reference/plugin-api/#stylesettingpath), `string`\>
 </PropertySignature>
-
 
 ### StyleResolverFn
 
@@ -354,13 +347,11 @@ This function is called once for each style variant in the engine's `styleVarian
 | `context.styleVariantIndex` | `number` | The index in the engine's `styleVariants` array that's currently being resolved. |
 | `context.theme` | [`ExpressiveCodeTheme`](/reference/core-api/#expressivecodetheme) | - |
 
-
 ### StyleSettingPath
 
 <PropertySignature>
 - Type: `FlattenKeys`\<`StyleSettings`\>
 </PropertySignature>
-
 
 ### StyleValueOrValues
 
@@ -371,7 +362,6 @@ This function is called once for each style variant in the engine's `styleVarian
 The value of a single style setting. You can either set it to a string, or an array of two strings.
 
 If you use the array form, the first value will be used for dark themes, and the second value for light themes.
-
 
 ### StyleVariant
 
@@ -402,7 +392,6 @@ If you use the array form, the first value will be used for dark themes, and the
 </dd>
 </dl>
 
-
 ### UnresolvedPluginStyleSettings
 
 <PropertySignature>
@@ -415,7 +404,6 @@ If you use the array form, the first value will be used for dark themes, and the
 | :------ |
 | `T` |
 
-
 ### UnresolvedStyleValue
 
 <PropertySignature>
@@ -424,10 +412,8 @@ If you use the array form, the first value will be used for dark themes, and the
 
 This is the value type for all style overrides. It allows either static style values or a resolver function.
 
-
 ### UnresolvedStyleSettings
 
 <PropertySignature>
 - Type: `{ [K in keyof StyleSettings]: StyleSettings[K] extends object ? UnresolvedPluginStyleSettings<StyleSettings[K]> : UnresolvedStyleValue }`
 </PropertySignature>
-

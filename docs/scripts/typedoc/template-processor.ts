@@ -28,6 +28,8 @@ export function processTemplate({ apiDocsPath, templateFilePath, outputFilePath 
 		const directive = parse(yaml) as IncludeDirective
 		if (!directive.name || !(directive.headingLevel > 1)) throw new Error(`Invalid include directive: ${yaml}`)
 		const lines = readFileLines(findApiDocsFile(apiDocsPath, directive.name))
+		// Remove last line if it's empty
+		if (lines[lines.length - 1]?.trim() === '') lines.pop()
 		// Change heading levels to match the template
 		let headings = collectHeadings(lines)
 		if (headings.length) {
@@ -81,9 +83,14 @@ export function processTemplate({ apiDocsPath, templateFilePath, outputFilePath 
 				headings = collectHeadings(lines)
 				return
 			}
-			if (edit.replaceHeading) {
-				// Replace the heading
-				lines[heading.lineIdx] = '#'.repeat(heading.level) + ' ' + edit.replaceHeading
+			if (edit.replaceHeading !== undefined) {
+				if (edit.replaceHeading) {
+					// Replace the heading
+					lines[heading.lineIdx] = '#'.repeat(heading.level) + ' ' + edit.replaceHeading
+				} else {
+					// Remove the heading (and the line after it if it's empty)
+					lines.splice(heading.lineIdx, lines[heading.lineIdx + 1]?.trim() === '' ? 2 : 1)
+				}
 				// Update the headings
 				headings = collectHeadings(lines)
 				return

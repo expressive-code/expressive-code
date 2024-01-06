@@ -548,13 +548,15 @@ function fancyJsHelper() {
 </BaseLayout>
 					`.trim(),
 					language: 'diff',
-					meta: `lang="mdx" title="src/pages/posts/first-post.mdx" ins={6} mark={9} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/`,
+					meta: `lang="mdx" title="src/pages/posts/first-post.mdx" ins={"1":6} mark={"2":8-10} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/`,
 					plugins: [pluginTextMarkers(), pluginShiki()],
 					blockValidationFn: buildMarkerValidationFn([
 						{ fullLine: true, markerType: 'del', text: `layout: ../../layouts/BaseLayout.astro` },
 						{ fullLine: true, markerType: 'ins', text: `publishDate: '21 September 2022'` },
-						{ fullLine: true, markerType: 'ins', text: `import BaseLayout from '../../layouts/BaseLayout.astro';` },
+						{ fullLine: true, markerType: 'ins', text: `import BaseLayout from '../../layouts/BaseLayout.astro';`, label: '1' },
+						{ fullLine: true, markerType: 'mark', text: `function fancyJsHelper() {`, label: '2' },
 						{ fullLine: true, markerType: 'mark', text: `  return "Try doing that with YAML!";` },
+						{ fullLine: true, markerType: 'mark', text: `}` },
 						{ markerType: 'mark', text: `<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>` },
 						{ markerType: 'mark', text: `</BaseLayout>` },
 					]),
@@ -649,7 +651,7 @@ function buildMeta(markers: { markerType?: string | undefined; text: string }[])
 }
 
 function buildMarkerValidationFn(
-	expectedMarkers: { fullLine?: boolean | undefined; markerType: MarkerType; text: string; classNames?: string[] | undefined }[],
+	expectedMarkers: { fullLine?: boolean | undefined; markerType: MarkerType; text: string; classNames?: string[] | undefined; label?: string | undefined }[],
 	expectedCode?: string
 ): NonNullable<TestFixture['blockValidationFn']> {
 	return ({ renderedGroupAst }) => {
@@ -660,6 +662,7 @@ function buildMarkerValidationFn(
 		const actualMarkers = matchingElements.map((marker) => {
 			let text = toText(marker, { whitespace: 'pre' })
 			if (text === '\n') text = ''
+			const label = marker.properties?.['data-marker-label']?.toString()
 			const classNames = getClassNames(marker)
 			if (MarkerTypeOrder.includes(marker.tagName as MarkerType)) {
 				return {
@@ -667,6 +670,7 @@ function buildMarkerValidationFn(
 					markerType: marker.tagName,
 					text,
 					classNames,
+					label,
 				}
 			}
 			for (const markerType of classNames) {
@@ -676,6 +680,7 @@ function buildMarkerValidationFn(
 						markerType,
 						text,
 						classNames,
+						label,
 					}
 				}
 			}
