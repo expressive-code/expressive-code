@@ -57,7 +57,9 @@ export default defineConfig({
 			customCss: ['./src/styles/custom.css'],
 			components: {
 				Head: './src/components/starlight/Head.astro',
+				TableOfContents: './src/components/starlight/TableOfContents.astro',
 			},
+			tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 4 },
 			sidebar: [
 				{
 					label: 'Getting Started',

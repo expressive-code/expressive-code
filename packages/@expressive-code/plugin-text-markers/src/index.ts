@@ -42,13 +42,21 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 
 						// Handle full-line highlighting definitions
 						if (valueStartDelimiter === '{') {
+							// Detect an optional label prefix in double or single quotes: `{"1":3-5}`
+							let label: string | undefined = undefined
+							value = value.replace(/^\s*?(["'])([^\1]+?)\1:\s*?/, (_match, _quote, labelValue: string) => {
+								label = labelValue
+								return ''
+							})
 							const lineNumbers = rangeParser(value)
-							lineNumbers.forEach((lineNumber) => {
+							lineNumbers.forEach((lineNumber, idx) => {
 								const lineIndex = lineNumber - 1
 								codeBlock.getLine(lineIndex)?.addAnnotation(
 									new TextMarkerAnnotation({
 										markerType,
 										backgroundColor: cssVar(markerBgColorPaths[markerType]),
+										// Add a label to the first line of each consecutive range
+										label: idx === 0 || lineNumber - lineNumbers[idx - 1] !== 1 ? label : undefined,
 									})
 								)
 							})

@@ -1,0 +1,25 @@
+---
+import type { Props } from '@astrojs/starlight/props'
+import Default from '@astrojs/starlight/components/TableOfContents.astro'
+
+const { toc } = Astro.props
+
+if (toc) {
+	const processTocItems = (items: NonNullable<Props['toc']>['items']) => {
+		for (let i = items.length - 1; i >= 0; i--) {
+			const item = items[i]
+			if (!item) continue
+			// Remove less relevant headings at depth 4
+			if (item.depth === 4 && ['Type parameters', 'Parameters', 'Arguments', 'Properties', 'Object properties', 'Additional properties'].includes(item.text)) {
+				items.splice(i, 1)
+			} else if (item.children) {
+				processTocItems(item.children)
+			}
+		}
+	}
+
+	processTocItems(toc.items)
+}
+---
+
+<Default {...Astro.props} toc={toc}><slot /></Default>

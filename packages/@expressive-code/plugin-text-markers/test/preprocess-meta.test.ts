@@ -35,7 +35,7 @@ type ExpectedTextMarkerResults = {
 	meta: string
 	annotations?:
 		| {
-				lineMarkings?: { markerType: MarkerType; lines: number[] }[] | undefined
+				lineMarkings?: { markerType: MarkerType; lines: number[]; label?: string | undefined }[] | undefined
 				plaintextTerms?: { markerType: MarkerType; text: string }[] | undefined
 				regExpTerms?: { markerType: MarkerType; regExp: RegExp }[] | undefined
 		  }
@@ -70,7 +70,7 @@ const expectMetaResult = async (input: string, partialExpectedResult: ExpectedTe
 	const codeBlock = renderedGroupContents[0].codeBlock
 
 	// Collect all applied full-line text marker annotations in the form expected by the test cases
-	const lineMarkings: { markerType: MarkerType; lines: number[] }[] = []
+	const lineMarkings: NonNullable<NonNullable<ExpectedTextMarkerResults>['annotations']>['lineMarkings'] = []
 	codeBlock.getLines().forEach((line, lineIndex) => {
 		const fullLineAnnotations = line.getAnnotations().filter((annotation) => annotation instanceof TextMarkerAnnotation && !annotation.inlineRange) as TextMarkerAnnotation[]
 		fullLineAnnotations.forEach((annotation) => {
@@ -78,7 +78,7 @@ const expectMetaResult = async (input: string, partialExpectedResult: ExpectedTe
 			if (!markerType) return
 			let lineMarkingsEntry = lineMarkings.find((entry) => entry.markerType === markerType)
 			if (!lineMarkingsEntry) {
-				lineMarkingsEntry = { markerType, lines: [] }
+				lineMarkingsEntry = { markerType, lines: [], label: annotation.label }
 				lineMarkings.push(lineMarkingsEntry)
 			}
 			lineMarkingsEntry.lines.push(lineIndex + 1)
@@ -359,6 +359,8 @@ test('Everything combined', async () => {
 			'"${name}"',
 			// Inline-level RegExp marking
 			'/(?:[(]|=== )(tag)/',
+			// Line-level marking with label prefix and some whitespace
+			'{ "A": 2-3 }',
 			// Line-level deletion marking
 			'del={4-5}',
 			// Inline-level insertion marking
@@ -367,7 +369,10 @@ test('Everything combined', async () => {
 		{
 			meta: 'twoslash title="src/components/DynamicAttributes.astro"',
 			annotations: {
-				lineMarkings: [{ markerType: 'del', lines: [4, 5] }],
+				lineMarkings: [
+					{ markerType: 'mark', lines: [2, 3], label: 'A' },
+					{ markerType: 'del', lines: [4, 5] },
+				],
 				plaintextTerms: [
 					{ markerType: 'mark', text: '{name}' },
 					{ markerType: 'mark', text: '${name}' },

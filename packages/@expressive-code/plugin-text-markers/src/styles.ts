@@ -15,6 +15,22 @@ export interface TextMarkersStyleSettings {
 	 */
 	lineMarkerAccentWidth: string
 	/**
+	 * The inline padding (= left & right padding in horizontal writing mode)
+	 * around line marker labels.
+	 *
+	 * @note If your line marker labels overlap with the code content,
+	 * consider increasing the root style setting `codePaddingInline`.
+	 *
+	 * @default '0.2rem'
+	 */
+	lineMarkerLabelPaddingInline: string
+	/**
+	 * The text color of the optional labels that can be displayed on the left side
+	 * of a full-line text marker.
+	 * @default 'white'
+	 */
+	lineMarkerLabelColor: string
+	/**
 	 * The margin between the code block border and the diff indicator (e.g. `+` or `-`)
 	 * displayed on the left side of a full-line text marker.
 	 * @default '0.5rem'
@@ -172,6 +188,8 @@ export const textMarkersStyleSettings = new PluginStyleSettings({
 		textMarkers: {
 			lineMarkerAccentMargin: '0rem',
 			lineMarkerAccentWidth: '0.15rem',
+			lineMarkerLabelPaddingInline: '0.2rem',
+			lineMarkerLabelColor: 'white',
 			lineDiffIndicatorMarginLeft: '0.5rem',
 			inlineMarkerBorderWidth: '1.5px',
 			inlineMarkerBorderRadius: '0.2rem',
@@ -254,6 +272,13 @@ export function getTextMarkersBaseStyles({ cssVar }: ResolverContext) {
 				&::before {
 					position: absolute;
 					left: ${cssVar('textMarkers.lineDiffIndicatorMarginLeft')};
+				}
+				&[data-marker-label]::before {
+					content: attr(data-marker-label);
+					background: var(--tmLineBrdCol);
+					left: 0;
+					padding: 0 calc(${cssVar('textMarkers.lineMarkerLabelPaddingInline')} + ${cssVar('textMarkers.lineMarkerAccentWidth')}) 0 ${cssVar('textMarkers.lineMarkerLabelPaddingInline')};
+					color: ${cssVar('textMarkers.lineMarkerLabelColor')};
 				}
 			}
 

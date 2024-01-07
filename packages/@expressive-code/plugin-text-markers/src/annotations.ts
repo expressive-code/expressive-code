@@ -1,4 +1,4 @@
-import { addClassName, ExpressiveCodeAnnotation, AnnotationBaseOptions, AnnotationRenderOptions } from '@expressive-code/core'
+import { addClassName, ExpressiveCodeAnnotation, AnnotationBaseOptions, AnnotationRenderOptions, setProperty } from '@expressive-code/core'
 import { h } from 'hastscript'
 import { Element } from 'hast-util-select/lib/types'
 import { MarkerType } from './marker-types'
@@ -6,11 +6,13 @@ import { MarkerType } from './marker-types'
 export class TextMarkerAnnotation extends ExpressiveCodeAnnotation {
 	markerType: MarkerType
 	backgroundColor: string
+	label: string | undefined
 
-	constructor({ markerType, backgroundColor, ...baseOptions }: { markerType: MarkerType; backgroundColor: string } & AnnotationBaseOptions) {
+	constructor({ markerType, backgroundColor, label, ...baseOptions }: { markerType: MarkerType; backgroundColor: string; label?: string | undefined } & AnnotationBaseOptions) {
 		super(baseOptions)
 		this.markerType = markerType
 		this.backgroundColor = backgroundColor
+		this.label = label
 	}
 
 	render(options: AnnotationRenderOptions) {
@@ -21,6 +23,9 @@ export class TextMarkerAnnotation extends ExpressiveCodeAnnotation {
 	private renderFullLineMarker({ nodesToTransform }: AnnotationRenderOptions) {
 		return nodesToTransform.map((node) => {
 			addClassName(node as Element, this.markerType)
+			if (this.label) {
+				setProperty(node as Element, 'data-marker-label', this.label)
+			}
 			return node
 		})
 	}

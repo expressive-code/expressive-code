@@ -130,7 +130,6 @@ The base type of all hooks. It is a function that gets called by the engine and 
 | :------ | :------ |
 | `context` | `ContextType` |
 
-
 ### ExpressiveCodeHookContext
 
 A context object that the engine passes to most hook functions.
@@ -243,7 +242,6 @@ cssVarName('frames.fontSize')
 <PropertySignature>
 - Type: [`StyleVariant`](/reference/plugin-api/#stylevariant)[]
 </PropertySignature>
-
 
 ### PostprocessRenderedLineContext
 
@@ -383,4 +381,3 @@ This is the only property that allows you to modify the wrapper element of the e
 </PropertySignature>
 
 An array of objects, each containing a reference to the code block, and its rendered HAST output. This is the same HAST element per block that is also available in the `renderData` property of the `postprocessRenderedBlock` hook context.
-
