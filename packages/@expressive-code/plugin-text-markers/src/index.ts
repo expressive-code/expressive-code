@@ -55,7 +55,8 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 									new TextMarkerAnnotation({
 										markerType,
 										backgroundColor: cssVar(markerBgColorPaths[markerType]),
-										label: idx === 0 ? label : undefined,
+										// Add a label to the first line of each consecutive range
+										label: idx === 0 || lineNumber - lineNumbers[idx - 1] !== 1 ? label : undefined,
 									})
 								)
 							})
