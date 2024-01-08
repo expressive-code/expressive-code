@@ -136,8 +136,54 @@ This will render as follows:
 ```
 
 :::tip
-If you want to use longer labels and they start to overlap with your code, consider increasing the core style setting [`codePaddingInline`](/reference/style-overrides/#codepaddinginline).
+If you want to use slightly longer labels (2-3 characters) on the side and they start to overlap with your code, consider increasing the core style setting [`codePaddingInline`](/reference/style-overrides/#codepaddinginline).
 :::
+
+##### Adding long labels on their own lines
+
+If you want to use labels that are too long to fit on the side, you can add them above the marked line range instead. To do so, add an empty line inside your code block where you want the label to appear, and target this empty line as the beginning of your line range. Example:
+
+````md ins={6,9,13}
+```jsx {"1. Provide the value prop here:":5-6} del={"2. Remove the disabled and active states:":8-10} ins={"3. Add this to render the children inside the button:":12-15}
+// labeled-line-markers.jsx
+<button
+  role="button"
+  {...props}
+
+  value={value}
+  className={buttonClassName}
+
+  disabled={disabled}
+  active={active}
+>
+
+  {children &&
+    !active &&
+    (typeof children === 'string' ? <span>{children}</span> : children)}
+</button>
+```
+````
+
+This will render as follows:
+
+```jsx {"1. Provide the value prop here:":5-6} del={"2. Remove the disabled and active states:":8-10} ins={"3. Add this to render the children inside the button:":12-15}
+// labeled-line-markers.jsx
+<button
+  role="button"
+  {...props}
+
+  value={value}
+  className={buttonClassName}
+
+  disabled={disabled}
+  active={active}
+>
+
+  {children &&
+    !active &&
+    (typeof children === 'string' ? <span>{children}</span> : children)}
+</button>
+```
 
 #### Using `diff`-like syntax
 
