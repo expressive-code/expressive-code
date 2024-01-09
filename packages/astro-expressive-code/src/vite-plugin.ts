@@ -1,3 +1,6 @@
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import type { ViteUserConfig } from 'astro'
 
 function resolveVirtualModuleId<T extends string>(id: T): `\0${T}` {
@@ -13,15 +16,22 @@ function resolveVirtualModuleId<T extends string>(id: T): `\0${T}` {
  * All data is provided as virtual modules under the `virtual:astro-expressive-code/*` namespace,
  * which can be used by injected routes to generate CSS & JS files.
  */
-export function vitePluginAstroExpressiveCode(contents: { styles: [string, string][]; scripts: [string, string][] }): NonNullable<ViteUserConfig['plugins']>[number] {
+export function vitePluginAstroExpressiveCode(options: { styles: [string, string][]; scripts: [string, string][]; root: URL }): NonNullable<ViteUserConfig['plugins']>[number] {
 	// Map virtual module names to their code contents as strings
-	const modules = {
-		'virtual:astro-expressive-code/scripts': `export const scripts = ${JSON.stringify(contents.scripts)}`,
-		'virtual:astro-expressive-code/styles': `export const styles = ${JSON.stringify(contents.styles)}`,
-	} satisfies Record<string, string>
+	const modules: Record<string, string> = {
+		'virtual:astro-expressive-code/scripts': `export const scripts = ${JSON.stringify(options.scripts)}`,
+		'virtual:astro-expressive-code/styles': `export const styles = ${JSON.stringify(options.styles)}`,
+	}
+
+	// Try to find an EC config file in the Astro project root
+	const projectRootPath = fileURLToPath(options.root)
+	const possibleConfigFileNames = ['ec.config.ts', 'ec.config.mjs', 'ec.config.js'].map((fileName) => resolve(projectRootPath, fileName))
+	const ecConfigFile = possibleConfigFileNames.find((fileName) => existsSync(fileName))
+	const configModuleContents = ecConfigFile ? `export { default as config } from ${JSON.stringify(ecConfigFile)}` : `export const config = {}`
+	modules['virtual:astro-expressive-code/config'] = configModuleContents
 
 	// Create a map of module names prefixed with `\0` to their original form
-	const resolutionMap = Object.fromEntries((Object.keys(modules) as (keyof typeof modules)[]).map((key) => [resolveVirtualModuleId(key), key]))
+	const resolutionMap = Object.fromEntries(Object.keys(modules).map((key) => [resolveVirtualModuleId(key), key]))
 
 	return {
 		name: 'vite-plugin-astro-expressive-code',

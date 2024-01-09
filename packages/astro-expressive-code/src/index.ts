@@ -165,6 +165,7 @@ export function astroExpressiveCode(options: AstroExpressiveCodeOptions = {}) {
 							vitePluginAstroExpressiveCode({
 								styles: hashedStyles,
 								scripts: hashedScripts,
+								root: config.root,
 							}),
 						],
 					},

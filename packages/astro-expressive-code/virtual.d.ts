@@ -5,3 +5,7 @@ declare module 'virtual:astro-expressive-code/styles' {
 declare module 'virtual:astro-expressive-code/scripts' {
 	export const scripts: [string, string][]
 }
+
+declare module 'virtual:astro-expressive-code/config' {
+	export const config: import('astro-expressive-code').AstroExpressiveCodeOptions
+}

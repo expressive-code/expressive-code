@@ -1,0 +1,7 @@
+---
+import { config } from 'virtual:astro-expressive-code/config'
+---
+
+<div set:html={JSON.stringify(config, null, 2)}/>
+
+<div set:html={config.plugins?.map((plugin) => JSON.stringify((Array.isArray(plugin) ? plugin[0] : plugin).baseStyles?.(), null, 2))}/>

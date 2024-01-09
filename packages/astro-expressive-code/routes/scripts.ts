@@ -1,4 +1,3 @@
-/// <reference types="../virtual.d.ts" />
 import type { APIRoute } from 'astro'
 import { scripts } from 'virtual:astro-expressive-code/scripts'
 
