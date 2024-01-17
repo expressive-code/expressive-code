@@ -11,6 +11,8 @@ The lines of collapsed sections will be replaced by a clickable `X collapsed l
 
 ## Installation
 
+### Astro
+
 Before being able to use collapsible sections in your code blocks, you need to install the plugin as a dependency and add it to your configuration:
 
 1. Add the package to your site's dependencies:
@@ -48,6 +50,50 @@ Before being able to use collapsible sections in your code blocks, you need to i
             pluginCollapsibleSections(),
           ],
         }),
+      ],
+    })
+    ```
+
+### Starlight
+
+Before being able to use collapsible sections in your code blocks, you need to install the plugin as a dependency and add it to your configuration:
+
+1. Add the package to your site's dependencies:
+
+    <Tabs>
+      <TabItem label="npm">
+      ```sh
+      npm i @expressive-code/plugin-collapsible-sections
+      ```
+      </TabItem>
+      <TabItem label="pnpm">
+      ```sh
+      pnpm i @expressive-code/plugin-collapsible-sections
+      ```
+      </TabItem>
+      <TabItem label="yarn">
+      ```sh
+      yarn add @expressive-code/plugin-collapsible-sections
+      ```
+      </TabItem>
+    </Tabs>
+
+2. Add the integration to starlights configuration by adding it to the `plugins` list of the `expressiveCode` configuration object in your starlight configuration.
+
+    ```js ins={4,10-12}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config'
+    import starlight from '@astrojs/starlight'
+    import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
+
+    export default defineConfig({
+      integrations: [
+        starlight({
+          title: 'example.com',
+          expressiveCode: {
+            plugins: [ pluginCollapsibleSections() ],
+          },
+        ]),
       ],
     })
     ```
