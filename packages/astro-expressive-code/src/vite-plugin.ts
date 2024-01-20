@@ -1,11 +1,8 @@
-import { existsSync } from 'node:fs'
-import { resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import type { ViteUserConfig } from 'astro'
-
-function resolveVirtualModuleId<T extends string>(id: T): `\0${T}` {
-	return `\0${id}`
-}
+import { stableStringify } from 'remark-expressive-code'
+import { findEcConfigFilePath } from './ec-config'
+import { PartialAstroConfig, serializePartialAstroConfig } from './astro-config'
+import { AstroExpressiveCodeOptions } from './ec-config'
 
 /**
  * This Vite plugin provides access to page-wide styles & scripts that the Astro integration
@@ -16,31 +13,57 @@ function resolveVirtualModuleId<T extends string>(id: T): `\0${T}` {
  * All data is provided as virtual modules under the `virtual:astro-expressive-code/*` namespace,
  * which can be used by injected routes to generate CSS & JS files.
  */
-export function vitePluginAstroExpressiveCode(options: { styles: [string, string][]; scripts: [string, string][]; root: URL }): NonNullable<ViteUserConfig['plugins']>[number] {
+export function vitePluginAstroExpressiveCode({
+	styles,
+	scripts,
+	ecConfigArgs,
+	astroConfig,
+}: {
+	styles: [string, string][]
+	scripts: [string, string][]
+	ecConfigArgs: AstroExpressiveCodeOptions
+	astroConfig: PartialAstroConfig
+}): NonNullable<ViteUserConfig['plugins']>[number] {
 	// Map virtual module names to their code contents as strings
 	const modules: Record<string, string> = {
-		'virtual:astro-expressive-code/scripts': `export const scripts = ${JSON.stringify(options.scripts)}`,
-		'virtual:astro-expressive-code/styles': `export const styles = ${JSON.stringify(options.styles)}`,
+		'virtual:astro-expressive-code/scripts': `export const scripts = ${JSON.stringify(scripts)}`,
+		'virtual:astro-expressive-code/styles': `export const styles = ${JSON.stringify(styles)}`,
 	}
 
-	// Try to find an EC config file in the Astro project root
-	const projectRootPath = fileURLToPath(options.root)
-	const possibleConfigFileNames = ['ec.config.ts', 'ec.config.mjs', 'ec.config.js'].map((fileName) => resolve(projectRootPath, fileName))
-	const ecConfigFile = possibleConfigFileNames.find((fileName) => existsSync(fileName))
-	const configModuleContents = ecConfigFile ? `export { default as config } from ${JSON.stringify(ecConfigFile)}` : `export const config = {}`
-	modules['virtual:astro-expressive-code/config'] = configModuleContents
+	// Create virtual config module
+	const configModuleContents: string[] = []
+	// - Astro config
+	configModuleContents.push(`export const astroConfig = ${serializePartialAstroConfig(astroConfig)}`)
+	// - Expressive Code integration config args
+	const { customConfigPreprocessors, ...otherEcConfigArgs } = ecConfigArgs
+	configModuleContents.push(`export const ecConfigArgs = ${stableStringify(otherEcConfigArgs)}`)
+	// - Expressive Code config file
+	const ecConfigFilePath = findEcConfigFilePath(astroConfig.root)
+	if (ecConfigFilePath) {
+		const strEcConfigFilePath = JSON.stringify(ecConfigFilePath)
+		configModuleContents.push(
+			`let ecConfigFile = {}`,
+			`try {`,
+			`	ecConfigFile = (await import(${strEcConfigFilePath})).default`,
+			`} catch (e) {`,
+			`	console.error('*** Failed to load Expressive Code config file ${strEcConfigFilePath}. You can ignore this message if you just renamed/removed the file.\\n\\n(Full error message: "' + (e?.message || e) + '")\\n')`,
+			`}`,
+			`export { ecConfigFile }`
+		)
+	} else {
+		configModuleContents.push(`export const ecConfigFile = {}`)
+	}
+	modules['virtual:astro-expressive-code/config'] = configModuleContents.join('\n')
 
-	// Create a map of module names prefixed with `\0` to their original form
-	const resolutionMap = Object.fromEntries(Object.keys(modules).map((key) => [resolveVirtualModuleId(key), key]))
+	// Create virtual API module
+	modules['virtual:astro-expressive-code/api'] = `export { createAstroRenderer } from 'astro-expressive-code'`
+
+	// Create virtual config preprocessor module
+	modules['virtual:astro-expressive-code/preprocess-config'] = customConfigPreprocessors?.preprocessComponentConfig || `export default ({ ecConfig }) => ecConfig`
 
 	return {
 		name: 'vite-plugin-astro-expressive-code',
-		resolveId(id): string | void {
-			if (id in modules) return resolveVirtualModuleId(id)
-		},
-		load(id): string | void {
-			const resolution = resolutionMap[id]
-			if (resolution) return modules[resolution]
-		},
+		resolveId: (id) => (id in modules ? `\0${id}` : undefined),
+		load: (id) => (id?.[0] === '\0' ? modules[id.slice(1)] : undefined),
 	}
 }

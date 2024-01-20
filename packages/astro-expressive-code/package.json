@@ -42,6 +42,7 @@
     "astro": "^3.3.0 || ^4.0.0-beta"
   },
   "dependencies": {
+    "hast-util-to-html": "^8.0.4",
     "remark-expressive-code": "workspace:^0.31.0"
   },
   "devDependencies": {

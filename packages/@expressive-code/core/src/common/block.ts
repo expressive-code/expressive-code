@@ -58,7 +58,7 @@ export interface ExpressiveCodeBlockOptions {
 				positionInDocument?:
 					| {
 							groupIndex: number
-							totalGroups: number
+							totalGroups?: number | undefined
 					  }
 					| undefined
 		  }

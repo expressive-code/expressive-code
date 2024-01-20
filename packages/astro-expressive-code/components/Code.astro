@@ -1,7 +1,38 @@
 ---
-import { config } from 'virtual:astro-expressive-code/config'
+import { toHtml } from 'hast-util-to-html'
+import { getPageData } from './page-data'
+import { renderer } from './renderer'
+
+interface Props {
+	code: string
+	lang: string | undefined
+	meta: string | undefined
+}
+
+const { code = 'Missing code', lang = '', meta = '', ...rest } = Astro.props
+const pageData = getPageData(Astro.request)
+pageData.blockGroupIndex++
+
+const { renderedGroupAst } = await renderer.ec.render({
+	code,
+	language: lang,
+	meta,
+	parentDocument: {
+		positionInDocument: {
+			groupIndex: pageData.blockGroupIndex,
+		}
+	},
+	...rest,
+})
+
+const html = toHtml(renderedGroupAst)
+
+// TODO: Add rendering logic that matches the behavior of the remark plugin
+// without duplicating all the code. It must be possible to:
+// - Render a page that contains only markdown/MDX code blocks
+// - Render a page that contains only `<Code>` components
+// - Render a page that contains a mix of both
+// All of these should ideally produce the same output and not cause CSS / JS conflicts.
 ---
 
-<div set:html={JSON.stringify(config, null, 2)}/>
-
-<div set:html={config.plugins?.map((plugin) => JSON.stringify((Array.isArray(plugin) ? plugin[0] : plugin).baseStyles?.(), null, 2))}/>
+<Fragment set:html={html}/>
