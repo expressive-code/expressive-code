@@ -101,7 +101,7 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 							const tokenLength = token.content.length
 							const tokenEndIndex = charIndex + tokenLength
 							const fontStyle = token.fontStyle || FontStyle.None
-							codeLines[lineIndex].addAnnotation(
+							codeLines[lineIndex]?.addAnnotation(
 								new InlineStyleAnnotation({
 									styleVariantIndex,
 									color: token.color || theme.fg,
