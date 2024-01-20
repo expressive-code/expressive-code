@@ -306,6 +306,9 @@ importers:
       astro:
         specifier: ^3.3.0 || ^4.0.0-beta
         version: 3.5.0(typescript@5.2.2)
+      hast-util-to-html:
+        specifier: ^8.0.4
+        version: 8.0.4
       remark-expressive-code:
         specifier: workspace:^0.31.0
         version: link:../remark-expressive-code
