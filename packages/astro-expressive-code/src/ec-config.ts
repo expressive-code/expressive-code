@@ -69,12 +69,14 @@ export type CustomConfigPreprocessors = {
 
 export type ConfigPreprocessorFn = (args: { ecConfig: unknown; astroConfig: PartialAstroConfig }) => Promise<AstroExpressiveCodeOptions> | AstroExpressiveCodeOptions
 
+export const ecConfigFileName = 'ec.config.mjs'
+
 /**
  * Returns an array of supported absolute EC config file paths in the Astro project root.
  */
 export function getSupportedEcConfigFilePaths(projectRootUrl: URL) {
 	const projectRootPath = fileURLToPath(projectRootUrl)
-	return [resolve(projectRootPath, 'ec.config.mjs')]
+	return [resolve(projectRootPath, ecConfigFileName)]
 }
 
 /**
@@ -91,6 +93,10 @@ export function findEcConfigFilePath(projectRootUrl: URL) {
  * If no config file is found, an empty object is returned.
  */
 export async function loadEcConfigFile(): Promise<AstroExpressiveCodeOptions> {
-	const configFiles = import.meta.glob('/ec.config.*', { import: 'default' })
-	return (await configFiles['/ec.config.mjs']?.()) || {}
+	try {
+		const module = (await import(/* @vite-ignore */ `/${ecConfigFileName}`)) as { default: AstroExpressiveCodeOptions }
+		return module.default
+	} catch (e) {
+		return {}
+	}
 }

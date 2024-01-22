@@ -1,6 +1,13 @@
-export const renderer = await getRenderer()
+let cachedRenderer: ReturnType<typeof createRenderer> | undefined = undefined
 
-async function getRenderer() {
+export async function getRenderer() {
+	if (!cachedRenderer) {
+		cachedRenderer = createRenderer()
+	}
+	return await cachedRenderer
+}
+
+async function createRenderer() {
 	const { astroConfig, ecConfigFileOptions, ecIntegrationOptions = {} } = await import('virtual:astro-expressive-code/config')
 	const { createAstroRenderer } = await import('virtual:astro-expressive-code/api')
 
@@ -8,7 +15,7 @@ async function getRenderer() {
 	if (strIntegrationOptions.includes('"[Function]"') || strIntegrationOptions.includes("'[Circular]'")) {
 		throw new Error(
 			`Your Astro config file contains Expressive Code options that are not serializable to JSON.
-			To use the Code component, please create a separate config file called "ec.config.mjs"
+			To use the \`<Code>\` component, please create a separate config file called \`ec.config.mjs\`
 			in your project root, move your Expressive Code options object into the config file,
 			and export it as the default export.`.replace(/\s+/g, ' ')
 		)

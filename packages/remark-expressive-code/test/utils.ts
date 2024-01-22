@@ -10,7 +10,7 @@ export const buildSampleCodeHtmlRegExp = ({ title, codeContents }: { title: stri
 	new RegExp(
 		[
 			// The heading should have been transformed to an h1
-			'<h1(?:| .*?)>Sample code</h1>',
+			'<h1(?:| .*?)>[^<]*?</h1>',
 			// The code block group should have been wrapped into an Expressive Code div
 			'<div class="expressive-code(| .*?)">',
 			// Expect one style element or link to an external stylesheet

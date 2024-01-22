@@ -16,12 +16,12 @@ import { AstroExpressiveCodeOptions } from './ec-config'
 export function vitePluginAstroExpressiveCode({
 	styles,
 	scripts,
-	ecConfigArgs,
+	ecIntegrationOptions,
 	astroConfig,
 }: {
 	styles: [string, string][]
 	scripts: [string, string][]
-	ecConfigArgs: AstroExpressiveCodeOptions
+	ecIntegrationOptions: AstroExpressiveCodeOptions
 	astroConfig: PartialAstroConfig
 }): NonNullable<ViteUserConfig['plugins']>[number] {
 	// Map virtual module names to their code contents as strings
@@ -32,26 +32,26 @@ export function vitePluginAstroExpressiveCode({
 
 	// Create virtual config module
 	const configModuleContents: string[] = []
-	// - Astro config
+	// - Partial Astro config
 	configModuleContents.push(`export const astroConfig = ${serializePartialAstroConfig(astroConfig)}`)
-	// - Expressive Code integration config args
-	const { customConfigPreprocessors, ...otherEcConfigArgs } = ecConfigArgs
-	configModuleContents.push(`export const ecConfigArgs = ${stableStringify(otherEcConfigArgs)}`)
-	// - Expressive Code config file
+	// - Expressive Code integration options
+	const { customConfigPreprocessors, ...otherEcIntegrationOptions } = ecIntegrationOptions
+	configModuleContents.push(`export const ecIntegrationOptions = ${stableStringify(otherEcIntegrationOptions)}`)
+	// - Expressive Code config file options
 	const ecConfigFilePath = findEcConfigFilePath(astroConfig.root)
 	if (ecConfigFilePath) {
 		const strEcConfigFilePath = JSON.stringify(ecConfigFilePath)
 		configModuleContents.push(
-			`let ecConfigFile = {}`,
+			`let ecConfigFileOptions = {}`,
 			`try {`,
-			`	ecConfigFile = (await import(${strEcConfigFilePath})).default`,
+			`	ecConfigFileOptions = (await import(${strEcConfigFilePath})).default`,
 			`} catch (e) {`,
 			`	console.error('*** Failed to load Expressive Code config file ${strEcConfigFilePath}. You can ignore this message if you just renamed/removed the file.\\n\\n(Full error message: "' + (e?.message || e) + '")\\n')`,
 			`}`,
-			`export { ecConfigFile }`
+			`export { ecConfigFileOptions }`
 		)
 	} else {
-		configModuleContents.push(`export const ecConfigFile = {}`)
+		configModuleContents.push(`export const ecConfigFileOptions = {}`)
 	}
 	modules['virtual:astro-expressive-code/config'] = configModuleContents.join('\n')
 

@@ -1,38 +1,58 @@
 ---
 import { toHtml } from 'hast-util-to-html'
 import { getPageData } from './page-data'
-import { renderer } from './renderer'
+import { getRenderer } from './renderer'
+import type { CodeProps as Props } from './types'
 
-interface Props {
-	code: string
-	lang: string | undefined
-	meta: string | undefined
+function formatMessage(...messageParts: string[]) {
+	return messageParts.map((part) => part.replace(/\s+/g, ' ')).join('\n\n')
 }
 
-const { code = 'Missing code', lang = '', meta = '', ...rest } = Astro.props
-const pageData = getPageData(Astro.request)
-pageData.blockGroupIndex++
+async function renderToHtml() {
+	const defaultSlotContent = await Astro.slots.render('default')
+	if (defaultSlotContent?.trim().length) {
+		throw new Error(
+			formatMessage(
+				`Unsupported child content was found inside the component.
+				The code to render must be passed to the \`code\` prop as a string.`,
+				`Please remove the following child content:\n${defaultSlotContent}`
+			)
+		)
+	}
 
-const { renderedGroupAst } = await renderer.ec.render({
-	code,
-	language: lang,
-	meta,
-	parentDocument: {
-		positionInDocument: {
-			groupIndex: pageData.blockGroupIndex,
-		}
-	},
-	...rest,
-})
+	const { code, lang = '', meta = '', ...rest } = Astro.props
 
-const html = toHtml(renderedGroupAst)
+	if (!code || !code.trim().length) {
+		throw new Error('Missing code to render. The `code` prop must be set to a non-empty string.')
+	}
 
-// TODO: Add rendering logic that matches the behavior of the remark plugin
-// without duplicating all the code. It must be possible to:
-// - Render a page that contains only markdown/MDX code blocks
-// - Render a page that contains only `<Code>` components
-// - Render a page that contains a mix of both
-// All of these should ideally produce the same output and not cause CSS / JS conflicts.
+	const pageData = getPageData(Astro.request)
+	pageData.blockGroupIndex++
+
+	const renderer = await getRenderer()
+	const { renderedGroupAst } = await renderer.ec.render({
+		code,
+		language: lang,
+		meta,
+		parentDocument: {
+			positionInDocument: {
+				groupIndex: pageData.blockGroupIndex,
+			},
+		},
+		...rest,
+	})
+
+	return toHtml(renderedGroupAst)
+}
+
+let html = ''
+try {
+	html = await renderToHtml()
+} catch (error) {
+	const prefix = `Failed to render a \`<Code>\` component on page ${Astro.request.url}:`
+	const msg = error instanceof Error ? error.message : (error as string)
+	throw new Error(`${prefix}\n\n${msg}`)
+}
 ---
 
-<Fragment set:html={html}/>
+<Fragment set:html={html} />

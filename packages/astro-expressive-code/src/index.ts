@@ -14,7 +14,9 @@ export * from './renderer'
 /**
  * Astro integration that adds Expressive Code support to code blocks in Markdown & MDX documents.
  */
-export function astroExpressiveCode(integrationArgs: AstroExpressiveCodeOptions = {}) {
+export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptions = {}) {
+	failIfNotLoadedThroughVite()
+
 	const integration = {
 		name: 'astro-expressive-code',
 		hooks: {
@@ -37,18 +39,18 @@ export function astroExpressiveCode(integrationArgs: AstroExpressiveCodeOptions 
 
 				// Merge the given options with the ones from a potential EC config file
 				const ecConfigFileOptions = await loadEcConfigFile()
-				const mergedOptions: AstroExpressiveCodeOptions = { ...ecConfigFileOptions, ...integrationArgs }
+				const mergedOptions: AstroExpressiveCodeOptions = { ...ecConfigFileOptions, ...integrationOptions }
 
 				// Warn if the user is both using an EC config file and passing options directly
-				const forwardedIntegrationArgs = { ...integrationArgs }
-				delete forwardedIntegrationArgs.customConfigPreprocessors
-				if (Object.keys(ecConfigFileOptions).length > 0 && Object.keys(forwardedIntegrationArgs).length > 0) {
+				const forwardedIntegrationOptions = { ...integrationOptions }
+				delete forwardedIntegrationOptions.customConfigPreprocessors
+				if (Object.keys(ecConfigFileOptions).length > 0 && Object.keys(forwardedIntegrationOptions).length > 0) {
 					logger.warn(
 						`Your project includes an Expressive Code config file ("ec.config.mjs"),
 						but your Astro config file also contains Expressive Code options.
 						To avoid unexpected results from merging multiple config sources,
 						move all Expressive Code options into its config file.
-						Found options: ${Object.keys(forwardedIntegrationArgs).join(', ')}`.replace(/\s+/g, ' ')
+						Found options: ${Object.keys(forwardedIntegrationOptions).join(', ')}`.replace(/\s+/g, ' ')
 					)
 				}
 
@@ -98,7 +100,7 @@ export function astroExpressiveCode(integrationArgs: AstroExpressiveCodeOptions 
 							vitePluginAstroExpressiveCode({
 								styles: hashedStyles,
 								scripts: hashedScripts,
-								ecConfigArgs: integrationArgs,
+								ecIntegrationOptions: integrationOptions,
 								astroConfig,
 							}),
 						],
@@ -113,6 +115,18 @@ export function astroExpressiveCode(integrationArgs: AstroExpressiveCodeOptions 
 	} satisfies AstroIntegration
 
 	return integration
+}
+
+/**
+ * Astro first attempts to load its config natively before trying again through Vite.
+ *
+ * This function throws an error if we're not in the Vite context, which causes Astro to
+ * switch to Vite mode, which Expressive Code needs to load user config files that require
+ * Vite functionality to work (e.g. importing JSON theme files directly).
+ */
+function failIfNotLoadedThroughVite() {
+	// Access a Vite-specific string property to ensure we're in the Vite context
+	import.meta.env.BASE_URL.length
 }
 
 /**
