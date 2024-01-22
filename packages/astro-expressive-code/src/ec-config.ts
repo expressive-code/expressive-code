@@ -94,12 +94,12 @@ export async function loadEcConfigFile(projectRootUrl: URL): Promise<AstroExpres
 	const pathsToTry = [
 		// This path works in most scenarios, but not when the integration is processed by Vite
 		// due to a Vite bug affecting import URLs using the "file:" protocol
-		new URL(`./ec.config.mjs`, projectRootUrl).href,
+		new URL(`./ec.config.mjs?t=${Date.now()}`, projectRootUrl).href,
 	]
 	// Detect if the integration is processed by Vite
 	if (import.meta.env?.BASE_URL?.length) {
 		// Add a fallback path starting with "/", which Vite treats as relative to the project root
-		pathsToTry.push(`/ec.config.mjs`)
+		pathsToTry.push(`/ec.config.mjs?t=${Date.now()}`)
 	}
 	for (const path of pathsToTry) {
 		try {
