@@ -1,11 +1,33 @@
 ---
 import { toHtml } from 'hast-util-to-html'
+import { addClassName } from 'remark-expressive-code'
 import { getPageData } from './page-data'
 import { getRenderer } from './renderer'
-import type { CodeProps as Props } from './types'
+import type { CodeProps as Props, MarkerValueType } from './types'
 
 function formatMessage(...messageParts: string[]) {
 	return messageParts.map((part) => part.replace(/\s+/g, ' ')).join('\n\n')
+}
+
+function buildMarkerMeta(markerType: string, values: MarkerValueType) {
+	if (!Array.isArray(values)) values = [values]
+	return values
+		.map((value) => {
+			let delimitedValue: string
+			if (typeof value === 'number') {
+				delimitedValue = `{${value}}`
+			} else if (value instanceof RegExp) {
+				delimitedValue = value.toString()
+			} else if (value.startsWith('{') && value.endsWith('}')) {
+				delimitedValue = value
+			} else if (value.startsWith('/') && value.endsWith('/')) {
+				delimitedValue = value
+			} else {
+				delimitedValue = `"${value.replace(/"/g, '\\"')}"`
+			}
+			return `${markerType}=${delimitedValue}`
+		})
+		.join(' ')
 }
 
 async function renderToHtml() {
@@ -20,11 +42,17 @@ async function renderToHtml() {
 		)
 	}
 
-	const { code, lang = '', meta = '', ...rest } = Astro.props
+	let { code, lang = '', meta = '', locale, title, frame, mark, ins, del, class: className, ...rest } = Astro.props
 
 	if (!code || !code.trim().length) {
 		throw new Error('Missing code to render. The `code` prop must be set to a non-empty string.')
 	}
+
+	if (title !== undefined) meta += ` title="${title.replace(/"/g, '\\"')}"`
+	if (frame) meta += ` frame="${frame.replace(/"/g, '\\"')}"`
+	if (mark) meta += ` ${buildMarkerMeta('mark', mark)}`
+	if (ins) meta += ` ${buildMarkerMeta('ins', ins)}`
+	if (del) meta += ` ${buildMarkerMeta('del', del)}`
 
 	const pageData = getPageData(Astro.request)
 	pageData.blockGroupIndex++
@@ -34,6 +62,7 @@ async function renderToHtml() {
 		code,
 		language: lang,
 		meta,
+		locale,
 		parentDocument: {
 			positionInDocument: {
 				groupIndex: pageData.blockGroupIndex,
@@ -41,6 +70,13 @@ async function renderToHtml() {
 		},
 		...rest,
 	})
+
+	if (renderedGroupAst?.type === 'element') {
+		if (className) {
+			const classNames = className.split(' ')
+			classNames.forEach((className) => addClassName(renderedGroupAst, className))
+		}
+	}
 
 	return toHtml(renderedGroupAst)
 }

@@ -2,6 +2,8 @@
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type Component<T> = (_props: T) => any
 
+export type MarkerValueType = string | number | RegExp | (string | number | RegExp)[]
+
 export interface CodeProps {
 	/**
 	 * The plaintext contents of the code block.
@@ -30,4 +32,41 @@ export interface CodeProps {
 	 * [`defaultLocale`](https://expressive-code.com/reference/configuration/#defaultlocale).
 	 */
 	locale?: string | undefined
+	/**
+	 * The code block's title.
+	 *
+	 * Depending on the frame type (code or terminal), this title is displayed by the
+	 * [frames plugin](https://expressive-code.com/key-features/frames/) either as an
+	 * open file tab label or as a terminal window title.
+	 */
+	title?: string | undefined
+	/**
+	 * The code block's [frame type](https://expressive-code.com/key-features/frames/#overriding-frame-types).
+	 */
+	frame?: 'auto' | 'code' | 'terminal' | 'none' | undefined
+	/**
+	 * Defines the code block's [text & line markers](https://expressive-code.com/key-features/text-markers/)
+	 * of the default neutral type.
+	 *
+	 * You can either pass a single marker definition or an array of them.
+	 */
+	mark?: MarkerValueType | undefined
+	/**
+	 * Defines the code block's [text & line markers](https://expressive-code.com/key-features/text-markers/)
+	 * of the "inserted" type.
+	 *
+	 * You can either pass a single marker definition or an array of them.
+	 */
+	ins?: MarkerValueType | undefined
+	/**
+	 * Defines the code block's [text & line markers](https://expressive-code.com/key-features/text-markers/)
+	 * of the "deleted" type.
+	 *
+	 * You can either pass a single marker definition or an array of them.
+	 */
+	del?: MarkerValueType | undefined
+	/**
+	 * The CSS class name(s) to apply to the code block's container element.
+	 */
+	class?: string | undefined
 }
