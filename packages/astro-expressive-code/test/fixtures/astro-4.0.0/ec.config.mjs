@@ -1,5 +1,7 @@
 import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
-import summerTime from 'summer-time/themes/summer-time-vscode-theme.json'
+import { createRequire } from 'node:module'
+const require = createRequire(import.meta.url)
+const summerTime = require('summer-time/themes/summer-time-vscode-theme.json')
 
 /** @type {import('astro-expressive-code').AstroExpressiveCodeOptions} */
 export default {

@@ -69,14 +69,12 @@ export type CustomConfigPreprocessors = {
 
 export type ConfigPreprocessorFn = (args: { ecConfig: unknown; astroConfig: PartialAstroConfig }) => Promise<AstroExpressiveCodeOptions> | AstroExpressiveCodeOptions
 
-export const ecConfigFileName = 'ec.config.mjs'
-
 /**
  * Returns an array of supported absolute EC config file paths in the Astro project root.
  */
 export function getSupportedEcConfigFilePaths(projectRootUrl: URL) {
 	const projectRootPath = fileURLToPath(projectRootUrl)
-	return [resolve(projectRootPath, ecConfigFileName)]
+	return [resolve(projectRootPath, 'ec.config.mjs')]
 }
 
 /**
@@ -92,11 +90,34 @@ export function findEcConfigFilePath(projectRootUrl: URL) {
  *
  * If no config file is found, an empty object is returned.
  */
-export async function loadEcConfigFile(): Promise<AstroExpressiveCodeOptions> {
-	try {
-		const module = (await import(/* @vite-ignore */ `/${ecConfigFileName}`)) as { default: AstroExpressiveCodeOptions }
-		return module.default
-	} catch (e) {
-		return {}
+export async function loadEcConfigFile(projectRootUrl: URL): Promise<AstroExpressiveCodeOptions> {
+	const pathsToTry = [
+		// This path works in most scenarios, but not when the integration is processed by Vite
+		// due to a Vite bug affecting import URLs using the "file:" protocol
+		new URL(`./ec.config.mjs`, projectRootUrl).href,
+	]
+	// Detect if the integration is processed by Vite
+	if (import.meta.env?.BASE_URL?.length) {
+		// Add a fallback path starting with "/", which Vite treats as relative to the project root
+		pathsToTry.push(`/ec.config.mjs`)
 	}
+	for (const path of pathsToTry) {
+		try {
+			const module = (await import(/* @vite-ignore */ path)) as { default: AstroExpressiveCodeOptions }
+			return module.default
+		} catch (error) {
+			/* c8 ignore next */
+			const msg = error instanceof Error ? error.message : (error as string)
+			const code = (error as { code?: string | undefined }).code
+			// If the config file was found, but there was a problem loading it, rethrow the error
+			if (code && code !== 'ERR_MODULE_NOT_FOUND' && code !== 'ERR_LOAD_URL') {
+				throw new Error(
+					`Your project includes an Expressive Code config file ("ec.config.mjs")
+					that could not be loaded due to the error ${code}: ${msg}`.replace(/\s+/g, ' '),
+					{ cause: error }
+				)
+			}
+		}
+	}
+	return {}
 }

@@ -15,8 +15,6 @@ export * from './renderer'
  * Astro integration that adds Expressive Code support to code blocks in Markdown & MDX documents.
  */
 export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptions = {}) {
-	failIfNotLoadedThroughVite()
-
 	const integration = {
 		name: 'astro-expressive-code',
 		hooks: {
@@ -38,7 +36,7 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 				getSupportedEcConfigFilePaths(astroConfig.root).forEach((filePath) => addWatchFile(filePath))
 
 				// Merge the given options with the ones from a potential EC config file
-				const ecConfigFileOptions = await loadEcConfigFile()
+				const ecConfigFileOptions = await loadEcConfigFile(astroConfig.root)
 				const mergedOptions: AstroExpressiveCodeOptions = { ...ecConfigFileOptions, ...integrationOptions }
 
 				// Warn if the user is both using an EC config file and passing options directly
@@ -115,18 +113,6 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 	} satisfies AstroIntegration
 
 	return integration
-}
-
-/**
- * Astro first attempts to load its config natively before trying again through Vite.
- *
- * This function throws an error if we're not in the Vite context, which causes Astro to
- * switch to Vite mode, which Expressive Code needs to load user config files that require
- * Vite functionality to work (e.g. importing JSON theme files directly).
- */
-function failIfNotLoadedThroughVite() {
-	// Access a Vite-specific string property to ensure we're in the Vite context
-	import.meta.env.BASE_URL.length
 }
 
 /**
