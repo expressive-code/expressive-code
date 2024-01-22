@@ -112,6 +112,18 @@ describe('Integration into Astro ^3.5.0 using custom `base` and `build.assets` p
 		validateHtml(html, { astroConfig })
 	})
 
+	test('Renders <Code> components in MDX files', () => {
+		const html = fixture?.readFile('mdx-code-component/index.html') ?? ''
+		validateHtml(html, { astroConfig })
+		expect(html).toContain('Code component in MDX files')
+	})
+
+	test('Renders <Code> components in Astro files', () => {
+		const html = fixture?.readFile('astro-code-component/index.html') ?? ''
+		validateHtml(html, { astroConfig })
+		expect(html).toContain('Code component in Astro files')
+	})
+
 	test('Emits an external stylesheet into the Astro assets dir', () => {
 		const files = fixture?.readDir(astroConfig.build.assets) ?? []
 		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.css$/))).toHaveLength(1)
@@ -151,6 +163,18 @@ describe('Integration into Astro ^4.0.0', () => {
 	test('Renders code blocks in MDX files', () => {
 		const html = fixture?.readFile('mdx-page/index.html') ?? ''
 		validateHtml(html)
+	})
+
+	test('Renders <Code> components in MDX files', () => {
+		const html = fixture?.readFile('mdx-code-component/index.html') ?? ''
+		validateHtml(html)
+		expect(html).toContain('Code component in MDX files')
+	})
+
+	test('Renders <Code> components in Astro files', () => {
+		const html = fixture?.readFile('astro-code-component/index.html') ?? ''
+		validateHtml(html)
+		expect(html).toContain('Code component in Astro files')
 	})
 
 	test('Emits an external stylesheet into the Astro assets dir', () => {

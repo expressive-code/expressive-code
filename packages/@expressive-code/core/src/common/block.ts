@@ -8,10 +8,10 @@ export interface ExpressiveCodeBlockOptions {
 	 */
 	code: string
 	/**
-	 * The code block’s language.
+	 * The code block's language.
 	 *
-	 * Please use one of the [language identifiers](https://github.com/antfu/textmate-grammars-themes/blob/main/packages/tm-grammars/README.md)
-	 * supported by Shikiji to ensure proper syntax highlighting.
+	 * Please use a valid [language identifier](https://expressive-code.com/key-features/syntax-highlighting/#supported-languages)
+	 * to ensure proper syntax highlighting.
 	 */
 	language: string
 	/**
@@ -23,11 +23,11 @@ export interface ExpressiveCodeBlockOptions {
 	 * The code block's locale (e.g. `en-US` or `de-DE`). This is used by plugins to display
 	 * localized strings depending on the language of the containing page.
 	 *
-	 * Integrations like `remark-expressive-code` support multi-language sites by allowing you
-	 * to provide custom logic to determine a block's locale (e.g. based on its parent document).
-	 *
-	 * If no locale is defined here, `ExpressiveCodeEngine` will render the code block
-	 * using the `defaultLocale` provided in its configuration.
+	 * If no locale is defined here, most Expressive Code integrations will attempt to auto-detect
+	 * the block locale using the configured
+	 * [`getBlockLocale`](https://expressive-code.com/reference/configuration/#getblocklocale)
+	 * function, and finally fall back to the configured
+	 * [`defaultLocale`](https://expressive-code.com/reference/configuration/#defaultlocale).
 	 */
 	locale?: string | undefined
 	/**
@@ -58,7 +58,7 @@ export interface ExpressiveCodeBlockOptions {
 				positionInDocument?:
 					| {
 							groupIndex: number
-							totalGroups: number
+							totalGroups?: number | undefined
 					  }
 					| undefined
 		  }

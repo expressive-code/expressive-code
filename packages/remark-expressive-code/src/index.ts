@@ -68,7 +68,7 @@ export type RemarkExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'themes'> &
 	 * your own `ExpressiveCode` instance or processing the base styles and JS modules
 	 * added to every page.
 	 *
-	 * The return value will be cached and used for all code blocks in the document.
+	 * The return value will be cached and used for all code blocks on the site.
 	 */
 	customCreateRenderer?: ((options: RemarkExpressiveCodeOptions) => Promise<RemarkExpressiveCodeRenderer> | RemarkExpressiveCodeRenderer) | undefined
 }

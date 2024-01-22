@@ -1,0 +1,94 @@
+---
+import { toHtml } from 'hast-util-to-html'
+import { addClassName } from 'remark-expressive-code'
+import { getPageData } from './page-data'
+import { getRenderer } from './renderer'
+import type { CodeProps as Props, MarkerValueType } from './types'
+
+function formatMessage(...messageParts: string[]) {
+	return messageParts.map((part) => part.replace(/\s+/g, ' ')).join('\n\n')
+}
+
+function buildMarkerMeta(markerType: string, values: MarkerValueType) {
+	if (!Array.isArray(values)) values = [values]
+	return values
+		.map((value) => {
+			let delimitedValue: string
+			if (typeof value === 'number') {
+				delimitedValue = `{${value}}`
+			} else if (value instanceof RegExp) {
+				delimitedValue = value.toString()
+			} else if (value.startsWith('{') && value.endsWith('}')) {
+				delimitedValue = value
+			} else if (value.startsWith('/') && value.endsWith('/')) {
+				delimitedValue = value
+			} else {
+				delimitedValue = `"${value.replace(/"/g, '\\"')}"`
+			}
+			return `${markerType}=${delimitedValue}`
+		})
+		.join(' ')
+}
+
+async function renderToHtml() {
+	const defaultSlotContent = await Astro.slots.render('default')
+	if (defaultSlotContent?.trim().length) {
+		throw new Error(
+			formatMessage(
+				`Unsupported child content was found inside the component.
+				The code to render must be passed to the \`code\` prop as a string.`,
+				`Please remove the following child content:\n${defaultSlotContent}`
+			)
+		)
+	}
+
+	let { code, lang = '', meta = '', locale, title, frame, mark, ins, del, class: className, ...rest } = Astro.props
+
+	if (!code || !code.trim().length) {
+		throw new Error('Missing code to render. The `code` prop must be set to a non-empty string.')
+	}
+
+	if (title !== undefined) meta += ` title="${title.replace(/"/g, '\\"')}"`
+	if (frame) meta += ` frame="${frame.replace(/"/g, '\\"')}"`
+	if (mark) meta += ` ${buildMarkerMeta('mark', mark)}`
+	if (ins) meta += ` ${buildMarkerMeta('ins', ins)}`
+	if (del) meta += ` ${buildMarkerMeta('del', del)}`
+
+	const pageData = getPageData(Astro.request)
+	pageData.blockGroupIndex++
+
+	const renderer = await getRenderer()
+	const { renderedGroupAst } = await renderer.ec.render({
+		code,
+		language: lang,
+		meta,
+		locale,
+		parentDocument: {
+			positionInDocument: {
+				groupIndex: pageData.blockGroupIndex,
+			},
+		},
+		...rest,
+	})
+
+	if (renderedGroupAst?.type === 'element') {
+		if (className) {
+			const classNames = className.split(' ')
+			classNames.forEach((className) => addClassName(renderedGroupAst, className))
+		}
+	}
+
+	return toHtml(renderedGroupAst)
+}
+
+let html = ''
+try {
+	html = await renderToHtml()
+} catch (error) {
+	const prefix = `Failed to render a \`<Code>\` component on page ${Astro.request.url}:`
+	const msg = error instanceof Error ? error.message : (error as string)
+	throw new Error(`${prefix}\n\n${msg}`)
+}
+---
+
+<Fragment set:html={html} />

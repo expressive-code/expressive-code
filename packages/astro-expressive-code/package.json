@@ -19,13 +19,16 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./components": "./components/index.ts",
     "./routes/scripts.ts": "./routes/scripts.ts",
     "./routes/styles.ts": "./routes/styles.ts"
   },
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
-    "routes"
+    "components",
+    "routes",
+    "virtual.d.ts"
   ],
   "scripts": {
     "build": "tsup ./src/index.ts --format esm --dts --sourcemap --clean",
@@ -39,6 +42,7 @@
     "astro": "^3.3.0 || ^4.0.0-beta"
   },
   "dependencies": {
+    "hast-util-to-html": "^8.0.4",
     "remark-expressive-code": "workspace:^0.31.0"
   },
   "devDependencies": {
