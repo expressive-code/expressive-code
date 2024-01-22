@@ -84,6 +84,10 @@ export default defineConfig({
 							label: 'Text & Line Markers',
 							link: '/key-features/text-markers/',
 						},
+						{
+							label: 'Code Component',
+							link: '/key-features/code-component/',
+						},
 					],
 				},
 				{
