@@ -1,5 +1,12 @@
 # astro-expressive-code
 
+## 0.32.1
+
+### Patch Changes
+
+- b2cf5cf: Fixes virtual API module not resolving without direct package dependency.
+  - remark-expressive-code@0.32.1
+
 ## 0.32.0
 
 ### Minor Changes
