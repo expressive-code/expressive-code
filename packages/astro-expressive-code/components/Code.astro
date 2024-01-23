@@ -55,9 +55,13 @@ async function renderToHtml() {
 	if (del) meta += ` ${buildMarkerMeta('del', del)}`
 
 	const pageData = getPageData(Astro.request)
-	pageData.blockGroupIndex++
+	// Note: It's important to store the incremented index in a local variable immediately,
+	// as the `pageData` object is shared between all components on the current page
+	// and can be changed by other Code components during the `await` calls below
+	const groupIndex = ++pageData.blockGroupIndex
 
 	const renderer = await getRenderer()
+
 	const { renderedGroupAst } = await renderer.ec.render({
 		code,
 		language: lang,
@@ -65,7 +69,7 @@ async function renderToHtml() {
 		locale,
 		parentDocument: {
 			positionInDocument: {
-				groupIndex: pageData.blockGroupIndex,
+				groupIndex,
 			},
 		},
 		...rest,
