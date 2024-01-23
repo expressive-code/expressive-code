@@ -1,5 +1,12 @@
 # astro-expressive-code
 
+## 0.32.2
+
+### Patch Changes
+
+- 062b158: Fixes a race condition with missing styles when multiple `<Code>` components are rendered on the same page.
+  - remark-expressive-code@0.32.2
+
 ## 0.32.1
 
 ### Patch Changes
