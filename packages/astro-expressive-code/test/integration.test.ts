@@ -103,7 +103,7 @@ describe('Integration into Astro ^3.5.0 with `emitExternalStylesheet: false`', (
 	})
 })
 
-describe.only('Integration into Astro ^3.5.0 using custom `base` and `build.assets` paths', () => {
+describe('Integration into Astro ^3.5.0 using custom `base` and `build.assets` paths', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	// Provide a copy of the settings defined in `astro.config.mjs` to the tests
