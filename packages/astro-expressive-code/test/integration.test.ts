@@ -21,6 +21,22 @@ const complexHtmlRegExp = buildSampleCodeHtmlRegExp({
 	],
 })
 
+const multiCodeComponentHtmlRegExp = buildSampleCodeHtmlRegExp({
+	title: '',
+	codeContents: [
+		'.*?',
+		// Expect at least one code line that is marked
+		'<div class="ec-line mark">',
+		// Expect Shiki highlighting colors inside
+		'.*?--0:#.*?',
+		// Expect the text "code block #" followed by the number 1-3 inside
+		'.*?code block #[1-3].*?',
+		// Expect all elements to be closed
+		'</div>',
+		'.*?',
+	],
+})
+
 describe('Integration into Astro 3.3.0', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
@@ -118,6 +134,20 @@ describe('Integration into Astro ^3.5.0 using custom `base` and `build.assets` p
 		expect(html).toContain('Code component in MDX files')
 	})
 
+	test('When rendering multiple <Code> components on a page, only adds styles & scripts to the first one', () => {
+		const html = fixture?.readFile('mdx-many-code-components/index.html') ?? ''
+		validateHtml(html, {
+			astroConfig,
+			expectedHtmlRegExp: multiCodeComponentHtmlRegExp,
+			expectedCodeBlockCount: 3,
+		})
+		expect(html).toContain('Many code components in an MDX file')
+		const stylesAndScriptsPerBlock = [...html.matchAll(/<div class="expressive-code(| .*?)">(.*?)<figure/g)].map((match) => match[2])
+		expect(stylesAndScriptsPerBlock).toHaveLength(3)
+		expect(stylesAndScriptsPerBlock[0]).toContain(`/${astroConfig.build.assets}/ec.`)
+		expect(stylesAndScriptsPerBlock.slice(-2)).toEqual(['', ''])
+	})
+
 	test('Renders <Code> components in Astro files', () => {
 		const html = fixture?.readFile('astro-code-component/index.html') ?? ''
 		validateHtml(html, { astroConfig })
@@ -171,6 +201,19 @@ describe('Integration into Astro ^4.0.0', () => {
 		expect(html).toContain('Code component in MDX files')
 	})
 
+	test('When rendering multiple <Code> components on a page, only adds styles & scripts to the first one', () => {
+		const html = fixture?.readFile('mdx-many-code-components/index.html') ?? ''
+		validateHtml(html, {
+			expectedHtmlRegExp: multiCodeComponentHtmlRegExp,
+			expectedCodeBlockCount: 3,
+		})
+		expect(html).toContain('Many code components in an MDX file')
+		const stylesAndScriptsPerBlock = [...html.matchAll(/<div class="expressive-code(| .*?)">(.*?)<figure/g)].map((match) => match[2])
+		expect(stylesAndScriptsPerBlock).toHaveLength(3)
+		expect(stylesAndScriptsPerBlock[0]).toContain('/_astro/ec.')
+		expect(stylesAndScriptsPerBlock.slice(-2)).toEqual(['', ''])
+	})
+
 	test('Renders <Code> components in Astro files', () => {
 		const html = fixture?.readFile('astro-code-component/index.html') ?? ''
 		validateHtml(html)
@@ -193,15 +236,17 @@ function validateHtml(
 	options?: {
 		emitExternalStylesheet?: boolean | undefined
 		astroConfig?: AstroUserConfig | undefined
+		expectedHtmlRegExp?: RegExp | undefined
+		expectedCodeBlockCount?: number | undefined
 	}
 ) {
-	const { emitExternalStylesheet = true, astroConfig } = options ?? {}
+	const { emitExternalStylesheet = true, astroConfig, expectedHtmlRegExp = complexHtmlRegExp, expectedCodeBlockCount = 1 } = options ?? {}
 
 	const assetsDir = astroConfig?.build?.assets || '_astro'
 	const assetsBaseHref = `${astroConfig?.build?.assetsPrefix || astroConfig?.base || ''}/${assetsDir}/`.replace(/\/+/g, '/')
 
 	// Expect the HTML structure to match our regular expression
-	const matches = html.match(complexHtmlRegExp)
+	const matches = html.match(expectedHtmlRegExp)
 	expect(matches).toBeTruthy()
 
 	// Depending on the `emitExternalStylesheet` option, expect the `styles` capture group
@@ -223,8 +268,8 @@ function validateHtml(
 
 	// Collect all code blocks
 	const codeBlockClassNames = [...html.matchAll(/<div class="(expressive-code(?:| .*?))">/g)].map((match) => match[1])
-	// Expect one code block in total (because our new rendering logic doesn't create multiple code blocks anymore)
-	expect(codeBlockClassNames).toHaveLength(1)
+	// Check the number of code blocks
+	expect(codeBlockClassNames).toHaveLength(expectedCodeBlockCount)
 	// TODO: Validate that CSS variables were generated for the configured themes
 	// TODO: Validate automatic theme selection based on the user's system preferences
 	// TODO: Maybe add a second set of pages including two code blocks to test that the styles are deduplicated
