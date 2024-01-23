@@ -1,3 +1,4 @@
+import { fileURLToPath } from 'node:url'
 import type { ViteUserConfig } from 'astro'
 import { stableStringify } from 'remark-expressive-code'
 import { findEcConfigFilePath } from './ec-config'
@@ -55,15 +56,17 @@ export function vitePluginAstroExpressiveCode({
 	}
 	modules['virtual:astro-expressive-code/config'] = configModuleContents.join('\n')
 
-	// Create virtual API module
-	modules['virtual:astro-expressive-code/api'] = `export { createAstroRenderer } from 'astro-expressive-code'`
-
 	// Create virtual config preprocessor module
 	modules['virtual:astro-expressive-code/preprocess-config'] = customConfigPreprocessors?.preprocessComponentConfig || `export default ({ ecConfig }) => ecConfig`
 
 	return {
 		name: 'vite-plugin-astro-expressive-code',
-		resolveId: (id) => (id in modules ? `\0${id}` : undefined),
+		resolveId: (id) => {
+			// Resolve virtual API module to the current package entrypoint
+			if (id === 'virtual:astro-expressive-code/api') return fileURLToPath(import.meta.url)
+			// Resolve other virtual modules
+			return id in modules ? `\0${id}` : undefined
+		},
 		load: (id) => (id?.[0] === '\0' ? modules[id.slice(1)] : undefined),
 	}
 }
