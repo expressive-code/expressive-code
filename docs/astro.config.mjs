@@ -2,9 +2,6 @@
 import { defineConfig } from 'astro/config'
 import starlight from '@astrojs/starlight'
 import starlightLinksValidator from 'starlight-links-validator'
-import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
-import { pluginFirstWordRed } from './plugins/plugin-first-word-red.js'
-import { pluginErrorPreview } from './plugins/plugin-error-preview.js'
 
 // https://astro.build/config
 export default defineConfig({
@@ -50,9 +47,6 @@ export default defineConfig({
 					},
 				},
 			],
-			expressiveCode: {
-				plugins: [pluginCollapsibleSections(), pluginFirstWordRed(), pluginErrorPreview()],
-			},
 			plugins: [starlightLinksValidator()],
 			customCss: ['./src/styles/custom.css'],
 			components: {
