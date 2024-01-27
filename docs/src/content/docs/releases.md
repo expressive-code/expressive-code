@@ -7,6 +7,10 @@ This page combines all release notes of the Expressive Code monorepo.
 You can find the source changelogs on GitHub in the subfolders of
 [`packages`](https://github.com/expressive-code/expressive-code/tree/main/packages).
 
+## 0.32.2
+
+- Fixes a race condition with missing styles when multiple `<Code>` components are rendered on the same page.
+
 ## 0.32.1
 
 - Fixes virtual API module not resolving without direct package dependency.

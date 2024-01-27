@@ -10,15 +10,40 @@ In addition to rendering fenced code blocks in markdown & MDX documents, the Exp
 
 The `<Code>` component provides props like `code`, `lang` or `meta` that allow you to dynamically define a code block's contents. Using this component, you can render code blocks from variables or data coming from external sources like files, databases or APIs.
 
-:::tip[Starlight support is coming soon!]
-The `<Code>` component is currently only supported by the Expressive Code Astro integration.
-
-Starlight will be updated in the next few days to support the `<Code>` component as well.
-:::
-
 ## Adding the component to a page
 
-Before you can use the `<Code>` component, you must first add an import statement to the page. The location and syntax of the import statement depend on the type of page you are using:
+Before you can use the `<Code>` component, you must first add an import statement to the page. The location and syntax of the import statement depend on the integration and type of page you are using:
+
+### Starlight
+
+In Starlight projects, you will be mostly using the `<Code>` component on `.mdx` pages. The following example shows how you can do this and use props to define the code block's contents:
+
+```mdx title="src/content/docs/example.mdx" ins={4, 10}
+---
+title: My example page
+---
+import { Code } from '@astrojs/starlight/components'
+
+export const exampleCode = `console.log('This could come from a file or CMS!');`;
+export const fileName = 'example.js';
+export const highlights = ['file', 'CMS'];
+
+<Code code={exampleCode} lang="js" title={fileName} mark={highlights} />
+```
+
+The code above generates the following on the page:
+
+import { Code } from '@astrojs/starlight/components'
+
+export const exampleCode = `console.log('This could come from a file or CMS!');`;
+export const fileName = 'example.js';
+export const highlights = ['file', 'CMS'];
+
+<Code code={exampleCode} lang="js" title={fileName} mark={highlights} />
+
+### Astro
+
+Using the `<Code>` component in Astro projects works just like in Starlight projects, except that you need to import it from `astro-expressive-code/components`:
 
 <Tabs>
   <TabItem label=".astro">
@@ -49,6 +74,31 @@ Before you can use the `<Code>` component, you must first add an import statemen
     ```
   </TabItem>
 </Tabs>
+
+## Using an `ec.config.mjs` file
+
+The `<Code>` component is designed to automatically pick up the Expressive Code configuration options from your project's Astro config file without requiring any additional setup.
+
+Due to the way Astro works, the Expressive Code integration can only share its configuration with the component by serializing it to JSON. In some situations, this is not possible, e.g. when your configuration includes custom plugins or functions that are not serializable to JSON.
+
+In these cases, you will receive the following error message when trying to use the `<Code>` component:
+
+> *[ERROR] Failed to render a `<Code>` component on page [...]:*
+>
+> *Your Astro config file contains Expressive Code options that are not serializable to JSON. To use the `<Code>` component, please create a separate config file called `ec.config.mjs` in your project root, move your Expressive Code options object into the config file, and export it as the default export.*
+
+As instructed by the error message, you can fix this issue by creating a separate `ec.config.mjs` file in your project root and moving your Expressive Code options object into the config file. Here is an example of how this file could look like if you're using the [collapsible sections plugin](/plugins/collapsible-sections/):
+
+```js title="ec.config.mjs"
+import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
+
+/** @type {import('@astrojs/starlight/expressive-code').AstroExpressiveCodeOptions} */
+export default {
+  // Example: Using a custom plugin (which makes this `ec.config.mjs` file necessary)
+	plugins: [pluginCollapsibleSections()],
+  // ... any other options you want to configure
+}
+```
 
 ## Available props
 
