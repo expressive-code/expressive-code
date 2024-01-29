@@ -107,7 +107,7 @@ export async function loadEcConfigFile(projectRootUrl: URL): Promise<AstroExpres
 			if (!module.default) {
 				throw new Error(`Missing or invalid default export. Please export your Expressive Code config object as the default export.`)
 			}
-			return module.default || {}
+			return module.default
 		} catch (error) {
 			/* c8 ignore next */
 			const msg = error instanceof Error ? error.message : (error as string)
