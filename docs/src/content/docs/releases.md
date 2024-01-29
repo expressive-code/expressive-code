@@ -7,6 +7,10 @@ This page combines all release notes of the Expressive Code monorepo.
 You can find the source changelogs on GitHub in the subfolders of
 [`packages`](https://github.com/expressive-code/expressive-code/tree/main/packages).
 
+## 0.32.3
+
+- Improves error messages in case an `ec.config.mjs` file was found, but could not be loaded.
+
 ## 0.32.2
 
 - Fixes a race condition with missing styles when multiple `<Code>` components are rendered on the same page.

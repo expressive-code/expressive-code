@@ -15,9 +15,9 @@
     "release-notes": "tsm --require=./scripts/lib/filter-warnings.cjs ./scripts/release-notes.ts"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.17.0",
+    "@astrojs/starlight": "^0.17.1",
     "@expressive-code/plugin-collapsible-sections": "workspace:^",
-    "astro": "^4.2.5",
+    "astro": "^4.2.6",
     "astro-expressive-code": "workspace:^",
     "astro-og-canvas": "^0.4.2",
     "expressive-code": "workspace:^",
