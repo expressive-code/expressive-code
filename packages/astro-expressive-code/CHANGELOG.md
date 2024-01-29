@@ -1,5 +1,12 @@
 # astro-expressive-code
 
+## 0.32.3
+
+### Patch Changes
+
+- bc6683b: Improves error messages in case an `ec.config.mjs` file was found, but could not be loaded.
+  - remark-expressive-code@0.32.3
+
 ## 0.32.2
 
 ### Patch Changes
