@@ -104,19 +104,22 @@ export async function loadEcConfigFile(projectRootUrl: URL): Promise<AstroExpres
 	for (const path of pathsToTry) {
 		try {
 			const module = (await import(/* @vite-ignore */ path)) as { default: AstroExpressiveCodeOptions }
-			return module.default
+			if (!module.default) {
+				throw new Error(`Missing or invalid default export. Please export your Expressive Code config object as the default export.`)
+			}
+			return module.default || {}
 		} catch (error) {
 			/* c8 ignore next */
 			const msg = error instanceof Error ? error.message : (error as string)
 			const code = (error as { code?: string | undefined }).code
-			// If the config file was found, but there was a problem loading it, rethrow the error
-			if (code && code !== 'ERR_MODULE_NOT_FOUND' && code !== 'ERR_LOAD_URL') {
-				throw new Error(
-					`Your project includes an Expressive Code config file ("ec.config.mjs")
-					that could not be loaded due to the error ${code}: ${msg}`.replace(/\s+/g, ' '),
-					{ cause: error }
-				)
-			}
+			// If the config file was not found, continue with the next path (if any)
+			if (code === 'ERR_MODULE_NOT_FOUND' || code === 'ERR_LOAD_URL') continue
+			// If the config file exists, but there was a problem loading it, rethrow the error
+			throw new Error(
+				`Your project includes an Expressive Code config file ("ec.config.mjs")
+				that could not be loaded due to ${code ? `the error ${code}` : 'the following error'}: ${msg}`.replace(/\s+/g, ' '),
+				error instanceof Error ? { cause: error } : undefined
+			)
 		}
 	}
 	return {}
