@@ -2,21 +2,59 @@
 title: Code Component
 ---
 
+import { Code } from '@astrojs/starlight/components'
 import ConfigVariants from '@components/ConfigVariants.astro'
 import IntegrationVariants from '@components/IntegrationVariants.astro'
 import PropertySignature from '@components/PropertySignature.astro'
 
-In addition to rendering fenced code blocks in markdown & MDX documents, the Expressive Code Astro integration also provides a `<Code>` component that can be used from `.astro` and `.mdx` pages.
+In addition to rendering fenced code blocks in markdown & MDX documents, the Expressive Code Astro & Starlight integrations also provide a `<Code>` component that can be used in `.mdx` and `.astro` files.
 
-The `<Code>` component provides props like `code`, `lang` or `meta` that allow you to dynamically define a code block's contents. Using this component, you can render code blocks from variables or data coming from external sources like files, databases or APIs.
+In contrast to static fenced code blocks, the `<Code>` component allows you to dynamically define a code block's contents using props. This makes it possible to render code blocks from variables or data coming from external sources like files, databases or APIs.
 
-## Adding the component to a page
+## Basic usage
 
-Before you can use the `<Code>` component, you must first add an import statement to the page. The location and syntax of the import statement depend on the integration and type of page you are using:
+To use the `<Code>` component, you must first import it into your file. The location and syntax of the import statement depend on the file type and integration you're using:
 
-### MDX pages
+### Usage in `.mdx` files
 
-You can use the `<Code>` component in `.mdx` pages. The following example shows how you can do this and use props to define the code block's contents:
+To get started, add an import statement to the content section of your `.mdx` file (the part below the frontmatter block). You can then use the component anywhere in the content.
+
+<IntegrationVariants lang="mdx" title="src/content/docs/example.mdx" ins={[4, 10]} code={`
+---
+title: My example page
+---
+import { Code } from 'astro-expressive-code/components'
+
+<Code code="console.log('Hello world!')" lang="js" />
+`} />
+
+The code above generates the following on the page:
+
+<Code code="console.log('Hello world!')" lang="js" />
+
+### Usage in `.astro` files
+
+The `<Code>` component enables you to render code blocks in `.astro` files. This allows you to use all features of Expressive Code in your pages, and even creating custom components that wrap the `<Code>` component to provide additional functionality.
+
+Using the component in `.astro` files works just like in `.mdx` files, except that you need to place the import statement inside the frontmatter block:
+
+```astro title="src/pages/index.astro" ins={3, 8}
+---
+import MainLayout from '../layouts/MainLayout.astro'
+import { Code } from 'astro-expressive-code/components'
+---
+<MainLayout>
+  <h1>My example page</h1>
+  <p>Here is some interesting code:</p>
+  <Code code="console.log('Hello world!')" lang="js" />
+</MainLayout>
+```
+
+## Using props to define code blocks
+
+The true power of the `<Code>` component lies in its ability to render code blocks from variables or data coming from external sources like files, databases or APIs.
+
+To do this, set the component's props like `code`, `lang`, `title` etc. to variables instead of static values.
 
 <IntegrationVariants lang="mdx" title="src/content/docs/example.mdx" ins={[4, 10]} code={`
 ---
@@ -33,29 +71,33 @@ export const highlights = ['file', 'CMS']
 
 The code above generates the following on the page:
 
-import { Code } from '@astrojs/starlight/components'
-
 export const exampleCode = `console.log('This could come from a file or CMS!');`;
 export const fileName = 'example.js';
 export const highlights = ['file', 'CMS'];
 
 <Code code={exampleCode} lang="js" title={fileName} mark={highlights} />
 
-### Astro pages
+## Importing code from files
 
-Using the `<Code>` component in `.astro` pages works just like with `.mdx`, except that you need to place the import statement inside the frontmatter block:
+Use [Vite's `?raw` import suffix](https://vitejs.dev/guide/assets#importing-asset-as-string) to import any code file as a string. You can then pass this imported string to the `<Code>` component to include it on your page.
 
-```astro title="src/pages/index.astro" ins={3, 8}
----
-import MainLayout from '../layouts/MainLayout.astro'
-import { Code } from 'astro-expressive-code/components'
----
-<MainLayout>
-  <h1>My example page</h1>
-  <p>Here is some interesting code:</p>
-  <Code code="console.log('Hello world!')" lang="js" />
-</MainLayout>
-```
+This is especially useful when documenting a project, as your code examples will always be up-to-date with the actual code.
+
+You can also use this feature to create reusable snippets and include them in multiple code blocks on your site.
+
+<IntegrationVariants lang="mdx" title="src/content/docs/example.mdx" mark="?raw" code={`
+import { Code } from 'astro-expressive-code/components';
+import importedCode from '/src/env.d.ts?raw';
+
+<Code code={importedCode} lang="ts" title="src/env.d.ts" />
+`} />
+
+The code above generates the following on the page:
+
+import importedCode from '/src/env.d.ts?raw';
+
+<Code code={importedCode} lang="ts" title="src/env.d.ts" />
+
 
 ## Using an `ec.config.mjs` file
 
