@@ -2,6 +2,8 @@
 title: Themes
 ---
 
+import ConfigVariants from '@components/ConfigVariants.astro'
+import PackageManagers from '@components/PackageManagers.astro'
 import { Tabs, TabItem } from '@astrojs/starlight/components'
 
 Expressive Code supports the full range of themes available for VS Code. Any theme that works in the editor will work in Expressive Code!
@@ -19,45 +21,13 @@ You can use our [bundled themes](#using-bundled-themes), import [themes from NPM
 
 Expressive Code comes with a set of popular themes bundled with our default syntax highlighter. You can use them by passing their names to the `themes` option:
 
-<Tabs>
-  <TabItem label="Astro">
-    ```js ins={10}
-    // astro.config.mjs
-    import { defineConfig } from 'astro/config'
-    import astroExpressiveCode from 'astro-expressive-code'
-
-    export default defineConfig({
-      integrations: [
-        astroExpressiveCode({
-          // Replace the default themes with a custom set of bundled themes:
-          // "dracula" (a dark theme) and "solarized-light"
-          themes: ['dracula', 'solarized-light'],
-        }),
-      ],
-    })
-    ```
-  </TabItem>
-  <TabItem label="Starlight">
-    ```js ins={12}
-    // astro.config.mjs
-    import { defineConfig } from 'astro/config';
-    import starlight from '@astrojs/starlight';
-
-    export default defineConfig({
-      integrations: [
-        starlight({
-          title: 'My Starlight site',
-          expressiveCode: {
-            // Replace the default themes with a custom set of bundled themes:
-            // "dracula" (a dark theme) and "solarized-light"
-            themes: ['dracula', 'solarized-light'],
-          },
-        }),
-      ],
-    });
-    ```
-  </TabItem>
-</Tabs>
+<ConfigVariants
+  settings={`
+    // Replace the default themes with a custom set of bundled themes:
+    // "dracula" (a dark theme) and "solarized-light"
+    themes: ['dracula', 'solarized-light'],
+  `}
+/>
 
 ### Available themes
 
@@ -71,71 +41,21 @@ You can use any theme available on NPM with Expressive Code, provided that it ex
 
 1. Install the theme using your package manager of choice:
   
-    <Tabs>
-      <TabItem label="npm">
-      ```sh
-      # Install any theme from NPM here, e.g. `summer-time`
-      npm i summer-time
-      ```
-      </TabItem>
-      <TabItem label="pnpm">
-      ```sh
-      # Install any theme from NPM here, e.g. `summer-time`
-      pnpm i summer-time
-      ```
-      </TabItem>
-      <TabItem label="yarn">
-      ```sh
-      # Install any theme from NPM here, e.g. `summer-time`
-      yarn add summer-time
-      ```
-      </TabItem>
-    </Tabs>
+    <PackageManagers pkg="summer-time" prefix="# Install any theme from NPM here, e.g. `summer-time`" />
 
 2. Add the theme to your Expressive Code configuration:
-    <Tabs>
-      <TabItem label="Astro">
-        ```js ins={5, 12}
-        // astro.config.mjs
-        import { defineConfig } from 'astro/config'
-        import astroExpressiveCode from 'astro-expressive-code'
+
+    <ConfigVariants
+      imports={`
         // Import the theme object
         import summerTime from 'summer-time/themes/summer-time-vscode-theme.json'
-
-        export default defineConfig({
-          integrations: [
-            astroExpressiveCode({
-              // Pass the theme to the `themes` option
-              // (consider adding a dark and light theme for accessibility)
-              themes: [summerTime],
-            }),
-          ],
-        })
-        ```
-      </TabItem>
-      <TabItem label="Starlight">
-        ```js ins={5, 14}
-        // astro.config.mjs
-        import { defineConfig } from 'astro/config';
-        import starlight from '@astrojs/starlight';
-        // Import the theme object
-        import summerTime from 'summer-time/themes/summer-time-vscode-theme.json'
-
-        export default defineConfig({
-          integrations: [
-            starlight({
-              title: 'My Starlight site',
-              expressiveCode: {
-                // Pass the theme to the `themes` option
-                // (consider adding a dark and light theme for accessibility)
-                themes: [summerTime],
-              },
-            }),
-          ],
-        });
-        ```
-      </TabItem>
-    </Tabs>
+      `}
+      settings={`
+        // Pass the theme to the \`themes\` option
+        // (consider adding a dark and light theme for accessibility)
+        themes: [summerTime],
+      `}
+    />
 
 ## Using themes from VS Code
 
@@ -155,55 +75,18 @@ You can export any theme from VS Code for use with Expressive Code. Follow these
       :::
 
 3. Add the theme to your Expressive Code configuration:
-    <Tabs>
-      <TabItem label="Astro">
-        ```js ins={2, 7-8, 16} ins=", { ExpressiveCodeTheme }"
-        // astro.config.mjs
+    <ConfigVariants
+      namedImports={['ExpressiveCodeTheme']}
+      imports={`
         import fs from 'node:fs'
-        import { defineConfig } from 'astro/config'
-        import astroExpressiveCode, { ExpressiveCodeTheme } from 'astro-expressive-code'
 
         // Load your saved theme JSONC file here and create a theme from it
-        const jsoncString = fs.readFileSync(new URL(`./my-theme.jsonc`, import.meta.url), 'utf-8')
+        const jsoncString = fs.readFileSync(new URL(\`./my-theme.jsonc\`, import.meta.url), 'utf-8')
         const myTheme = ExpressiveCodeTheme.fromJSONString(jsoncString)
-
-        export default defineConfig({
-          integrations: [
-            astroExpressiveCode({
-              // Pass the theme to the `themes` option
-              // (consider adding a dark and light theme
-              // for improved accessibility)
-              themes: [myTheme],
-            }),
-          ],
-        })
-        ```
-      </TabItem>
-      <TabItem label="Starlight">
-        ```js ins={2, 5, 8-9, 19}
-        // astro.config.mjs
-        import fs from 'node:fs';
-        import { defineConfig } from 'astro/config';
-        import starlight from '@astrojs/starlight';
-        import { ExpressiveCodeTheme } from '@astrojs/starlight/expressive-code';
-
-        // Load your saved theme JSONC file here and create a theme from it
-        const jsoncString = fs.readFileSync(new URL(`./my-theme.jsonc`, import.meta.url), 'utf-8');
-        const myTheme = ExpressiveCodeTheme.fromJSONString(jsoncString);
-
-        export default defineConfig({
-          integrations: [
-            starlight({
-              title: 'My Starlight site',
-              expressiveCode: {
-                // Pass the theme to the `themes` option
-                // (consider adding a dark and light theme
-                // for improved accessibility)
-                themes: [myTheme],
-              },
-            }),
-          ],
-        });
-        ```
-      </TabItem>
-    </Tabs>
+      `}
+      settings={`
+        // Pass the theme to the \`themes\` option
+        // (consider adding a dark and light theme for accessibility)
+        themes: [myTheme],
+      `}
+    />

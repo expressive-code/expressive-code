@@ -1,0 +1,22 @@
+---
+import { Code, TabItem, Tabs } from '@astrojs/starlight/components'
+
+type Props = {
+	code: string
+	lang: string
+}
+
+const { code: astroCode, ...otherProps } = Astro.props
+const starlightCode = astroCode
+	.replace(/'astro-expressive-code\/components'/g, `'@astrojs/starlight/components'`)
+	.replace(/'astro-expressive-code'/g, `'@astrojs/starlight/expressive-code'`)
+---
+
+<Tabs>
+	<TabItem label="Astro">
+		<Code code={astroCode} {...otherProps} />
+	</TabItem>
+	<TabItem label="Starlight">
+		<Code code={starlightCode} {...otherProps} />
+	</TabItem>
+</Tabs>

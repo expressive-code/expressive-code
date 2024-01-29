@@ -2,9 +2,9 @@
 title: Code Component
 ---
 
+import ConfigVariants from '@components/ConfigVariants.astro'
+import IntegrationVariants from '@components/IntegrationVariants.astro'
 import PropertySignature from '@components/PropertySignature.astro'
-
-import { Tabs, TabItem } from '@astrojs/starlight/components'
 
 In addition to rendering fenced code blocks in markdown & MDX documents, the Expressive Code Astro integration also provides a `<Code>` component that can be used from `.astro` and `.mdx` pages.
 
@@ -14,22 +14,22 @@ The `<Code>` component provides props like `code`, `lang` or `meta` that allow y
 
 Before you can use the `<Code>` component, you must first add an import statement to the page. The location and syntax of the import statement depend on the integration and type of page you are using:
 
-### Starlight
+### MDX pages
 
-In Starlight projects, you will be mostly using the `<Code>` component on `.mdx` pages. The following example shows how you can do this and use props to define the code block's contents:
+You can use the `<Code>` component in `.mdx` pages. The following example shows how you can do this and use props to define the code block's contents:
 
-```mdx title="src/content/docs/example.mdx" ins={4, 10}
+<IntegrationVariants lang="mdx" title="src/content/docs/example.mdx" ins={[4, 10]} code={`
 ---
 title: My example page
 ---
-import { Code } from '@astrojs/starlight/components'
+import { Code } from 'astro-expressive-code/components'
 
-export const exampleCode = `console.log('This could come from a file or CMS!');`;
-export const fileName = 'example.js';
-export const highlights = ['file', 'CMS'];
+export const exampleCode = \`console.log('This could come from a file or CMS!');\`
+export const fileName = 'example.js'
+export const highlights = ['file', 'CMS']
 
 <Code code={exampleCode} lang="js" title={fileName} mark={highlights} />
-```
+`} />
 
 The code above generates the following on the page:
 
@@ -41,39 +41,21 @@ export const highlights = ['file', 'CMS'];
 
 <Code code={exampleCode} lang="js" title={fileName} mark={highlights} />
 
-### Astro
+### Astro pages
 
-Using the `<Code>` component in Astro projects works just like in Starlight projects, except that you need to import it from `astro-expressive-code/components`:
+Using the `<Code>` component in `.astro` pages works just like with `.mdx`, except that you need to place the import statement inside the frontmatter block:
 
-<Tabs>
-  <TabItem label=".astro">
-    ```astro title="src/pages/index.astro" ins={3, 8}
-    ---
-    import MainLayout from '../layouts/MainLayout.astro'
-    import { Code } from 'astro-expressive-code/components'
-    ---
-    <MainLayout>
-      <h1>My example page</h1>
-      <p>Here is some interesting code:</p>
-      <Code code="console.log('Hello world!')" lang="js" />
-    </MainLayout>
-    ```
-  </TabItem>
-  <TabItem label=".mdx">
-    ```mdx title="src/pages/index.mdx" ins={4, 10}
-    ---
-    layout: ../layouts/MainLayout.astro
-    ---
-    import { Code } from 'astro-expressive-code/components'
-
-    # My example page
-
-    Here is some interesting code:
-
-    <Code code="console.log('Hello world!')" lang="js" />
-    ```
-  </TabItem>
-</Tabs>
+```astro title="src/pages/index.astro" ins={3, 8}
+---
+import MainLayout from '../layouts/MainLayout.astro'
+import { Code } from 'astro-expressive-code/components'
+---
+<MainLayout>
+  <h1>My example page</h1>
+  <p>Here is some interesting code:</p>
+  <Code code="console.log('Hello world!')" lang="js" />
+</MainLayout>
+```
 
 ## Using an `ec.config.mjs` file
 
@@ -89,16 +71,16 @@ In these cases, you will receive the following error message when trying to use 
 
 As instructed by the error message, you can fix this issue by creating a separate `ec.config.mjs` file in your project root and moving your Expressive Code options object into the config file. Here is an example of how this file could look like if you're using the [collapsible sections plugin](/plugins/collapsible-sections/):
 
-```js title="ec.config.mjs"
-import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
-
-/** @type {import('@astrojs/starlight/expressive-code').AstroExpressiveCodeOptions} */
-export default {
-  // Example: Using a custom plugin (which makes this `ec.config.mjs` file necessary)
-	plugins: [pluginCollapsibleSections()],
-  // ... any other options you want to configure
-}
-```
+<ConfigVariants ecConfigFile ins={[]}
+  imports={`
+    import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
+  `}
+  settings={`
+    // Example: Using a custom plugin (which makes this \`ec.config.mjs\` file necessary)
+    plugins: [pluginCollapsibleSections()],
+    // ... any other options you want to configure
+  `}
+/>
 
 ## Available props
 

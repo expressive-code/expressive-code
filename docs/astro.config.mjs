@@ -110,7 +110,7 @@ export default defineConfig({
 					label: 'Reference',
 					items: [
 						{
-							label: 'Configuration Options',
+							label: 'Configuration',
 							link: '/reference/configuration/',
 						},
 						{

@@ -119,10 +119,14 @@ export function processTemplate({ apiDocsPath, templateFilePath, outputFilePath 
 	})
 
 	// Auto-import known components after frontmatter
-	const components = ['PropertySignature']
-	components.forEach((component) => {
-		if (markdown.includes(`<${component}>`)) {
-			markdown = addAfterEndOfFrontmatter(markdown, `import ${component} from '@components/${component}.astro'\n`)
+	const components = new Map<string, string>([
+		['<PropertySignature>', `import PropertySignature from '@components/PropertySignature.astro'`],
+		['<ConfigVariants ', `import ConfigVariants from '@components/ConfigVariants.astro'`],
+		['<Code ', `import { Code } from '@astrojs/starlight/components'`],
+	])
+	components.forEach((importStatement, searchTerm) => {
+		if (markdown.includes(searchTerm)) {
+			markdown = addAfterEndOfFrontmatter(markdown, `${importStatement}`)
 		}
 	})
 
@@ -171,7 +175,15 @@ function collectHeadings(lines: string[]) {
 }
 
 function addAfterEndOfFrontmatter(markdown: string, addition: string) {
-	return markdown.replace(/^(---\n[\s\S]+?\n---\n\n?)/, `$1${addition}\n`)
+	return markdown.replace(/^(---\n[\s\S]+?\n---\n\n?)(.+?\n)/, (_, frontmatter: string, followingLine: string) => {
+		return [
+			frontmatter,
+			addition,
+			// Add an empty line if the following line is not an import
+			followingLine.startsWith('import') ? '\n' : '\n\n',
+			followingLine,
+		].join('')
+	})
 }
 
 let apiDocsIndex: string[]

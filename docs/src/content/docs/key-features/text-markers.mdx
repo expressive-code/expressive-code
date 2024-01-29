@@ -4,8 +4,8 @@
 title: Text & Line Markers
 ---
 
+import ConfigVariants from '@components/ConfigVariants.astro'
 import PropertySignature from '@components/PropertySignature.astro'
-
 import { Tabs, TabItem } from '@astrojs/starlight/components'
 
 Expressive Code allows you to add annotations to lines & line ranges, as well as individual text inside your lines. You can use them to highlight important parts of your code, or to indicate changes between different versions of your code.
@@ -369,76 +369,19 @@ function demo() {
 
 You can override this plugin's default styles by adding a `textMarkers` object to the `styleOverrides` engine config option. You can find a list of all [overridable styles](#available-style-overrides) below.
 
-Here are configuration examples for some popular site generators:
+Here are configuration examples for common scenarios:
 
-<Tabs>
-  <TabItem label="Astro">
-    ```js
-    // astro.config.mjs
-    import { defineConfig } from 'astro/config'
-    import astroExpressiveCode from 'astro-expressive-code'
-
-    /** @type {import('astro-expressive-code').AstroExpressiveCodeOptions} */
-    const astroExpressiveCodeOptions = {
-      styleOverrides: {
-        // You can optionally override the plugin's default styles here
-        textMarkers: {
-          // Make default marker color slightly purple
-          markHue: '310',
-          // Reduce marker border opacity
-          borderOpacity: '50%',
-        },
-      },
-    }
-
-    export default defineConfig({
-      integrations: [
-        astroExpressiveCode(astroExpressiveCodeOptions),
-      ],
-    })
-    ```
-  </TabItem>
-  <TabItem label="Next.js">
-    ```js
-    // next.config.mjs
-    import createMDX from '@next/mdx'
-    import remarkExpressiveCode from 'remark-expressive-code'
-
-    /** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
-    const remarkExpressiveCodeOptions = {
-      styleOverrides: {
-        // You can optionally override the plugin's default styles here
-        textMarkers: {
-          // Make default marker color slightly purple
-          markHue: '310',
-          // Reduce marker border opacity
-          borderOpacity: '50%',
-        },
-      },
-    }
-
-    /** @type {import('next').NextConfig} */
-    const nextConfig = {
-      reactStrictMode: true,
-      pageExtensions: ["js", "jsx", "ts", "tsx", "md", "mdx"],
-    }
-
-    const withMDX = createMDX({
-      extension: /\.mdx?$/,
-      options: {
-        remarkPlugins: [
-          // The nested array structure is required to pass options
-          // to a remark plugin
-          [remarkExpressiveCode, remarkExpressiveCodeOptions],
-        ],
-        rehypePlugins: [],
-      },
-    })
-
-    export default withMDX(nextConfig)
-    ```
-  </TabItem>
-</Tabs>
+<ConfigVariants settings={`
+styleOverrides: {
+  // You can optionally override the plugin's default styles here
+  textMarkers: {
+    // Make default marker color slightly purple
+    markHue: '310',
+    // Reduce marker border opacity
+    borderOpacity: '50%',
+  },
+},
+`} />
 
 ### Available plugin options
 

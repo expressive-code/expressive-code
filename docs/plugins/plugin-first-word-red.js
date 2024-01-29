@@ -1,4 +1,4 @@
-// plugins/make-first-word-red.js
+// @ts-check
 import { InlineStyleAnnotation } from '@expressive-code/core'
 
 /** @returns {import('@expressive-code/core').ExpressiveCodePlugin} */
@@ -15,8 +15,8 @@ export function pluginFirstWordRed() {
 				if (!firstLine) return
 
 				// Find the end of the first word
-				const firstWordEnd = firstLine.text.match(/\W/)?.index
-				if (!(firstWordEnd > 0)) return
+				const firstWordEnd = firstLine.text.match(/(?<=\w)\W/)?.index ?? -1
+				if (firstWordEnd <= 0) return
 
 				// Add an annotation that makes the first word red
 				firstLine.addAnnotation(

@@ -2,7 +2,7 @@
 title: Upgrading Expressive Code
 ---
 
-import { Tabs, TabItem } from '@astrojs/starlight/components'
+import PackageManagers from '@components/PackageManagers.astro'
 
 If your site is already using Expressive Code, this page guides you through the process of upgrading it to the latest version.
 
@@ -20,23 +20,7 @@ To upgrade your Astro site to the latest version of Expressive Code, follow thes
 
 2. Install the latest version of `astro-expressive-code`:
 
-    <Tabs>
-      <TabItem label="npm">
-      ```sh
-      npm i astro-expressive-code@latest
-      ```
-      </TabItem>
-      <TabItem label="pnpm">
-      ```sh
-      pnpm i astro-expressive-code@latest
-      ```
-      </TabItem>
-      <TabItem label="yarn">
-      ```sh
-      yarn add astro-expressive-code@latest
-      ```
-      </TabItem>
-    </Tabs>
+    <PackageManagers pkg="astro-expressive-code@latest" />
 
 3. Check our [release history](/releases/) for breaking changes that might affect your site, and apply any necessary changes.
 
@@ -90,23 +74,7 @@ This is an advanced strategy that might lead to incompatibilities, and we recomm
 
   2. Run the install command of your package manager to apply the override:
 
-      <Tabs>
-        <TabItem label="npm">
-        ```sh
-        npm i
-        ```
-        </TabItem>
-        <TabItem label="pnpm">
-        ```sh
-        pnpm i
-        ```
-        </TabItem>
-        <TabItem label="yarn">
-        ```sh
-        yarn
-        ```
-        </TabItem>
-      </Tabs>
+      <PackageManagers />
 
   3. Check our [release history](/releases/) for breaking changes that might affect your site, and apply any necessary changes.
 
@@ -120,23 +88,7 @@ To upgrade your Next.js site to the latest version of Expressive Code, follow th
 
 2. Install the latest version of `remark-expressive-code`:
 
-    <Tabs>
-      <TabItem label="npm">
-      ```sh
-      npm i remark-expressive-code@latest
-      ```
-      </TabItem>
-      <TabItem label="pnpm">
-      ```sh
-      pnpm i remark-expressive-code@latest
-      ```
-      </TabItem>
-      <TabItem label="yarn">
-      ```sh
-      yarn add remark-expressive-code@latest
-      ```
-      </TabItem>
-    </Tabs>
+    <PackageManagers pkg="remark-expressive-code@latest" />
 
 3. Check our [release history](/releases/) for breaking changes that might affect your site, and apply any necessary changes.
 

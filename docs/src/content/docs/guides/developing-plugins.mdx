@@ -2,7 +2,9 @@
 title: Developing Plugins
 ---
 
-import { Tabs, TabItem } from '@astrojs/starlight/components'
+import { Code } from '@astrojs/starlight/components'
+import ConfigVariants from '@components/ConfigVariants.astro'
+import PackageManagers from '@components/PackageManagers.astro'
 
 In Expressive Code, all processing of your code blocks and their metadata is performed by plugins and annotations. To render markup around lines or inline ranges of characters, plugins create annotations and attach them to the target lines.
 
@@ -10,28 +12,20 @@ In Expressive Code, all processing of your code blocks and their metadata is per
 
 To add a plugin to Expressive Code that is not installed by default, install its package using your package manager, import its initialization function into your config file, and call it inside the `plugins` array property.
 
-In the following example, you will add the [Collapsible Sections plugin](/plugins/collapsible-sections/) to your Expressive Code configuration.
+The following example shows how to add the [Collapsible Sections plugin](/plugins/collapsible-sections/) to your Expressive Code configuration. After **installing the plugin** using your package manager, make the following changes to your Expressive Code configuration:
 
-The example assumes that you have already **installed the plugin** using your package manager and are **using Astro** as your site generator.
-
-```js ins={4-5,11-12}
-// astro.config.mjs
-import { defineConfig } from 'astro/config'
-import astroExpressiveCode from 'astro-expressive-code'
-// Import the plugin's initialization function
-import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
-
-export default defineConfig({
-  integrations: [
-    astroExpressiveCode({
-      plugins: [
-        // Call the plugin initialization function inside the `plugins` array
-        pluginCollapsibleSections(),
-      ],
-    }),
-  ],
-})
-```
+<ConfigVariants
+  imports={`
+    // Import the plugin's initialization function
+    import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
+  `}
+  settings={`
+    plugins: [
+      // Call the plugin initialization function inside the \`plugins\` array
+      pluginCollapsibleSections(),
+    ],
+  `}
+/>
 
 ## Writing your own plugin
 
@@ -54,24 +48,18 @@ export function pluginExample() {
 
 Then, add the plugin to your Expressive Code configuration just like any other plugin:
 
-```js ins={4-5,11-12}
-// astro.config.mjs
-import { defineConfig } from 'astro/config'
-import astroExpressiveCode from 'astro-expressive-code'
-// Import the plugin's initialization function
-import { pluginExample } from './plugins/my-example-plugin'
-
-export default defineConfig({
-  integrations: [
-    astroExpressiveCode({
-      plugins: [
-        // Call the plugin initialization function inside the `plugins` array
-        pluginExample(),
-      ],
-    }),
-  ],
-})
-```
+<ConfigVariants
+  imports={`
+    // Import the plugin's initialization function
+    import { pluginExample } from './plugins/my-example-plugin'
+  `}
+  settings={`
+    plugins: [
+      // Call the plugin initialization function inside the \`plugins\` array
+      pluginExample(),
+    ],
+  `}
+/>
 
 🎉 Success! From now on, your plugin will be loaded and executed whenever you run your site generator. If you add any hooks, it will be able to process your code blocks.
 
@@ -101,28 +89,22 @@ export function pluginWithOptionsExample(options) {
 
 When adding the plugin to your Expressive Code configuration, pass the desired options as an object to the plugin's initialization function:
 
-```js ins={4-5,11-16}
-// astro.config.mjs
-import { defineConfig } from 'astro/config'
-import astroExpressiveCode from 'astro-expressive-code'
-// Import the plugin's initialization function
-import { pluginWithOptionsExample } from './plugins/plugin-with-options'
-
-export default defineConfig({
-  integrations: [
-    astroExpressiveCode({
-      plugins: [
-        // Call the plugin initialization function inside the `plugins` array
-        pluginWithOptionsExample({
-          // Pass any desired options as object properties
-          option1: false,
-          option2: 'world',
-        }),
-      ],
-    }),
-  ],
-})
-```
+<ConfigVariants
+  imports={`
+    // Import the plugin's initialization function
+    import { pluginWithOptionsExample } from './plugins/plugin-with-options'
+  `}
+  settings={`
+    plugins: [
+      // Call the plugin initialization function inside the \`plugins\` array
+      pluginWithOptionsExample({
+        // Pass any desired options as object properties
+        option1: false,
+        option2: 'world',
+      }),
+    ],
+  `}
+/>
 
 :::tip
 We recommend using [TypeScript](https://www.typescriptlang.org/) to add type annotations to your plugin's options object. This will make it easier for users to discover and understand the available options.
@@ -143,166 +125,33 @@ For both custom annotations, you will create a class that extends the abstract [
 :::note
 If you want to publish your own plugin using the `ExpressiveCodeAnnotation` class, import it from the `@expressive-code/core` package installed as a **peer dependency** of your plugin package. This ensures that your plugin does not cause a version conflict if the user has a different version of Expressive Code installed on their site:
 
-<Tabs>
-  <TabItem label="npm">
-  ```sh
-  npm i --save-peer @expressive-code/core
-  ```
-  </TabItem>
-  <TabItem label="pnpm">
-  ```sh
-  pnpm i --save-peer @expressive-code/core
-  ```
-  </TabItem>
-  <TabItem label="yarn">
-  ```sh
-  yarn add @expressive-code/core --peer
-  ```
-  </TabItem>
-</Tabs>
+<PackageManagers pkg="@expressive-code/core" peer />
 :::
 
 You also need to install the `hastscript` library that provides a simple way to create HAST nodes:
 
-<Tabs>
-  <TabItem label="npm">
-  ```sh
-  npm i hastscript
-  ```
-  </TabItem>
-  <TabItem label="pnpm">
-  ```sh
-  pnpm i hastscript
-  ```
-  </TabItem>
-  <TabItem label="yarn">
-  ```sh
-  yarn add hastscript
-  ```
-  </TabItem>
-</Tabs>
+<PackageManagers pkg="hastscript" />
 
 Now, let's create the plugin:
 
-```js
-// plugins/plugin-error-preview.js
-import { ExpressiveCodeAnnotation } from '@expressive-code/core'
-import { h } from 'hastscript'
+import pluginErrorPreviewCode from '/plugins/plugin-error-preview.js?raw'
 
-class SquigglesAnnotation extends ExpressiveCodeAnnotation {
-  render({ nodesToTransform }) {
-    return nodesToTransform.map((node) => {
-      return h('span.error-squiggles', node)
-    })
-  }
-}
-
-class ErrorMessageAnnotation extends ExpressiveCodeAnnotation {
-  render({ nodesToTransform }) {
-    return nodesToTransform.map((node) => {
-      return h('span.error-message', node)
-    })
-  }
-}
-
-/** @returns {import('@expressive-code/core').ExpressiveCodePlugin} */
-export function pluginErrorPreview() {
-  return {
-    name: 'Error Preview',
-    baseStyles: `
-      .error-squiggles {
-        text-decoration-style: wavy;
-        text-decoration-color: #f22;
-        text-decoration-line: underline;
-        & span {
-          text-decoration: unset;
-        }
-      }
-      .error-message {
-        color: #f22;
-        font-style: italic;
-        background: #f002;
-        padding-inline: 0.4rem;
-        border-radius: 0.2rem;
-        /* Prevent inline annotations from overriding our styles */
-        & span {
-          color: inherit;
-          font-style: inherit;
-        }
-      }
-    `,
-    hooks: {
-      preprocessCode: (context) => {
-        // Only apply this to code blocks with the `error-preview` meta
-        if (!context.codeBlock.meta.includes('error-preview')) return
-
-        context.codeBlock.getLines().forEach((line) => {
-          // Find all squiggles markup in the line
-          const matches = [...line.text.matchAll(/~~[^~]+~~/g)].reverse()
-          matches.forEach((match) => {
-            // Add a squiggles annotation to the match
-            const from = match.index || 0
-            const to = from + match[0].length
-            line.addAnnotation(
-              new SquigglesAnnotation({
-                inlineRange: {
-                  columnStart: from,
-                  columnEnd: to,
-                },
-              })
-            )
-            // Remove the squiggle markup from the code plaintext
-            line.editText(from, to, match[0].slice(2, -2))
-          })
-        })
-      },
-      postprocessAnalyzedCode: (context) => {
-        // Only apply this to code blocks with the `error-preview` meta
-        if (!context.codeBlock.meta.includes('error-preview')) return
-
-        context.codeBlock.getLines().forEach((line) => {
-          // Find a `//!` comment surrounded by spaces
-          const messageIdx = line.text.match(/(?<=^|\s)\/\/!\s/)?.index
-          if (messageIdx !== undefined) {
-            // Add an error message annotation to the match
-            line.addAnnotation(
-              new ErrorMessageAnnotation({
-                inlineRange: {
-                  columnStart: messageIdx,
-                  columnEnd: line.text.length,
-                },
-              })
-            )
-            // Remove the comment markup from the code plaintext
-            line.editText(messageIdx, messageIdx + 4, '')
-          }
-        })
-      },
-    },
-  }
-}
-```
+<Code code={pluginErrorPreviewCode.replace(/\t/g, '  ')} lang="js" title="plugins/plugin-error-preview.js" />
 
 After saving your new plugin, you need to add it to your Expressive Code configuration:
 
-```js ins={4-5,11-12}
-// astro.config.mjs
-import { defineConfig } from 'astro/config'
-import astroExpressiveCode from 'astro-expressive-code'
-// Import the plugin's initialization function
-import { pluginErrorPreview } from './plugins/plugin-error-preview'
-
-export default defineConfig({
-  integrations: [
-    astroExpressiveCode({
-      plugins: [
-        // Call the plugin initialization function inside the `plugins` array
-        pluginErrorPreview(),
-      ],
-    }),
-  ],
-})
-```
+<ConfigVariants
+  imports={`
+    // Import the plugin's initialization function
+    import { pluginErrorPreview } from './plugins/plugin-error-preview'
+  `}
+  settings={`
+    plugins: [
+      // Call the plugin initialization function inside the \`plugins\` array
+      pluginErrorPreview(),
+    ],
+  `}
+/>
 
 You can now use the new syntax in code blocks to add error annotations to lines! For example, you can use the following markup:
 

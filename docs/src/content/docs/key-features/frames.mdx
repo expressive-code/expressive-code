@@ -2,6 +2,7 @@
 title: Editor & Terminal Frames
 ---
 
+import ConfigVariants from '@components/ConfigVariants.astro'
 import PropertySignature from '@components/PropertySignature.astro'
 import { Tabs, TabItem } from '@astrojs/starlight/components'
 
@@ -136,78 +137,21 @@ In addition, you can also override its default styles by adding a `frames` objec
 
 Here are configuration examples for some popular site generators:
 
-<Tabs>
-  <TabItem label="Astro">
-    ```js
-    // astro.config.mjs
-    import { defineConfig } from 'astro/config'
-    import astroExpressiveCode from 'astro-expressive-code'
-
-    /** @type {import('astro-expressive-code').AstroExpressiveCodeOptions} */
-    const astroExpressiveCodeOptions = {
-      // You can optionally override the plugin's default settings here
+<ConfigVariants
+  settings={`
+    // You can optionally override the plugin's default settings here
+    frames: {
+      // Example: Hide the "Copy to clipboard" button
+      showCopyToClipboardButton: false,
+    },
+    styleOverrides: {
+      // You can optionally override the plugin's default styles here
       frames: {
-        // Example: Hide the "Copy to clipboard" button
-        showCopyToClipboardButton: false,
+        shadowColor: '#124',
       },
-      styleOverrides: {
-        // You can optionally override the plugin's default styles here
-        frames: {
-          shadowColor: '#124',
-        },
-      },
-    }
-
-    export default defineConfig({
-      integrations: [
-        astroExpressiveCode(astroExpressiveCodeOptions),
-      ],
-    })
-    ```
-  </TabItem>
-  <TabItem label="Next.js">
-    ```js
-    // next.config.mjs
-    import createMDX from '@next/mdx'
-    import remarkExpressiveCode from 'remark-expressive-code'
-
-    /** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
-    const remarkExpressiveCodeOptions = {
-      // You can optionally override the plugin's default settings here
-      frames: {
-        // Example: Hide the "Copy to clipboard" button
-        showCopyToClipboardButton: false,
-      },
-      styleOverrides: {
-        // You can optionally override the plugin's default styles here
-        frames: {
-          shadowColor: '#124',
-        },
-      },
-    }
-
-    /** @type {import('next').NextConfig} */
-    const nextConfig = {
-      reactStrictMode: true,
-      pageExtensions: ["js", "jsx", "ts", "tsx", "md", "mdx"],
-    }
-
-    const withMDX = createMDX({
-      extension: /\.mdx?$/,
-      options: {
-        remarkPlugins: [
-          // The nested array structure is required to pass options
-          // to a remark plugin
-          [remarkExpressiveCode, remarkExpressiveCodeOptions],
-        ],
-        rehypePlugins: [],
-      },
-    })
-
-    export default withMDX(nextConfig)
-    ```
-  </TabItem>
-</Tabs>
+    },
+  `}
+/>
 
 ### Available plugin options
 

@@ -2,7 +2,7 @@
 title: Installing Expressive Code
 ---
 
-import { Tabs, TabItem } from '@astrojs/starlight/components'
+import PackageManagers from '@components/PackageManagers.astro'
 
 Expressive Code provides integrations into many different frameworks, including Astro, Starlight, Next.js, and any framework that supports remark plugins.
 
@@ -20,23 +20,7 @@ You can add Expressive Code to your Astro site by installing our framework integ
 
 2. Use Astro's CLI to install `astro-expressive-code`:
 
-    <Tabs>
-      <TabItem label="npm">
-      ```sh
-      npx astro add astro-expressive-code
-      ```
-      </TabItem>
-      <TabItem label="pnpm">
-      ```sh
-      pnpm astro add astro-expressive-code
-      ```
-      </TabItem>
-      <TabItem label="yarn">
-      ```sh
-      yarn astro add astro-expressive-code
-      ```
-      </TabItem>
-    </Tabs>
+    <PackageManagers pkg="astro" exec="add astro-expressive-code" />
 
     Confirm all prompts to download this third-party integration and add it to your site's configuration.
 
@@ -56,23 +40,7 @@ You can add Expressive Code to your Next.js site by installing our framework int
 
 2. Add the integration package `remark-expressive-code` to your site's dependencies:
 
-    <Tabs>
-      <TabItem label="npm">
-      ```sh
-      npm i remark-expressive-code
-      ```
-      </TabItem>
-      <TabItem label="pnpm">
-      ```sh
-      pnpm i remark-expressive-code
-      ```
-      </TabItem>
-      <TabItem label="yarn">
-      ```sh
-      yarn add remark-expressive-code
-      ```
-      </TabItem>
-    </Tabs>
+    <PackageManagers pkg="remark-expressive-code" />
 
 3. Add the integration to your site's configuration:
 

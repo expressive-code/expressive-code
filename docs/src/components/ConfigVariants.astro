@@ -1,0 +1,204 @@
+---
+import { Code, TabItem, Tabs } from '@astrojs/starlight/components'
+
+type Props = {
+	settings: string
+	namedImports?: string[] | undefined
+	imports?: string | undefined
+	ecConfigFile: boolean
+}
+
+const { settings: rawSettings, namedImports = [], imports: rawImports, ecConfigFile, ...otherProps } = Astro.props
+
+const tabsToSpaces = (str: string) => str.replace(/\t/g, '  ')
+const lines = (str: string) => str.split(/\r?\n/)
+const removeCommonIndent = (lines: string[]) => {
+	const result = [...lines]
+	// Remove empty lines from start and end
+	if (result[0]?.trim() === '') result.shift()
+	if (result[result.length - 1]?.trim() === '') result.pop()
+	// Determine minimum indent
+	let minIndent = Infinity
+	for (const line of result) {
+		if (line.trim() === '') continue
+		const indent = line.match(/^\s*/)?.[0].length ?? 0
+		if (indent < minIndent) minIndent = indent
+	}
+	// Remove minimum indent from each line
+	if (minIndent > 0) {
+		for (let i = 0; i < result.length; i++) {
+			result[i] = result[i]?.slice(minIndent) ?? ''
+		}
+	}
+	return result
+}
+const preprocess = (str: string) => removeCommonIndent(lines(tabsToSpaces(str)))
+
+const arrSettings = preprocess(rawSettings)
+const arrImports = rawImports ? preprocess(rawImports) : []
+
+type Variant = {
+	[label: string]: {
+		title: string
+		code: string
+		namedImports: string
+		settingsIndent: number
+	}
+}
+
+const variants: Variant = {}
+
+if (!ecConfigFile) {
+	variants.Astro = {
+		title: 'astro.config.mjs',
+		code: `
+			import { defineConfig } from 'astro/config'
+			import astroExpressiveCode[NAMED_IMPORTS] from 'astro-expressive-code'
+			[IMPORTS]
+
+			export default defineConfig({
+				integrations: [
+					astroExpressiveCode({
+			[SETTINGS]
+					}),
+				],
+			})
+		`,
+		namedImports: namedImports.length ? `, { ${namedImports.join(', ')} }` : '',
+		settingsIndent: 3,
+	}
+	variants.Starlight = {
+		title: 'astro.config.mjs',
+		code: `
+			import { defineConfig } from 'astro/config'
+			import starlight from '@astrojs/starlight'
+			[NAMED_IMPORTS]
+			[IMPORTS]
+
+			export default defineConfig({
+				integrations: [
+					starlight({
+						title: 'My Starlight site',
+						expressiveCode: {
+			[SETTINGS]
+						},
+					}),
+				],
+			})
+		`,
+		namedImports: namedImports.length ? `import { ${namedImports.join(', ')} } from '@astrojs/starlight/expressive-code'` : '',
+		settingsIndent: 4,
+	}
+	variants['Next.js'] = {
+		title: 'next.config.mjs',
+		code: `
+			import createMDX from '@next/mdx'
+			import remarkExpressiveCode[NAMED_IMPORTS] from 'remark-expressive-code'
+			[IMPORTS]
+
+			/** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
+			const remarkExpressiveCodeOptions = {
+			[SETTINGS]
+			}
+
+			/** @type {import('next').NextConfig} */
+			const nextConfig = {
+				reactStrictMode: true,
+				pageExtensions: ["js", "jsx", "ts", "tsx", "md", "mdx"],
+			}
+
+			const withMDX = createMDX({
+				extension: /\\.mdx?$/,
+				options: {
+				remarkPlugins: [
+					// The nested array structure is required to pass options
+					// to a remark plugin
+					[remarkExpressiveCode, remarkExpressiveCodeOptions],
+				],
+				rehypePlugins: [],
+				},
+			})
+
+			export default withMDX(nextConfig)
+		`,
+		namedImports: namedImports.length ? `, { ${namedImports.join(', ')} }` : '',
+		settingsIndent: 1,
+	}
+} else {
+	variants.Astro = {
+		title: 'ec.config.mjs',
+		code: `
+			import { defineEcConfig[NAMED_IMPORTS] } from 'astro-expressive-code'
+			[IMPORTS]
+
+			export default defineEcConfig({
+			[SETTINGS]
+			})
+		`,
+		namedImports: namedImports.length ? `, ${namedImports.join(', ')}` : '',
+		settingsIndent: 1,
+	}
+	variants.Starlight = {
+		title: 'ec.config.mjs',
+		code: `
+			import { defineEcConfig[NAMED_IMPORTS] } from '@astrojs/starlight/expressive-code'
+			[IMPORTS]
+
+			export default defineEcConfig({
+			[SETTINGS]
+			})
+		`,
+		namedImports: namedImports.length ? `, ${namedImports.join(', ')}` : '',
+		settingsIndent: 1,
+	}
+}
+---
+
+<Tabs>
+	{
+		Object.entries(variants).map(([label, block]) => {
+			const { code, namedImports, settingsIndent, ...rest } = block
+			const codeLines = preprocess(code)
+			const ins: (string | number)[] = []
+			const pushIns = (startIdx: number, arr: string[]) => {
+				if (!arr.length) return
+				for (let i = 0; i < arr.length; i++) {
+					const insLine = arr[i] ?? ''
+					if (!insLine.length) continue
+					if (insLine.startsWith('//')) continue
+					ins.push(startIdx + i + 1)
+				}
+			}
+			for (let i = 0; i < codeLines.length; i++) {
+				const line = codeLines[i] ?? ''
+				if (line.indexOf('[NAMED_IMPORTS]') >= 0) {
+					codeLines[i] = line.replace('[NAMED_IMPORTS]', namedImports)
+					if (codeLines[i]?.trim().length === 0) {
+						codeLines.splice(i, 1)
+						i--
+						continue
+					}
+					if (!namedImports.length) continue
+					if (codeLines[i]?.trim() === namedImports.trim()) {
+						ins.push(i + 1)
+					} else {
+						ins.push(namedImports)
+					}
+				}
+				if (line === '[IMPORTS]') {
+					codeLines.splice(i, 1, ...arrImports)
+					pushIns(i, arrImports)
+				} else if (line === '[SETTINGS]') {
+					const indent = '  '.repeat(settingsIndent)
+					codeLines.splice(i, 1, ...arrSettings.map((s) => `${indent}${s}`))
+					pushIns(i, arrSettings)
+				}
+			}
+			return (
+				<TabItem label={label}>
+					<Code code={codeLines.join('\n')} lang="ts" ins={ins} {...otherProps} {...rest} />
+				</TabItem>
+			)
+		})
+	}
+</Tabs>

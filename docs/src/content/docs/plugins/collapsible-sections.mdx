@@ -2,6 +2,8 @@
 title: Collapsible Sections
 ---
 
+import ConfigVariants from '@components/ConfigVariants.astro'
+import PackageManagers from '@components/PackageManagers.astro'
 import PropertySignature from '@components/PropertySignature.astro'
 import { Tabs, TabItem } from '@astrojs/starlight/components'
 
@@ -11,92 +13,24 @@ The lines of collapsed sections will be replaced by a clickable `X collapsed l
 
 ## Installation
 
-### Astro
-
 Before being able to use collapsible sections in your code blocks, you need to install the plugin as a dependency and add it to your configuration:
 
 1. Add the package to your site's dependencies:
 
-    <Tabs>
-      <TabItem label="npm">
-      ```sh
-      npm i @expressive-code/plugin-collapsible-sections
-      ```
-      </TabItem>
-      <TabItem label="pnpm">
-      ```sh
-      pnpm i @expressive-code/plugin-collapsible-sections
-      ```
-      </TabItem>
-      <TabItem label="yarn">
-      ```sh
-      yarn add @expressive-code/plugin-collapsible-sections
-      ```
-      </TabItem>
-    </Tabs>
+    <PackageManagers pkg="@expressive-code/plugin-collapsible-sections" />
 
-2. Add the integration to your site's configuration by passing it in the `plugins` list. This is how it works with our Astro integration [`astro-expressive-code`](https://www.npmjs.com/package/astro-expressive-code):
+2. Add the integration to your site's configuration by passing it in the `plugins` list:
 
-    ```js ins={4,9-11}
-    // astro.config.mjs
-    import { defineConfig } from 'astro/config'
-    import astroExpressiveCode from 'astro-expressive-code'
-    import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
-
-    export default defineConfig({
-      integrations: [
-        astroExpressiveCode({
-          plugins: [
-            pluginCollapsibleSections(),
-          ],
-        }),
-      ],
-    })
-    ```
-
-### Starlight
-
-Before being able to use collapsible sections in your code blocks, you need to install the plugin as a dependency and add it to your configuration:
-
-1. Add the package to your site's dependencies:
-
-    <Tabs>
-      <TabItem label="npm">
-      ```sh
-      npm i @expressive-code/plugin-collapsible-sections
-      ```
-      </TabItem>
-      <TabItem label="pnpm">
-      ```sh
-      pnpm i @expressive-code/plugin-collapsible-sections
-      ```
-      </TabItem>
-      <TabItem label="yarn">
-      ```sh
-      yarn add @expressive-code/plugin-collapsible-sections
-      ```
-      </TabItem>
-    </Tabs>
-
-2. Add the integration to Starlight's configuration by adding it to the `plugins` list of the `expressiveCode` configuration object in your Starlight configuration.
-
-    ```js ins={4,10-12}
-    // astro.config.mjs
-    import { defineConfig } from 'astro/config'
-    import starlight from '@astrojs/starlight'
-    import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
-
-    export default defineConfig({
-      integrations: [
-        starlight({
-          title: 'example.com',
-          expressiveCode: {
-            plugins: [ pluginCollapsibleSections() ],
-          },
-        ]),
-      ],
-    })
-    ```
+    <ConfigVariants
+      imports={`
+        import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
+      `}
+      settings={`
+        plugins: [
+          pluginCollapsibleSections(),
+        ],
+      `}
+    />
 
 ## Usage in markdown / MDX
 
@@ -151,76 +85,22 @@ You can override this plugin's default styles by adding a `collapsibleSections` 
 
 Here are configuration examples for some popular site generators:
 
-<Tabs>
-  <TabItem label="Astro">
-    ```js
-    // astro.config.mjs
-    import { defineConfig } from 'astro/config'
-    import astroExpressiveCode from 'astro-expressive-code'
+<ConfigVariants
+  imports={`
     import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
-
-    /** @type {import('astro-expressive-code').AstroExpressiveCodeOptions} */
-    const astroExpressiveCodeOptions = {
-      plugins: [
-        pluginCollapsibleSections(),
-      ],
-      styleOverrides: {
-        // You can optionally override the plugin's default styles here
-        collapsibleSections: {
-          closedBackgroundColor: '#68F',
-        },
+  `}
+  settings={`
+    plugins: [
+      pluginCollapsibleSections(),
+    ],
+    styleOverrides: {
+      // You can optionally override the plugin's default styles here
+      collapsibleSections: {
+        closedBackgroundColor: '#68F',
       },
-    }
-
-    export default defineConfig({
-      integrations: [
-        astroExpressiveCode(astroExpressiveCodeOptions),
-      ],
-    })
-    ```
-  </TabItem>
-  <TabItem label="Next.js">
-    ```js
-    // next.config.mjs
-    import createMDX from '@next/mdx'
-    import remarkExpressiveCode from 'remark-expressive-code'
-    import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
-
-    /** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
-    const remarkExpressiveCodeOptions = {
-      plugins: [
-        pluginCollapsibleSections(),
-      ],
-      styleOverrides: {
-        // You can optionally override the plugin's default styles here
-        collapsibleSections: {
-          closedBackgroundColor: '#68F',
-        },
-      },
-    }
-
-    /** @type {import('next').NextConfig} */
-    const nextConfig = {
-      reactStrictMode: true,
-      pageExtensions: ["js", "jsx", "ts", "tsx", "md", "mdx"],
-    }
-
-    const withMDX = createMDX({
-      extension: /\.mdx?$/,
-      options: {
-        remarkPlugins: [
-          // The nested array structure is required to pass options
-          // to a remark plugin
-          [remarkExpressiveCode, remarkExpressiveCodeOptions],
-        ],
-        rehypePlugins: [],
-      },
-    })
-
-    export default withMDX(nextConfig)
-    ```
-  </TabItem>
-</Tabs>
+    },
+  `}
+/>
 
 ### Available plugin options
 
