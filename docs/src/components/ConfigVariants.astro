@@ -138,15 +138,18 @@ if (!ecConfigFile) {
 		namedImports: namedImports.length ? `, ${namedImports.join(', ')}` : '',
 		settingsIndent: 1,
 	}
+	if (namedImports.length) {
+		throw new Error(`Named imports from Starlight are not supported in ec.config.mjs due to it being TS-only. Found: ${namedImports.join(', ')}`)
+	}
 	variants.Starlight = {
 		title: 'ec.config.mjs',
 		code: `
-			import { defineEcConfig[NAMED_IMPORTS] } from '@astrojs/starlight/expressive-code'
 			[IMPORTS]
 
-			export default defineEcConfig({
+			/** @type {import('@astrojs/starlight/expressive-code').StarlightExpressiveCodeOptions} */
+			export default {
 			[SETTINGS]
-			})
+			}
 		`,
 		namedImports: namedImports.length ? `, ${namedImports.join(', ')}` : '',
 		settingsIndent: 1,
