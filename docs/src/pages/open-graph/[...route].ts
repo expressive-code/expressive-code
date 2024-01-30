@@ -12,7 +12,7 @@ export const { getStaticPaths, GET } = OGImageRoute({
 	param: 'route',
 	pages: pages,
 
-	getImageOptions: (_path, page: (typeof pages)[string]) => ({
+	getImageOptions: (_path, page: { title: string; description: string | undefined }) => ({
 		title: page.title === 'Expressive Code' ? '' : page.title,
 		description: page.description ?? '',
 		bgImage: {
