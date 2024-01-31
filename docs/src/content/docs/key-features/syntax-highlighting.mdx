@@ -95,20 +95,26 @@ When using this plugin through a framework integration, you can configure it by 
 
 Here are configuration examples for common scenarios:
 
-<ConfigVariants settings={`
-// You can use any of the themes bundled with Shiki by name,
-// specify a path to JSON theme file, or pass an instance
-// of the \`ExpressiveCodeTheme\` class here:
-themes: ['dracula', 'solarized-light'],
-shiki: {
-  // You can pass additional plugin options here,
-  // e.g. to load custom language grammars:
-  langs: [
-    // import('./some-exported-grammar.mjs'),
-    // async () => JSON.parse(await fs.readFile('some-json-grammar.json', 'utf-8'))
-  ],
-},
-`} />
+<ConfigVariants
+  imports={`
+    // Add this if you want to load a custom language grammar from a file:
+    // import fs from 'node:fs'
+  `}
+  settings={`
+    // You can use any of the themes bundled with Shiki by name,
+    // specify a path to JSON theme file, or pass an instance
+    // of the \`ExpressiveCodeTheme\` class here:
+    themes: ['dracula', 'solarized-light'],
+    shiki: {
+      // You can pass additional plugin options here,
+      // e.g. to load custom language grammars:
+      langs: [
+        // import('./some-exported-grammar.mjs'),
+        // JSON.parse(fs.readFileSync('./some-json-grammar.json', 'utf-8'))
+      ],
+    },
+  `}
+/>
 
 ### Available plugin options
 
@@ -124,7 +130,7 @@ A list of additional languages that should be available for syntax highlighting.
 
 You can pass any of the language input types supported by Shikiji, e.g.:
 - `import('./some-exported-grammar.mjs')`
-- `async () => JSON.parse(await fs.readFile('some-json-grammar.json', 'utf-8'))`
+- `JSON.parse(fs.readFileSync('./some-json-grammar.json', 'utf-8'))`
 
 See the [Shikiji documentation](https://github.com/antfu/shikiji) for more information.
 
