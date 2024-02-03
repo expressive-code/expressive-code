@@ -185,28 +185,31 @@ export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
 			return modifiedStyles
 		}
 
+		const removeNestedConflictingStyles = (node: Parent) => {
+			// Remove conflicting styles from all nested inline style nodes
+			for (let childIdx = node.children?.length - 1; childIdx >= 0; childIdx--) {
+				const child = node.children[childIdx]
+				if (child.type === 'element') {
+					if (isInlineStyleNode(child)) {
+						if (!modifyExistingStyles(child, true)) {
+							// If the node has no styles left, replace it with its children
+							node.children.splice(childIdx, 1, ...child.children)
+						}
+					}
+					removeNestedConflictingStyles(child)
+				}
+			}
+		}
+
 		return nodesToTransform.map((node) => {
+			// Always remove conflicting styles from the node's children
+			removeNestedConflictingStyles(node)
+			// If node is already an inline style token, modify its existing styles
 			if (node.type === 'element' && isInlineStyleNode(node)) {
-				// The node is already an inline style token, so we can modify its existing styles
 				modifyExistingStyles(node)
 				return node
 			}
-			// Remove conflicting styles from all nested inline style nodes
-			const removeNestedConflictingStyles = (node: Parent) => {
-				for (let childIdx = node.children?.length - 1; childIdx >= 0; childIdx--) {
-					const child = node.children[childIdx]
-					if (child.type === 'element') {
-						if (isInlineStyleNode(child)) {
-							if (!modifyExistingStyles(child, true)) {
-								// If the node has no styles left, replace it with its children
-								node.children.splice(childIdx, 1, ...child.children)
-							}
-						}
-						removeNestedConflictingStyles(child)
-					}
-				}
-			}
-			removeNestedConflictingStyles(node)
+			// Otherwise, wrap the node in a new inline style token
 			const transformedNode = h('span', { style: buildStyleString(newStyles) }, node)
 			return transformedNode
 		})

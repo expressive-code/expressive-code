@@ -13,6 +13,7 @@ import {
 	rgbaToOklch,
 } from '../internal/color-spaces'
 import { binarySearch } from '../internal/search-algorithms'
+import { StyleVariant } from '../common/style-variants'
 
 /**
  * Overrides the alpha value of a color with the given value.
@@ -217,6 +218,45 @@ export function changeAlphaToReachColorContrast(input: string, background: strin
 	})
 
 	return setAlpha(toHexColor(color), newAlpha)
+}
+
+/**
+ * Given any number of input colors, which may include CSS variables with optional fallbacks,
+ * returns the first static color.
+ *
+ * Returns `undefined` if no parseable static color can be found.
+ */
+export function getFirstStaticColor(...inputs: (string | undefined)[]) {
+	const extractFallbackFromCssVar = (input: string) => {
+		const match = input.match(/^\s*var\([^,]+,\s*(.+?)\s*\)\s*$/i)
+		return match ? match[1] : undefined
+	}
+	const isValid = (input: string) => toTinyColor(input)?.isValid
+	for (const input of inputs) {
+		if (!input) continue
+		// First, try the input as a static color
+		if (isValid(input)) return input
+		// Then, try the input as a CSS variable with fallback (supports nested fallbacks)
+		let cssVarFallback = extractFallbackFromCssVar(input)
+		while (cssVarFallback) {
+			if (isValid(cssVarFallback)) return cssVarFallback
+			cssVarFallback = extractFallbackFromCssVar(cssVarFallback)
+		}
+	}
+	return undefined
+}
+
+/**
+ * Determine a static background color based on the given style variant,
+ * trying to resolve fallback values of CSS variables if necessary.
+ *
+ * This color is intended to be used for contrast calculations, not as an actual background color.
+ */
+export function getStaticBackgroundColor(styleVariant: StyleVariant) {
+	// Try to find an actual static color based on the given style variant
+	const color = getFirstStaticColor(styleVariant.resolvedStyleSettings.get('codeBackground'), styleVariant.theme.bg)
+	// If no color was found, use white for light themes and dark grey for dark themes
+	return color ?? (styleVariant.theme.type === 'dark' ? '#202020' : '#fff')
 }
 
 export type ChromaticRecolorTarget = {

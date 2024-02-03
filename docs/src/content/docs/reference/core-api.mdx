@@ -526,11 +526,13 @@ Returns the same `ExpressiveCodeTheme` instance to allow chaining.
 
 ##### ensureMinSyntaxHighlightingColorContrast()
 
-- <code class="function-signature">**ensureMinSyntaxHighlightingColorContrast**(minContrast): [ExpressiveCodeTheme](/reference/core-api/#expressivecodetheme)</code>
+- <code class="function-signature">**ensureMinSyntaxHighlightingColorContrast**(minContrast, backgroundColor?): [ExpressiveCodeTheme](/reference/core-api/#expressivecodetheme)</code>
 
 Processes the theme's syntax highlighting colors to ensure a minimum contrast ratio between foreground and background colors.
 
 The default value of 5.5 ensures optimal accessibility with a contrast ratio of 5.5:1.
+
+You can optionally pass a custom background color to use for the contrast checks. By default, the theme's background color will be used.
 
 Returns the same `ExpressiveCodeTheme` instance to allow chaining.
 
@@ -539,6 +541,7 @@ Returns the same `ExpressiveCodeTheme` instance to allow chaining.
 | Parameter | Type | Default value |
 | :------ | :------ | :------ |
 | `minContrast` | `number` | `5.5` |
+| `backgroundColor`? | `string` | `undefined` |
 
 ##### fromJSONString()
 

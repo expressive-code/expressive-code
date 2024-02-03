@@ -1,31 +1,13 @@
 import { describe, test, expect } from 'vitest'
 import { selectAll } from 'hast-util-select'
 import { toText } from 'hast-util-to-text'
-import { AnnotationRenderPhase, ExpressiveCodePlugin, InlineStyleAnnotation, getClassNames, getColorContrast } from '@expressive-code/core'
+import { AnnotationRenderPhase, ExpressiveCodePlugin, InlineStyleAnnotation, getClassNames } from '@expressive-code/core'
 import { pluginShiki } from '@expressive-code/plugin-shiki'
-import { renderAndOutputHtmlSnapshot, buildThemeFixtures, TestFixture, loadTestThemes } from '@internal/test-utils'
+import { renderAndOutputHtmlSnapshot, buildThemeFixtures, TestFixture, loadTestThemes, validateColorContrast } from '@internal/test-utils'
 import { pluginTextMarkers } from '../src'
 import { MarkerType, MarkerTypeOrder } from '../src/marker-types'
 import { actualDiff, indentedJsCodeWithDiffMarkers, jsCodeWithDiffMarkers } from './data/diff-examples'
-
-const lineMarkerTestText = `
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  markdown: {
-    extendDefaultPlugins: false,
-    smartypants: false,
-    gfm: false,
-  }
-});
-`.trim()
-
-const inlineMarkerTestText = `
----
-const { greeting = "Hello", name = "Astronaut" } = Astro.props;
----
-<h2>{greeting}, punymighty {name}!</h2>
-`.trim()
+import { colorContrastTestMeta, colorContrastTestText, inlineMarkerTestText, lineMarkerTestText } from './data/marker-examples'
 
 describe('Renders text markers', async () => {
 	const themes = await loadTestThemes()
@@ -566,84 +548,156 @@ function fancyJsHelper() {
 		{ timeout: 5 * 1000 }
 	)
 
-	test(
-		'Accessible color contrast is ensured',
-		async ({ meta: { name: testName } }) => {
-			await renderAndOutputHtmlSnapshot({
-				testName,
-				testBaseDir: __dirname,
-				fixtures: buildThemeFixtures(themes, {
-					code: `
----
-layout: ../../layouts/BaseLayout.astro
-title: 'My first MDX post'
-+publishDate: '21 September 2022'
----
-import BaseLayout from '../../layouts/BaseLayout.astro';
-
-function fancyJsHelper() {
-  return "Try doing that with YAML!";
-}
-
-<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>
-  Welcome to my new Astro blog, using MDX!
-</BaseLayout>
-					`.trim(),
-					language: 'diff',
-					meta: `lang="mdx" title="src/pages/posts/first-post.mdx" ins={6} mark={9} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/`,
-					engineOptions: {
-						styleOverrides: {
-							textMarkers: {
-								// Set a very bright background color for all "ins" highlights
-								// to test color contrast of bright text on bright backgrounds
-								insBackground: '#393',
-								// Set a very dark background color for all "del" highlights
-								// to test color contrast of dark text on dark backgrounds
-								delBackground: '#400',
+	describe('Ensures accessible color contrast', () => {
+		test(
+			'Contrast with default settings',
+			async ({ meta: { name: testName } }) => {
+				await renderAndOutputHtmlSnapshot({
+					testName,
+					testBaseDir: __dirname,
+					fixtures: buildThemeFixtures(themes, {
+						code: colorContrastTestText,
+						language: 'mdx',
+						meta: colorContrastTestMeta,
+						plugins: [pluginTextMarkers(), pluginShiki()],
+						blockValidationFn: validateColorContrast,
+					}),
+				})
+			},
+			{ timeout: 5 * 1000 }
+		)
+		test(
+			'Contrast on marker backgrounds with bright and dark colors',
+			async ({ meta: { name: testName } }) => {
+				await renderAndOutputHtmlSnapshot({
+					testName,
+					testBaseDir: __dirname,
+					fixtures: buildThemeFixtures(themes, {
+						code: colorContrastTestText,
+						language: 'mdx',
+						meta: colorContrastTestMeta,
+						engineOptions: {
+							styleOverrides: {
+								textMarkers: {
+									// Set a very bright background color for all "ins" highlights
+									// to test color contrast of bright text on bright backgrounds
+									insBackground: '#393',
+									// Set a very dark background color for all "del" highlights
+									// to test color contrast of dark text on dark backgrounds
+									delBackground: '#400',
+								},
 							},
 						},
-					},
-					plugins: [pluginTextMarkers(), pluginShiki()],
-					blockValidationFn: ({ renderedGroupAst, styleVariants }) => {
-						const themesWithInsufficientContrast: string[] = []
-						styleVariants.forEach((styleVariant, styleVariantIndex) => {
-							// Calculate the contrast of all syntax tokens inside matching lines
-							const bg = styleVariant.resolvedStyleSettings.get('textMarkers.insBackground')
-							const tokens = selectAll(`.ins span[style]`, renderedGroupAst)
-							const tokenColorRegExp = new RegExp(`(?:^|;)--${styleVariantIndex}:(#.*?)(?:;|$)`)
-							const tokenColors = tokens.map((token) => {
-								const text = toText(token)
-								const fg = token.properties?.style?.toString().match(tokenColorRegExp)?.[1]
-								const contrast = fg && bg ? getColorContrast(fg, bg) : undefined
-								return {
-									text,
-									bg,
-									fg,
-									contrast,
-								}
+						plugins: [pluginTextMarkers(), pluginShiki()],
+						blockValidationFn: validateColorContrast,
+					}),
+				})
+			},
+			{ timeout: 5 * 1000 }
+		)
+		test(
+			'Contrast on code backgrounds using fixed colors',
+			async ({ meta: { name: testName } }) => {
+				await renderAndOutputHtmlSnapshot({
+					testName,
+					testBaseDir: __dirname,
+					fixtures: buildThemeFixtures(themes, {
+						code: colorContrastTestText,
+						language: 'mdx',
+						meta: colorContrastTestMeta,
+						engineOptions: {
+							styleOverrides: {
+								codeBackground: '#fff',
+							},
+						},
+						plugins: [pluginTextMarkers(), pluginShiki()],
+						blockValidationFn: validateColorContrast,
+					}),
+				})
+			},
+			{ timeout: 5 * 1000 }
+		)
+		test(
+			'Contrast on code backgrounds using CSS variables with fallback',
+			async ({ meta: { name: testName } }) => {
+				await renderAndOutputHtmlSnapshot({
+					testName,
+					testBaseDir: __dirname,
+					fixtures: buildThemeFixtures(themes, {
+						code: colorContrastTestText,
+						language: 'mdx',
+						meta: colorContrastTestMeta,
+						engineOptions: {
+							styleOverrides: {
+								// The following combination would not result in proper color contrast
+								// without the fallback values as we're changing the background color
+								// to the opposite of what would be expected based on the theme type
+								codeBackground: ({ theme }) => (theme.type === 'dark' ? 'var(--white,#fff)' : 'var(--black, #202020)'),
+							},
+						},
+						plugins: [
+							pluginTextMarkers(),
+							pluginShiki(),
+							{
+								name: 'Custom CSS Variables',
+								baseStyles: `
+									:root {
+										--black: #202020;
+										--white: #fff;
+									}
+								`,
+							},
+						],
+						blockValidationFn: (args) => {
+							// Before validating the results, set the background colors to the
+							// actual static colors to allow the validation function to access
+							// the real colors (without this, the test would not fail if the
+							// CSS fallback processing was broken)
+							args.styleVariants.forEach(({ resolvedStyleSettings, theme }) => {
+								resolvedStyleSettings.set('codeBackground', theme.type === 'dark' ? '#fff' : '#202020')
 							})
-							const insufficientContrastTokens = tokenColors
-								.filter((token) => token.text.trim() !== '' && (token.contrast === undefined || token.contrast < 4.5))
-								.map(
-									(token) =>
-										`Token: "${token.text}" (${[
-											// `fg: ${token.fg ?? 'undefined'}`,
-											// `bg: ${token.bg ?? 'undefined'}`,
-											`contrast: ${token.contrast !== undefined ? Math.round(token.contrast * 10) / 10 : 'undefined'}`,
-										].join(', ')})`
-								)
-								.join('\n')
-							if (insufficientContrastTokens !== '') {
-								themesWithInsufficientContrast.push(`*** Theme "${styleVariant.theme.name}" has insufficient contrast:\n${insufficientContrastTokens}`)
-							}
-						})
-						expect(themesWithInsufficientContrast, `\n\n${themesWithInsufficientContrast.join('\n\n')}\n\n`).toHaveLength(0)
-					},
-				}),
-			})
-		},
-		{ timeout: 5 * 1000 }
-	)
+							return validateColorContrast(args)
+						},
+					}),
+				})
+			},
+			{ timeout: 5 * 1000 }
+		)
+		test(
+			'Contrast on code backgrounds using CSS variables without fallback',
+			async ({ meta: { name: testName } }) => {
+				await renderAndOutputHtmlSnapshot({
+					testName,
+					testBaseDir: __dirname,
+					fixtures: buildThemeFixtures(themes, {
+						code: colorContrastTestText,
+						language: 'mdx',
+						meta: colorContrastTestMeta,
+						engineOptions: {
+							styleOverrides: {
+								codeBackground: ({ theme }) => (theme.type === 'dark' ? 'var(--black)' : 'var(--white)'),
+							},
+						},
+						plugins: [
+							pluginTextMarkers(),
+							pluginShiki(),
+							{
+								name: 'Custom CSS Variables',
+								baseStyles: `
+									:root {
+										--black: #202020;
+										--white: #fff;
+									}
+								`,
+							},
+						],
+						blockValidationFn: validateColorContrast,
+					}),
+				})
+			},
+			{ timeout: 5 * 1000 }
+		)
+	})
 })
 
 function buildMeta(markers: { markerType?: string | undefined; text: string }[]) {
