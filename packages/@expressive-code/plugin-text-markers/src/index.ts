@@ -4,6 +4,7 @@ import {
 	ExpressiveCodePlugin,
 	InlineStyleAnnotation,
 	ensureColorContrastOnBackground,
+	getStaticBackgroundColor,
 	onBackground,
 	replaceDelimitedValues,
 } from '@expressive-code/core'
@@ -203,7 +204,7 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 					// Ensure color contrast for all style variants
 					styleVariants.forEach((styleVariant, styleVariantIndex) => {
 						const fullLineMarkerBgColor = (fullLineMarker && styleVariant.resolvedStyleSettings.get(markerBgColorPaths[fullLineMarker.markerType])) || 'transparent'
-						const lineBgColor = onBackground(fullLineMarkerBgColor, styleVariant.resolvedStyleSettings.get('codeBackground') || styleVariant.theme.bg)
+						const lineBgColor = onBackground(fullLineMarkerBgColor, getStaticBackgroundColor(styleVariant))
 						// Collect inline style annotations that change the text color
 						const textColors = annotations.filter(
 							(annotation) =>
@@ -222,11 +223,13 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 							markers.forEach((marker) => {
 								const markerStart = marker.inlineRange?.columnStart ?? 0
 								const markerEnd = marker.inlineRange?.columnEnd ?? line.text.length
+								// Skip if the marker does not overlap the text color annotation
 								if (markerStart > textEnd || markerEnd < textStart) return
-								// As the marker overlaps with the text color annotation,
-								// determine the combined background color of this range
-								const markerBgColor = styleVariant.resolvedStyleSettings.get(markerBgColorPaths[marker.markerType]) ?? ''
-								const combinedBgColor = onBackground(markerBgColor, lineBgColor)
+								// Determine the final background color of the overlapping range,
+								// which is the line background color that may be overlapped by
+								// an inline marker color
+								const inlineMarkerBgColor = (marker.inlineRange && styleVariant.resolvedStyleSettings.get(markerBgColorPaths[marker.markerType])) || 'transparent'
+								const combinedBgColor = onBackground(inlineMarkerBgColor, lineBgColor)
 								// Now ensure a good contrast ratio of the text
 								const readableTextColor = ensureColorContrastOnBackground(textFgColor, combinedBgColor, config.minSyntaxHighlightingColorContrast)
 								if (readableTextColor.toLowerCase() === textFgColor.toLowerCase()) return

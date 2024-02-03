@@ -8,6 +8,8 @@ import { getCoreBaseStyles, getCoreThemeStyles } from '../internal/core-styles'
 import { StyleVariant, resolveStyleVariants } from './style-variants'
 import { StyleOverrides, StyleSettingPath, getCssVarName } from './style-settings'
 import { ExpressiveCodeLogger, ExpressiveCodeLoggerOptions } from './logger'
+import { resolveStyleSettings } from '../internal/style-resolving'
+import { getFirstStaticColor } from '../helpers/color-transforms'
 
 export interface ExpressiveCodeEngineConfig {
 	/**
@@ -217,12 +219,22 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 		this.logger = new ExpressiveCodeLogger(config.logger)
 
 		// Allow customizing the loaded themes
-		this.themes = this.themes.map((theme) => {
+		this.themes = this.themes.map((theme, styleVariantIndex) => {
 			if (this.customizeTheme) {
 				theme = this.customizeTheme(theme) ?? theme
 			}
 			if (this.minSyntaxHighlightingColorContrast > 0) {
-				theme.ensureMinSyntaxHighlightingColorContrast(this.minSyntaxHighlightingColorContrast)
+				// Do a first pass of resolving style settings so we can determine
+				// the code background color after applying potential overrides
+				const themeStyleSettings = resolveStyleSettings({
+					theme,
+					styleVariantIndex,
+					plugins: this.plugins,
+					styleOverrides: this.styleOverrides,
+				})
+				// Use the code background color when ensuring contrast
+				const codeBg = getFirstStaticColor(themeStyleSettings.get('codeBackground'))
+				theme.ensureMinSyntaxHighlightingColorContrast(this.minSyntaxHighlightingColorContrast, codeBg)
 			}
 			return theme
 		})

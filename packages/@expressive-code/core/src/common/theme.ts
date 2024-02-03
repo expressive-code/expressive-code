@@ -118,14 +118,29 @@ export class ExpressiveCodeTheme implements Omit<ThemeRegistration, 'type' | 'co
 	 *
 	 * The default value of 5.5 ensures optimal accessibility with a contrast ratio of 5.5:1.
 	 *
+	 * You can optionally pass a custom background color to use for the contrast checks.
+	 * By default, the theme's background color will be used.
+	 *
 	 * Returns the same `ExpressiveCodeTheme` instance to allow chaining.
 	 */
-	ensureMinSyntaxHighlightingColorContrast(minContrast = 5.5) {
+	ensureMinSyntaxHighlightingColorContrast(minContrast = 5.5, backgroundColor?: string) {
+		const fixedContrastCache = new Map<string, string>()
+		const fixContrast = (color: string) => {
+			const cachedResult = fixedContrastCache.get(color)
+			if (cachedResult) return cachedResult
+			const newColor = ensureColorContrastOnBackground(color, backgroundColor || this.bg, minContrast)
+			fixedContrastCache.set(color, newColor)
+			return newColor
+		}
+
+		// Fix contrast of plain text
+		this.colors['editor.foreground'] = fixContrast(this.colors['editor.foreground'])
+		this.fg = fixContrast(this.colors['editor.foreground'])
+
+		// Fix contrast of token colors
 		this.settings.forEach((s) => {
 			if (!s.settings.foreground) return
-			const newColor = ensureColorContrastOnBackground(s.settings.foreground, this.bg, minContrast)
-			if (newColor === s.settings.foreground) return
-			s.settings.foreground = newColor
+			s.settings.foreground = fixContrast(s.settings.foreground)
 		})
 
 		return this
