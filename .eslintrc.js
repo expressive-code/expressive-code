@@ -5,7 +5,7 @@ module.exports = {
     browser: true,
   },
   extends: ['eslint:recommended', 'plugin:prettier/recommended'],
-  plugins: ['prettier'],
+  plugins: ['prettier', 'no-only-tests'],
   parserOptions: {
     ecmaVersion: 'latest',
     sourceType: 'module',
@@ -14,7 +14,8 @@ module.exports = {
   },
   rules: {
     'prettier/prettier': 'warn',
-    'no-console': 'off',
+    'no-console': 'warn',
+    'no-only-tests/no-only-tests': 'warn',
     'no-mixed-spaces-and-tabs': ['warn', 'smart-tabs'],
     'no-trailing-spaces': ['warn', { skipBlankLines: true, ignoreComments: true }],
     'no-empty': 'warn',

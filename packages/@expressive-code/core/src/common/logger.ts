@@ -19,6 +19,7 @@ export class ExpressiveCodeLogger implements ExpressiveCodeLoggerOptions {
 		if (this.logger.debug) {
 			this.logger.debug(message)
 		} else {
+			// eslint-disable-next-line no-console
 			console.debug(`[${this.label}] ${message}`)
 		}
 	}
@@ -26,6 +27,7 @@ export class ExpressiveCodeLogger implements ExpressiveCodeLoggerOptions {
 		if (this.logger.info) {
 			this.logger.info(message)
 		} else {
+			// eslint-disable-next-line no-console
 			console.info(`[${this.label}] ${message}`)
 		}
 	}
@@ -33,6 +35,7 @@ export class ExpressiveCodeLogger implements ExpressiveCodeLoggerOptions {
 		if (this.logger.warn) {
 			this.logger.warn(message)
 		} else {
+			// eslint-disable-next-line no-console
 			console.warn(`[${this.label}] ${message}`)
 		}
 	}
@@ -40,6 +43,7 @@ export class ExpressiveCodeLogger implements ExpressiveCodeLoggerOptions {
 		if (this.logger.error) {
 			this.logger.error(message)
 		} else {
+			// eslint-disable-next-line no-console
 			console.error(`[${this.label}] ${message}`)
 		}
 	}
