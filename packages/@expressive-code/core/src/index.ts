@@ -1,6 +1,7 @@
 export * from './common/annotation'
 export * from './common/block'
 export * from './common/engine'
+export * from './common/gutter'
 export * from './common/line'
 export * from './common/plugin-data'
 export * from './common/plugin-hooks'

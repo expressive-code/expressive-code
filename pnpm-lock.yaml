@@ -145,6 +145,9 @@ importers:
       '@types/node':
         specifier: ^18.15.11
         version: 18.15.11
+      hast-util-from-html:
+        specifier: '1'
+        version: 1.0.2
       hast-util-select:
         specifier: ^5.0.5
         version: 5.0.5
@@ -428,6 +431,9 @@ importers:
         specifier: ^4.1.2
         version: 4.1.2
     devDependencies:
+      '@internal/test-utils':
+        specifier: workspace:^
+        version: link:../../internal/test-utils
       '@types/mdast':
         specifier: ^3.0.11
         version: 3.0.11
@@ -4680,6 +4686,16 @@ packages:
     engines: {node: '>= 0.4'}
     dependencies:
       function-bind: 1.1.2
+
+  /hast-util-from-html@1.0.2:
+    resolution: {integrity: sha512-LhrTA2gfCbLOGJq2u/asp4kwuG0y6NhWTXiPKP+n0qNukKy7hc10whqqCFfyvIA1Q5U5d0sp9HhNim9gglEH4A==}
+    dependencies:
+      '@types/hast': 2.3.4
+      hast-util-from-parse5: 7.1.2
+      parse5: 7.1.2
+      vfile: 5.3.7
+      vfile-message: 3.1.4
+    dev: true
 
   /hast-util-from-html@2.0.1:
     resolution: {integrity: sha512-RXQBLMl9kjKVNkJTIO6bZyb2n+cUH8LFaSSzo82jiLT6Tfc+Pt7VQCS+/h3YwG4jaNE2TA2sdJisGWR+aJrp0g==}

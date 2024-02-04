@@ -1,9 +1,11 @@
 import { Parent } from 'hast-util-to-html/lib/types'
 import { h } from 'hastscript'
 import { ExpressiveCodeLine } from '../common/line'
-import { annotationSortFn, ExpressiveCodeAnnotation } from '../common/annotation'
+import { AnnotationRenderPhase, AnnotationRenderPhaseOrder, ExpressiveCodeAnnotation } from '../common/annotation'
 import { codeLineClass } from '../common/style-settings'
-import { ResolverContext } from '../common/plugin'
+import { ExpressiveCodeHookContextBase } from '../common/plugin-hooks'
+import { GutterElement } from '../common/gutter'
+import { isHastParent } from './type-checks'
 
 export function splitLineAtAnnotationBoundaries(line: ExpressiveCodeLine) {
 	const textParts: string[] = []
@@ -54,7 +56,7 @@ export function splitLineAtAnnotationBoundaries(line: ExpressiveCodeLine) {
 	}
 }
 
-export function renderLineToAst({ line, ...restContext }: ResolverContext & { line: ExpressiveCodeLine }) {
+export function renderLineToAst({ line, gutterElements, ...restContext }: ExpressiveCodeHookContextBase & { line: ExpressiveCodeLine; gutterElements: PluginGutterElement[] }) {
 	// Flatten intersecting annotations by splitting the line text into non-intersecting parts
 	// and mapping annotations to the contained parts
 	const { textParts, partIndicesByAnnotation } = splitLineAtAnnotationBoundaries(line)
@@ -63,7 +65,7 @@ export function renderLineToAst({ line, ...restContext }: ResolverContext & { li
 	const partNodes: Parent[] = textParts.map((textPart) => h(null, [textPart]))
 
 	// Sort all annotations based on their render phase
-	const annotations = [...line.getAnnotations()].sort(annotationSortFn)
+	const annotations = [...line.getAnnotations()].sort(renderPhaseSortFn)
 
 	// Render inline annotations
 	annotations.forEach((annotation, annotationIndex) => {
@@ -133,13 +135,32 @@ export function renderLineToAst({ line, ...restContext }: ResolverContext & { li
 		})
 	})
 
-	// If the line does not contain any nodes at this point,
-	// insert a line break to ensure the empty line gets rendered
-	// by browsers (otherwise it would be invisible)
-	if (partNodes.length === 0) partNodes.push(h(null, '\n'))
+	// Sort gutter elements by their render phase and render them
+	const sortedGutterElements = [...gutterElements].sort((a, b) => renderPhaseSortFn(a.gutterElement, b.gutterElement))
+	const renderedGutterElements = sortedGutterElements.map(({ pluginName, gutterElement }) => {
+		try {
+			const node = gutterElement.renderLine({ ...restContext, line })
+			if (!isHastParent(node)) throw new Error(`renderLine function did not return a valid HAST parent node: ${JSON.stringify(node)}`)
+			return node
+		} catch (error) {
+			/* c8 ignore next */
+			const msg = error instanceof Error ? error.message : (error as string)
+			throw new Error(`Plugin "${pluginName}" failed to render a gutter element. Error message: ${msg}`, { cause: error })
+		}
+	})
 
-	// Now create a line node that contains all rendered part nodes
-	let lineNode: Parent = h(`div.${codeLineClass}`, partNodes)
+	// Create a line node for all rendered parts
+	let lineNode: Parent = h(`div.${codeLineClass}`)
+
+	// If we have any gutter elements, wrap a gutter container around the elements
+	// and add it to the line's nodes
+	if (renderedGutterElements.length) {
+		lineNode.children.push(h('div.gutter', renderedGutterElements))
+	}
+
+	// Now also wrap the code in a container and add it to the line's nodes
+	// (in case the line is empty, insert a line break to ensure it still gets rendered)
+	lineNode.children.push(h('div.code', partNodes.length > 0 ? partNodes : h(null, '\n')))
 
 	// Render line-level annotations
 	annotations.forEach((annotation) => {
@@ -152,6 +173,12 @@ export function renderLineToAst({ line, ...restContext }: ResolverContext & { li
 	return lineNode
 }
 
+function renderPhaseSortFn(a: { renderPhase?: AnnotationRenderPhase | undefined }, b: { renderPhase?: AnnotationRenderPhase | undefined }) {
+	const indexA = AnnotationRenderPhaseOrder.indexOf(a.renderPhase || 'normal')
+	const indexB = AnnotationRenderPhaseOrder.indexOf(b.renderPhase || 'normal')
+	return indexA - indexB
+}
+
 function validateAnnotationRenderOutput(nodes: Parent[], expectedLength: number) {
 	if (!Array.isArray(nodes) || nodes.length !== expectedLength)
 		throw new Error(`Expected annotation render function to return an array of ${expectedLength} node(s), but got ${JSON.stringify(nodes)}.`)
@@ -159,3 +186,5 @@ function validateAnnotationRenderOutput(nodes: Parent[], expectedLength: number)
 		if (!node || !node.type) throw new Error(`Annotation render function returned an invalid node at index ${nodeIndex}: ${JSON.stringify(node)}`)
 	})
 }
+
+export type PluginGutterElement = { pluginName: string; gutterElement: GutterElement }

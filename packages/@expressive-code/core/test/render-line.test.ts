@@ -175,12 +175,12 @@ describe('renderLineToAst()', () => {
 		test('Line starting with an annotation', () => {
 			const line = new ExpressiveCodeLine(testText)
 			annotateMatchingTextParts({ line, partsToAnnotate: ['Wow'] })
-			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}"><0>Wow</0>, I am rendered!</div>`)
+			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}"><div class="code"><0>Wow</0>, I am rendered!</div></div>`)
 		})
 		test('Line ending with an annotation', () => {
 			const line = new ExpressiveCodeLine(testText)
 			annotateMatchingTextParts({ line, partsToAnnotate: ['rendered!'] })
-			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}">Wow, I am <0>rendered!</0></div>`)
+			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}"><div class="code">Wow, I am <0>rendered!</0></div></div>`)
 		})
 	})
 
@@ -188,13 +188,13 @@ describe('renderLineToAst()', () => {
 		test('Single line-level annotation', () => {
 			const line = new ExpressiveCodeLine(testText)
 			line.addAnnotation(new ClassNameAnnotation({ addClass: 'del' }))
-			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass} del">Wow, I am rendered!</div>`)
+			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass} del"><div class="code">Wow, I am rendered!</div></div>`)
 		})
 		test('Multiple line-level annotations', () => {
 			const line = new ExpressiveCodeLine(testText)
 			line.addAnnotation(new ClassNameAnnotation({ addClass: 'del' }))
 			line.addAnnotation(new ClassNameAnnotation({ addClass: 'mark' }))
-			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass} del mark">Wow, I am rendered!</div>`)
+			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass} del mark"><div class="code">Wow, I am rendered!</div></div>`)
 		})
 	})
 
@@ -203,14 +203,14 @@ describe('renderLineToAst()', () => {
 		line.addAnnotation(new ClassNameAnnotation({ addClass: 'del' }))
 		annotateMatchingTextParts({ line, partsToAnnotate: ['rendered', 'I am rendered!'] })
 		line.addAnnotation(new ClassNameAnnotation({ addClass: 'mark' }))
-		expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass} del mark">Wow, <2>I am <1>rendered</1>!</2></div>`)
+		expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass} del mark"><div class="code">Wow, <2>I am <1>rendered</1>!</2></div></div>`)
 	})
 
 	describe('Multiple non-intersecting annotations', () => {
 		test('Line starting and ending with an annotation', () => {
 			const line = new ExpressiveCodeLine(testText)
 			annotateMatchingTextParts({ line, partsToAnnotate: ['Wow', 'rendered!'] })
-			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}"><0>Wow</0>, I am <1>rendered!</1></div>`)
+			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}"><div class="code"><0>Wow</0>, I am <1>rendered!</1></div></div>`)
 		})
 	})
 
@@ -218,39 +218,39 @@ describe('renderLineToAst()', () => {
 		test('Two annotations with matching boundaries', () => {
 			const line = new ExpressiveCodeLine(testText)
 			annotateMatchingTextParts({ line, partsToAnnotate: ['rendered', 'rendered'] })
-			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}">Wow, I am <1><0>rendered</0></1>!</div>`)
+			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}"><div class="code">Wow, I am <1><0>rendered</0></1>!</div></div>`)
 		})
 		test('Two annotations where the second is fully contained in the first', () => {
 			const line = new ExpressiveCodeLine(testText)
 			annotateMatchingTextParts({ line, partsToAnnotate: ['I am rendered', 'am'] })
-			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}">Wow, <0>I </0><1><0>am</0></1><0> rendered</0>!</div>`)
+			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}"><div class="code">Wow, <0>I </0><1><0>am</0></1><0> rendered</0>!</div></div>`)
 		})
 		test('Two annotations where the first is fully contained in the second', () => {
 			const line = new ExpressiveCodeLine(testText)
 			annotateMatchingTextParts({ line, partsToAnnotate: ['am', 'I am rendered'] })
-			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}">Wow, <1>I <0>am</0> rendered</1>!</div>`)
+			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}"><div class="code">Wow, <1>I <0>am</0> rendered</1>!</div></div>`)
 		})
 		test('Two partially intersecting annotations', () => {
 			const line = new ExpressiveCodeLine(testText)
 			annotateMatchingTextParts({ line, partsToAnnotate: ['Wow, I am', 'I am rendered!'] })
-			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}"><0>Wow, </0><1><0>I am</0> rendered!</1></div>`)
+			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}"><div class="code"><0>Wow, </0><1><0>I am</0> rendered!</1></div></div>`)
 		})
 		test('Three annotations where part indices must move after merging', () => {
 			const line = new ExpressiveCodeLine(testText)
 			annotateMatchingTextParts({ line, partsToAnnotate: ['am', 'I am rendered', '!'] })
-			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}">Wow, <1>I <0>am</0> rendered</1><2>!</2></div>`)
+			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}"><div class="code">Wow, <1>I <0>am</0> rendered</1><2>!</2></div></div>`)
 		})
 	})
 
 	describe('Ensures that empty lines are visible', () => {
 		test('Empty lines are rendered with a line break inside', () => {
 			const line = new ExpressiveCodeLine('')
-			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}">\n</div>`)
+			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}"><div class="code">\n</div></div>`)
 		})
 		test('Empty lines also work with line-level annotations', () => {
 			const line = new ExpressiveCodeLine('')
 			line.addAnnotation(new ClassNameAnnotation({ addClass: 'del' }))
-			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass} del">\n</div>`)
+			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass} del"><div class="code">\n</div></div>`)
 		})
 	})
 
@@ -259,13 +259,13 @@ describe('renderLineToAst()', () => {
 			const line = new ExpressiveCodeLine(testText)
 			annotateMatchingTextParts({ line, partsToAnnotate: ['I am rendered'], renderPhase: 'latest' })
 			annotateMatchingTextParts({ line, partsToAnnotate: ['am'] })
-			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}">Wow, <0>I <1>am</1> rendered</0>!</div>`)
+			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}"><div class="code">Wow, <0>I <1>am</1> rendered</0>!</div></div>`)
 		})
 		test('Annotation #0 with phase "normal" is rendered after #1 with "earlier"', () => {
 			const line = new ExpressiveCodeLine(testText)
 			annotateMatchingTextParts({ line, partsToAnnotate: ['I am rendered'] })
 			annotateMatchingTextParts({ line, partsToAnnotate: ['am'], renderPhase: 'earlier' })
-			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}">Wow, <0>I <1>am</1> rendered</0>!</div>`)
+			expect(renderLineToHtml(line)).toEqual(`<div class="${codeLineClass}"><div class="code">Wow, <0>I <1>am</1> rendered</0>!</div></div>`)
 		})
 	})
 })
@@ -306,7 +306,12 @@ function renderLineToHtml(line: ExpressiveCodeLine) {
 function renderLineToAstWrapper(line: ExpressiveCodeLine) {
 	return renderLineToAst({
 		line,
-		// Add mock values for all other context properties
+		gutterElements: [],
+		// @ts-expect-error Mock values for testing
+		codeBlock: {},
+		locale: 'en-US',
+		// @ts-expect-error Mock values for testing
+		config: {},
 		cssVar: () => '',
 		cssVarName: () => '',
 		styleVariants: [],

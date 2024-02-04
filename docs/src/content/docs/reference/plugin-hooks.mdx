@@ -138,6 +138,22 @@ It provides access to theme-dependent CSS variables, all resolved style variants
 
 #### Properties
 
+##### addGutterElement
+
+<PropertySignature>
+- Type: (`element`) => `void`
+</PropertySignature>
+
+Registers a gutter element for the current code block.
+
+The engine calls the `renderLine` function of the gutter elements registered by all plugins for every line of the code block. The returned elements are then added as children to the line's gutter container.
+
+###### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `element` | `GutterElement` |
+
 ##### addStyles
 
 <PropertySignature>

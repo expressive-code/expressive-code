@@ -20,12 +20,6 @@ export type AnnotationRenderPhase = 'earliest' | 'earlier' | 'normal' | 'later' 
 /* c8 ignore next */
 export const AnnotationRenderPhaseOrder: AnnotationRenderPhase[] = ['earliest', 'earlier', 'normal', 'later', 'latest']
 
-export function annotationSortFn(a: ExpressiveCodeAnnotation, b: ExpressiveCodeAnnotation) {
-	const indexA = AnnotationRenderPhaseOrder.indexOf(a.renderPhase || 'normal')
-	const indexB = AnnotationRenderPhaseOrder.indexOf(b.renderPhase || 'normal')
-	return indexA - indexB
-}
-
 export type AnnotationBaseOptions = { inlineRange?: ExpressiveCodeInlineRange | undefined; renderPhase?: AnnotationRenderPhase | undefined }
 
 /**

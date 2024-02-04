@@ -1,13 +1,12 @@
 import { Element } from 'hast-util-to-html/lib/types'
 import { h } from 'hastscript'
-import { ExpressiveCodeBlock } from '../common/block'
-import { ExpressiveCodePlugin, ResolverContext } from '../common/plugin'
-import { ExpressiveCodeHookContext, ExpressiveCodePluginHooks_BeforeRendering, runHooks } from '../common/plugin-hooks'
+import { ExpressiveCodePlugin } from '../common/plugin'
+import { ExpressiveCodeHookContext, ExpressiveCodeHookContextBase, ExpressiveCodePluginHooks_BeforeRendering, runHooks } from '../common/plugin-hooks'
 import { PluginStyles } from './css'
-import { GroupContents } from './render-group'
-import { renderLineToAst } from './render-line'
+import { PluginGutterElement, renderLineToAst } from './render-line'
 import { isBoolean, isHastElement, isHastParent, newTypeError } from './type-checks'
-import { ResolvedExpressiveCodeEngineConfig } from '../common/engine'
+import { GutterElement } from '../common/gutter'
+import { AnnotationRenderPhaseOrder } from '../common/annotation'
 
 export async function renderBlock({
 	codeBlock,
@@ -19,12 +18,8 @@ export async function renderBlock({
 	cssVarName,
 	styleVariants,
 }: {
-	codeBlock: ExpressiveCodeBlock
-	groupContents: GroupContents
-	locale: string
-	config: ResolvedExpressiveCodeEngineConfig
 	plugins: readonly ExpressiveCodePlugin[]
-} & ResolverContext) {
+} & ExpressiveCodeHookContextBase) {
 	const state: ExpressiveCodeProcessingState = {
 		canEditAnnotations: true,
 		canEditCode: true,
@@ -33,8 +28,9 @@ export async function renderBlock({
 	codeBlock.state = state
 
 	const blockStyles: PluginStyles[] = []
+	const gutterElements: PluginGutterElement[] = []
 
-	const baseContext: Omit<ExpressiveCodeHookContext, 'addStyles'> = {
+	const baseContext: Omit<ExpressiveCodeHookContext, 'addStyles' | 'addGutterElement'> = {
 		codeBlock,
 		groupContents,
 		locale,
@@ -49,6 +45,13 @@ export async function renderBlock({
 			await hookFn({
 				...baseContext,
 				addStyles: (styles: string) => blockStyles.push({ pluginName: plugin.name, styles }),
+				addGutterElement: (gutterElement: GutterElement) => {
+					if (!gutterElement || typeof gutterElement !== 'object') throw newTypeError('object', gutterElement, 'gutterElement')
+					if (typeof gutterElement.renderLine !== 'function') throw newTypeError('"function" type', typeof gutterElement.renderLine, 'gutterElement.renderLine')
+					if (gutterElement.renderPhase && AnnotationRenderPhaseOrder.indexOf(gutterElement.renderPhase) === -1)
+						throw newTypeError('AnnotationRenderPhase', gutterElement.renderPhase, 'gutterElement.renderPhase')
+					gutterElements.push({ pluginName: plugin.name, gutterElement })
+				},
 			})
 		})
 	}
@@ -78,7 +81,7 @@ export async function renderBlock({
 		// Render the current line to an AST and wrap it in an object that can be passed
 		// through all hooks, allowing plugins to edit or completely replace the AST
 		const lineRenderData = {
-			lineAst: renderLineToAst({ line, ...baseContext }),
+			lineAst: renderLineToAst({ line, gutterElements, ...baseContext }),
 		}
 		// Allow plugins to modify or even completely replace the AST
 		await runHooks('postprocessRenderedLine', plugins, async ({ hookFn, plugin }) => {

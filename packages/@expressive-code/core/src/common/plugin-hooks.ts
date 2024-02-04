@@ -5,8 +5,9 @@ import { ExpressiveCodeBlock } from './block'
 import { ExpressiveCodeLine } from './line'
 import { ExpressiveCodePlugin, ResolverContext } from './plugin'
 import { ResolvedExpressiveCodeEngineConfig } from './engine'
+import { GutterElement } from './gutter'
 
-export interface ExpressiveCodeHookContext extends ResolverContext {
+export interface ExpressiveCodeHookContextBase extends ResolverContext {
 	codeBlock: ExpressiveCodeBlock
 	groupContents: GroupContents
 	locale: string
@@ -15,6 +16,9 @@ export interface ExpressiveCodeHookContext extends ResolverContext {
 	 * resolved to their default values.
 	 */
 	config: ResolvedExpressiveCodeEngineConfig
+}
+
+export interface ExpressiveCodeHookContext extends ExpressiveCodeHookContextBase {
 	/**
 	 * Adds CSS styles to the document that contains the rendered code.
 	 *
@@ -37,6 +41,14 @@ export interface ExpressiveCodeHookContext extends ResolverContext {
 	 * to optionally extract these styles into a separate CSS file.
 	 */
 	addStyles: (css: string) => void
+	/**
+	 * Registers a gutter element for the current code block.
+	 *
+	 * The engine calls the {@link GutterElement.renderLine `renderLine`} function
+	 * of the gutter elements registered by all plugins for every line of the code block.
+	 * The returned elements are then added as children to the line's gutter container.
+	 */
+	addGutterElement: (element: GutterElement) => void
 }
 
 /**
@@ -46,7 +58,7 @@ export interface ExpressiveCodeHookContext extends ResolverContext {
  * it provides access to information about the line currently being rendered,
  * and allows modifying the rendered output.
  */
-export interface PostprocessRenderedLineContext extends ExpressiveCodeHookContext {
+export interface PostprocessRenderedLineContext extends Omit<ExpressiveCodeHookContext, 'addGutterElement'> {
 	/**
 	 * A reference to the line that is currently being rendered. It is read-only at this point,
 	 * but you can access all line properties, including its source code and annotations.
@@ -82,7 +94,7 @@ export interface PostprocessRenderedLineContext extends ExpressiveCodeHookContex
  * it provides access to render data of the code block currently being rendered,
  * and allows modifying the rendered output.
  */
-export interface PostprocessRenderedBlockContext extends ExpressiveCodeHookContext {
+export interface PostprocessRenderedBlockContext extends Omit<ExpressiveCodeHookContext, 'addGutterElement'> {
 	/**
 	 * Allows modifying the block's rendered output. The `blockAst` property of this object contains
 	 * the [Hypertext Abstract Syntax Tree (HAST)](https://github.com/syntax-tree/hast) node
