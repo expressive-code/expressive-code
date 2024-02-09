@@ -1,6 +1,6 @@
-import { getGroupIndicesFromRegExpMatch } from '@expressive-code/core'
-import { MarkerType, MarkerTypeOrder } from './marker-types'
 import { PluginTextMarkersData } from '.'
+import { MarkerType, MarkerTypeOrder } from './marker-types'
+import { getGroupIndicesFromRegExpMatch } from './utils'
 
 export type InlineMarkerRange = { markerType: MarkerType; start: number; end: number }
 
