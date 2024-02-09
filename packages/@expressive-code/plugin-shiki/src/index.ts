@@ -125,7 +125,7 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 }
 
 function isTerminalLanguage(language: string) {
-	return ['shellscript', 'shell', 'bash', 'sh', 'zsh'].includes(language)
+	return ['shellscript', 'shell', 'bash', 'sh', 'zsh', 'nu'].includes(language)
 }
 
 /**

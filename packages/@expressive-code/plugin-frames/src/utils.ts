@@ -25,7 +25,7 @@ export function frameTypeFromString(input: string) {
 
 export const LanguageGroups = {
 	code: ['astro', 'cjs', 'htm', 'html', 'js', 'jsx', 'mjs', 'svelte', 'ts', 'tsx', 'typescript', 'vb', 'vue', 'vue-html'],
-	terminal: ['ansi', 'bash', 'bat', 'batch', 'cmd', 'console', 'powershell', 'ps', 'ps1', 'psd1', 'psm1', 'sh', 'shell', 'shellscript', 'shellsession', 'zsh'],
+	terminal: ['ansi', 'bash', 'bat', 'batch', 'cmd', 'console', 'nu', 'powershell', 'ps', 'ps1', 'psd1', 'psm1', 'sh', 'shell', 'shellscript', 'shellsession', 'zsh'],
 	data: ['csv', 'env', 'ini', 'json', 'toml', 'xml', 'yaml', 'yml'],
 	styles: ['css', 'less', 'sass', 'scss', 'styl', 'stylus', 'xsl'],
 	textContent: ['markdown', 'md', 'mdx'],
