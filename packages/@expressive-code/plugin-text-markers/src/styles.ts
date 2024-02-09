@@ -33,7 +33,7 @@ export interface TextMarkersStyleSettings {
 	/**
 	 * The margin between the code block border and the diff indicator (e.g. `+` or `-`)
 	 * displayed on the left side of a full-line text marker.
-	 * @default '0.5rem'
+	 * @default '0.3rem'
 	 */
 	lineDiffIndicatorMarginLeft: string
 	/**
@@ -190,7 +190,7 @@ export const textMarkersStyleSettings = new PluginStyleSettings({
 			lineMarkerAccentWidth: '0.15rem',
 			lineMarkerLabelPaddingInline: '0.2rem',
 			lineMarkerLabelColor: 'white',
-			lineDiffIndicatorMarginLeft: '0.5rem',
+			lineDiffIndicatorMarginLeft: '0.3rem',
 			inlineMarkerBorderWidth: '1.5px',
 			inlineMarkerBorderRadius: '0.2rem',
 			inlineMarkerPadding: '0.15rem',
@@ -242,43 +242,54 @@ export function getTextMarkersBaseStyles({ cssVar }: ResolverContext) {
 			/* Support line-level mark/ins/del */
 			&.mark {
 				--tmLineBgCol: ${cssVar('textMarkers.markBackground')};
-				--tmLineBrdCol: ${cssVar('textMarkers.markBorderColor')};
+				& .code {
+					--ecLineBrdCol: ${cssVar('textMarkers.markBorderColor')};
+				}
 			}
 			&.ins {
 				--tmLineBgCol: ${cssVar('textMarkers.insBackground')};
-				--tmLineBrdCol: ${cssVar('textMarkers.insBorderColor')};
-				&::before {
-					content: ${cssVar('textMarkers.insDiffIndicatorContent')};
-					color: ${cssVar('textMarkers.insDiffIndicatorColor')};
+				--tmLabel: ${cssVar('textMarkers.insDiffIndicatorContent')};
+				& .code {
+					--ecLineBrdCol: ${cssVar('textMarkers.insBorderColor')};
+					&::before {
+						color: ${cssVar('textMarkers.insDiffIndicatorColor')};
+					}
 				}
 			}
 			&.del {
 				--tmLineBgCol: ${cssVar('textMarkers.delBackground')};
-				--tmLineBrdCol: ${cssVar('textMarkers.delBorderColor')};
-				&::before {
-					content: ${cssVar('textMarkers.delDiffIndicatorContent')};
-					color: ${cssVar('textMarkers.delDiffIndicatorColor')};
+				--tmLabel: ${cssVar('textMarkers.delDiffIndicatorContent')};
+				& .code {
+					--ecLineBrdCol: ${cssVar('textMarkers.delBorderColor')};
+					&::before {
+						color: ${cssVar('textMarkers.delDiffIndicatorColor')};
+					}
 				}
 			}
 			&.mark,
 			&.ins,
 			&.del {
-				position: relative;
 				background: var(--tmLineBgCol);
-				min-width: calc(100% - ${cssVar('textMarkers.lineMarkerAccentMargin')});
-				margin-inline-start: ${cssVar('textMarkers.lineMarkerAccentMargin')};
-				border-inline-start: ${cssVar('textMarkers.lineMarkerAccentWidth')} solid var(--tmLineBrdCol);
-				padding-inline-start: calc(${cssVar('codePaddingInline')} - ${cssVar('textMarkers.lineMarkerAccentMargin')} - ${cssVar('textMarkers.lineMarkerAccentWidth')}) !important;
-				&::before {
-					position: absolute;
-					left: ${cssVar('textMarkers.lineDiffIndicatorMarginLeft')};
+
+				& .code {
+					--ecGtrBrdWd: ${cssVar('textMarkers.lineMarkerAccentWidth')};
 				}
-				&[data-marker-label]::before {
-					content: attr(data-marker-label);
-					background: var(--tmLineBrdCol);
+				& .code::before {
+					display: block;
+					position: absolute;
 					left: 0;
-					padding: 0 calc(${cssVar('textMarkers.lineMarkerLabelPaddingInline')} + ${cssVar('textMarkers.lineMarkerAccentWidth')}) 0 ${cssVar('textMarkers.lineMarkerLabelPaddingInline')};
-					color: ${cssVar('textMarkers.lineMarkerLabelColor')};
+					box-sizing: border-box;
+					content: var(--tmLabel, ' ');
+					padding-inline-start: ${cssVar('textMarkers.lineDiffIndicatorMarginLeft')};
+					text-align: center;
+				}
+
+				&.tm-label {
+					& .code::before {
+						background: var(--ecLineBrdCol);
+						padding: 0 calc(${cssVar('textMarkers.lineMarkerLabelPaddingInline')} + ${cssVar('textMarkers.lineMarkerAccentWidth')}) 0 ${cssVar('textMarkers.lineMarkerLabelPaddingInline')};
+						color: ${cssVar('textMarkers.lineMarkerLabelColor')};
+					}
 				}
 			}
 

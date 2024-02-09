@@ -72,6 +72,29 @@ export interface CoreStyleSettings {
 	 */
 	codeSelectionBackground: string
 	/**
+	 * Default color of the border between the gutter and code content,
+	 * unless overwritten by a line-level annotation.
+	 *
+	 * Only visible if a gutter is present (e.g. to display line numbers).
+	 *
+	 * @default
+	 * ({ theme }) => lighten(theme.colors['editor.background'], theme.type === 'dark' ? 0.2 : -0.15)
+	 */
+	gutterBorderColor: string
+	/**
+	 * Width of the border between the gutter and code content.
+	 *
+	 * @default '1.5px'
+	 */
+	gutterBorderWidth: string
+	/**
+	 * Default foreground color of gutter elements.
+	 *
+	 * @default
+	 * ({ theme, resolveSetting }) => ensureColorContrastOnBackground(theme.colors['editorLineNumber.foreground'] || resolveSetting('codeForeground'), resolveSetting('codeBackground'), 3.3, 3.6)
+	 */
+	gutterForeground: string
+	/**
 	 * Font family of UI elements.
 	 * @default "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'"
 	 */
@@ -155,6 +178,11 @@ export const coreStyleSettings = new PluginStyleSettings({
 		codeBackground: ({ theme }) => theme.colors['editor.background'],
 		codeForeground: ({ theme }) => theme.colors['editor.foreground'],
 		codeSelectionBackground: ({ theme }) => theme.colors['editor.selectionBackground'],
+		// Gutter
+		gutterBorderColor: ({ theme }) => lighten(theme.colors['editor.background'], theme.type === 'dark' ? 0.2 : -0.15),
+		gutterBorderWidth: '1.5px',
+		gutterForeground: ({ theme, resolveSetting }) =>
+			ensureColorContrastOnBackground(theme.colors['editorLineNumber.foreground'] || resolveSetting('codeForeground'), resolveSetting('codeBackground'), 3.3, 3.6),
 		// UI elements
 		uiFontFamily: minifyFontFamily(
 			`ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'`
@@ -263,12 +291,50 @@ export function getCoreBaseStyles({
 
 		/* Code lines */
 		.${codeLineClass} {
-			padding-inline: ${cssVar('codePaddingInline')};
-			padding-inline-end: calc(2rem + ${cssVar('codePaddingInline')});
-
 			/* RTL support: Code is always LTR */
 			direction: ltr;
 			unicode-bidi: isolate;
+
+			/* Prepare grid layout for optional gutter */
+			display: grid;
+			grid-template-areas: 'gutter code';
+			grid-template-columns: auto 1fr;
+			position: relative;
+
+			.gutter {
+				grid-area: gutter;
+				color: ${cssVar('gutterForeground')};
+
+				/* Make all gutter elements non-interactive by default */
+				& > * {
+					pointer-events: none;
+					user-select: none;
+					-webkit-user-select: none;
+				}
+
+				/* Apply conditional styles if a gutter is present */
+				& ~ .code {
+					--ecLineBrdCol: ${cssVar('gutterBorderColor')};
+				}
+			}
+
+			.code {
+				grid-area: code;
+				position: relative;
+				padding-inline-start: calc(${cssVar('codePaddingInline')} - var(--ecGtrBrdWd));
+				/* TODO: .-- Decide if 2rem should be adapted to the copy button */
+				padding-inline-end: calc(2rem + ${cssVar('codePaddingInline')});
+
+				&::before,
+				&::after,
+				& :where(*) {
+					text-indent: 0;
+				}
+
+				/* Support a colorful border on the start of the code line */
+				--ecGtrBrdWd: ${cssVar('gutterBorderWidth')};
+				border-inline-start: var(--ecGtrBrdWd) solid var(--ecLineBrdCol, transparent);
+			}
 		}
 
 		/* Common style to hide elements from screen readers */

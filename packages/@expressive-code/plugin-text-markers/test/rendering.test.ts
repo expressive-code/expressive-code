@@ -1,13 +1,14 @@
 import { describe, test, expect } from 'vitest'
-import { selectAll } from 'hast-util-select'
+import { select, selectAll } from 'hast-util-select'
 import { toText } from 'hast-util-to-text'
-import { AnnotationRenderPhase, ExpressiveCodePlugin, InlineStyleAnnotation, getClassNames } from '@expressive-code/core'
+import { h } from 'hastscript'
+import { AnnotationRenderPhase, ExpressiveCodePlugin, GutterRenderContext, InlineStyleAnnotation, getClassNames, getInlineStyles, setInlineStyle } from '@expressive-code/core'
 import { pluginShiki } from '@expressive-code/plugin-shiki'
 import { renderAndOutputHtmlSnapshot, buildThemeFixtures, TestFixture, loadTestThemes, validateColorContrast } from '@internal/test-utils'
 import { pluginTextMarkers } from '../src'
 import { MarkerType, MarkerTypeOrder } from '../src/marker-types'
 import { actualDiff, indentedJsCodeWithDiffMarkers, jsCodeWithDiffMarkers } from './data/diff-examples'
-import { colorContrastTestMeta, colorContrastTestText, inlineMarkerTestText, lineMarkerTestText } from './data/marker-examples'
+import { complexDiffTestMeta, complexDiffTestCode, inlineMarkerTestCode, lineMarkerTestCode } from './data/marker-examples'
 
 describe('Renders text markers', async () => {
 	const themes = await loadTestThemes()
@@ -18,7 +19,7 @@ describe('Renders text markers', async () => {
 				testName,
 				testBaseDir: __dirname,
 				fixtures: buildThemeFixtures(themes, {
-					code: lineMarkerTestText,
+					code: lineMarkerTestCode,
 					meta: `del={5} ins={6-7} mark={1,2}`,
 					plugins: [pluginTextMarkers()],
 					blockValidationFn: buildMarkerValidationFn([
@@ -37,7 +38,7 @@ describe('Renders text markers', async () => {
 				testName,
 				testBaseDir: __dirname,
 				fixtures: buildThemeFixtures(themes, {
-					code: `\n\t\n  \n${lineMarkerTestText}`,
+					code: `\n\t\n  \n${lineMarkerTestCode}`,
 					meta: `del={5} ins={6-7} mark={1,2}`,
 					plugins: [pluginTextMarkers()],
 					blockValidationFn: buildMarkerValidationFn([
@@ -58,7 +59,7 @@ describe('Renders text markers', async () => {
 				testName,
 				testBaseDir: __dirname,
 				fixtures: buildThemeFixtures(themes, {
-					code: inlineMarkerTestText,
+					code: inlineMarkerTestCode,
 					language: 'astro',
 					meta: `title="src/components/GreetingHeadline.astro" mark='= "Hello"' "= \\"Astronaut\\"" del="puny" ins='mighty'`,
 					plugins: [pluginTextMarkers()],
@@ -125,7 +126,7 @@ describe('Renders text markers', async () => {
 				testName,
 				testBaseDir: __dirname,
 				fixtures: buildThemeFixtures(themes, {
-					code: inlineMarkerTestText,
+					code: inlineMarkerTestCode,
 					language: 'astro',
 					// Let's go a little crazy with the markers here to test various edge cases
 					meta: `title="src/components/GreetingHeadline.astro" mark=/{\\w+?}|.props/ ins=/(?<={.*?)= (".*?")(?=.*?})/ del=/= "He.*?\\s|puny/`,
@@ -161,7 +162,7 @@ describe('Renders text markers', async () => {
 					testName,
 					testBaseDir: __dirname,
 					fixtures: buildThemeFixtures(themes, {
-						code: inlineMarkerTestText,
+						code: inlineMarkerTestCode,
 						language: 'astro',
 						meta: `title="src/components/GreetingHeadline.astro" mark='= "Hello"' "= \\"Astronaut\\"" del="puny" ins='mighty'`,
 						plugins: [
@@ -215,7 +216,7 @@ describe('Renders text markers', async () => {
 					testName,
 					testBaseDir: __dirname,
 					fixtures: buildThemeFixtures(themes, {
-						code: inlineMarkerTestText,
+						code: inlineMarkerTestCode,
 						language: 'astro',
 						meta: `title="src/components/GreetingHeadline.astro" mark='= "Hello"' "= \\"Astronaut\\"" del="puny" ins='mighty {name}!'`,
 						plugins: [
@@ -491,7 +492,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 			testName,
 			testBaseDir: __dirname,
 			fixtures: buildThemeFixtures(themes, {
-				code: inlineMarkerTestText,
+				code: inlineMarkerTestCode,
 				language: 'astro',
 				meta: `title="src/components/GreetingHeadline.astro" mark={4} mark='= "Hello"' "= \\"Astronaut\\"" del="puny" ins='mighty'`,
 				plugins: [pluginTextMarkers()],
@@ -509,39 +510,113 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 	test(
 		`Actual example with Shiki highlighting`,
 		async ({ meta: { name: testName } }) => {
+			const validateMarkers = buildMarkerValidationFn([
+				{ fullLine: true, markerType: 'del', text: `layout: ../../layouts/BaseLayout.astro` },
+				// Expect the diff prefix `+` to have been converted to a line-level ins marker
+				{ fullLine: true, markerType: 'ins', text: `publishDate: '21 September 2022'` },
+				{ fullLine: true, markerType: 'ins', text: `import BaseLayout from '../../layouts/BaseLayout.astro';`, label: 'A' },
+				{ fullLine: true, markerType: 'mark', text: `export function fancyJsHelper() {`, label: 'B' },
+				{ fullLine: true, markerType: 'mark', text: `  return "Try doing that with YAML!";` },
+				{ fullLine: true, markerType: 'mark', text: `}` },
+				{ markerType: 'mark', text: `<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>` },
+				{ markerType: 'mark', text: `</BaseLayout>` },
+			])
+
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,
 				fixtures: buildThemeFixtures(themes, {
-					code: `
----
-layout: ../../layouts/BaseLayout.astro
-title: 'My first MDX post'
-+publishDate: '21 September 2022'
----
-import BaseLayout from '../../layouts/BaseLayout.astro';
-
-function fancyJsHelper() {
-  return "Try doing that with YAML!";
-}
-
-<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>
-  Welcome to my new Astro blog, using MDX!
-</BaseLayout>
-					`.trim(),
+					code: complexDiffTestCode,
 					language: 'diff',
-					meta: `lang="mdx" title="src/pages/posts/first-post.mdx" ins={"1":6} mark={"2":8-10} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/`,
+					meta: complexDiffTestMeta,
 					plugins: [pluginTextMarkers(), pluginShiki()],
-					blockValidationFn: buildMarkerValidationFn([
-						{ fullLine: true, markerType: 'del', text: `layout: ../../layouts/BaseLayout.astro` },
-						{ fullLine: true, markerType: 'ins', text: `publishDate: '21 September 2022'` },
-						{ fullLine: true, markerType: 'ins', text: `import BaseLayout from '../../layouts/BaseLayout.astro';`, label: '1' },
-						{ fullLine: true, markerType: 'mark', text: `function fancyJsHelper() {`, label: '2' },
-						{ fullLine: true, markerType: 'mark', text: `  return "Try doing that with YAML!";` },
-						{ fullLine: true, markerType: 'mark', text: `}` },
-						{ markerType: 'mark', text: `<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>` },
-						{ markerType: 'mark', text: `</BaseLayout>` },
-					]),
+					blockValidationFn: (actual) => {
+						// Expect that the correct parts were marked
+						validateMarkers(actual)
+						// Expect that MDX syntax highlighting was applied
+						// due to the `lang="mdx"` meta attribute
+						const matchingElements = selectAll(`span[style]`, actual.renderedGroupAst)
+						const tokenColors = matchingElements.map((highlight) => {
+							const text = toText(highlight)
+							return {
+								text,
+								color: highlight.properties?.style?.toString().match(/--0:(#.*?)(;|$)/)?.[1],
+							}
+						})
+						const getScopeFg = (scope: string) => {
+							for (const setting of themes[0].settings) {
+								if (setting.scope?.includes(scope) && setting.settings.foreground) {
+									return setting.settings.foreground.toLowerCase()
+								}
+							}
+						}
+						const getActualTokenFg = (text: string) => tokenColors.find((token) => token.text === text)?.color?.toLowerCase()
+						const colorTests = [
+							['title', getScopeFg('entity.name.tag')],
+							['My first MDX post', getScopeFg('string')],
+						] as const
+						colorTests.forEach(([text, expectedColor]) => {
+							expect(getActualTokenFg(text), `Frontmatter tag \`${text}\` does not have the expected color`).toEqual(expectedColor)
+						})
+					},
+				}),
+			})
+		},
+		{ timeout: 5 * 1000 }
+	)
+
+	test(
+		`Actual example with Shiki and gutter`,
+		async ({ meta: { name: testName } }) => {
+			const validateMarkers = buildMarkerValidationFn([
+				{ fullLine: true, markerType: 'del', text: `layout: ../../layouts/BaseLayout.astro` },
+				// Expect the diff prefix `+` to have been converted to a line-level ins marker
+				{ fullLine: true, markerType: 'ins', text: `publishDate: '21 September 2022'` },
+				{ fullLine: true, markerType: 'ins', text: `import BaseLayout from '../../layouts/BaseLayout.astro';`, label: 'A' },
+				{ fullLine: true, markerType: 'mark', text: `export function fancyJsHelper() {`, label: 'B' },
+				{ fullLine: true, markerType: 'mark', text: `  return "Try doing that with YAML!";` },
+				{ fullLine: true, markerType: 'mark', text: `}` },
+				{ markerType: 'mark', text: `<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>` },
+				{ markerType: 'mark', text: `</BaseLayout>` },
+			])
+
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code: complexDiffTestCode,
+					language: 'diff',
+					meta: complexDiffTestMeta,
+					plugins: [pluginLineNumbers(), pluginTextMarkers(), pluginShiki()],
+					blockValidationFn: (actual) => {
+						// Expect that the correct parts were marked
+						validateMarkers(actual)
+						// Expect that MDX syntax highlighting was applied
+						// due to the `lang="mdx"` meta attribute
+						const matchingElements = selectAll(`span[style]`, actual.renderedGroupAst)
+						const tokenColors = matchingElements.map((highlight) => {
+							const text = toText(highlight)
+							return {
+								text,
+								color: highlight.properties?.style?.toString().match(/--0:(#.*?)(;|$)/)?.[1],
+							}
+						})
+						const getScopeFg = (scope: string) => {
+							for (const setting of themes[0].settings) {
+								if (setting.scope?.includes(scope) && setting.settings.foreground) {
+									return setting.settings.foreground.toLowerCase()
+								}
+							}
+						}
+						const getActualTokenFg = (text: string) => tokenColors.find((token) => token.text === text)?.color?.toLowerCase()
+						const colorTests = [
+							['title', getScopeFg('entity.name.tag')],
+							['My first MDX post', getScopeFg('string')],
+						] as const
+						colorTests.forEach(([text, expectedColor]) => {
+							expect(getActualTokenFg(text), `Frontmatter tag \`${text}\` does not have the expected color`).toEqual(expectedColor)
+						})
+					},
 				}),
 			})
 		},
@@ -556,9 +631,9 @@ function fancyJsHelper() {
 					testName,
 					testBaseDir: __dirname,
 					fixtures: buildThemeFixtures(themes, {
-						code: colorContrastTestText,
+						code: complexDiffTestCode,
 						language: 'mdx',
-						meta: colorContrastTestMeta,
+						meta: complexDiffTestMeta,
 						plugins: [pluginTextMarkers(), pluginShiki()],
 						blockValidationFn: validateColorContrast,
 					}),
@@ -573,9 +648,9 @@ function fancyJsHelper() {
 					testName,
 					testBaseDir: __dirname,
 					fixtures: buildThemeFixtures(themes, {
-						code: colorContrastTestText,
+						code: complexDiffTestCode,
 						language: 'mdx',
-						meta: colorContrastTestMeta,
+						meta: complexDiffTestMeta,
 						engineOptions: {
 							styleOverrides: {
 								textMarkers: {
@@ -602,9 +677,9 @@ function fancyJsHelper() {
 					testName,
 					testBaseDir: __dirname,
 					fixtures: buildThemeFixtures(themes, {
-						code: colorContrastTestText,
+						code: complexDiffTestCode,
 						language: 'mdx',
-						meta: colorContrastTestMeta,
+						meta: complexDiffTestMeta,
 						engineOptions: {
 							styleOverrides: {
 								codeBackground: '#fff',
@@ -624,9 +699,9 @@ function fancyJsHelper() {
 					testName,
 					testBaseDir: __dirname,
 					fixtures: buildThemeFixtures(themes, {
-						code: colorContrastTestText,
+						code: complexDiffTestCode,
 						language: 'mdx',
-						meta: colorContrastTestMeta,
+						meta: complexDiffTestMeta,
 						engineOptions: {
 							styleOverrides: {
 								// The following combination would not result in proper color contrast
@@ -670,9 +745,9 @@ function fancyJsHelper() {
 					testName,
 					testBaseDir: __dirname,
 					fixtures: buildThemeFixtures(themes, {
-						code: colorContrastTestText,
+						code: complexDiffTestCode,
 						language: 'mdx',
-						meta: colorContrastTestMeta,
+						meta: complexDiffTestMeta,
 						engineOptions: {
 							styleOverrides: {
 								codeBackground: ({ theme }) => (theme.type === 'dark' ? 'var(--black)' : 'var(--white)'),
@@ -714,9 +789,9 @@ function buildMarkerValidationFn(
 		const allMarkersSelector = [...lineMarkerSelectors, ...inlineMarkerSelectors].join(',')
 		const matchingElements = selectAll(allMarkersSelector, renderedGroupAst)
 		const actualMarkers = matchingElements.map((marker) => {
-			let text = toText(marker, { whitespace: 'pre' })
+			let text = toText(select('.code', marker) || marker, { whitespace: 'pre' })
 			if (text === '\n') text = ''
-			const label = marker.properties?.['data-marker-label']?.toString()
+			const label = getInlineStyles(marker).get('--tmLabel')?.replace(/^'|'$/g, '')
 			const classNames = getClassNames(marker)
 			if (MarkerTypeOrder.includes(marker.tagName as MarkerType)) {
 				return {
@@ -749,7 +824,7 @@ function buildMarkerValidationFn(
 
 		// Expect that the correct code was rendered
 		if (expectedCode !== undefined) {
-			const matchingElements = selectAll(`div.ec-line`, renderedGroupAst)
+			const matchingElements = selectAll(`div.ec-line .code`, renderedGroupAst)
 			const actualCode = matchingElements
 				.map((line) => {
 					const text = toText(line, { whitespace: 'pre' })
@@ -787,6 +862,44 @@ function pseudoSyntaxHighlighter(options: { highlights: { text: string; colors: 
 						}
 					})
 				})
+			},
+		},
+	}
+}
+
+function pluginLineNumbers(): ExpressiveCodePlugin {
+	const renderLineNumber = ({ codeBlock, line }: GutterRenderContext) => {
+		const lineIdx = codeBlock.getLines().indexOf(line)
+		return h('div.ln', `${lineIdx + 1}`)
+	}
+	return {
+		name: 'Line numbers',
+		baseStyles: `
+			.gutter .ln {
+				display: inline-flex;
+				position: sticky;
+				position: relative;
+				box-sizing: content-box;
+				min-width: var(--lnWidth, 0ch);
+				padding-inline: 2ch;
+				margin-right: calc(var(--ec-tm-lineMarkerAccentWd) * -1);
+
+				justify-content: flex-end;
+				align-items: flex-start;
+			}
+		`,
+		hooks: {
+			preprocessMetadata: ({ addGutterElement }) => {
+				addGutterElement({
+					renderPhase: 'earlier',
+					renderLine: renderLineNumber,
+				})
+			},
+			postprocessRenderedBlock: ({ codeBlock, renderData }) => {
+				const lineCount = codeBlock.getLines().length
+				const lnWidth = lineCount.toString().length
+				setInlineStyle(renderData.blockAst, '--lnWidth', `${lnWidth}ch`)
+				//addClassName(renderData.blockAst, 'wrap')
 			},
 		},
 	}

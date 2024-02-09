@@ -1,6 +1,5 @@
-import { addClassName, ExpressiveCodeAnnotation, AnnotationBaseOptions, AnnotationRenderOptions, setProperty } from '@expressive-code/core'
+import { addClassName, ExpressiveCodeAnnotation, AnnotationBaseOptions, AnnotationRenderOptions, setProperty, setInlineStyle } from '@expressive-code/core'
 import { h } from 'hastscript'
-import { Element } from 'hast-util-to-html/lib/types'
 import { MarkerType } from './marker-types'
 
 export class TextMarkerAnnotation extends ExpressiveCodeAnnotation {
@@ -22,9 +21,12 @@ export class TextMarkerAnnotation extends ExpressiveCodeAnnotation {
 
 	private renderFullLineMarker({ nodesToTransform }: AnnotationRenderOptions) {
 		return nodesToTransform.map((node) => {
-			addClassName(node as Element, this.markerType)
-			if (this.label) {
-				setProperty(node as Element, 'data-marker-label', this.label)
+			if (node.type === 'element') {
+				addClassName(node, this.markerType)
+				if (this.label) {
+					addClassName(node, 'tm-label')
+					setInlineStyle(node, '--tmLabel', `'${this.label.replace(/'/g, "\\'")}'`)
+				}
 			}
 			return node
 		})
