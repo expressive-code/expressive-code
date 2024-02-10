@@ -32,7 +32,6 @@ const myFavoritePokemon = [/* ... */];
 	.replace(/^\s+/gm, '')
 
 type ExpectedTextMarkerResults = {
-	meta: string
 	annotations?:
 		| {
 				lineMarkings?: { markerType: MarkerType; lines: number[]; label?: string | undefined }[] | undefined
@@ -43,9 +42,8 @@ type ExpectedTextMarkerResults = {
 }
 
 const expectMetaResult = async (input: string, partialExpectedResult: ExpectedTextMarkerResults) => {
-	const { meta, annotations, ...rest } = partialExpectedResult
+	const { annotations, ...rest } = partialExpectedResult
 	const expectedResult = {
-		meta: meta || '',
 		annotations: {
 			lineMarkings: [],
 			plaintextTerms: [],
@@ -88,7 +86,6 @@ const expectMetaResult = async (input: string, partialExpectedResult: ExpectedTe
 	// Build actual data using all collected information
 	const pluginData = pluginTextMarkersData.getOrCreateFor(codeBlock)
 	const actual: ExpectedTextMarkerResults = {
-		meta: codeBlock.meta,
 		annotations: {
 			lineMarkings,
 			plaintextTerms: pluginData?.plaintextTerms,
@@ -108,59 +105,43 @@ const createMarkerRegExp = (input: string) => {
 	}
 }
 
-describe('Leaves unknown contents untouched', () => {
+describe('Ignores unknown options', () => {
 	test('Simple text', async () => {
-		await expectMetaResult('twoslash', {
-			meta: 'twoslash',
-		})
+		await expectMetaResult('twoslash', {})
 	})
 
 	test('Unknown properties in single or double quotes', async () => {
-		await expectMetaResult('yabba="dabba doo!"', {
-			meta: 'yabba="dabba doo!"',
-		})
-
-		await expectMetaResult("multipass='leeloo dallas'", {
-			meta: "multipass='leeloo dallas'",
-		})
+		await expectMetaResult('yabba="dabba doo!"', {})
+		await expectMetaResult("multipass='leeloo dallas'", {})
 	})
 
 	test('Unknown properties in curly braces', async () => {
-		await expectMetaResult('whoops={13}', {
-			meta: 'whoops={13}',
-		})
-
-		await expectMetaResult('nothingToSee={1-99}', {
-			meta: 'nothingToSee={1-99}',
-		})
+		await expectMetaResult('whoops={13}', {})
+		await expectMetaResult('nothingToSee={1-99}', {})
 	})
 })
 
-describe('Extracts known properties', () => {
+describe('Handles known options', () => {
 	test('Line markings in curly braces', async () => {
 		await expectMetaResult('{2-5}', {
-			meta: '',
 			annotations: {
 				lineMarkings: [{ markerType: 'mark', lines: [2, 3, 4, 5] }],
 			},
 		})
 
 		await expectMetaResult('ins={4,10-12}', {
-			meta: '',
 			annotations: {
 				lineMarkings: [{ markerType: 'ins', lines: [4, 10, 11, 12] }],
 			},
 		})
 
 		await expectMetaResult('hello {2-5} world', {
-			meta: 'hello world',
 			annotations: {
 				lineMarkings: [{ markerType: 'mark', lines: [2, 3, 4, 5] }],
 			},
 		})
 
 		await expectMetaResult('twoslash del={1,2,3}', {
-			meta: 'twoslash',
 			annotations: {
 				lineMarkings: [{ markerType: 'del', lines: [1, 2, 3] }],
 			},
@@ -170,14 +151,12 @@ describe('Extracts known properties', () => {
 	describe('Plaintext inline markings in single or double quotes', () => {
 		test('Simple text', async () => {
 			await expectMetaResult('some "double-quoted text"', {
-				meta: 'some',
 				annotations: {
 					plaintextTerms: [{ markerType: 'mark', text: 'double-quoted text' }],
 				},
 			})
 
 			await expectMetaResult("and 'single-quoted text' too", {
-				meta: 'and too',
 				annotations: {
 					plaintextTerms: [{ markerType: 'mark', text: 'single-quoted text' }],
 				},
@@ -186,14 +165,12 @@ describe('Extracts known properties', () => {
 
 		test('Containing quotes of different type', async () => {
 			await expectMetaResult('"double-quoted \'with nested single\'"', {
-				meta: '',
 				annotations: {
 					plaintextTerms: [{ markerType: 'mark', text: "double-quoted 'with nested single'" }],
 				},
 			})
 
 			await expectMetaResult('\'single-quoted "with nested double"\'', {
-				meta: '',
 				annotations: {
 					plaintextTerms: [{ markerType: 'mark', text: 'single-quoted "with nested double"' }],
 				},
@@ -202,14 +179,12 @@ describe('Extracts known properties', () => {
 
 		test('Containing escaped quotes of same type', async () => {
 			await expectMetaResult('"double-quoted \\"with escaped inner double\\""', {
-				meta: '',
 				annotations: {
 					plaintextTerms: [{ markerType: 'mark', text: 'double-quoted "with escaped inner double"' }],
 				},
 			})
 
 			await expectMetaResult("'single-quoted \\'with escaped inner single\\''", {
-				meta: '',
 				annotations: {
 					plaintextTerms: [{ markerType: 'mark', text: "single-quoted 'with escaped inner single'" }],
 				},
@@ -218,14 +193,12 @@ describe('Extracts known properties', () => {
 
 		test('With optional marker type prefixes', async () => {
 			await expectMetaResult('mark="prefixed with mark"', {
-				meta: '',
 				annotations: {
 					plaintextTerms: [{ markerType: 'mark', text: 'prefixed with mark' }],
 				},
 			})
 
 			await expectMetaResult('ins="prefixed with ins"', {
-				meta: '',
 				annotations: {
 					plaintextTerms: [{ markerType: 'ins', text: 'prefixed with ins' }],
 					lineMarkings: [],
@@ -233,7 +206,6 @@ describe('Extracts known properties', () => {
 			})
 
 			await expectMetaResult('del="prefixed with del"', {
-				meta: '',
 				annotations: {
 					plaintextTerms: [{ markerType: 'del', text: 'prefixed with del' }],
 					lineMarkings: [],
@@ -243,7 +215,6 @@ describe('Extracts known properties', () => {
 
 		test('With marker type prefix aliases', async () => {
 			await expectMetaResult('add="prefixed with add"', {
-				meta: '',
 				annotations: {
 					plaintextTerms: [{ markerType: 'ins', text: 'prefixed with add' }],
 					lineMarkings: [],
@@ -251,7 +222,6 @@ describe('Extracts known properties', () => {
 			})
 
 			await expectMetaResult('rem="prefixed with rem"', {
-				meta: '',
 				annotations: {
 					plaintextTerms: [{ markerType: 'del', text: 'prefixed with rem' }],
 					lineMarkings: [],
@@ -261,7 +231,6 @@ describe('Extracts known properties', () => {
 
 		test('With equal signs and nested quotes of different type inside a quoted string', async () => {
 			await expectMetaResult(`ins='= "Hello"'`, {
-				meta: '',
 				annotations: {
 					plaintextTerms: [{ markerType: 'ins', text: '= "Hello"' }],
 				},
@@ -270,7 +239,6 @@ describe('Extracts known properties', () => {
 
 		test('With equal signs and escaped quotes of same type inside a quoted string', async () => {
 			await expectMetaResult('ins="= \\"Astronaut\\""', {
-				meta: '',
 				annotations: {
 					plaintextTerms: [{ markerType: 'ins', text: '= "Astronaut"' }],
 				},
@@ -279,7 +247,6 @@ describe('Extracts known properties', () => {
 
 		test('With everything combined', async () => {
 			await expectMetaResult(`title="src/components/GreetingHeadline.astro" ins='= "Hello"' ins="= \\"Astronaut\\""`, {
-				meta: 'title="src/components/GreetingHeadline.astro"',
 				annotations: {
 					plaintextTerms: [
 						{ markerType: 'ins', text: '= "Hello"' },
@@ -293,7 +260,6 @@ describe('Extracts known properties', () => {
 	describe('RegExp inline markings in forward slashes', () => {
 		test('Simple RegExp', async () => {
 			await expectMetaResult('/he(llo|y)/', {
-				meta: '',
 				annotations: {
 					regExpTerms: [{ markerType: 'mark', regExp: createMarkerRegExp('he(llo|y)') }],
 				},
@@ -302,7 +268,6 @@ describe('Extracts known properties', () => {
 
 		test('Containing quotes', async () => {
 			await expectMetaResult('/they said ["\']oh, hi!["\']/', {
-				meta: '',
 				annotations: {
 					regExpTerms: [{ markerType: 'mark', regExp: createMarkerRegExp('they said ["\']oh, hi!["\']') }],
 				},
@@ -311,7 +276,6 @@ describe('Extracts known properties', () => {
 
 		test('Containing escaped slashes', async () => {
 			await expectMetaResult('/use \\/slashes\\/ like this/', {
-				meta: '',
 				annotations: {
 					regExpTerms: [{ markerType: 'mark', regExp: createMarkerRegExp('use \\/slashes\\/ like this') }],
 					lineMarkings: [],
@@ -321,7 +285,6 @@ describe('Extracts known properties', () => {
 
 		test('With optional marker type prefixes', async () => {
 			await expectMetaResult('mark=/prefixed with mark/', {
-				meta: '',
 				annotations: {
 					regExpTerms: [{ markerType: 'mark', regExp: createMarkerRegExp('prefixed with mark') }],
 					lineMarkings: [],
@@ -329,7 +292,6 @@ describe('Extracts known properties', () => {
 			})
 
 			await expectMetaResult('ins=/prefixed with ins/', {
-				meta: '',
 				annotations: {
 					regExpTerms: [{ markerType: 'ins', regExp: createMarkerRegExp('prefixed with ins') }],
 					lineMarkings: [],
@@ -337,7 +299,6 @@ describe('Extracts known properties', () => {
 			})
 
 			await expectMetaResult('del=/prefixed with del/', {
-				meta: '',
 				annotations: {
 					regExpTerms: [{ markerType: 'del', regExp: createMarkerRegExp('prefixed with del') }],
 					lineMarkings: [],
@@ -367,7 +328,6 @@ test('Everything combined', async () => {
 			'ins=":where(.astro-XXXXXX)"',
 		].join(' '),
 		{
-			meta: 'twoslash title="src/components/DynamicAttributes.astro"',
 			annotations: {
 				lineMarkings: [
 					{ markerType: 'mark', lines: [2, 3], label: 'A' },

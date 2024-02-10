@@ -1,3 +1,4 @@
+import { MetaOptions } from '../helpers/meta-options'
 import { ExpressiveCodeProcessingState, validateExpressiveCodeProcessingState } from '../internal/render-block'
 import { isNumber, isString, newTypeError } from '../internal/type-checks'
 import { ExpressiveCodeLine } from './line'
@@ -75,6 +76,7 @@ export class ExpressiveCodeBlock {
 		this.#lines = []
 		this.#language = language
 		this.#meta = meta
+		this.#metaOptions = new MetaOptions(meta)
 		this.#locale = locale
 		this.#parentDocument = parentDocument
 
@@ -99,6 +101,7 @@ export class ExpressiveCodeBlock {
 	readonly #lines: ExpressiveCodeLine[]
 	#language: string
 	#meta: string
+	#metaOptions: MetaOptions
 	#locale: ExpressiveCodeBlockOptions['locale']
 	#parentDocument: ExpressiveCodeBlockOptions['parentDocument']
 	#state: ExpressiveCodeProcessingState | undefined
@@ -137,6 +140,14 @@ export class ExpressiveCodeBlock {
 	set meta(value: string) {
 		if (this.#state?.canEditMetadata === false) throw new Error('Cannot edit code block property "meta" in the current state.')
 		this.#meta = value
+		this.#metaOptions = new MetaOptions(value)
+	}
+
+	/**
+	 * Provides read-only access to the parsed version of the block’s {@link meta} string.
+	 */
+	get metaOptions() {
+		return this.#metaOptions
 	}
 
 	/**

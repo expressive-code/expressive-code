@@ -1,4 +1,4 @@
-import { AttachedPluginData, ExpressiveCodePlugin, PluginTexts, handleProps } from '@expressive-code/core'
+import { AttachedPluginData, ExpressiveCodePlugin, PluginTexts } from '@expressive-code/core'
 import { h, Result as HastEntity } from 'hastscript'
 import { framesStyleSettings, getFramesBaseStyles } from './styles'
 import {
@@ -65,29 +65,20 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 			preprocessMetadata: ({ codeBlock }) => {
 				const blockData = pluginFramesData.getOrCreateFor(codeBlock)
 
-				codeBlock.meta = handleProps(codeBlock.meta, (prop) => {
-					const { kind, key, value } = prop
-					// Handle titles in meta string
-					if (kind === 'string' && key?.match(/^@?title$/i)) {
-						blockData.title = value
-						return true
-					}
+				// Allow setting the title via the code block's meta options
+				blockData.title = codeBlock.metaOptions.getString('title') ?? blockData.title
 
-					// Handle frame types in meta string
-					if (kind === 'string' && key?.match(/^@?frame(Type)?$/i)) {
-						const frameType = frameTypeFromString(value)
-						if (frameType === undefined)
-							throw new Error(
-								`Invalid frame type \`${value}\` found in code block meta string.
-								Valid frame types are: ${frameTypes.join(', ')}.`.replace(/\s+/g, ' ')
-							)
-						blockData.frameType = frameType
-						return true
-					}
-
-					// Leave all other props untouched
-					return false
-				})
+				// Allow overriding the frame type via the code block's meta options
+				const frame = codeBlock.metaOptions.getString('frame')
+				if (frame !== undefined) {
+					const frameType = frameTypeFromString(frame)
+					if (frameType === undefined)
+						throw new Error(
+							`Invalid frame type \`${frame}\` found in code block meta string.
+							Valid frame types are: ${frameTypes.join(', ')}.`.replace(/\s+/g, ' ')
+						)
+					blockData.frameType = frameType
+				}
 			},
 			preprocessCode: ({ codeBlock }) => {
 				const blockData = pluginFramesData.getOrCreateFor(codeBlock)

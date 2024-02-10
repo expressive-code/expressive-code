@@ -167,8 +167,8 @@ export interface ExpressiveCodePluginHooks_BeforeRendering {
 	 * Allows preprocessing the meta string and the language before any plugins can
 	 * modify the code.
 	 *
-	 * Plugins are expected to use this hook to remove any of their syntax from the meta string.
-	 * Removed information can either be stored internally or used to create annotations.
+	 * Instead of accessing the raw meta string, plugins are recommended to use the parsed version
+	 * of the contained options through the {@link ExpressiveCodeBlock.metaOptions} property.
 	 *
 	 * As the code still matches the plaintext in the containing Markdown/MDX document at this
 	 * point, this hook can be used to apply annotations by line numbers.

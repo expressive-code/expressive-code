@@ -5,7 +5,6 @@ import {
 	InlineStyleAnnotation,
 	ensureColorContrastOnBackground,
 	getStaticBackgroundColor,
-	handleProps,
 	onBackground,
 } from '@expressive-code/core'
 import rangeParser from 'parse-numeric-range'
@@ -24,24 +23,23 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 			preprocessMetadata: ({ codeBlock, cssVar }) => {
 				const blockData = pluginTextMarkersData.getOrCreateFor(codeBlock)
 
-				codeBlock.meta = handleProps(codeBlock.meta, (prop) => {
-					const { key, kind, value } = prop
-					if (kind === 'boolean') return false
+				// If a "lang" option was given and the code block's language is "diff",
+				// use the "lang" value as the new syntax highlighting language instead
+				const lang = codeBlock.metaOptions.getString('lang')
+				if (lang && codeBlock.language === 'diff') {
+					codeBlock.language = lang
+					blockData.originalLanguage = 'diff'
+				}
 
-					// If we found a "lang" key and the code block's language is "diff",
-					// use the "lang" value as the new syntax highlighting language instead
-					if (kind === 'string' && key === 'lang' && codeBlock.language === 'diff') {
-						codeBlock.language = value
-						blockData.originalLanguage = 'diff'
-						return true
-					}
-
-					// Try to identify the marker type from the key
+				codeBlock.metaOptions.list([...MarkerTypeOrder, '', 'add', 'rem']).forEach((option) => {
+					const { kind, key, value } = option
 					const markerType = markerTypeFromString(key || 'mark')
+					if (!markerType) return
 
-					// If an unknown key was encountered, leave this meta string part untouched
-					if (!markerType) return false
-
+					// Remember plaintext search terms
+					if (kind === 'string') blockData.plaintextTerms.push({ markerType, text: value })
+					// Remember regular expression search terms
+					if (kind === 'regexp') blockData.regExpTerms.push({ markerType, regExp: value })
 					// Handle full-line highlighting definitions
 					if (kind === 'range') {
 						// Detect an optional label prefix in double or single quotes: `{"1":3-5}`
@@ -62,28 +60,7 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 								})
 							)
 						})
-						return true
 					}
-
-					// Handle regular expression search terms
-					if (kind === 'regexp') {
-						blockData.regExpTerms.push({
-							markerType,
-							regExp: value,
-						})
-						return true
-					}
-
-					// Remember plaintext search terms for highlighting in a later hook
-					if (kind === 'string') {
-						blockData.plaintextTerms.push({
-							markerType,
-							text: value,
-						})
-						return true
-					}
-
-					return false
 				})
 			},
 			preprocessCode: ({ codeBlock, cssVar }) => {
