@@ -1,4 +1,4 @@
-import { AttachedPluginData, ExpressiveCodePlugin, PluginTexts, replaceDelimitedValues, cssVarReplacements } from '@expressive-code/core'
+import { AttachedPluginData, ExpressiveCodePlugin, PluginTexts, cssVarReplacements, handleProps } from '@expressive-code/core'
 import { Section, parseSections } from './utils'
 import { select } from 'hast-util-select'
 import { sectionizeAst } from './ast'
@@ -26,27 +26,20 @@ export function pluginCollapsibleSections(): ExpressiveCodePlugin {
 		baseStyles: (context) => getCollapsibleSectionsBaseStyles(context),
 		hooks: {
 			preprocessMetadata: ({ codeBlock }) => {
-				codeBlock.meta = replaceDelimitedValues(
-					codeBlock.meta,
-					({ fullMatch, key, value }) => {
-						// If we aren't interested in the entry, just return it as-is
-						if (key !== 'collapse') return fullMatch
+				codeBlock.meta = handleProps(codeBlock.meta, ({ key, kind, value }) => {
+					// If we aren't interested in the entry, just return it as-is
+					if (key !== 'collapse' || (kind !== 'range' && kind !== 'string')) return false
 
-						// Parse the given sections and store references to the targeted lines,
-						// allowing us to react to potential line number changes
-						const sections = parseSections(value)
-						sections.forEach((section) => {
-							section.lines.push(...codeBlock.getLines(section.from - 1, section.to))
-						})
-						const data = pluginCollapsibleSectionsData.getOrCreateFor(codeBlock)
-						data.sections = sections
-						return ''
-					},
-					{
-						valueDelimiters: ['"', "'", '{...}'],
-						keyValueSeparator: '=',
-					}
-				)
+					// Parse the given sections and store references to the targeted lines,
+					// allowing us to react to potential line number changes
+					const sections = parseSections(value)
+					sections.forEach((section) => {
+						section.lines.push(...codeBlock.getLines(section.from - 1, section.to))
+					})
+					const data = pluginCollapsibleSectionsData.getOrCreateFor(codeBlock)
+					data.sections = sections
+					return true
+				})
 			},
 			annotateCode: ({ codeBlock }) => {
 				const data = pluginCollapsibleSectionsData.getOrCreateFor(codeBlock)

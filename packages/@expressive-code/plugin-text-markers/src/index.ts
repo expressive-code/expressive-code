@@ -5,8 +5,8 @@ import {
 	InlineStyleAnnotation,
 	ensureColorContrastOnBackground,
 	getStaticBackgroundColor,
+	handleProps,
 	onBackground,
-	replaceDelimitedValues,
 } from '@expressive-code/core'
 import rangeParser from 'parse-numeric-range'
 import { MarkerType, MarkerTypeOrder, markerTypeFromString } from './marker-types'
@@ -24,79 +24,67 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 			preprocessMetadata: ({ codeBlock, cssVar }) => {
 				const blockData = pluginTextMarkersData.getOrCreateFor(codeBlock)
 
-				codeBlock.meta = replaceDelimitedValues(
-					codeBlock.meta,
-					({ fullMatch, key, value, valueStartDelimiter }) => {
-						// If we found a "lang" key and the code block's language is "diff",
-						// use the "lang" value as the new syntax highlighting language instead
-						if (key === 'lang' && codeBlock.language === 'diff') {
-							codeBlock.language = value
-							blockData.originalLanguage = 'diff'
+				codeBlock.meta = handleProps(codeBlock.meta, (prop) => {
+					const { key, kind, value } = prop
+					if (kind === 'boolean') return false
+
+					// If we found a "lang" key and the code block's language is "diff",
+					// use the "lang" value as the new syntax highlighting language instead
+					if (kind === 'string' && key === 'lang' && codeBlock.language === 'diff') {
+						codeBlock.language = value
+						blockData.originalLanguage = 'diff'
+						return true
+					}
+
+					// Try to identify the marker type from the key
+					const markerType = markerTypeFromString(key || 'mark')
+
+					// If an unknown key was encountered, leave this meta string part untouched
+					if (!markerType) return false
+
+					// Handle full-line highlighting definitions
+					if (kind === 'range') {
+						// Detect an optional label prefix in double or single quotes: `{"1":3-5}`
+						let label: string | undefined = undefined
+						const unlabeledValue = value.replace(/^\s*?(["'])([^\1]+?)\1:\s*?/, (_match, _quote, labelValue: string) => {
+							label = labelValue
 							return ''
-						}
+						})
+						const lineNumbers = rangeParser(unlabeledValue)
+						lineNumbers.forEach((lineNumber, idx) => {
+							const lineIndex = lineNumber - 1
+							codeBlock.getLine(lineIndex)?.addAnnotation(
+								new TextMarkerAnnotation({
+									markerType,
+									backgroundColor: cssVar(markerBgColorPaths[markerType]),
+									// Add a label to the first line of each consecutive range
+									label: idx === 0 || lineNumber - lineNumbers[idx - 1] !== 1 ? label : undefined,
+								})
+							)
+						})
+						return true
+					}
 
-						// Try to identify the marker type from the key
-						const markerType = markerTypeFromString(key || 'mark')
+					// Handle regular expression search terms
+					if (kind === 'regexp') {
+						blockData.regExpTerms.push({
+							markerType,
+							regExp: value,
+						})
+						return true
+					}
 
-						// If an unknown key was encountered, leave this meta string part untouched
-						if (!markerType) return fullMatch
-
-						// Handle full-line highlighting definitions
-						if (valueStartDelimiter === '{') {
-							// Detect an optional label prefix in double or single quotes: `{"1":3-5}`
-							let label: string | undefined = undefined
-							value = value.replace(/^\s*?(["'])([^\1]+?)\1:\s*?/, (_match, _quote, labelValue: string) => {
-								label = labelValue
-								return ''
-							})
-							const lineNumbers = rangeParser(value)
-							lineNumbers.forEach((lineNumber, idx) => {
-								const lineIndex = lineNumber - 1
-								codeBlock.getLine(lineIndex)?.addAnnotation(
-									new TextMarkerAnnotation({
-										markerType,
-										backgroundColor: cssVar(markerBgColorPaths[markerType]),
-										// Add a label to the first line of each consecutive range
-										label: idx === 0 || lineNumber - lineNumbers[idx - 1] !== 1 ? label : undefined,
-									})
-								)
-							})
-							return ''
-						}
-
-						// Handle regular expression search terms
-						if (valueStartDelimiter === '/') {
-							// Remember the term for highlighting in a later hook
-							let regExp: RegExp | undefined
-							try {
-								// Try to use regular expressions with capture group indices
-								regExp = new RegExp(value, 'gd')
-								/* c8 ignore start */
-							} catch (error) {
-								// Use fallback if unsupported
-								regExp = new RegExp(value, 'g')
-							}
-							/* c8 ignore stop */
-							blockData.regExpTerms.push({
-								markerType,
-								regExp,
-							})
-							return ''
-						}
-
-						// Treat everything else as a plaintext search term and
-						// remember it for highlighting in a later hook
+					// Remember plaintext search terms for highlighting in a later hook
+					if (kind === 'string') {
 						blockData.plaintextTerms.push({
 							markerType,
 							text: value,
 						})
-						return ''
-					},
-					{
-						valueDelimiters: ['"', "'", '/', '{...}'],
-						keyValueSeparator: '=',
+						return true
 					}
-				)
+
+					return false
+				})
 			},
 			preprocessCode: ({ codeBlock, cssVar }) => {
 				const blockData = pluginTextMarkersData.getOrCreateFor(codeBlock)

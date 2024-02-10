@@ -1,4 +1,4 @@
-import { AttachedPluginData, ExpressiveCodePlugin, PluginTexts, replaceDelimitedValues } from '@expressive-code/core'
+import { AttachedPluginData, ExpressiveCodePlugin, PluginTexts, handleProps } from '@expressive-code/core'
 import { h, Result as HastEntity } from 'hastscript'
 import { framesStyleSettings, getFramesBaseStyles } from './styles'
 import {
@@ -65,15 +65,16 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 			preprocessMetadata: ({ codeBlock }) => {
 				const blockData = pluginFramesData.getOrCreateFor(codeBlock)
 
-				codeBlock.meta = replaceDelimitedValues(codeBlock.meta, ({ fullMatch, key, value }) => {
+				codeBlock.meta = handleProps(codeBlock.meta, (prop) => {
+					const { kind, key, value } = prop
 					// Handle titles in meta string
-					if (key?.match(/^@?title$/i)) {
+					if (kind === 'string' && key?.match(/^@?title$/i)) {
 						blockData.title = value
-						return ''
+						return true
 					}
 
 					// Handle frame types in meta string
-					if (key?.match(/^@?frame(Type)?$/i)) {
+					if (kind === 'string' && key?.match(/^@?frame(Type)?$/i)) {
 						const frameType = frameTypeFromString(value)
 						if (frameType === undefined)
 							throw new Error(
@@ -81,11 +82,11 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 								Valid frame types are: ${frameTypes.join(', ')}.`.replace(/\s+/g, ' ')
 							)
 						blockData.frameType = frameType
-						return ''
+						return true
 					}
 
-					// Leave all other key-value pairs untouched
-					return fullMatch
+					// Leave all other props untouched
+					return false
 				})
 			},
 			preprocessCode: ({ codeBlock }) => {
