@@ -586,7 +586,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 				fixtures: buildThemeFixtures(themes, {
 					code: complexDiffTestCode,
 					language: 'diff',
-					meta: complexDiffTestMeta,
+					meta: complexDiffTestMeta + ' wrap',
 					plugins: [pluginLineNumbers(), pluginTextMarkers(), pluginShiki()],
 					blockValidationFn: (actual) => {
 						// Expect that the correct parts were marked
