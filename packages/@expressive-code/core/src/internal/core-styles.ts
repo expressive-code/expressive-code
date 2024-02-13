@@ -251,7 +251,6 @@ export function getCoreBaseStyles({
 				all: unset;
 				display: block;
 				flex: 1 0 100%;
-				box-sizing: content-box;
 
 				padding: ${cssVar('codePaddingBlock')} 0;
 				color: ${cssVar('codeForeground')};
@@ -328,9 +327,9 @@ export function getCoreBaseStyles({
 			.code {
 				grid-area: code;
 				position: relative;
+				box-sizing: content-box;
 				padding-inline-start: calc(var(--ecIndent, 0ch) + ${cssVar('codePaddingInline')} - var(--ecGtrBrdWd));
-				/* TODO: .-- Decide if 2rem should be adapted to the copy button */
-				padding-inline-end: calc(2rem + ${cssVar('codePaddingInline')});
+				padding-inline-end: ${cssVar('codePaddingInline')};
 				text-indent: calc(var(--ecIndent, 0ch) * -1);
 
 				&::before,
@@ -343,6 +342,11 @@ export function getCoreBaseStyles({
 				--ecGtrBrdWd: ${cssVar('gutterBorderWidth')};
 				border-inline-start: var(--ecGtrBrdWd) solid var(--ecLineBrdCol, transparent);
 			}
+		}
+
+		/* Increase end padding of the first line for the copy button */
+		:nth-child(1 of .${codeLineClass}) .code {
+			padding-inline-end: calc(2rem + ${cssVar('codePaddingInline')});
 		}
 
 		/* Common style to hide elements from screen readers */

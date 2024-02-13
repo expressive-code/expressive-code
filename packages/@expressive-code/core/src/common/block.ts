@@ -136,6 +136,10 @@ export class ExpressiveCodeBlock {
 
 		// If there are any lines left, insert them into the block
 		if (lines.length) this.insertLines(0, lines)
+
+		// Transfer core meta options to props
+		this.props.wrap = this.metaOptions.getBoolean('wrap') ?? this.props.wrap
+		this.props.preserveIndent = this.metaOptions.getBoolean('preserveIndent') ?? this.props.preserveIndent
 	}
 
 	/**

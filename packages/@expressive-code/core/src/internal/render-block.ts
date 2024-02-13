@@ -88,6 +88,11 @@ export async function renderBlock({
 		const lineRenderData = {
 			lineAst: renderLineToAst({ line, gutterElements, ...baseContext }),
 		}
+		// Add indent information if wrapping is enabled and preserveIndent has not been disabled
+		if (codeBlock.props.wrap && codeBlock.props.preserveIndent !== false) {
+			const indent = line.text.match(/^\s*/)?.[0].length ?? 0
+			if (indent > 0) setInlineStyle(lineRenderData.lineAst, '--ecIndent', `${indent}ch`)
+		}
 		// Allow plugins to modify or even completely replace the AST
 		await runHooks('postprocessRenderedLine', plugins, async ({ hookFn, plugin }) => {
 			await hookFn({
@@ -128,8 +133,7 @@ export async function renderBlock({
 
 function buildCodeBlockAstFromRenderedLines(codeBlock: ExpressiveCodeBlock, renderedLines: Element[]) {
 	const preElement = h('pre', { tabindex: 0 }, h('code', renderedLines))
-	const wrap = codeBlock.metaOptions.getBoolean('wrap')
-	if (wrap) {
+	if (codeBlock.props.wrap) {
 		const maxLineLength = codeBlock.getLines().reduce((max, line) => Math.max(max, line.text.length), 0)
 		addClassName(preElement, 'wrap')
 		setInlineStyle(preElement, '--ecMaxLine', `${maxLineLength}ch`)
