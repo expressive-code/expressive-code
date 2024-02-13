@@ -365,6 +365,62 @@ function demo() {
 }
 ```
 
+## Usage in the `<Code>` component
+
+The text markers plugin adds multiple props to the `<Code>` component that allow direct access to its features. The following props are available:
+
+### Props
+
+#### del
+
+<PropertySignature>
+- Type: [`MarkerDefinition`](/key-features/text-markers/#markerdefinition) \| [`MarkerDefinition`](/key-features/text-markers/#markerdefinition)[]
+</PropertySignature>
+
+Defines the code block's text & line markers of the "deleted" type.
+
+You can either pass a single marker definition or an array of them.
+
+#### ins
+
+<PropertySignature>
+- Type: [`MarkerDefinition`](/key-features/text-markers/#markerdefinition) \| [`MarkerDefinition`](/key-features/text-markers/#markerdefinition)[]
+</PropertySignature>
+
+Defines the code block's text & line markers of the "inserted" type.
+
+You can either pass a single marker definition or an array of them.
+
+#### mark
+
+<PropertySignature>
+- Type: [`MarkerDefinition`](/key-features/text-markers/#markerdefinition) \| [`MarkerDefinition`](/key-features/text-markers/#markerdefinition)[]
+</PropertySignature>
+
+Defines the code block's text & line markers of the default neutral type.
+
+You can either pass a single marker definition or an array of them.
+
+#### useDiffSyntax
+
+<PropertySignature>
+- Type: `boolean`
+</PropertySignature>
+
+Allows you to enable processing of diff syntax for non-diff languages.
+
+If set to `true`, you can prefix lines with `+` or `-`, no matter what the language of the code block is. The prefixes will be removed and the lines will be highlighted as inserted or deleted lines.
+
+### Referenced types
+
+#### MarkerDefinition
+
+<PropertySignature>
+- Type: `string` \| `RegExp` \| `number` \| `{ range: string; label?: string | undefined }`
+</PropertySignature>
+
+A single text marker definition that can be used in the `mark`, `ins`, and `del` props to define text and line markers.
+
 ## Configuration
 
 You can override this plugin's default styles by adding a `textMarkers` object to the `styleOverrides` engine config option. You can find a list of all [overridable styles](#available-style-overrides) below.

@@ -16,31 +16,53 @@ export { FramesStyleSettings } from './styles'
 
 export interface PluginFramesOptions {
 	/**
-	 * If `true` (which is the default), and no title was found in the code block's meta string,
+	 * If `true`, and no title was found in the code block's meta string,
 	 * the plugin will try to find and extract a comment line containing the code block file name
 	 * from the first 4 lines of the code.
+	 *
+	 * @default true
 	 */
 	extractFileNameFromCode?: boolean | undefined
 	/**
-	 * If `true` (which is the default), a "Copy to clipboard" button
-	 * will be shown for each code block.
+	 * If `true`, a "Copy to clipboard" button will be shown for each code block.
+	 *
+	 * @default true
 	 */
 	showCopyToClipboardButton?: boolean | undefined
 	/**
-	 * If `true` (which is the default), the "Copy to clipboard" button of terminal window frames
+	 * If `true`, the "Copy to clipboard" button of terminal window frames
 	 * will remove comment lines starting with `#` from the copied text.
 	 *
 	 * This is useful to reduce the copied text to the actual commands users need to run,
 	 * instead of also copying explanatory comments or instructions.
+	 *
+	 * @default true
 	 */
 	removeCommentsWhenCopyingTerminalFrames?: boolean | undefined
 }
 
+export interface PluginFramesProps {
+	/**
+	 * The code block's title. For terminal frames, this is displayed as the terminal window title,
+	 * and for code frames, it's displayed as the file name in an open file tab.
+	 *
+	 * If no title is given, the plugin will try to automatically extract a title from a
+	 * [file name comment](https://expressive-code.com/key-features/frames/#file-name-comments)
+	 * inside your code, unless disabled by the `extractFileNameFromCode` option.
+	 */
+	title: string
+	/**
+	 * Allows you to override the automatic frame type detection for a code block.
+	 *
+	 * The supported values are `code`, `terminal`, `none` and `auto`.
+	 *
+	 * @default `auto`
+	 */
+	frame: FrameType
+}
+
 declare module '@expressive-code/core' {
-	export interface ExpressiveCodeBlockProps {
-		title: string
-		frame: FrameType
-	}
+	export interface ExpressiveCodeBlockProps extends PluginFramesProps {}
 }
 
 export const pluginFramesTexts = new PluginTexts({

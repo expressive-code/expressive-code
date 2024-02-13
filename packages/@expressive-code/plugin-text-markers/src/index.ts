@@ -15,15 +15,47 @@ import { toDefinitionsArray } from './utils'
 export { TextMarkersStyleSettings } from './styles'
 
 export type MarkerLineOrRange = number | { range: string; label?: string | undefined }
+
+/**
+ * A single text marker definition that can be used in the `mark`, `ins`, and `del` props
+ * to define text and line markers.
+ */
 export type MarkerDefinition = string | RegExp | MarkerLineOrRange
 
+export interface PluginTextMarkersProps {
+	/**
+	 * Defines the code block's [text & line markers](https://expressive-code.com/key-features/text-markers/)
+	 * of the default neutral type.
+	 *
+	 * You can either pass a single marker definition or an array of them.
+	 */
+	mark: MarkerDefinition | MarkerDefinition[]
+	/**
+	 * Defines the code block's [text & line markers](https://expressive-code.com/key-features/text-markers/)
+	 * of the "inserted" type.
+	 *
+	 * You can either pass a single marker definition or an array of them.
+	 */
+	ins: MarkerDefinition | MarkerDefinition[]
+	/**
+	 * Defines the code block's [text & line markers](https://expressive-code.com/key-features/text-markers/)
+	 * of the "deleted" type.
+	 *
+	 * You can either pass a single marker definition or an array of them.
+	 */
+	del: MarkerDefinition | MarkerDefinition[]
+	/**
+	 * Allows you to enable processing of diff syntax for non-diff languages.
+	 *
+	 * If set to `true`, you can prefix lines with `+` or `-`, no matter what the language of
+	 * the code block is. The prefixes will be removed and the lines will be highlighted as
+	 * inserted or deleted lines.
+	 */
+	useDiffSyntax: boolean
+}
+
 declare module '@expressive-code/core' {
-	export interface ExpressiveCodeBlockProps {
-		mark: MarkerDefinition | MarkerDefinition[]
-		ins: MarkerDefinition | MarkerDefinition[]
-		del: MarkerDefinition | MarkerDefinition[]
-		diffSyntax: boolean
-	}
+	export interface ExpressiveCodeBlockProps extends PluginTextMarkersProps {}
 }
 
 export function pluginTextMarkers(): ExpressiveCodePlugin {
@@ -35,11 +67,11 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 			preprocessLanguage: ({ codeBlock }) => {
 				// If a "lang" option was given and the code block's language is "diff",
 				// use the "lang" value as the new syntax highlighting language instead
-				// and set the `diffSyntax` prop
+				// and set the `useDiffSyntax` prop
 				const lang = codeBlock.metaOptions.getString('lang')
 				if (lang && codeBlock.language === 'diff') {
 					codeBlock.language = lang
-					codeBlock.props.diffSyntax = true
+					codeBlock.props.useDiffSyntax = true
 				}
 			},
 			preprocessMetadata: ({ codeBlock, cssVar }) => {
@@ -66,6 +98,7 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 						addDefinition(markerType, { range, label })
 					}
 				})
+				codeBlock.props.useDiffSyntax = codeBlock.metaOptions.getBoolean('useDiffSyntax') ?? codeBlock.props.useDiffSyntax
 
 				// Use props to create line-level annotations for full-line highlighting definitions
 				MarkerTypeOrder.forEach((markerType) => {
@@ -90,7 +123,7 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 			},
 			preprocessCode: ({ codeBlock, cssVar }) => {
 				// Perform special handling of code marked with the language "diff"
-				// or with the `diffSyntax` prop set to true:
+				// or with the `useDiffSyntax` prop set to true:
 				// - This language is often used as a widely supported format for highlighting
 				//   changes to code. In this case, the code is not actually a diff,
 				//   but another language with some lines prefixed by `+` or `-`.
@@ -99,7 +132,7 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 				//   we ensure that the code does not begin like a real diff:
 				//   - The first lines must not start with `*** `, `+++ `, `--- `, `@@ `,
 				//     or the default mode location syntax (e.g. `0a1`, `1,2c1,2`, `1,2d1`).
-				if (codeBlock.language === 'diff' || codeBlock.props.diffSyntax) {
+				if (codeBlock.language === 'diff' || codeBlock.props.useDiffSyntax) {
 					const lines = codeBlock.getLines()
 
 					// Ensure that the first lines do not look like actual diff output

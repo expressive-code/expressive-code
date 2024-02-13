@@ -4,10 +4,23 @@ import { select } from 'hast-util-select'
 import { sectionizeAst } from './ast'
 import { CollapsibleSectionsStyleSettings, collapsibleSectionsStyleSettings, getCollapsibleSectionsBaseStyles } from './styles'
 
+export { CollapsibleSectionsStyleSettings }
+
 declare module '@expressive-code/core' {
 	export interface StyleSettings {
 		collapsibleSections: CollapsibleSectionsStyleSettings
 	}
+}
+
+export interface PluginCollapsibleSectionsProps {
+	/**
+	 * Collapses the given line range or ranges.
+	 */
+	collapse: string | string[]
+}
+
+declare module '@expressive-code/core' {
+	export interface ExpressiveCodeBlockProps extends PluginCollapsibleSectionsProps {}
 }
 
 export const pluginCollapsibleSectionsTexts = new PluginTexts({
@@ -26,11 +39,18 @@ export function pluginCollapsibleSections(): ExpressiveCodePlugin {
 		baseStyles: (context) => getCollapsibleSectionsBaseStyles(context),
 		hooks: {
 			preprocessMetadata: ({ codeBlock }) => {
-				const ranges = codeBlock.metaOptions.getRanges('collapse').join(',')
+				const toArray = (value: string | string[] | undefined) => {
+					if (value === undefined) return []
+					return Array.isArray(value) ? value : [value]
+				}
+
+				// Merge any ranges from the `collapse` meta option into the `collapse` prop
+				const ranges = [...toArray(codeBlock.props.collapse), ...codeBlock.metaOptions.getRanges('collapse')]
+				codeBlock.props.collapse = ranges
 				if (!ranges) return
 				// Parse the given ranges into sections and store references to the targeted lines,
 				// allowing us to react to potential line number changes
-				const sections = parseSections(ranges)
+				const sections = parseSections(ranges.join(','))
 				sections.forEach((section) => {
 					section.lines.push(...codeBlock.getLines(section.from - 1, section.to))
 				})
