@@ -11,6 +11,9 @@ const complexHtmlRegExp = buildSampleCodeHtmlRegExp({
 		// Expect the code to start with a collapsible section
 		'<details(| .*?)>.*?</details>',
 		'.*?',
+		// Expect a second collapsible section
+		'<details(| .*?)>.*?</details>',
+		'.*?',
 		// Expect at least one code line that is marked as inserted
 		'<div class="ec-line ins">',
 		// Expect Shiki highlighting colors inside
