@@ -1,6 +1,6 @@
-import { PluginTextMarkersData } from '.'
+import { ExpressiveCodeBlock } from '@expressive-code/core'
 import { MarkerType, MarkerTypeOrder } from './marker-types'
-import { getGroupIndicesFromRegExpMatch } from './utils'
+import { getGroupIndicesFromRegExpMatch, toDefinitionsArray } from './utils'
 
 export type InlineMarkerRange = { markerType: MarkerType; start: number; end: number }
 
@@ -8,51 +8,54 @@ export type InlineMarkerRange = { markerType: MarkerType; start: number; end: nu
  * Goes through all search terms in the given block data and returns an array of
  * inline marker ranges that match the given line text.
  */
-export function getInlineSearchTermMatches(lineText: string, blockData: PluginTextMarkersData) {
+export function getInlineSearchTermMatches(lineText: string, codeBlock: ExpressiveCodeBlock) {
 	const markerMatches: InlineMarkerRange[] = []
 
-	// Collect all plaintext term matches
-	blockData.plaintextTerms.forEach(({ markerType, text }) => {
-		let idx = lineText.indexOf(text, 0)
-		while (idx > -1) {
-			markerMatches.push({
-				markerType,
-				start: idx,
-				end: idx + text.length,
-			})
-			idx = lineText.indexOf(text, idx + text.length)
-		}
-	})
-
-	// Collect all regular expression matches
-	blockData.regExpTerms.forEach(({ markerType, regExp }) => {
-		const matches = lineText.matchAll(regExp)
-		for (const match of matches) {
-			const rawGroupIndices = getGroupIndicesFromRegExpMatch(match)
-			// Remove null group indices
-			let groupIndices = rawGroupIndices.flatMap((range) => (range ? [range] : []))
-			// If there are no non-null indices, use the full match instead
-			// (capture group feature fallback, impossible to cover in tests)
-			/* c8 ignore start */
-			if (!groupIndices.length) {
-				const fullMatchIndex = match.index as number
-				groupIndices = [[fullMatchIndex, fullMatchIndex + match[0].length]]
+	MarkerTypeOrder.forEach((markerType) => {
+		toDefinitionsArray(codeBlock.props[markerType]).forEach((definition) => {
+			// Handle plaintext string definitions
+			if (typeof definition === 'string') {
+				let idx = lineText.indexOf(definition, 0)
+				while (idx > -1) {
+					markerMatches.push({
+						markerType,
+						start: idx,
+						end: idx + definition.length,
+					})
+					idx = lineText.indexOf(definition, idx + definition.length)
+				}
 			}
-			/* c8 ignore end */
-			// If there are multiple non-null indices, remove the first one
-			// as it is the full match and we only want to mark capture groups
-			if (groupIndices.length > 1) {
-				groupIndices.shift()
+			// Handle regular expression definitions
+			if (definition instanceof RegExp) {
+				const matches = lineText.matchAll(definition)
+				for (const match of matches) {
+					const rawGroupIndices = getGroupIndicesFromRegExpMatch(match)
+					// Remove null group indices
+					let groupIndices = rawGroupIndices.flatMap((range) => (range ? [range] : []))
+					// If there are no non-null indices, use the full match instead
+					// (capture group feature fallback, impossible to cover in tests)
+					/* c8 ignore start */
+					if (!groupIndices.length) {
+						const fullMatchIndex = match.index as number
+						groupIndices = [[fullMatchIndex, fullMatchIndex + match[0].length]]
+					}
+					/* c8 ignore end */
+					// If there are multiple non-null indices, remove the first one
+					// as it is the full match and we only want to mark capture groups
+					if (groupIndices.length > 1) {
+						groupIndices.shift()
+					}
+					// Create marked ranges from all remaining group indices
+					groupIndices.forEach((range) => {
+						markerMatches.push({
+							markerType,
+							start: range[0],
+							end: range[1],
+						})
+					})
+				}
 			}
-			// Create marked ranges from all remaining group indices
-			groupIndices.forEach((range) => {
-				markerMatches.push({
-					markerType,
-					start: range[0],
-					end: range[1],
-				})
-			})
-		}
+		})
 	})
 
 	return markerMatches

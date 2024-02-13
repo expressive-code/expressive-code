@@ -101,7 +101,7 @@ export interface PostprocessRenderedBlockContext extends Omit<ExpressiveCodeHook
 	 * representing the rendered block.
 	 *
 	 * You have full control over the `blockAst` property to modify the rendered output.
-	 * For example, you could add a class name to the block’s root element,
+	 * For example, you could add a class name to the block's root element,
 	 * wrap the entire block in a custom element, or traverse its children
 	 * to find specific elements and modify them.
 	 *
@@ -164,7 +164,18 @@ export type ExpressiveCodeHook<ContextType = ExpressiveCodeHookContext> = (conte
 /** @internal */
 export interface ExpressiveCodePluginHooks_BeforeRendering {
 	/**
-	 * Allows preprocessing the meta string and the language before any plugins can
+	 * Allows preprocessing the code block's {@link ExpressiveCodeBlock.language language}
+	 * identifier before loading language-specific defaults into
+	 * {@link ExpressiveCodeBlock.props props}.
+	 *
+	 * The Text Markers plugin uses this hook to override the `diff` language identifier
+	 * with the language specified in the `lang` meta option (if given) to allow using diff syntax
+	 * to mark inserted and deleted lines while using another language for syntax highlighting.
+	 */
+	preprocessLanguage?: ExpressiveCodeHook | undefined
+
+	/**
+	 * Allows preprocessing the meta string and the props before any plugins can
 	 * modify the code.
 	 *
 	 * Instead of accessing the raw meta string, plugins are recommended to use the parsed version

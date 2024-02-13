@@ -18,16 +18,19 @@ import { groupWrapperElement } from '../src/internal/css'
 
 describe('Block-level hooks are called with the correct processing state', () => {
 	const baseState: ExpressiveCodeProcessingState = {
+		canEditLanguage: false,
 		canEditMetadata: true,
 		canEditCode: true,
 		canEditAnnotations: true,
 	}
 	const readonlyState: ExpressiveCodeProcessingState = {
+		canEditLanguage: false,
 		canEditMetadata: false,
 		canEditCode: false,
 		canEditAnnotations: false,
 	}
 	const testCases: [ExpressiveCodePluginHookName, number, ExpressiveCodeProcessingState][] = [
+		['preprocessLanguage', 1, { ...baseState, canEditCode: false, canEditLanguage: true }],
 		['preprocessMetadata', 1, { ...baseState, canEditCode: false }],
 		['preprocessCode', 1, baseState],
 		['performSyntaxAnalysis', 1, baseState],
@@ -49,8 +52,8 @@ describe('Block-level hooks are called with the correct processing state', () =>
 		expect(actualCallCount).toEqual(expectedCallCount)
 
 		// Perform edits of all properties to ensure they work or throw as expected
+		await expectToWorkOrThrow(state.canEditLanguage, () => testEditingProperty(hookName, 'language'))
 		await expectToWorkOrThrow(state.canEditMetadata, () => testEditingProperty(hookName, 'meta'))
-		await expectToWorkOrThrow(state.canEditMetadata, () => testEditingProperty(hookName, 'language'))
 		await expectToWorkOrThrow(state.canEditAnnotations, () => testAddingAnnotation(hookName))
 		await expectToWorkOrThrow(state.canEditCode, () => testEditingCode(hookName))
 	})

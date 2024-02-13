@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { ExpressiveCodeEngine } from '@expressive-code/core'
-import { pluginFrames, pluginFramesData, PluginFramesOptions } from '../src'
+import { pluginFrames, PluginFramesOptions } from '../src'
 import { FrameType } from '../src/utils'
 
 describe('Extracts file name comments from the first code lines', () => {
@@ -109,7 +109,7 @@ No page will be built for this post.
 				// Allow the path to contain environment variables
 				fileName: '%AppData%\\npm\\npm.cmd',
 				language: 'cmd',
-				expected: { frameType: 'code' },
+				expected: { frame: 'code' },
 			},
 			{
 				// Also accept unknown file extensions if it's an absolute path
@@ -225,7 +225,7 @@ describe('Differentiates between shell scripts and terminal sessions', () => {
 				commentSyntax: '',
 				meta: `title="${testCase.fileName}"`,
 				expected: {
-					frameType: 'code',
+					frame: 'code',
 				},
 				...testCase,
 			}))
@@ -238,7 +238,7 @@ describe('Differentiates between shell scripts and terminal sessions', () => {
 				code: `echo "It works!"`,
 				commentSyntax: '# {fileName}',
 				expected: {
-					frameType: 'code',
+					frame: 'code',
 				},
 				...testCase,
 			}))
@@ -255,7 +255,7 @@ echo "Hello!"
 			language: 'sh',
 			expected: {
 				title: undefined,
-				frameType: 'code',
+				frame: 'code',
 				code,
 			},
 		})
@@ -268,7 +268,7 @@ echo "Hello!"
 			meta: `title="Installation via NPM"`,
 			expected: {
 				title: 'Installation via NPM',
-				frameType: undefined,
+				frame: undefined,
 				code: 'npm install expressive-code',
 			},
 		})
@@ -284,7 +284,7 @@ npm install expressive-code
 			language: 'sh',
 			expected: {
 				title: undefined,
-				frameType: undefined,
+				frame: undefined,
 				code,
 			},
 		})
@@ -437,7 +437,7 @@ import { defineConfig } from 'example/config'
 			meta: 'frame="none"',
 			expected: {
 				title: undefined,
-				frameType: 'none',
+				frame: 'none',
 				code: code.trim(),
 			},
 		})
@@ -453,7 +453,7 @@ import { defineConfig } from 'example/config'
 			meta: 'frame=""',
 			expected: {
 				title: undefined,
-				frameType: 'none',
+				frame: 'none',
 				code: code.trim(),
 			},
 		})
@@ -597,7 +597,7 @@ async function runPreprocessingTests(
 		expected?:
 			| {
 					title?: string | undefined
-					frameType?: FrameType | undefined
+					frame?: FrameType | undefined
 					code?: string | undefined
 			  }
 			| undefined
@@ -652,7 +652,7 @@ async function expectCodeResult({
 	options?: PluginFramesOptions | undefined
 	expected: {
 		title: string | undefined
-		frameType?: FrameType | undefined
+		frame?: FrameType | undefined
 		code: string
 	}
 }) {
@@ -665,12 +665,9 @@ async function expectCodeResult({
 	expect(renderedGroupContents).toHaveLength(1)
 	const codeBlock = renderedGroupContents[0].codeBlock
 
-	// Get the plugin data attached to the code block
-	const pluginData = pluginFramesData.getOrCreateFor(codeBlock)
-
 	const actual = {
-		title: pluginData?.title,
-		frameType: pluginData?.frameType,
+		title: codeBlock.props.title,
+		frame: codeBlock.props.frame,
 		code: codeBlock.code,
 	}
 

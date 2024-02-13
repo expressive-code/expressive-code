@@ -1,3 +1,5 @@
+import { MarkerDefinition } from '.'
+
 /**
  * Retrieves all group indices from the given RegExp match. Group indices are ranges
  * defined by start & end positions. The first group index refers to the full match,
@@ -27,4 +29,9 @@ export function getGroupIndicesFromRegExpMatch(match: RegExpMatchArray) {
 	})
 
 	return groupIndices
+}
+
+export function toDefinitionsArray(value: MarkerDefinition | MarkerDefinition[] | undefined) {
+	if (value === undefined) return []
+	return Array.isArray(value) ? value : [value]
 }

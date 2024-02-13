@@ -5,8 +5,10 @@ import { ExpressiveCodeHookContext, ExpressiveCodeHookContextBase, ExpressiveCod
 import { PluginStyles } from './css'
 import { PluginGutterElement, renderLineToAst } from './render-line'
 import { isBoolean, isHastElement, isHastParent, newTypeError } from './type-checks'
-import { GutterElement } from '../common/gutter'
 import { AnnotationRenderPhaseOrder } from '../common/annotation'
+import { ExpressiveCodeBlock } from '../common/block'
+import { GutterElement } from '../common/gutter'
+import { addClassName, setInlineStyle } from '../helpers/ast'
 
 export async function renderBlock({
 	codeBlock,
@@ -23,6 +25,7 @@ export async function renderBlock({
 	const state: ExpressiveCodeProcessingState = {
 		canEditAnnotations: true,
 		canEditCode: true,
+		canEditLanguage: true,
 		canEditMetadata: true,
 	}
 	codeBlock.state = state
@@ -58,6 +61,8 @@ export async function renderBlock({
 
 	// Run hooks for preprocessing metadata and code
 	state.canEditCode = false
+	await runBeforeRenderingHooks('preprocessLanguage')
+	state.canEditLanguage = false
 	await runBeforeRenderingHooks('preprocessMetadata')
 	state.canEditCode = true
 	await runBeforeRenderingHooks('preprocessCode')
@@ -102,7 +107,7 @@ export async function renderBlock({
 	// Combine rendered lines into a block AST and wrap it in an object that can be passed
 	// through all hooks, allowing plugins to edit or completely replace the AST
 	const blockRenderData = {
-		blockAst: buildCodeBlockAstFromRenderedLines(renderedAstLines),
+		blockAst: buildCodeBlockAstFromRenderedLines(codeBlock, renderedAstLines),
 	}
 	await runHooks('postprocessRenderedBlock', plugins, async ({ hookFn, plugin }) => {
 		await hookFn({
@@ -121,17 +126,31 @@ export async function renderBlock({
 	}
 }
 
-function buildCodeBlockAstFromRenderedLines(renderedLines: Element[]) {
-	return h('pre', { tabindex: 0 }, h('code', renderedLines))
+function buildCodeBlockAstFromRenderedLines(codeBlock: ExpressiveCodeBlock, renderedLines: Element[]) {
+	const preElement = h('pre', { tabindex: 0 }, h('code', renderedLines))
+	const wrap = codeBlock.metaOptions.getBoolean('wrap')
+	if (wrap) {
+		const maxLineLength = codeBlock.getLines().reduce((max, line) => Math.max(max, line.text.length), 0)
+		addClassName(preElement, 'wrap')
+		setInlineStyle(preElement, '--ecMaxLine', `${maxLineLength}ch`)
+	}
+	return preElement
 }
 
 export interface ExpressiveCodeProcessingState {
 	canEditCode: boolean
+	canEditLanguage: boolean
 	canEditMetadata: boolean
 	canEditAnnotations: boolean
 }
 
 export function validateExpressiveCodeProcessingState(state: ExpressiveCodeProcessingState | undefined) {
-	const isValid = state && isBoolean(state.canEditCode) && isBoolean(state.canEditMetadata) && isBoolean(state.canEditAnnotations)
+	const isValid =
+		state &&
+		// Expect all properties to be defined and booleans
+		isBoolean(state.canEditCode) &&
+		isBoolean(state.canEditLanguage) &&
+		isBoolean(state.canEditMetadata) &&
+		isBoolean(state.canEditAnnotations)
 	if (!isValid) throw newTypeError('ExpressiveCodeProcessingState', state)
 }

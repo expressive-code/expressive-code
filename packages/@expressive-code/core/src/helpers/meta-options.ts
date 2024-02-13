@@ -57,11 +57,11 @@ export class MetaOptions {
 	}
 
 	/**
-	 * Returns an array of all string values with the given key (case-insensitive),
+	 * Returns an array of all string values with the given keys (case-insensitive),
 	 * or without a key by passing an empty string.
 	 */
-	getStrings(key: string) {
-		return this.list(key, 'string')?.map((option) => option.value)
+	getStrings(keyOrKeys?: string | string[]) {
+		return this.list(keyOrKeys, 'string')?.map((option) => option.value)
 	}
 
 	/**
@@ -73,11 +73,11 @@ export class MetaOptions {
 	}
 
 	/**
-	 * Returns an array of all range values (`{value}`) with the given key (case-insensitive),
+	 * Returns an array of all range values (`{value}`) with the given keys (case-insensitive),
 	 * or without a key by passing an empty string.
 	 */
-	getRanges(key: string) {
-		return this.list(key, 'range')?.map((option) => option.value)
+	getRanges(keyOrKeys?: string | string[]) {
+		return this.list(keyOrKeys, 'range')?.map((option) => option.value)
 	}
 
 	/**
@@ -89,11 +89,11 @@ export class MetaOptions {
 	}
 
 	/**
-	 * Returns an array of all RegExp values (`/value/`) with the given key (case-insensitive),
+	 * Returns an array of all RegExp values (`/value/`) with the given keys (case-insensitive),
 	 * or without a key by passing an empty string.
 	 */
-	getRegExps(key: string) {
-		return this.list(key, 'regexp')?.map((option) => option.value)
+	getRegExps(keyOrKeys?: string | string[]) {
+		return this.list(keyOrKeys, 'regexp')?.map((option) => option.value)
 	}
 
 	/**

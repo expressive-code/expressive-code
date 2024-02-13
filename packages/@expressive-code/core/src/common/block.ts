@@ -21,6 +21,14 @@ export interface ExpressiveCodeBlockOptions {
 	 */
 	meta?: string | undefined
 	/**
+	 * Optional props that can be used to influence the rendering of this code block.
+	 *
+	 * Plugins can add their own props to this type. To allow users to set these props through
+	 * the meta string, plugins can use the `preprocessMetadata` hook to read `metaOptions`
+	 * and update the `props` object accordingly.
+	 */
+	props?: PartialAllowUndefined<ExpressiveCodeBlockProps> | undefined
+	/**
 	 * The code block's locale (e.g. `en-US` or `de-DE`). This is used by plugins to display
 	 * localized strings depending on the language of the containing page.
 	 *
@@ -66,17 +74,56 @@ export interface ExpressiveCodeBlockOptions {
 		| undefined
 }
 
+export type PartialAllowUndefined<T> = {
+	[Key in keyof T]?: T[Key] | undefined
+}
+
+export interface ExpressiveCodeBlockProps {
+	/**
+	 * If `true`, word wrapping will be enabled for the code block, causing lines that exceed
+	 * the available width to wrap to the next line. You can use the `preserveIndent` option
+	 * to control how wrapped lines are indented.
+	 *
+	 * If `false`, lines that exceed the available width will cause a horizontal scrollbar
+	 * to appear.
+	 *
+	 * @note This option only affects how the code block is displayed and does not change
+	 * the actual code. When copied to the clipboard, the code will still contain the
+	 * original unwrapped lines.
+	 *
+	 * @default false
+	 */
+	wrap: boolean
+	/**
+	 * If `true`, wrapped parts of long lines will be aligned with their line's
+	 * indentation level, making the wrapped code appear to start at the same column.
+	 * This increases readability of the wrapped code and can be especially useful
+	 * for languages where indentation is significant, e.g. Python.
+	 *
+	 * If `false`, wrapped parts of long lines will always start at column 1.
+	 * This can be useful to reproduce terminal output.
+	 *
+	 * @note This option only has an effect if `wrap` is `true`. It only affects how the
+	 * code block is displayed and does not change the actual code. When copied to the clipboard,
+	 * the code will still contain the original unwrapped lines.
+	 *
+	 * @default true
+	 */
+	preserveIndent: boolean
+}
+
 /**
  * Represents a single code block that can be rendered by the Expressive Code engine.
  */
 export class ExpressiveCodeBlock {
 	constructor(options: ExpressiveCodeBlockOptions) {
-		const { code, language, meta = '', locale, parentDocument } = options
+		const { code, language, meta = '', props, locale, parentDocument } = options
 		if (!isString(code) || !isString(language) || !isString(meta)) throw newTypeError('object of type ExpressiveCodeBlockOptions', options)
 		this.#lines = []
 		this.#language = language
 		this.#meta = meta
 		this.#metaOptions = new MetaOptions(meta)
+		this.#props = props || {}
 		this.#locale = locale
 		this.#parentDocument = parentDocument
 
@@ -102,12 +149,13 @@ export class ExpressiveCodeBlock {
 	#language: string
 	#meta: string
 	#metaOptions: MetaOptions
+	#props: NonNullable<ExpressiveCodeBlockOptions['props']>
 	#locale: ExpressiveCodeBlockOptions['locale']
 	#parentDocument: ExpressiveCodeBlockOptions['parentDocument']
 	#state: ExpressiveCodeProcessingState | undefined
 
 	/**
-	 * Provides read-only access to the code block’s plaintext contents.
+	 * Provides read-only access to the code block's plaintext contents.
 	 */
 	get code() {
 		return this.#lines.map((line) => line.text).join('\n')
@@ -118,12 +166,12 @@ export class ExpressiveCodeBlock {
 	}
 
 	/**
-	 * Allows getting and setting the code block’s language.
+	 * Allows getting and setting the code block's language.
 	 *
 	 * Setting this property may throw an error if not allowed in the current {@link state}.
 	 */
 	set language(value: string) {
-		if (this.#state?.canEditMetadata === false) throw new Error('Cannot edit code block property "language" in the current state.')
+		if (this.#state?.canEditLanguage === false) throw new Error('Cannot edit code block property "language" in the current state.')
 		this.#language = value
 	}
 
@@ -132,8 +180,8 @@ export class ExpressiveCodeBlock {
 	}
 
 	/**
-	 * Allows getting or setting the code block’s meta string. In markdown or MDX documents,
-	 * this is the part of the code block’s opening fence that comes after the language name.
+	 * Allows getting or setting the code block's meta string. In markdown or MDX documents,
+	 * this is the part of the code block's opening fence that comes after the language name.
 	 *
 	 * Setting this property may throw an error if not allowed in the current {@link state}.
 	 */
@@ -144,10 +192,25 @@ export class ExpressiveCodeBlock {
 	}
 
 	/**
-	 * Provides read-only access to the parsed version of the block’s {@link meta} string.
+	 * Provides read-only access to the parsed version of the block's {@link meta} string.
 	 */
 	get metaOptions() {
 		return this.#metaOptions
+	}
+
+	/**
+	 * Provides access to the code block's props.
+	 *
+	 * To allow users to set these props through the meta string, plugins can use the
+	 * `preprocessMetadata` hook to read `metaOptions` and update their props accordingly.
+	 *
+	 * Props can be modified until rendering starts and become read-only afterwards.
+	 */
+	get props(): NonNullable<ExpressiveCodeBlockOptions['props']> {
+		if (this.#state?.canEditMetadata === false) {
+			return Object.freeze({ ...this.#props })
+		}
+		return this.#props
 	}
 
 	/**
@@ -177,7 +240,7 @@ export class ExpressiveCodeBlock {
 	}
 
 	/**
-	 * Provides read-only access to the code block’s processing state.
+	 * Provides read-only access to the code block's processing state.
 	 *
 	 * The processing state controls which properties of the code block can be modified.
 	 * The engine updates it automatically during rendering.

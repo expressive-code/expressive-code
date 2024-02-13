@@ -251,6 +251,7 @@ export function getCoreBaseStyles({
 				all: unset;
 				display: block;
 				flex: 1 0 100%;
+				box-sizing: content-box;
 
 				padding: ${cssVar('codePaddingBlock')} 0;
 				color: ${cssVar('codeForeground')};
@@ -268,6 +269,12 @@ export function getCoreBaseStyles({
 
 			/* Show horizontal scrollbar if required */
 			overflow-x: auto;
+
+			/* Enable word wrapping on demand */
+			&.wrap .${codeLineClass} .code {
+				white-space: pre-wrap;
+				min-width: min(30ch, var(--ecMaxLine, 30ch));
+			}
 
 			${ifThemedScrollbars(`
 			&::-webkit-scrollbar,
@@ -321,9 +328,10 @@ export function getCoreBaseStyles({
 			.code {
 				grid-area: code;
 				position: relative;
-				padding-inline-start: calc(${cssVar('codePaddingInline')} - var(--ecGtrBrdWd));
+				padding-inline-start: calc(var(--ecIndent, 0ch) + ${cssVar('codePaddingInline')} - var(--ecGtrBrdWd));
 				/* TODO: .-- Decide if 2rem should be adapted to the copy button */
 				padding-inline-end: calc(2rem + ${cssVar('codePaddingInline')});
+				text-indent: calc(var(--ecIndent, 0ch) * -1);
 
 				&::before,
 				&::after,

@@ -1,8 +1,9 @@
 import { describe, expect, test } from 'vitest'
 import { ExpressiveCodeEngine } from '@expressive-code/core'
-import { pluginTextMarkers, pluginTextMarkersData } from '../src'
-import { MarkerType, markerTypeFromString } from '../src/marker-types'
+import { pluginTextMarkers } from '../src'
+import { MarkerType, MarkerTypeOrder, markerTypeFromString } from '../src/marker-types'
 import { TextMarkerAnnotation } from '../src/annotations'
+import { toDefinitionsArray } from '../src/utils'
 
 const astroCodeSnippet = `
 ---
@@ -84,14 +85,22 @@ const expectMetaResult = async (input: string, partialExpectedResult: ExpectedTe
 	})
 
 	// Build actual data using all collected information
-	const pluginData = pluginTextMarkersData.getOrCreateFor(codeBlock)
 	const actual: ExpectedTextMarkerResults = {
 		annotations: {
 			lineMarkings,
-			plaintextTerms: pluginData?.plaintextTerms,
-			regExpTerms: pluginData?.regExpTerms,
+			plaintextTerms: [],
+			regExpTerms: [],
 		},
 	}
+	MarkerTypeOrder.forEach((markerType) => {
+		toDefinitionsArray(codeBlock.props[markerType]).forEach((definition) => {
+			if (typeof definition === 'string') {
+				actual.annotations?.plaintextTerms?.push({ markerType, text: definition })
+			} else if (definition instanceof RegExp) {
+				actual.annotations?.regExpTerms?.push({ markerType, regExp: definition })
+			}
+		})
+	})
 
 	// Expect actual data to match expected data
 	expect(actual).toEqual(expectedResult)
