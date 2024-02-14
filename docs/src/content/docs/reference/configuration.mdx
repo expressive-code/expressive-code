@@ -93,6 +93,38 @@ You can optionally return an `ExpressiveCodeTheme` instance from this function t
 
 The locale that should be used for text content.
 
+### defaultProps
+
+<PropertySignature>
+- Type: Partial\<[`ExpressiveCodeBlockProps`](#expressivecodeblockprops)\> & \{ overridesByLang: Object \}
+- Default: `undefined`
+</PropertySignature>
+
+An optional set of default props for all code blocks in your project.
+
+For example, setting this to `{ wrap: true }` enables word wrapping on all code blocks by default, saving you from having to manually set this option on every single code block.
+
+#### Object properties
+
+##### overridesByLang
+
+<PropertySignature>
+- Type: Record\<string, Partial\<[`ExpressiveCodeBlockProps`](#expressivecodeblockprops)\>\>
+</PropertySignature>
+Allows to override the default props based on a code block's syntax highlighting language.
+
+Use the language IDs as keys and an object containing the props as values. The keys also support specifying multiple language IDs separated by commas to apply the same props to multiple languages.
+
+**Example**
+```js
+defaultProps: {
+  wrap: true,
+  overridesByLang: {
+    'bash,sh,zsh': { wrap: false }
+  }
+}
+```
+
 ### logger
 
 <PropertySignature>
@@ -412,3 +444,39 @@ To actually benefit from caching, please ensure that your hosting provider serve
 In addition to the options above, the Starlight integration provides two themes (`starlight-dark` and `starlight-light`) and options (`useStarlightDarkModeSwitch` and `useStarlightUiThemeColors`) that are specific to Starlight.
 
 Please refer to the [Starlight Configuration Reference](https://starlight.astro.build/reference/configuration/#expressivecode) for more details.
+
+## Referenced types
+
+### ExpressiveCodeBlockProps
+
+#### Properties
+
+##### preserveIndent
+
+<PropertySignature>
+- Type: `boolean`
+- Default: ``true``
+</PropertySignature>
+
+If `true`, wrapped parts of long lines will be aligned with their line's indentation level, making the wrapped code appear to start at the same column. This increases readability of the wrapped code and can be especially useful for languages where indentation is significant, e.g. Python.
+
+If `false`, wrapped parts of long lines will always start at column 1. This can be useful to reproduce terminal output.
+
+:::note
+This option only has an effect if `wrap` is `true`. It only affects how the code block is displayed and does not change the actual code. When copied to the clipboard, the code will still contain the original unwrapped lines.
+:::
+
+##### wrap
+
+<PropertySignature>
+- Type: `boolean`
+- Default: ``false``
+</PropertySignature>
+
+If `true`, word wrapping will be enabled for the code block, causing lines that exceed the available width to wrap to the next line. You can use the `preserveIndent` option to control how wrapped lines are indented.
+
+If `false`, lines that exceed the available width will cause a horizontal scrollbar to appear.
+
+:::note
+This option only affects how the code block is displayed and does not change the actual code. When copied to the clipboard, the code will still contain the original unwrapped lines.
+:::

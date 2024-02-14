@@ -63,6 +63,9 @@ export async function renderBlock({
 	state.canEditCode = false
 	await runBeforeRenderingHooks('preprocessLanguage')
 	state.canEditLanguage = false
+	// Apply default props to the code block now that the language is fixed
+	applyDefaultProps(codeBlock, config)
+	// Continue with the next hooks
 	await runBeforeRenderingHooks('preprocessMetadata')
 	state.canEditCode = true
 	await runBeforeRenderingHooks('preprocessCode')
@@ -139,6 +142,23 @@ function buildCodeBlockAstFromRenderedLines(codeBlock: ExpressiveCodeBlock, rend
 		setInlineStyle(preElement, '--ecMaxLine', `${maxLineLength}ch`)
 	}
 	return preElement
+}
+
+function applyDefaultProps(codeBlock: ExpressiveCodeBlock, config: ExpressiveCodeHookContextBase['config']) {
+	// Build default props by merging the base defaults with the language-specific overrides
+	const { overridesByLang = {}, ...baseDefaults } = config.defaultProps
+	const mergedDefaults = { ...baseDefaults }
+	Object.keys(overridesByLang).forEach((key) => {
+		const langs = key.split(',').map((lang) => lang.trim())
+		if (langs.includes(codeBlock.language)) {
+			Object.assign(mergedDefaults, overridesByLang[key])
+		}
+	})
+	// Apply the merged defaults to the code block
+	const defaultKeys = Object.keys(mergedDefaults) as (keyof ExpressiveCodeBlock['props'])[]
+	defaultKeys.forEach((key) => {
+		if (codeBlock.props[key] === undefined) codeBlock.props[key] = mergedDefaults[key]
+	})
 }
 
 export interface ExpressiveCodeProcessingState {

@@ -10,6 +10,17 @@ import PropertySignature from '@components/PropertySignature.astro'
 
 The engine calls the following hook functions in the order listed here:
 
+### preprocessLanguage
+
+<PropertySignature>
+- Type: [`ExpressiveCodeHook`](/reference/plugin-hooks/#expressivecodehook)\<[`ExpressiveCodeHookContext`](/reference/plugin-hooks/#expressivecodehookcontext)\>
+</PropertySignature>
+
+Allows preprocessing the code block's [language](/reference/core-api/#language) identifier before loading language-specific defaults into
+[props](/reference/core-api/#props).
+
+The Text Markers plugin uses this hook to override the `diff` language identifier with the language specified in the `lang` meta option (if given) to allow using diff syntax to mark inserted and deleted lines while using another language for syntax highlighting.
+
 ### preprocessMetadata
 
 <PropertySignature>

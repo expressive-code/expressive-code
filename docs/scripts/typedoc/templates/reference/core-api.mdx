@@ -57,11 +57,17 @@ editSections:
     integration authors to attach custom annotations to code blocks before passing them
     to the engine, or to attach custom data to a code block.
     :::
+replacements:
+- search: '\[`?PartialAllowUndefined`?\]\(.*?\)\\<`?ExpressiveCodeBlockProps`?\\>'
+  replace: 'Partial\<[ExpressiveCodeBlockProps](/reference/configuration/#expressivecodeblockprops)\>'
 ````
 
 ````yml include
 name: "ExpressiveCodeBlockOptions"
 headingLevel: 3
+replacements:
+- search: '\[`?PartialAllowUndefined`?\]\(.*?\)\\<`?ExpressiveCodeBlockProps`?\\>'
+  replace: 'Partial\<[ExpressiveCodeBlockProps](/reference/configuration/#expressivecodeblockprops)\>'
 ````
 
 ````yml include
