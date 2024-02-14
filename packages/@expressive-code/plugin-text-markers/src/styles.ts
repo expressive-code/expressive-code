@@ -282,6 +282,8 @@ export function getTextMarkersBaseStyles({ cssVar }: ResolverContext) {
 					content: var(--tmLabel, ' ');
 					padding-inline-start: ${cssVar('textMarkers.lineDiffIndicatorMarginLeft')};
 					text-align: center;
+					/* Prevent long labels from wrapping to avoid overlapping the code */
+					white-space: pre;
 				}
 
 				&.tm-label {
