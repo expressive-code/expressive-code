@@ -1,0 +1,59 @@
+import { ExpressiveCodePlugin, setInlineStyle } from '@expressive-code/core'
+import { h } from 'hastscript'
+import { lineNumbersStyleSettings, getLineNumbersBaseStyles } from './styles'
+export { LineNumbersStyleSettings } from './styles'
+
+export interface PluginLineNumbersProps {
+	/**
+	 * Whether to show line numbers on the current code block.
+	 *
+	 * The default value of this prop can be changed using the `defaultProps` option
+	 * in your Expressive Code configuration. You can also change the default value by language
+	 * using `defaultProps.overridesByLang`.
+	 *
+	 * @default true
+	 */
+	showLineNumbers: boolean
+	/**
+	 * The line number to start counting from.
+	 *
+	 * @default 1
+	 */
+	startLineNumber: number
+}
+
+declare module '@expressive-code/core' {
+	export interface ExpressiveCodeBlockProps extends PluginLineNumbersProps {}
+}
+
+export function pluginLineNumbers(): ExpressiveCodePlugin {
+	return {
+		name: 'Line numbers',
+		styleSettings: lineNumbersStyleSettings,
+		baseStyles: (context) => getLineNumbersBaseStyles(context),
+		hooks: {
+			preprocessMetadata: ({ codeBlock: { metaOptions, props }, addGutterElement }) => {
+				// Transfer meta options (if any) to props
+				props.showLineNumbers = metaOptions.getBoolean('showLineNumbers') ?? props.showLineNumbers
+				props.startLineNumber = metaOptions.getInteger('startLineNumber') ?? props.startLineNumber
+				// Use props to determine if line numbers should be shown
+				if (props.showLineNumbers !== false) {
+					addGutterElement({
+						renderPhase: 'earlier',
+						renderLine: ({ codeBlock, line }) => {
+							const lineIdx = codeBlock.getLines().indexOf(line)
+							return h('div.ln', `${lineIdx + (codeBlock.props.startLineNumber ?? 1)}`)
+						},
+					})
+				}
+			},
+			postprocessRenderedBlock: ({ codeBlock, renderData }) => {
+				// If the line numbers column needs more width than the default 2 characters,
+				// adjust it to fit the longest line number
+				const lineCount = codeBlock.getLines().length
+				const lnWidth = lineCount.toString().length
+				if (lnWidth > 2) setInlineStyle(renderData.blockAst, '--lnWidth', `${lnWidth}ch`)
+			},
+		},
+	}
+}

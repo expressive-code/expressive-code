@@ -1,4 +1,4 @@
-import { lighten, ensureColorContrastOnBackground } from '../helpers/color-transforms'
+import { lighten, ensureColorContrastOnBackground, setAlpha } from '../helpers/color-transforms'
 import { ResolverContext } from '../common/plugin'
 import { PluginStyleSettings } from '../common/plugin-style-settings'
 import { UnresolvedStyleSettings, codeLineClass } from '../common/style-settings'
@@ -95,6 +95,13 @@ export interface CoreStyleSettings {
 	 */
 	gutterForeground: string
 	/**
+	 * Default foreground color of gutter elements in highlighted lines.
+	 *
+	 * @default
+	 * ({ theme, resolveSetting }) => ensureColorContrastOnBackground(theme.colors['editorLineNumber.activeForeground'] || theme.colors['editorLineNumber.foreground'] || resolveSetting('codeForeground'), resolveSetting('codeBackground'), 4.5, 5)
+	 */
+	gutterHighlightForeground: string
+	/**
 	 * Font family of UI elements.
 	 * @default "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'"
 	 */
@@ -179,10 +186,17 @@ export const coreStyleSettings = new PluginStyleSettings({
 		codeForeground: ({ theme }) => theme.colors['editor.foreground'],
 		codeSelectionBackground: ({ theme }) => theme.colors['editor.selectionBackground'],
 		// Gutter
-		gutterBorderColor: ({ theme }) => lighten(theme.colors['editor.background'], theme.type === 'dark' ? 0.2 : -0.15),
+		gutterBorderColor: ({ resolveSetting }) => setAlpha(resolveSetting('gutterForeground'), 0.2),
 		gutterBorderWidth: '1.5px',
 		gutterForeground: ({ theme, resolveSetting }) =>
 			ensureColorContrastOnBackground(theme.colors['editorLineNumber.foreground'] || resolveSetting('codeForeground'), resolveSetting('codeBackground'), 3.3, 3.6),
+		gutterHighlightForeground: ({ theme, resolveSetting }) =>
+			ensureColorContrastOnBackground(
+				theme.colors['editorLineNumber.activeForeground'] || theme.colors['editorLineNumber.foreground'] || resolveSetting('codeForeground'),
+				resolveSetting('codeBackground'),
+				4.5,
+				5
+			),
 		// UI elements
 		uiFontFamily: minifyFontFamily(
 			`ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'`
@@ -322,6 +336,10 @@ export function getCoreBaseStyles({
 				& ~ .code {
 					--ecLineBrdCol: ${cssVar('gutterBorderColor')};
 				}
+			}
+
+			&.highlight .gutter {
+				color: ${cssVar('gutterHighlightForeground')};
 			}
 
 			.code {

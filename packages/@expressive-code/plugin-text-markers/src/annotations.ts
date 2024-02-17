@@ -22,6 +22,7 @@ export class TextMarkerAnnotation extends ExpressiveCodeAnnotation {
 	private renderFullLineMarker({ nodesToTransform }: AnnotationRenderOptions) {
 		return nodesToTransform.map((node) => {
 			if (node.type === 'element') {
+				addClassName(node, 'highlight')
 				addClassName(node, this.markerType)
 				if (this.label) {
 					addClassName(node, 'tm-label')

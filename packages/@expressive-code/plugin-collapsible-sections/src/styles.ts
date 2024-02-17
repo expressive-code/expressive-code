@@ -136,6 +136,7 @@ export function getCollapsibleSectionsBaseStyles({ cssVar }: ResolverContext) {
 				--border-width: ${cssVar('collapsibleSections.closedBorderWidth')};
 				box-shadow: inset 0 calc(-1 * var(--border-width)) var(--border-color), inset 0 var(--border-width) var(--border-color);
 				padding: ${cssVar('collapsibleSections.closedPadding')};
+				padding-inline-start: calc(var(--ecIndent, 0ch) + ${cssVar('codePaddingInline')});
 				margin: ${cssVar('collapsibleSections.closedMargin')};
 			}
 

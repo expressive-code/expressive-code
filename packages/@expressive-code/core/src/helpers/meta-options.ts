@@ -61,7 +61,7 @@ export class MetaOptions {
 	 * or without a key by passing an empty string.
 	 */
 	getStrings(keyOrKeys?: string | string[]) {
-		return this.list(keyOrKeys, 'string')?.map((option) => option.value)
+		return this.list(keyOrKeys, 'string').map((option) => option.value)
 	}
 
 	/**
@@ -77,7 +77,32 @@ export class MetaOptions {
 	 * or without a key by passing an empty string.
 	 */
 	getRanges(keyOrKeys?: string | string[]) {
-		return this.list(keyOrKeys, 'range')?.map((option) => option.value)
+		return this.list(keyOrKeys, 'range').map((option) => option.value)
+	}
+
+	/**
+	 * Returns the last integer value with the given key (case-insensitive),
+	 * or without a key by passing an empty string.
+	 */
+	getInteger(key: string) {
+		return this.getIntegers(key).pop()
+	}
+
+	/**
+	 * Returns an array of all integer values with the given keys (case-insensitive),
+	 * or without a key by passing an empty string.
+	 */
+	getIntegers(keyOrKeys?: string | string[]) {
+		return this.list(keyOrKeys)
+			.map((option) => {
+				// Skip values that are neither strings nor ranges
+				if (option.kind !== 'string' && option.kind !== 'range') return NaN
+				// Skip values that don't look like valid numbers
+				if (!/^-?\d+$/.test(option.value.trim())) return NaN
+				// Try to parse the value as an integer and return it
+				return parseInt(option.value, 10)
+			})
+			.filter((value) => !isNaN(value))
 	}
 
 	/**
@@ -93,7 +118,7 @@ export class MetaOptions {
 	 * or without a key by passing an empty string.
 	 */
 	getRegExps(keyOrKeys?: string | string[]) {
-		return this.list(keyOrKeys, 'regexp')?.map((option) => option.value)
+		return this.list(keyOrKeys, 'regexp').map((option) => option.value)
 	}
 
 	/**

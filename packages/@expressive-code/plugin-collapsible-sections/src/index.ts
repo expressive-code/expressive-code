@@ -80,6 +80,7 @@ export function pluginCollapsibleSections(): ExpressiveCodePlugin {
 				const codeAst = select('pre > code', renderData.blockAst)
 				if (!codeAst) return
 				codeAst.children = sectionizeAst({
+					codeBlock,
 					lines: codeAst.children,
 					sections: data.sections,
 					text: pluginCollapsibleSectionsTexts.get(locale).collapsedLines,

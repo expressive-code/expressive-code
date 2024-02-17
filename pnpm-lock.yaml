@@ -68,6 +68,9 @@ importers:
       '@expressive-code/plugin-collapsible-sections':
         specifier: workspace:^
         version: link:../packages/@expressive-code/plugin-collapsible-sections
+      '@expressive-code/plugin-line-numbers':
+        specifier: workspace:^
+        version: link:../packages/@expressive-code/plugin-line-numbers
       astro:
         specifier: ^4.2.7
         version: 4.2.7(typescript@5.2.2)
@@ -268,6 +271,22 @@ importers:
       hast-util-to-html:
         specifier: ^8.0.4
         version: 8.0.4
+
+  packages/@expressive-code/plugin-line-numbers:
+    dependencies:
+      '@expressive-code/core':
+        specifier: workspace:^0.32.4
+        version: link:../core
+      hastscript:
+        specifier: ^7.2.0
+        version: 7.2.0
+    devDependencies:
+      '@expressive-code/plugin-shiki':
+        specifier: workspace:^0.32.4
+        version: link:../plugin-shiki
+      '@internal/test-utils':
+        specifier: workspace:^
+        version: link:../../../internal/test-utils
 
   packages/@expressive-code/plugin-shiki:
     dependencies:
