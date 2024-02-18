@@ -50,8 +50,9 @@ export function pluginLineNumbers(): ExpressiveCodePlugin {
 			postprocessRenderedBlock: ({ codeBlock, renderData }) => {
 				// If the line numbers column needs more width than the default 2 characters,
 				// adjust it to fit the longest line number
-				const lineCount = codeBlock.getLines().length
-				const lnWidth = lineCount.toString().length
+				const { startLineNumber = 1 } = codeBlock.props
+				const endLineNumber = startLineNumber + codeBlock.getLines().length - 1
+				const lnWidth = Math.max(startLineNumber.toString().length, endLineNumber.toString().length)
 				if (lnWidth > 2) setInlineStyle(renderData.blockAst, '--lnWidth', `${lnWidth}ch`)
 			},
 		},

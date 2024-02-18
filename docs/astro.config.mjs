@@ -91,6 +91,10 @@ export default defineConfig({
 							label: 'Collapsible Sections',
 							link: '/plugins/collapsible-sections/',
 						},
+						{
+							label: 'Line Numbers',
+							link: '/plugins/line-numbers/',
+						},
 					],
 				},
 				{

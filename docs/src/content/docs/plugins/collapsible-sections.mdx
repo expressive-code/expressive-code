@@ -21,16 +21,14 @@ Before being able to use collapsible sections in your code blocks, you need to i
 
     <PackageManagers pkg="@expressive-code/plugin-collapsible-sections" />
 
-2. Add the integration to your site's configuration by passing it in the `plugins` list:
+2. Add the plugin to your site's configuration by passing it in the `plugins` list:
 
     <ConfigVariants
       imports={`
         import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
       `}
       settings={`
-        plugins: [
-          pluginCollapsibleSections(),
-        ],
+        plugins: [pluginCollapsibleSections()],
       `}
     />
 
@@ -94,20 +92,16 @@ The collapsible sections plugin adds the following props to the `<Code>` compone
 
 Collapses the given line range or ranges.
 
-## Configuration
+## Styling
 
-You can override this plugin's default styles by adding a `collapsibleSections` object to the `styleOverrides` engine config option. You can find a list of all [overridable styles](#available-style-overrides) below.
-
-Here are configuration examples for some popular site generators:
+This plugin adds a `collapsibleSections` object to the `styleOverrides` engine config option, allowing you to customize the visual appearance of the sections:
 
 <ConfigVariants
   imports={`
-    import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
+    import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections' // no-ins
   `}
   settings={`
-    plugins: [
-      pluginCollapsibleSections(),
-    ],
+    plugins: [pluginCollapsibleSections()], // no-ins
     styleOverrides: {
       // You can optionally override the plugin's default styles here
       collapsibleSections: {
@@ -117,13 +111,7 @@ Here are configuration examples for some popular site generators:
   `}
 />
 
-### Available plugin options
-
-This plugin does not provide any configuration options that can be passed to its initialization function.
-
 ### Available style overrides
-
-This plugin adds a `collapsibleSections` object to the `styleOverrides` engine config option, allowing you to customize the visual appearance of the sections. The object contains the following properties:
 
 #### closedBackgroundColor
 

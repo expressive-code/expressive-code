@@ -105,7 +105,7 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 					toDefinitionsArray(codeBlock.props[markerType]).forEach((definition) => {
 						if (typeof definition === 'string' || definition instanceof RegExp) return
 						const objDefinition = typeof definition === 'number' ? { range: `${definition}` } : definition
-						const { range, label } = objDefinition
+						const { range = '', label } = objDefinition
 						const lineNumbers = rangeParser(range)
 						lineNumbers.forEach((lineNumber, idx) => {
 							const lineIndex = lineNumber - 1
