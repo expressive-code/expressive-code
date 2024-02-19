@@ -32,7 +32,7 @@
   },
   "dependencies": {
     "@expressive-code/core": "workspace:^0.32.4",
-    "shikiji": "^0.8.0"
+    "shiki": "^1.1.5"
   },
   "devDependencies": {
     "@internal/test-utils": "workspace:^",

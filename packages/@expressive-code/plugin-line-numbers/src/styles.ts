@@ -1,4 +1,4 @@
-import { PluginStyleSettings, ResolverContext, codeLineClass } from '@expressive-code/core'
+import { PluginStyleSettings, ResolverContext } from '@expressive-code/core'
 
 export interface LineNumbersStyleSettings {
 	/**

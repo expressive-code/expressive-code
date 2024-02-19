@@ -213,6 +213,23 @@ export type VSCodeDefaultColorKey =
 	// Snippet placeholder colors
 	| 'editor.snippetTabstopHighlightBackground'
 	| 'editor.snippetFinalTabstopHighlightBorder'
+	// Terminal colors
+	| 'terminal.ansiBlack'
+	| 'terminal.ansiRed'
+	| 'terminal.ansiGreen'
+	| 'terminal.ansiYellow'
+	| 'terminal.ansiBlue'
+	| 'terminal.ansiMagenta'
+	| 'terminal.ansiCyan'
+	| 'terminal.ansiWhite'
+	| 'terminal.ansiBrightBlack'
+	| 'terminal.ansiBrightRed'
+	| 'terminal.ansiBrightGreen'
+	| 'terminal.ansiBrightYellow'
+	| 'terminal.ansiBrightBlue'
+	| 'terminal.ansiBrightMagenta'
+	| 'terminal.ansiBrightCyan'
+	| 'terminal.ansiBrightWhite'
 
 export const groupedDefaultWorkbenchColorKeys = {
 	backgrounds: [
@@ -521,6 +538,24 @@ const defaultWorkbenchColors: { [key in VSCodeDefaultColorKey]: VSCodeDefaultCol
 	// Snippet placeholder colors
 	'editor.snippetTabstopHighlightBackground': ['#7c7c74c', '#0a326433'],
 	'editor.snippetFinalTabstopHighlightBorder': ['#525252', '#0a326480'],
+
+	// Terminal colors
+	'terminal.ansiBlack': '#000000',
+	'terminal.ansiRed': '#cd3131',
+	'terminal.ansiGreen': ['#0DBC79', '#00BC00'],
+	'terminal.ansiYellow': ['#e5e510', '#949800'],
+	'terminal.ansiBlue': ['#2472c8', '#0451a5'],
+	'terminal.ansiMagenta': ['#bc3fbc', '#bc05bc'],
+	'terminal.ansiCyan': ['#11a8cd', '#0598bc'],
+	'terminal.ansiWhite': ['#e5e5e5', '#555555'],
+	'terminal.ansiBrightBlack': '#666666',
+	'terminal.ansiBrightRed': ['#f14c4c', '#cd3131'],
+	'terminal.ansiBrightGreen': ['#23d18b', '#14CE14'],
+	'terminal.ansiBrightYellow': ['#f5f543', '#b5ba00'],
+	'terminal.ansiBrightBlue': ['#3b8eea', '#0451a5'],
+	'terminal.ansiBrightMagenta': ['#d670d6', '#bc05bc'],
+	'terminal.ansiBrightCyan': ['#29b8db', '#0598bc'],
+	'terminal.ansiBrightWhite': ['#e5e5e5', '#a5a5a5'],
 }
 
 export type VSCodeThemeType = 'dark' | 'light'

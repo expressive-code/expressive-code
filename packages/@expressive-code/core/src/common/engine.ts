@@ -1,5 +1,5 @@
-import githubDark from 'shikiji/themes/github-dark.mjs'
-import githubLight from 'shikiji/themes/github-light.mjs'
+import githubDark from 'shiki/themes/github-dark.mjs'
+import githubLight from 'shiki/themes/github-light.mjs'
 import { ExpressiveCodePlugin, ResolverContext } from './plugin'
 import { renderGroup, RenderInput, RenderOptions } from '../internal/render-group'
 import { ExpressiveCodeTheme } from './theme'

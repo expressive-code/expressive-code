@@ -1,14 +1,14 @@
-import { Highlighter, ThemeRegistration, getHighlighter, isSpecialLang, bundledLanguages, BuiltinLanguage } from 'shikiji'
-import type { LanguageInput as ShikijiLanguageInput, LanguageRegistration as ShikijiLanguageRegistration, MaybeGetter, MaybeArray } from 'shikiji'
+import { Highlighter, ThemeRegistration, getHighlighter, isSpecialLang, bundledLanguages, BuiltinLanguage } from 'shiki'
+import type { LanguageInput as ShikiLanguageInput, LanguageRegistration as ShikiLanguageRegistration, MaybeGetter, MaybeArray } from 'shiki'
 import { ExpressiveCodeTheme, getStableObjectHash } from '@expressive-code/core'
 
-// Unfortunately, the types exported by `vscode-textmate` that are used by Shikiji
+// Unfortunately, the types exported by `vscode-textmate` that are used by Shiki
 // don't match the actual grammar requirements & parsing logic in some aspects.
 // The types defined here attempt to reduce the amount of incorrect type errors
 // that would otherwise when importing and adding external grammars.
 type Optional<T, K extends keyof T> = Omit<T, K> & Pick<Partial<T>, K>
-type IRawRepository = Optional<ShikijiLanguageRegistration['repository'], '$self' | '$base'>
-export interface LanguageRegistration extends Omit<ShikijiLanguageRegistration, 'repository'> {
+type IRawRepository = Optional<ShikiLanguageRegistration['repository'], '$self' | '$base'>
+export interface LanguageRegistration extends Omit<ShikiLanguageRegistration, 'repository'> {
 	repository?: IRawRepository | undefined
 }
 export type LanguageInput = MaybeGetter<MaybeArray<LanguageRegistration>>
@@ -25,7 +25,8 @@ export async function getCachedHighlighter(config: { langs?: LanguageInput[] | u
 	let highlighterPromise = highlighterPromiseByConfig.get(configCacheKey)
 	if (highlighterPromise === undefined) {
 		highlighterPromise = getHighlighter({
-			...(config.langs ? { langs: config.langs as ShikijiLanguageInput[] } : {}),
+			themes: [],
+			langs: [...Object.keys(bundledLanguages), ...(config.langs ? (config.langs as ShikiLanguageInput[]) : [])],
 		})
 		highlighterPromiseByConfig.set(configCacheKey, highlighterPromise)
 	}
@@ -43,7 +44,7 @@ export async function ensureThemeIsLoaded(highlighter: Highlighter, theme: Expre
 	if (!highlighter.getLoadedThemes().includes(cacheKey)) {
 		// Load the theme or wait for an existing load task to finish
 		await memoizeHighlighterTask(highlighter, `loadTheme:${cacheKey}`, () => {
-			const themeUsingCacheKey = { ...theme, name: cacheKey, settings: theme.settings as ThemeRegistration['settings'] }
+			const themeUsingCacheKey = { ...theme, name: cacheKey, settings: (theme.settings as ThemeRegistration['settings']) ?? [] }
 			return highlighter.loadTheme(themeUsingCacheKey)
 		})
 	}

@@ -1,18 +1,16 @@
 import { ExpressiveCodeLine, ExpressiveCodePlugin, ExpressiveCodeTheme, InlineStyleAnnotation } from '@expressive-code/core'
 import { type LanguageInput, ensureLanguageIsLoaded, ensureThemeIsLoaded, getCachedHighlighter } from './highlighter'
-import { ThemedToken, bundledThemes } from 'shikiji'
+import { ThemedToken, bundledThemes } from 'shiki'
 
 export interface PluginShikiOptions {
 	/**
 	 * A list of additional languages that should be available for syntax highlighting.
 	 *
-	 * You can pass any of the language input types supported by Shikiji, e.g.:
+	 * You can pass any of the language input types supported by Shiki, e.g.:
 	 * - `import('./some-exported-grammar.mjs')`
 	 * - `async () => JSON.parse(await fs.readFile('some-json-grammar.json', 'utf-8'))`
 	 *
-	 * See the [Shikiji documentation](https://github.com/antfu/shikiji) for more information.
-	 *
-	 * Note that you do not need to include languages that are already supported by Shiki.
+	 * See the [Shiki documentation](https://shiki.style/guide/load-lang) for more information.
 	 */
 	langs?: LanguageInput[] | undefined
 }
@@ -30,7 +28,7 @@ export async function loadShikiTheme(bundledThemeName: BundledShikiTheme) {
 	return new ExpressiveCodeTheme(shikiTheme)
 }
 
-// Workaround: Shikiji exports this as an ambient enum, which throws an error when trying to
+// Workaround: Shiki exports this as an ambient enum, which throws an error when trying to
 // access its values at runtime, so we're defining it ourselves here as a regular enum.
 enum FontStyle {
 	NotSet = -1,
@@ -64,7 +62,7 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 				} catch (error) {
 					/* c8 ignore next */
 					const msg = error instanceof Error ? error.message : (error as string)
-					throw new Error(`Failed to load syntax highlighter. Please ensure that the configured langs are supported by Shikiji. Received error message: "${msg}"`, {
+					throw new Error(`Failed to load syntax highlighter. Please ensure that the configured langs are supported by Shiki. Received error message: "${msg}"`, {
 						cause: error,
 					})
 				}
@@ -87,11 +85,20 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 					const loadedThemeName = await ensureThemeIsLoaded(highlighter, theme)
 
 					// Run highlighter (without explanations to improve performance)
-					const tokenLines = highlighter.codeToThemedTokens(code, {
-						lang: loadedLanguageName,
-						theme: loadedThemeName,
-						includeExplanation: false,
-					})
+					let tokenLines: ThemedToken[][]
+					try {
+						tokenLines = highlighter.codeToTokensBase(code, {
+							// @ts-expect-error: We took care that the language is loaded
+							lang: loadedLanguageName,
+							// @ts-expect-error: We took care that the theme is loaded
+							theme: loadedThemeName,
+							includeExplanation: false,
+						})
+					} catch (error) {
+						throw new Error(`Shiki failed to highlight code block with language "${codeBlock.language}" and theme "${theme.name}".`, {
+							cause: error,
+						})
+					}
 
 					tokenLines.forEach((line, lineIndex) => {
 						if (codeBlock.language === 'ansi' && styleVariantIndex === 0) removeAnsiSequencesFromCodeLine(codeLines[lineIndex], line)

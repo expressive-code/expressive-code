@@ -16,6 +16,8 @@ export function validateColorContrast({ renderedGroupAst, styleVariants }: { ren
 			if (token.tagName !== 'span') return
 			const style = token.properties?.style?.toString()
 			if (!style) return
+			// Only process spans that have direct text contents
+			if (!token.children.some((child) => child.type === 'text')) return
 			// Determine the current foreground color by walking the ancestor chain
 			// from the current token to the root and extracting the first foreground color
 			// for the current style variant index

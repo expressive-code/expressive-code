@@ -1,9 +1,9 @@
-import { describe, test, expect } from 'vitest'
+import { describe, test } from 'vitest'
 import { pluginShiki } from '@expressive-code/plugin-shiki'
 import { pluginTextMarkers } from '@expressive-code/plugin-text-markers'
 import { pluginFrames } from '@expressive-code/plugin-frames'
 import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
-import { renderAndOutputHtmlSnapshot, buildThemeFixtures, TestFixture, loadTestThemes } from '@internal/test-utils'
+import { renderAndOutputHtmlSnapshot, buildThemeFixtures, loadTestThemes } from '@internal/test-utils'
 import { pluginLineNumbers } from '../src'
 
 export const complexTestCode = `
@@ -41,7 +41,7 @@ describe('Renders line numbers', async () => {
 					language: 'mdx',
 					meta: complexTestMeta + ' wrap',
 					plugins: [pluginShiki(), pluginTextMarkers(), pluginFrames(), pluginCollapsibleSections(), pluginLineNumbers()],
-					blockValidationFn: (actual) => {
+					blockValidationFn: (/*actual*/) => {
 						// // Expect that MDX syntax highlighting was applied
 						// // due to the `lang="mdx"` meta attribute
 						// const matchingElements = selectAll(`span[style]`, actual.renderedGroupAst)

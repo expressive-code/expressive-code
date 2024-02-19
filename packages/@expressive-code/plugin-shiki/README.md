@@ -2,7 +2,7 @@
 
 A default plugin of Expressive Code, an engine for presenting source code on the web.
 
-It performs syntax highlighting of your code blocks using Shikiji (a fork of Shiki), which uses the same engine as VS Code to provide accurate syntax highlighting for over 100 languages.
+It performs syntax highlighting of your code blocks using Shiki, which uses the same engine as VS Code to provide accurate syntax highlighting for over 100 languages.
 
 ## Documentation
 
