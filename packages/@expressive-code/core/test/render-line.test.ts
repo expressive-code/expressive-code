@@ -1,12 +1,14 @@
 import { describe, expect, test } from 'vitest'
 import { toHtml } from 'hast-util-to-html'
+import { Parent } from 'hast-util-to-html/lib/types'
 import { h } from 'hastscript'
 import { ExpressiveCodeLine } from '../src/common/line'
 import { renderLineToAst, splitLineAtAnnotationBoundaries } from '../src/internal/render-line'
-import { ClassNameAnnotation, WrapperAnnotation, annotateMatchingTextParts, getAnnotatedTextParts, nonArrayValues, nonObjectValues } from './utils'
 import { codeLineClass } from '../src/common/style-settings'
 import { AnnotationBaseOptions, AnnotationRenderOptions, ExpressiveCodeAnnotation } from '../src/common/annotation'
-import { Parent } from 'hast-util-to-html/lib/types'
+import { ExpressiveCodeBlock } from '../src/common/block'
+import { ResolvedExpressiveCodeEngineConfig } from '../src/common/engine'
+import { ClassNameAnnotation, WrapperAnnotation, annotateMatchingTextParts, getAnnotatedTextParts, nonArrayValues, nonObjectValues } from './utils'
 
 describe('splitLineAtAnnotationBoundaries()', () => {
 	const testText = 'Nothing to see here!'
@@ -306,12 +308,12 @@ function renderLineToHtml(line: ExpressiveCodeLine) {
 function renderLineToAstWrapper(line: ExpressiveCodeLine) {
 	return renderLineToAst({
 		line,
+		lineIndex: 0,
 		gutterElements: [],
-		// @ts-expect-error Mock values for testing
-		codeBlock: {},
+		codeBlock: {} as ExpressiveCodeBlock,
+		groupContents: [],
 		locale: 'en-US',
-		// @ts-expect-error Mock values for testing
-		config: {},
+		config: {} as ResolvedExpressiveCodeEngineConfig,
 		cssVar: () => '',
 		cssVarName: () => '',
 		styleVariants: [],

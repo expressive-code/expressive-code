@@ -286,6 +286,7 @@ export function getCoreBaseStyles({
 			/* Enable word wrapping on demand */
 			&.wrap .${codeLineClass} .code {
 				white-space: pre-wrap;
+				overflow-wrap: break-word;
 				min-width: min(30ch, var(--ecMaxLine, 30ch));
 			}
 

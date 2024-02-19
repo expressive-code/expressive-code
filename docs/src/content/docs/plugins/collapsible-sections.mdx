@@ -92,6 +92,14 @@ The collapsible sections plugin adds the following props to the `<Code>` compone
 
 Collapses the given line range or ranges.
 
+#### collapsePreserveIndent
+
+<PropertySignature>
+- Type: `boolean`
+</PropertySignature>
+
+Determines if collapsed section titles (`X collapsed lines`) should be indented to preserve the minimum indent level of their contained collapsed code lines.
+
 ## Styling
 
 This plugin adds a `collapsibleSections` object to the `styleOverrides` engine config option, allowing you to customize the visual appearance of the sections:
@@ -176,14 +184,14 @@ The line height of the closed section summary text.
 
 The margin around closed sections.
 
-#### closedPadding
+#### closedPaddingBlock
 
 <PropertySignature>
 - Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
-- Default: ``({ resolveSetting }) => `4px 0 4px ${resolveSetting('codePaddingInline')}` ``
+- Default: ``'4px'``
 </PropertySignature>
 
-The padding of closed sections.
+The block padding of closed sections.
 
 #### closedTextColor
 

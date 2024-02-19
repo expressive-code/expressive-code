@@ -281,9 +281,18 @@ importers:
         specifier: ^7.2.0
         version: 7.2.0
     devDependencies:
+      '@expressive-code/plugin-collapsible-sections':
+        specifier: workspace:^0.32.4
+        version: link:../plugin-collapsible-sections
+      '@expressive-code/plugin-frames':
+        specifier: workspace:^0.32.4
+        version: link:../plugin-frames
       '@expressive-code/plugin-shiki':
         specifier: workspace:^0.32.4
         version: link:../plugin-shiki
+      '@expressive-code/plugin-text-markers':
+        specifier: workspace:^0.32.4
+        version: link:../plugin-text-markers
       '@internal/test-utils':
         specifier: workspace:^
         version: link:../../../internal/test-utils

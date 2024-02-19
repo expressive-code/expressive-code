@@ -893,6 +893,7 @@ function pluginLineNumbers(): ExpressiveCodePlugin {
 				addGutterElement({
 					renderPhase: 'earlier',
 					renderLine: renderLineNumber,
+					renderPlaceholder: () => h('div.ln'),
 				})
 			},
 			postprocessRenderedBlock: ({ codeBlock, renderData }) => {

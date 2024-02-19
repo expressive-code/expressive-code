@@ -13,7 +13,7 @@ export type ExpressiveCodeInlineRange = {
 // Note: We need to re-export this type to enable VS Code's "auto-implement interface" feature
 // in external code using this package.
 export type { Parent }
-export type AnnotationRenderOptions = ResolverContext & { nodesToTransform: Parent[]; line: ExpressiveCodeLine }
+export type AnnotationRenderOptions = ResolverContext & { nodesToTransform: Parent[]; line: ExpressiveCodeLine; lineIndex: number }
 
 export type AnnotationRenderPhase = 'earliest' | 'earlier' | 'normal' | 'later' | 'latest'
 
@@ -45,7 +45,7 @@ export abstract class ExpressiveCodeAnnotation {
 	 * For example, you could use the `hastscript` library to wrap the received nodes
 	 * in HTML elements.
 	 */
-	abstract render({ nodesToTransform, line }: AnnotationRenderOptions): Parent[]
+	abstract render({ nodesToTransform, line, lineIndex }: AnnotationRenderOptions): Parent[]
 
 	/**
 	 * An optional range of columns within the line that this annotation applies to.

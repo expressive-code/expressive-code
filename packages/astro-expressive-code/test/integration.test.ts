@@ -15,7 +15,7 @@ const complexHtmlRegExp = buildSampleCodeHtmlRegExp({
 		'<details(| .*?)>.*?</details>',
 		'.*?',
 		// Expect at least one code line that is marked as inserted
-		'<div class="ec-line ins">',
+		'<div class="ec-line highlight ins">',
 		// Expect Shiki highlighting colors inside
 		'.*?--0:#.*?',
 		// Expect all elements to be closed
@@ -29,7 +29,7 @@ const multiCodeComponentHtmlRegExp = buildSampleCodeHtmlRegExp({
 	codeContents: [
 		'.*?',
 		// Expect at least one code line that is marked
-		'<div class="ec-line mark">',
+		'<div class="ec-line highlight mark">',
 		// Expect Shiki highlighting colors inside
 		'.*?--0:#.*?',
 		// Expect the text "code block #" followed by the number 1-3 inside

@@ -85,6 +85,14 @@ export interface PostprocessRenderedLineContext extends Omit<ExpressiveCodeHookC
 	renderData: {
 		lineAst: Element
 	}
+	/**
+	 * Allows rendering an empty line that is not part of the original code.
+	 *
+	 * Some plugins may need to render lines that are not part of the original code, e.g. to display
+	 * the expected output of a call right inside the code block. To align such lines with the
+	 * original code, plugins can request an empty line from the engine using this function.
+	 */
+	renderEmptyLine: RenderEmptyLineFn
 }
 
 /**
@@ -113,7 +121,17 @@ export interface PostprocessRenderedBlockContext extends Omit<ExpressiveCodeHook
 	renderData: {
 		blockAst: Element
 	}
+	/**
+	 * Allows rendering an empty line that is not part of the original code.
+	 *
+	 * Some plugins may need to render lines that are not part of the original code, e.g. to display
+	 * the expected output of a call right inside the code block. To align such lines with the
+	 * original code, plugins can request an empty line from the engine using this function.
+	 */
+	renderEmptyLine: RenderEmptyLineFn
 }
+
+export type RenderEmptyLineFn = () => { lineAst: Element; gutterWrapper: Element | undefined; codeWrapper: Element }
 
 /**
  * A context object that the engine passes to the `postprocessRenderedBlockGroup` hook function.

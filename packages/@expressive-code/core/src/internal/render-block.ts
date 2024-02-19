@@ -3,7 +3,7 @@ import { h } from 'hastscript'
 import { ExpressiveCodePlugin } from '../common/plugin'
 import { ExpressiveCodeHookContext, ExpressiveCodeHookContextBase, ExpressiveCodePluginHooks_BeforeRendering, runHooks } from '../common/plugin-hooks'
 import { PluginStyles } from './css'
-import { PluginGutterElement, renderLineToAst } from './render-line'
+import { PluginGutterElement, getRenderEmptyLineFn, renderLineToAst } from './render-line'
 import { isBoolean, isHastElement, isHastParent, newTypeError } from './type-checks'
 import { AnnotationRenderPhaseOrder } from '../common/annotation'
 import { ExpressiveCodeBlock } from '../common/block'
@@ -84,12 +84,13 @@ export async function renderBlock({
 	// Render lines to AST and run rendering hooks
 	const lines = codeBlock.getLines()
 	const renderedAstLines: Element[] = []
+	const renderEmptyLine = getRenderEmptyLineFn({ gutterElements, ...baseContext })
 	for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
 		const line = lines[lineIndex]
 		// Render the current line to an AST and wrap it in an object that can be passed
 		// through all hooks, allowing plugins to edit or completely replace the AST
 		const lineRenderData = {
-			lineAst: renderLineToAst({ line, gutterElements, ...baseContext }),
+			lineAst: renderLineToAst({ line, lineIndex, gutterElements, ...baseContext }),
 		}
 		// Add indent information if wrapping is enabled and preserveIndent has not been disabled
 		if (codeBlock.props.wrap && codeBlock.props.preserveIndent !== false) {
@@ -104,6 +105,7 @@ export async function renderBlock({
 				line,
 				lineIndex,
 				renderData: lineRenderData,
+				renderEmptyLine,
 			})
 			if (!isHastElement(lineRenderData.lineAst)) {
 				throw newTypeError('hast Element', lineRenderData.lineAst, 'lineAst')
@@ -122,6 +124,7 @@ export async function renderBlock({
 			...baseContext,
 			addStyles: (styles: string) => blockStyles.push({ pluginName: plugin.name, styles }),
 			renderData: blockRenderData,
+			renderEmptyLine,
 		})
 		if (!isHastParent(blockRenderData.blockAst)) {
 			throw newTypeError('hast Parent', blockRenderData.blockAst, 'blockAst')

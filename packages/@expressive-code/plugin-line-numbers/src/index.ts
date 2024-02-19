@@ -40,10 +40,10 @@ export function pluginLineNumbers(): ExpressiveCodePlugin {
 				if (props.showLineNumbers !== false) {
 					addGutterElement({
 						renderPhase: 'earlier',
-						renderLine: ({ codeBlock, line }) => {
-							const lineIdx = codeBlock.getLines().indexOf(line)
-							return h('div.ln', `${lineIdx + (codeBlock.props.startLineNumber ?? 1)}`)
+						renderLine: ({ codeBlock, lineIndex }) => {
+							return h('div.ln', `${lineIndex + (codeBlock.props.startLineNumber ?? 1)}`)
 						},
+						renderPlaceholder: () => h('div.ln'),
 					})
 				}
 			},

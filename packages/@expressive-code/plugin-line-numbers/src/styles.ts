@@ -38,17 +38,15 @@ export const lineNumbersStyleSettings = new PluginStyleSettings({
 
 export function getLineNumbersBaseStyles({ cssVar }: ResolverContext) {
 	const result = `
-		.${codeLineClass} {
-			.gutter .ln {
-				display: inline-flex;
-				justify-content: flex-end;
-				align-items: flex-start;
-				box-sizing: content-box;
-				min-width: var(--lnWidth, 2ch);
-				padding-inline: 2ch;
-				color: ${cssVar('lineNumbers.foreground')};
-			}
-			&.highlight .gutter .ln {
+		.gutter .ln {
+			display: inline-flex;
+			justify-content: flex-end;
+			align-items: flex-start;
+			box-sizing: content-box;
+			min-width: var(--lnWidth, 2ch);
+			padding-inline: 2ch;
+			color: ${cssVar('lineNumbers.foreground')};
+			.highlight & {
 				color: ${cssVar('lineNumbers.highlightForeground')};
 			}
 		}

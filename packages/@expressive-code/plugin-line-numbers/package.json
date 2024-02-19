@@ -35,7 +35,10 @@
     "hastscript": "^7.2.0"
   },
   "devDependencies": {
+    "@expressive-code/plugin-collapsible-sections": "workspace:^0.32.4",
+    "@expressive-code/plugin-frames": "workspace:^0.32.4",
     "@expressive-code/plugin-shiki": "workspace:^0.32.4",
+    "@expressive-code/plugin-text-markers": "workspace:^0.32.4",
     "@internal/test-utils": "workspace:^"
   }
 }

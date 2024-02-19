@@ -317,6 +317,16 @@ There is a wide range of existing utility packages that you can use to manipulat
 </dd>
 </dl>
 
+##### renderEmptyLine
+
+<PropertySignature>
+- Type: `RenderEmptyLineFn`
+</PropertySignature>
+
+Allows rendering an empty line that is not part of the original code.
+
+Some plugins may need to render lines that are not part of the original code, e.g. to display the expected output of a call right inside the code block. To align such lines with the original code, plugins can request an empty line from the engine using this function.
+
 
 ### PostprocessRenderedBlockContext
 
@@ -348,6 +358,16 @@ There is a wide range of existing utility packages that you can use to manipulat
 </PropertySignature>
 </dd>
 </dl>
+
+##### renderEmptyLine
+
+<PropertySignature>
+- Type: `RenderEmptyLineFn`
+</PropertySignature>
+
+Allows rendering an empty line that is not part of the original code.
+
+Some plugins may need to render lines that are not part of the original code, e.g. to display the expected output of a call right inside the code block. To align such lines with the original code, plugins can request an empty line from the engine using this function.
 
 
 ### PostprocessRenderedBlockGroupContext

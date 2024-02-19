@@ -22,6 +22,17 @@ export interface GutterElement {
 	 */
 	renderLine(context: GutterRenderContext): Parent
 	/**
+	 * Some plugins may render lines that are not part of the original code, e.g. to display
+	 * the expected output of a call right inside the code block.
+	 *
+	 * To properly align such lines with the original code, plugins can request an empty line
+	 * from the engine using the `renderEmptyLine` context function.
+	 *
+	 * When called, the engine goes through all gutter elements registered by the installed plugins
+	 * and calls their `renderPlaceholder` function to render the placeholder gutter contents.
+	 */
+	renderPlaceholder(): Parent
+	/**
 	 * Determines the phase in which this gutter element should be rendered.
 	 * Rendering is done in phases, from `earliest` to `latest`.
 	 * Elements with the same phase are rendered in the order they were added.
@@ -35,4 +46,4 @@ export interface GutterElement {
 	renderPhase?: AnnotationRenderPhase | undefined
 }
 
-export type GutterRenderContext = ExpressiveCodeHookContextBase & { line: ExpressiveCodeLine }
+export type GutterRenderContext = ExpressiveCodeHookContextBase & { line: ExpressiveCodeLine; lineIndex: number }

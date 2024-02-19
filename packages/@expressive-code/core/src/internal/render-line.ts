@@ -1,9 +1,9 @@
-import { Parent } from 'hast-util-to-html/lib/types'
+import type { Parent } from 'hast-util-to-html/lib/types'
 import { h } from 'hastscript'
 import { ExpressiveCodeLine } from '../common/line'
 import { AnnotationRenderPhase, AnnotationRenderPhaseOrder, ExpressiveCodeAnnotation } from '../common/annotation'
 import { codeLineClass } from '../common/style-settings'
-import { ExpressiveCodeHookContextBase } from '../common/plugin-hooks'
+import { ExpressiveCodeHookContextBase, RenderEmptyLineFn } from '../common/plugin-hooks'
 import { GutterElement } from '../common/gutter'
 import { isHastParent } from './type-checks'
 
@@ -56,7 +56,12 @@ export function splitLineAtAnnotationBoundaries(line: ExpressiveCodeLine) {
 	}
 }
 
-export function renderLineToAst({ line, gutterElements, ...restContext }: ExpressiveCodeHookContextBase & { line: ExpressiveCodeLine; gutterElements: PluginGutterElement[] }) {
+export function renderLineToAst({
+	line,
+	lineIndex,
+	gutterElements,
+	...restContext
+}: ExpressiveCodeHookContextBase & { line: ExpressiveCodeLine; lineIndex: number; gutterElements: PluginGutterElement[] }) {
 	// Flatten intersecting annotations by splitting the line text into non-intersecting parts
 	// and mapping annotations to the contained parts
 	const { textParts, partIndicesByAnnotation } = splitLineAtAnnotationBoundaries(line)
@@ -128,7 +133,7 @@ export function renderLineToAst({ line, gutterElements, ...restContext }: Expres
 
 		// Pass all part nodes to the annotation's render function
 		const renderInput = partIndices.map((partIndex) => partNodes[partIndex])
-		const renderOutput = annotation.render({ nodesToTransform: [...renderInput], line, ...restContext })
+		const renderOutput = annotation.render({ nodesToTransform: [...renderInput], line, lineIndex, ...restContext })
 		validateAnnotationRenderOutput(renderOutput, renderInput.length)
 		partIndices.forEach((partIndex, index) => {
 			partNodes[partIndex] = renderOutput[index]
@@ -139,7 +144,7 @@ export function renderLineToAst({ line, gutterElements, ...restContext }: Expres
 	const sortedGutterElements = [...gutterElements].sort((a, b) => renderPhaseSortFn(a.gutterElement, b.gutterElement))
 	const renderedGutterElements = sortedGutterElements.map(({ pluginName, gutterElement }) => {
 		try {
-			const node = gutterElement.renderLine({ ...restContext, line })
+			const node = gutterElement.renderLine({ ...restContext, line, lineIndex })
 			if (!isHastParent(node)) throw new Error(`renderLine function did not return a valid HAST parent node: ${JSON.stringify(node)}`)
 			return node
 		} catch (error) {
@@ -165,12 +170,50 @@ export function renderLineToAst({ line, gutterElements, ...restContext }: Expres
 	// Render line-level annotations
 	annotations.forEach((annotation) => {
 		if (annotation.inlineRange) return
-		const renderOutput = annotation.render({ nodesToTransform: [lineNode], line, ...restContext })
+		const renderOutput = annotation.render({ nodesToTransform: [lineNode], line, lineIndex, ...restContext })
 		validateAnnotationRenderOutput(renderOutput, 1)
 		lineNode = renderOutput[0]
 	})
 
 	return lineNode
+}
+
+export function getRenderEmptyLineFn(context: ExpressiveCodeHookContextBase & { gutterElements: PluginGutterElement[] }): RenderEmptyLineFn {
+	return () => {
+		const { gutterElements } = context
+
+		// Sort gutter elements by their render phase and render placeholders for them
+		const sortedGutterElements = [...gutterElements].sort((a, b) => renderPhaseSortFn(a.gutterElement, b.gutterElement))
+		const renderedGutterElements = sortedGutterElements.map(({ pluginName, gutterElement }) => {
+			try {
+				const node = gutterElement.renderPlaceholder()
+				if (!isHastParent(node)) throw new Error(`renderPlaceholder function did not return a valid HAST parent node: ${JSON.stringify(node)}`)
+				return node
+			} catch (error) {
+				/* c8 ignore next */
+				const msg = error instanceof Error ? error.message : (error as string)
+				throw new Error(`Plugin "${pluginName}" failed to render a gutter element placeholder. Error message: ${msg}`, { cause: error })
+			}
+		})
+
+		// Create a line node for all rendered parts
+		const lineAst = h(`div.${codeLineClass}`)
+
+		// If we have any gutter elements, wrap a gutter container around the elements
+		// and add it to the line's nodes
+		const gutterWrapper = renderedGutterElements.length ? h('div.gutter', renderedGutterElements) : undefined
+		if (gutterWrapper) lineAst.children.push(gutterWrapper)
+
+		// Now also wrap the code in a container and add it to the line's nodes
+		const codeWrapper = h('div.code')
+		lineAst.children.push(codeWrapper)
+
+		return {
+			lineAst,
+			gutterWrapper,
+			codeWrapper,
+		}
+	}
 }
 
 function renderPhaseSortFn(a: { renderPhase?: AnnotationRenderPhase | undefined }, b: { renderPhase?: AnnotationRenderPhase | undefined }) {

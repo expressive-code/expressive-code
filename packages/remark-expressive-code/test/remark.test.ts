@@ -31,7 +31,7 @@ describe('Usage inside unified/remark', () => {
 			title: 'test.js',
 			codeContents: [
 				// Ensure that the Text Markers plugin works by expecting a highlighted code line
-				'<div class="ec-line ins">',
+				'<div class="ec-line highlight ins">',
 				// Expect Shiki highlighting colors inside
 				'.*?--0:#.*?',
 				// Expect the code line to be closed
