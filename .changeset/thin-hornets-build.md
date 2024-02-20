@@ -2,7 +2,7 @@
 '@expressive-code/plugin-collapsible-sections': minor
 ---
 
-Adds new `collapsePreserveIndent` prop and replaces `styleOverrides` property `closedPadding` with `closedPaddingBlock`.
+Adds new `collapsePreserveIndent` prop to `@expressive-code/plugin-collapsible-sections` and replaces `styleOverrides` property `closedPadding` with `closedPaddingBlock`.
 
 The new prop determines if collapsed section titles (`X collapsed lines`) should be indented to preserve the minimum indent level of their contained collapsed code lines. This allows collapsed sections to integrate better with the surrounding code. Defaults to `true`.
 

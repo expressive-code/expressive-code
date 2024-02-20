@@ -14,6 +14,7 @@ const changelogPaths = [
 const nonDefaultPackages = [
 	// All packages that are not included by default
 	'@expressive-code/plugin-collapsible-sections',
+	'@expressive-code/plugin-line-numbers',
 ]
 
 // Load all changelogs
