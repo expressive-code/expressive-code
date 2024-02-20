@@ -113,7 +113,11 @@ export async function loadEcConfigFile(projectRootUrl: URL): Promise<AstroExpres
 			const msg = error instanceof Error ? error.message : (error as string)
 			const code = (error as { code?: string | undefined }).code
 			// If the config file was not found, continue with the next path (if any)
-			if (code === 'ERR_MODULE_NOT_FOUND' || code === 'ERR_LOAD_URL') continue
+			if (code === 'ERR_MODULE_NOT_FOUND' || code === 'ERR_LOAD_URL') {
+				// Only ignore the error if it's about the config file itself
+				// not being found, not about other imports in the config file
+				if (msg.match(/ec\.config\.mjs.*(imported from|resolved id)/)) continue
+			}
 			// If the config file exists, but there was a problem loading it, rethrow the error
 			throw new Error(
 				`Your project includes an Expressive Code config file ("ec.config.mjs")
