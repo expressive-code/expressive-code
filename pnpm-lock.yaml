@@ -356,6 +356,9 @@ importers:
         specifier: workspace:^0.32.4
         version: link:../remark-expressive-code
     devDependencies:
+      '@internal/test-utils':
+        specifier: workspace:^
+        version: link:../../internal/test-utils
       execa:
         specifier: ^7.1.1
         version: 7.1.1

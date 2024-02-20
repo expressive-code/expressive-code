@@ -3,6 +3,8 @@ import { existsSync, rmSync, readFileSync, readdirSync } from 'fs'
 import { join } from 'path'
 import { execa } from 'execa'
 import type { AstroUserConfig } from 'astro/config'
+import { getInlineStyles } from 'remark-expressive-code'
+import { hastToText, htmlToHast, selectHastElements } from '@internal/test-utils'
 import { buildSampleCodeHtmlRegExp } from '../../remark-expressive-code/test/utils'
 
 const complexHtmlRegExp = buildSampleCodeHtmlRegExp({
@@ -221,6 +223,37 @@ describe('Integration into Astro ^4.0.0', () => {
 		const html = fixture?.readFile('astro-code-component/index.html') ?? ''
 		validateHtml(html)
 		expect(html).toContain('Code component in Astro files')
+	})
+
+	test('Supports custom languages', () => {
+		const html = fixture?.readFile('custom-language/index.html') ?? ''
+		expect(html).toContain('Custom language')
+		const hast = htmlToHast(html)
+		const codeBlocks = selectHastElements('.expressive-code', hast)
+		expect(codeBlocks).toHaveLength(3)
+		const tokensPerCodeBlock = codeBlocks.map((codeBlock) => {
+			const tokens = selectHastElements('.ec-line span[style^="--0"]', codeBlock)
+			return tokens.map((token) => {
+				return {
+					text: hastToText(token),
+					color: getInlineStyles(token).get('--0'),
+				}
+			})
+		})
+		const [mdWithNestedLangs, customLang, jsLang] = tokensPerCodeBlock
+		const customLangTokenColors = [
+			{ text: 'test', color: '#F699D9' },
+			{ text: 'my', color: '#AEE9F5' },
+			{ text: '"lang"', color: '#A3B5C3' },
+		]
+		const jsLangTokenColors = [
+			{ text: 'import', color: '#EBEA8B' },
+			{ text: 'something', color: '#AEE9F5' },
+		]
+		expect(mdWithNestedLangs, 'Failed to highlight custom language nested in markdown code block').toEqual(expect.arrayContaining(customLangTokenColors))
+		expect(mdWithNestedLangs, 'Failed to highlight JS language nested in markdown code block after adding custom language').toEqual(expect.arrayContaining(jsLangTokenColors))
+		expect(customLang, 'Failed to highlight fenced code block using custom language').toEqual(expect.arrayContaining(customLangTokenColors))
+		expect(jsLang, 'Failed to highlight fenced code block using JS language after adding custom language').toEqual(expect.arrayContaining(jsLangTokenColors))
 	})
 
 	test('Emits an external stylesheet into the Astro assets dir', () => {

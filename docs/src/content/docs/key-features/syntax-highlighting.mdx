@@ -134,6 +134,10 @@ You can pass any of the language input types supported by Shiki, e.g.:
 
 See the [Shiki documentation](https://shiki.style/guide/load-lang) for more information.
 
+:::tip
+When using this option, Expressive Code automatically ensures that all bundled default languages are still available. You don't need to add Shiki's `bundledLanguages` manually to this array.
+:::
+
 ### Using another syntax highlighter
 
 If you want to use another syntax highlighter, you can set `shiki: false` in the [configuration](#configuration) to prevent the default highlighter from being loaded. You can then write a plugin for the new syntax highlighter and add it to the `plugins` array.

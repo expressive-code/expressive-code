@@ -1,5 +1,5 @@
-import { Highlighter, ThemeRegistration, getHighlighter, isSpecialLang, bundledLanguages, BuiltinLanguage } from 'shiki'
-import type { LanguageInput as ShikiLanguageInput, LanguageRegistration as ShikiLanguageRegistration, MaybeGetter, MaybeArray } from 'shiki'
+import { Highlighter, ThemeRegistration, getHighlighter, isSpecialLang, bundledLanguages } from 'shiki'
+import type { LanguageInput as ShikiLanguageInput, LanguageRegistration as ShikiLanguageRegistration, MaybeGetter, MaybeArray, BundledLanguage } from 'shiki'
 import { ExpressiveCodeTheme, getStableObjectHash } from '@expressive-code/core'
 
 // Unfortunately, the types exported by `vscode-textmate` that are used by Shiki
@@ -14,7 +14,7 @@ export interface LanguageRegistration extends Omit<ShikiLanguageRegistration, 'r
 export type LanguageInput = MaybeGetter<MaybeArray<LanguageRegistration>>
 
 const highlighterPromiseByConfig = new Map<string, Promise<Highlighter>>()
-const promisesByHighlighter = new WeakMap<Highlighter, Map<string, Promise<void>>>()
+const promisesByHighlighter = new WeakMap<Highlighter, Map<string, Promise<unknown>>>()
 const themeCacheKeys = new WeakMap<ExpressiveCodeTheme, string>()
 
 /**
@@ -24,9 +24,16 @@ export async function getCachedHighlighter(config: { langs?: LanguageInput[] | u
 	const configCacheKey = getStableObjectHash(config)
 	let highlighterPromise = highlighterPromiseByConfig.get(configCacheKey)
 	if (highlighterPromise === undefined) {
+		const langs: (ShikiLanguageInput | BundledLanguage)[] = []
+		if (config.langs?.length) {
+			langs.push(...(config.langs as ShikiLanguageInput[]))
+			// When custom languages are used, also load all bundled languages right away
+			// to avoid issues with lazy-loaded embedded languages in markdown and MDX
+			langs.push(...(Object.keys(bundledLanguages) as BundledLanguage[]))
+		}
 		highlighterPromise = getHighlighter({
 			themes: [],
-			langs: [...Object.keys(bundledLanguages), ...(config.langs ? (config.langs as ShikiLanguageInput[]) : [])],
+			langs,
 		})
 		highlighterPromiseByConfig.set(configCacheKey, highlighterPromise)
 	}
@@ -52,17 +59,30 @@ export async function ensureThemeIsLoaded(highlighter: Highlighter, theme: Expre
 }
 
 export async function ensureLanguageIsLoaded(highlighter: Highlighter, language: string) {
-	const loadedLanguages = new Set(highlighter.getLoadedLanguages())
-	if (!loadedLanguages.has(language) && !isSpecialLang(language)) {
+	// Load the language or wait for an existing load task to finish
+	const loadedLanguage = await memoizeHighlighterTask(highlighter, `loadLanguage:${language}`, async () => {
+		const loadedLanguages = new Set(highlighter.getLoadedLanguages())
+		const isLoaded = loadedLanguages.has(language)
+		const isSpecial = isSpecialLang(language)
+		const isBundled = Object.keys(bundledLanguages).includes(language)
 		// If the language is not available, fall back to "txt"
-		if (!Object.keys(bundledLanguages).includes(language)) {
-			language = 'txt'
+		const isAvailable = isLoaded || isSpecial || isBundled
+		if (!isAvailable) return 'txt'
+		// Collect all languages that need to be loaded
+		const langsToLoad: BundledLanguage[] = []
+		// If the language is markdown or MDX, also load all lazy-loaded embedded languages
+		// to ensure that nested code blocks are properly highlighted
+		if (['md', 'markdown', 'mdx'].includes(language)) {
+			const bundledLang = (await bundledLanguages[language as BundledLanguage]()).default
+			const embeddedLangsLazy = [...new Set(bundledLang.flatMap((lang) => lang.embeddedLangsLazy ?? []))] as BundledLanguage[]
+			const missingEmbeddedLangs = embeddedLangsLazy.filter((lang) => !loadedLanguages.has(lang))
+			langsToLoad.push(...missingEmbeddedLangs)
 		}
-
-		// Load the language or wait for an existing load task to finish
-		await memoizeHighlighterTask(highlighter, `loadLanguage:${language}`, () => highlighter.loadLanguage(language as BuiltinLanguage))
-	}
-	return language
+		if (!isLoaded && !isSpecial) langsToLoad.push(language as BundledLanguage)
+		if (langsToLoad.length) await highlighter.loadLanguage(...langsToLoad)
+		return language
+	})
+	return loadedLanguage
 }
 
 /**
@@ -72,7 +92,7 @@ export async function ensureLanguageIsLoaded(highlighter: Highlighter, language:
  * start the same async task multiple times, but instead return the same promise for all calls
  * to improve performance and reduce memory usage.
  */
-function memoizeHighlighterTask(highlighter: Highlighter, taskId: string, taskFn: () => Promise<void>) {
+function memoizeHighlighterTask<T>(highlighter: Highlighter, taskId: string, taskFn: () => Promise<T>) {
 	let promises = promisesByHighlighter.get(highlighter)
 	if (!promises) {
 		promises = new Map()
@@ -83,5 +103,5 @@ function memoizeHighlighterTask(highlighter: Highlighter, taskId: string, taskFn
 		promise = taskFn()
 		promises.set(taskId, promise)
 	}
-	return promise
+	return promise as Promise<T>
 }

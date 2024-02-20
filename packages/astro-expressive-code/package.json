@@ -46,6 +46,7 @@
     "remark-expressive-code": "workspace:^0.32.4"
   },
   "devDependencies": {
+    "@internal/test-utils": "workspace:^",
     "execa": "^7.1.1"
   }
 }
