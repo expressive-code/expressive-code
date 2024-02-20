@@ -20,6 +20,8 @@ export interface PluginCollapsibleSectionsProps {
 	/**
 	 * Determines if collapsed section titles (`X collapsed lines`) should be indented
 	 * to preserve the minimum indent level of their contained collapsed code lines.
+	 *
+	 * @default true
 	 */
 	collapsePreserveIndent: boolean
 }
