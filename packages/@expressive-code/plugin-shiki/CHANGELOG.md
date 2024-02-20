@@ -1,5 +1,30 @@
 # @expressive-code/plugin-shiki
 
+## 0.33.0
+
+### Minor Changes
+
+- b7a0607: Adds `metaOptions` read-only property to `ExpressiveCodeBlock` instances.
+
+  This new property contains a parsed version of the code block's `meta` string. This allows plugins to easily access the options specified by users in the opening code fence of a code block, without having to parse the `meta` string themselves.
+
+  All official plugins now use this new API to merge any meta options into the new extensible `ExpressiveCodeBlock.props` property.
+
+- b7a0607: Migrates syntax highlighting back to Shiki.
+
+  After the improvements made in Shikiji were merged back into Shiki, Expressive Code now uses Shiki again for syntax highlighting.
+
+  **Potentially breaking:** Although we performed a lot of testing, the migration might cause slightly different highlighting in some cases, as the latest full bundle of Shiki includes various new and updated grammars. We recommend checking if syntax highlighting still looks as expected on your site.
+
+### Patch Changes
+
+- Updated dependencies [b7a0607]
+- Updated dependencies [b7a0607]
+- Updated dependencies [b7a0607]
+- Updated dependencies [b7a0607]
+- Updated dependencies [b7a0607]
+  - @expressive-code/core@0.33.0
+
 ## 0.32.4
 
 ### Patch Changes

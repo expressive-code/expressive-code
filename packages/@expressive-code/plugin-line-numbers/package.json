@@ -1,6 +1,6 @@
 {
   "name": "@expressive-code/plugin-line-numbers",
-  "version": "0.32.4",
+  "version": "0.33.0",
   "description": "Line numbers plugin for Expressive Code, a text marking & annotation engine for presenting source code on the web.",
   "keywords": [],
   "author": "Tibor Schiemann",
@@ -31,14 +31,14 @@
     "watch": "pnpm build --watch src"
   },
   "dependencies": {
-    "@expressive-code/core": "workspace:^0.32.4",
+    "@expressive-code/core": "workspace:^0.33.0",
     "hastscript": "^7.2.0"
   },
   "devDependencies": {
-    "@expressive-code/plugin-collapsible-sections": "workspace:^0.32.4",
-    "@expressive-code/plugin-frames": "workspace:^0.32.4",
-    "@expressive-code/plugin-shiki": "workspace:^0.32.4",
-    "@expressive-code/plugin-text-markers": "workspace:^0.32.4",
+    "@expressive-code/plugin-collapsible-sections": "workspace:^0.33.0",
+    "@expressive-code/plugin-frames": "workspace:^0.33.0",
+    "@expressive-code/plugin-shiki": "workspace:^0.33.0",
+    "@expressive-code/plugin-text-markers": "workspace:^0.33.0",
     "@internal/test-utils": "workspace:^"
   }
 }

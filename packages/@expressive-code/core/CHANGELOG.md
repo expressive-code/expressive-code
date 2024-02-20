@@ -1,5 +1,68 @@
 # @expressive-code/core
 
+## 0.33.0
+
+### Minor Changes
+
+- b7a0607: Adds word wrap support to all Expressive Code blocks.
+
+  By setting the new `wrap` prop to `true` (either in the opening code fence, as a prop on the `<Code>` component, or in the `defaultProps` config option), word wrapping will be enabled, causing lines that exceed the available width to wrap to the next line. The default value of `false` will instead cause a horizontal scrollbar to appear in such cases.
+
+  The word wrap behavior can be further customized using the new `preserveIndent` prop. If `true` (which is the default), wrapped parts of long lines will be aligned with their line's indentation level, making the wrapped code appear to start at the same column. This increases readability of the wrapped code and can be especially useful for languages where indentation is significant, e.g. Python.
+
+  If you prefer wrapped parts of long lines to always start at column 1, you can set `preserveIndent` to `false`. This can be useful to reproduce terminal output.
+
+- b7a0607: Adds a new gutter API that allows plugins to render gutter elements before code lines.
+
+  Using the new `addGutterElement` API accessible through the hook context argument, plugins can add gutter elements to a code block. The function expects an object matching the new `GutterElement` interface.
+
+  During rendering, the engine calls the `renderLine` function of the gutter elements registered by all plugins for every line of the code block. The returned elements are then added as children to the line's gutter container.
+
+  **Potentially breaking change:** To properly support all combinations of gutter elements and line wrapping, the rendered HTML tree of code blocks had to be changed. The code contents of each line are now wrapped inside an extra `<div class="code">...</div>` element:
+
+  ```diff lang="html"
+    <div class="ec-line">
+  +   <div class="code">
+        <span style="...">contents</span>
+        [...more contents...]
+  +   </div>
+    </div>
+  ```
+
+  If gutter elements were added to a code block, an optional `<div class="gutter">...</div>` will be rendered before this new code wrapper:
+
+  ```diff lang="html"
+    <div class="ec-line">
+  +   <div class="gutter">
+  +     [...gutter elements...]
+  +   </div>
+      <div class="code">
+        <span style="...">contents</span>
+        [...more contents...]
+      </div>
+    </div>
+  ```
+
+- b7a0607: Adds `ExpressiveCodeBlock.props` property and `defaultProps` config option.
+
+  The underlying `ExpressiveCodeBlockProps` interface provides a type-safe way for plugins to extend Expressive Code with their own props using declaration merging. Plugins should use the `preprocessMetadata` hook to merge options specified in the opening code fence into their props, making `props` the single source of truth for all per-block options.
+
+  In addition, the new `defaultProps` config option allows you to specify default props that will automatically be set on all fenced code blocks and `<Code>` components by the engine. This saves you from having to specify the same props on every block, while still allowing to override them on an individual basis.
+
+  The `defaultProps` option also supports an `overridesByLang` property, which allows to override the default props for a specific syntax higlighting language.
+
+- b7a0607: Adds `metaOptions` read-only property to `ExpressiveCodeBlock` instances.
+
+  This new property contains a parsed version of the code block's `meta` string. This allows plugins to easily access the options specified by users in the opening code fence of a code block, without having to parse the `meta` string themselves.
+
+  All official plugins now use this new API to merge any meta options into the new extensible `ExpressiveCodeBlock.props` property.
+
+- b7a0607: Migrates syntax highlighting back to Shiki.
+
+  After the improvements made in Shikiji were merged back into Shiki, Expressive Code now uses Shiki again for syntax highlighting.
+
+  **Potentially breaking:** Although we performed a lot of testing, the migration might cause slightly different highlighting in some cases, as the latest full bundle of Shiki includes various new and updated grammars. We recommend checking if syntax highlighting still looks as expected on your site.
+
 ## 0.32.4
 
 ### Patch Changes
