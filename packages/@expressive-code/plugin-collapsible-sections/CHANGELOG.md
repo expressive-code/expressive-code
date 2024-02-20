@@ -1,5 +1,30 @@
 # @expressive-code/plugin-collapsible-sections
 
+## 0.33.0
+
+### Minor Changes
+
+- b7a0607: Adds `metaOptions` read-only property to `ExpressiveCodeBlock` instances.
+
+  This new property contains a parsed version of the code block's `meta` string. This allows plugins to easily access the options specified by users in the opening code fence of a code block, without having to parse the `meta` string themselves.
+
+  All official plugins now use this new API to merge any meta options into the new extensible `ExpressiveCodeBlock.props` property.
+
+- b7a0607: Adds new `collapsePreserveIndent` prop to `@expressive-code/plugin-collapsible-sections` and replaces `styleOverrides` property `closedPadding` with `closedPaddingBlock`.
+
+  The new prop determines if collapsed section titles (`X collapsed lines`) should be indented to preserve the minimum indent level of their contained collapsed code lines. This allows collapsed sections to integrate better with the surrounding code. Defaults to `true`.
+
+  **Breaking change:** If you used the `styleOverrides` property `closedPadding` before to change the default padding around closed collapsed section headings, you must now use `closedPaddingBlock` instead. While the old property supported specifying paddings for all four sides, the new property only supports paddings in the block direction (top and bottom in horizontal writing mode). This change was necessary to make collapsed sections compatible with line wrapping and gutter elements.
+
+### Patch Changes
+
+- Updated dependencies [b7a0607]
+- Updated dependencies [b7a0607]
+- Updated dependencies [b7a0607]
+- Updated dependencies [b7a0607]
+- Updated dependencies [b7a0607]
+  - @expressive-code/core@0.33.0
+
 ## 0.32.4
 
 ### Patch Changes

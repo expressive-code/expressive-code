@@ -1,5 +1,25 @@
 # @expressive-code/plugin-frames
 
+## 0.33.0
+
+### Minor Changes
+
+- 77e4142: Adds `nu` and `nushell` to the list of terminal languages. Thanks @jacobdalamb!
+- b7a0607: Adds `metaOptions` read-only property to `ExpressiveCodeBlock` instances.
+
+  This new property contains a parsed version of the code block's `meta` string. This allows plugins to easily access the options specified by users in the opening code fence of a code block, without having to parse the `meta` string themselves.
+
+  All official plugins now use this new API to merge any meta options into the new extensible `ExpressiveCodeBlock.props` property.
+
+### Patch Changes
+
+- Updated dependencies [b7a0607]
+- Updated dependencies [b7a0607]
+- Updated dependencies [b7a0607]
+- Updated dependencies [b7a0607]
+- Updated dependencies [b7a0607]
+  - @expressive-code/core@0.33.0
+
 ## 0.32.4
 
 ### Patch Changes
