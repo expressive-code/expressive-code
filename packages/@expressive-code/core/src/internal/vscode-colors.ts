@@ -542,7 +542,7 @@ const defaultWorkbenchColors: { [key in VSCodeDefaultColorKey]: VSCodeDefaultCol
 	// Terminal colors
 	'terminal.ansiBlack': '#000000',
 	'terminal.ansiRed': '#cd3131',
-	'terminal.ansiGreen': ['#0DBC79', '#00BC00'],
+	'terminal.ansiGreen': ['#0dbc79', '#00bc00'],
 	'terminal.ansiYellow': ['#e5e510', '#949800'],
 	'terminal.ansiBlue': ['#2472c8', '#0451a5'],
 	'terminal.ansiMagenta': ['#bc3fbc', '#bc05bc'],
@@ -550,7 +550,7 @@ const defaultWorkbenchColors: { [key in VSCodeDefaultColorKey]: VSCodeDefaultCol
 	'terminal.ansiWhite': ['#e5e5e5', '#555555'],
 	'terminal.ansiBrightBlack': '#666666',
 	'terminal.ansiBrightRed': ['#f14c4c', '#cd3131'],
-	'terminal.ansiBrightGreen': ['#23d18b', '#14CE14'],
+	'terminal.ansiBrightGreen': ['#23d18b', '#14ce14'],
 	'terminal.ansiBrightYellow': ['#f5f543', '#b5ba00'],
 	'terminal.ansiBrightBlue': ['#3b8eea', '#0451a5'],
 	'terminal.ansiBrightMagenta': ['#d670d6', '#bc05bc'],
