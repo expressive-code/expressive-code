@@ -1,4 +1,4 @@
-import { Parent, Element } from 'hast-util-to-html/lib/types'
+import type { Parent, Element } from 'hast-util-to-html/lib/types'
 import { h } from 'hastscript'
 import { ExpressiveCodeBlock, ExpressiveCodeBlockOptions } from '../common/block'
 import { ExpressiveCodePlugin, ResolverContext } from '../common/plugin'

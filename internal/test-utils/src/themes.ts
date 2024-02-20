@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import { ExpressiveCodeTheme } from '@expressive-code/core'
-import { BuiltinTheme, bundledThemes } from 'shikiji'
+import { BuiltinTheme, bundledThemes } from 'shiki'
 
 export const testThemeNames = ['ayu-green-dark-bordered', 'empty-light', 'shades-of-purple', 'synthwave-color-theme', 'vim-dark-medium']
 

@@ -1,19 +1,62 @@
 import {
 	AnnotationRenderPhaseOrder,
-	AttachedPluginData,
 	ExpressiveCodePlugin,
 	InlineStyleAnnotation,
 	ensureColorContrastOnBackground,
 	getStaticBackgroundColor,
 	onBackground,
-	replaceDelimitedValues,
 } from '@expressive-code/core'
 import rangeParser from 'parse-numeric-range'
 import { MarkerType, MarkerTypeOrder, markerTypeFromString } from './marker-types'
 import { getTextMarkersBaseStyles, markerBgColorPaths, textMarkersStyleSettings } from './styles'
 import { flattenInlineMarkerRanges, getInlineSearchTermMatches } from './inline-markers'
 import { TextMarkerAnnotation } from './annotations'
+import { toDefinitionsArray } from './utils'
 export { TextMarkersStyleSettings } from './styles'
+
+export type MarkerLineOrRange = number | { range: string; label?: string | undefined }
+
+/**
+ * A single text marker definition that can be used in the `mark`, `ins`, and `del` props
+ * to define text and line markers.
+ */
+export type MarkerDefinition = string | RegExp | MarkerLineOrRange
+
+export interface PluginTextMarkersProps {
+	/**
+	 * Defines the code block's [text & line markers](https://expressive-code.com/key-features/text-markers/)
+	 * of the default neutral type.
+	 *
+	 * You can either pass a single marker definition or an array of them.
+	 */
+	mark: MarkerDefinition | MarkerDefinition[]
+	/**
+	 * Defines the code block's [text & line markers](https://expressive-code.com/key-features/text-markers/)
+	 * of the "inserted" type.
+	 *
+	 * You can either pass a single marker definition or an array of them.
+	 */
+	ins: MarkerDefinition | MarkerDefinition[]
+	/**
+	 * Defines the code block's [text & line markers](https://expressive-code.com/key-features/text-markers/)
+	 * of the "deleted" type.
+	 *
+	 * You can either pass a single marker definition or an array of them.
+	 */
+	del: MarkerDefinition | MarkerDefinition[]
+	/**
+	 * Allows you to enable processing of diff syntax for non-diff languages.
+	 *
+	 * If set to `true`, you can prefix lines with `+` or `-`, no matter what the language of
+	 * the code block is. The prefixes will be removed and the lines will be highlighted as
+	 * inserted or deleted lines.
+	 */
+	useDiffSyntax: boolean
+}
+
+declare module '@expressive-code/core' {
+	export interface ExpressiveCodeBlockProps extends PluginTextMarkersProps {}
+}
 
 export function pluginTextMarkers(): ExpressiveCodePlugin {
 	return {
@@ -21,87 +64,66 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 		styleSettings: textMarkersStyleSettings,
 		baseStyles: (context) => getTextMarkersBaseStyles(context),
 		hooks: {
+			preprocessLanguage: ({ codeBlock }) => {
+				// If a "lang" option was given and the code block's language is "diff",
+				// use the "lang" value as the new syntax highlighting language instead
+				// and set the `useDiffSyntax` prop
+				const lang = codeBlock.metaOptions.getString('lang')
+				if (lang && codeBlock.language === 'diff') {
+					codeBlock.language = lang
+					codeBlock.props.useDiffSyntax = true
+				}
+			},
 			preprocessMetadata: ({ codeBlock, cssVar }) => {
-				const blockData = pluginTextMarkersData.getOrCreateFor(codeBlock)
+				const addDefinition = (target: MarkerType, definition: MarkerDefinition) => {
+					const definitions = toDefinitionsArray(codeBlock.props[target])
+					definitions.push(definition)
+					codeBlock.props[target] = definitions
+				}
 
-				codeBlock.meta = replaceDelimitedValues(
-					codeBlock.meta,
-					({ fullMatch, key, value, valueStartDelimiter }) => {
-						// If we found a "lang" key and the code block's language is "diff",
-						// use the "lang" value as the new syntax highlighting language instead
-						if (key === 'lang' && codeBlock.language === 'diff') {
-							codeBlock.language = value
-							blockData.originalLanguage = 'diff'
+				// Transfer meta options (if any) to props
+				codeBlock.metaOptions.list([...MarkerTypeOrder, '', 'add', 'rem']).forEach((option) => {
+					const { kind, key, value } = option
+					const markerType = markerTypeFromString(key || 'mark')
+					if (!markerType) return
+
+					if (kind === 'string' || kind === 'regexp') addDefinition(markerType, value)
+					if (kind === 'range') {
+						// Detect an optional label prefix in double or single quotes: `{"1":3-5}`
+						let label: string | undefined = undefined
+						const range = value.replace(/^\s*?(["'])([^\1]+?)\1:\s*?/, (_match, _quote, labelValue: string) => {
+							label = labelValue
 							return ''
-						}
-
-						// Try to identify the marker type from the key
-						const markerType = markerTypeFromString(key || 'mark')
-
-						// If an unknown key was encountered, leave this meta string part untouched
-						if (!markerType) return fullMatch
-
-						// Handle full-line highlighting definitions
-						if (valueStartDelimiter === '{') {
-							// Detect an optional label prefix in double or single quotes: `{"1":3-5}`
-							let label: string | undefined = undefined
-							value = value.replace(/^\s*?(["'])([^\1]+?)\1:\s*?/, (_match, _quote, labelValue: string) => {
-								label = labelValue
-								return ''
-							})
-							const lineNumbers = rangeParser(value)
-							lineNumbers.forEach((lineNumber, idx) => {
-								const lineIndex = lineNumber - 1
-								codeBlock.getLine(lineIndex)?.addAnnotation(
-									new TextMarkerAnnotation({
-										markerType,
-										backgroundColor: cssVar(markerBgColorPaths[markerType]),
-										// Add a label to the first line of each consecutive range
-										label: idx === 0 || lineNumber - lineNumbers[idx - 1] !== 1 ? label : undefined,
-									})
-								)
-							})
-							return ''
-						}
-
-						// Handle regular expression search terms
-						if (valueStartDelimiter === '/') {
-							// Remember the term for highlighting in a later hook
-							let regExp: RegExp | undefined
-							try {
-								// Try to use regular expressions with capture group indices
-								regExp = new RegExp(value, 'gd')
-								/* c8 ignore start */
-							} catch (error) {
-								// Use fallback if unsupported
-								regExp = new RegExp(value, 'g')
-							}
-							/* c8 ignore stop */
-							blockData.regExpTerms.push({
-								markerType,
-								regExp,
-							})
-							return ''
-						}
-
-						// Treat everything else as a plaintext search term and
-						// remember it for highlighting in a later hook
-						blockData.plaintextTerms.push({
-							markerType,
-							text: value,
 						})
-						return ''
-					},
-					{
-						valueDelimiters: ['"', "'", '/', '{...}'],
-						keyValueSeparator: '=',
+						addDefinition(markerType, { range, label })
 					}
-				)
+				})
+				codeBlock.props.useDiffSyntax = codeBlock.metaOptions.getBoolean('useDiffSyntax') ?? codeBlock.props.useDiffSyntax
+
+				// Use props to create line-level annotations for full-line highlighting definitions
+				MarkerTypeOrder.forEach((markerType) => {
+					toDefinitionsArray(codeBlock.props[markerType]).forEach((definition) => {
+						if (typeof definition === 'string' || definition instanceof RegExp) return
+						const objDefinition = typeof definition === 'number' ? { range: `${definition}` } : definition
+						const { range = '', label } = objDefinition
+						const lineNumbers = rangeParser(range)
+						lineNumbers.forEach((lineNumber, idx) => {
+							const lineIndex = lineNumber - 1
+							codeBlock.getLine(lineIndex)?.addAnnotation(
+								new TextMarkerAnnotation({
+									markerType,
+									backgroundColor: cssVar(markerBgColorPaths[markerType]),
+									// Add a label to the first line of each consecutive range
+									label: idx === 0 || lineNumber - lineNumbers[idx - 1] !== 1 ? label : undefined,
+								})
+							)
+						})
+					})
+				})
 			},
 			preprocessCode: ({ codeBlock, cssVar }) => {
-				const blockData = pluginTextMarkersData.getOrCreateFor(codeBlock)
-
-				// Perform special handling of code marked with the language "diff":
+				// Perform special handling of code marked with the language "diff"
+				// or with the `useDiffSyntax` prop set to true:
 				// - This language is often used as a widely supported format for highlighting
 				//   changes to code. In this case, the code is not actually a diff,
 				//   but another language with some lines prefixed by `+` or `-`.
@@ -110,7 +132,7 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 				//   we ensure that the code does not begin like a real diff:
 				//   - The first lines must not start with `*** `, `+++ `, `--- `, `@@ `,
 				//     or the default mode location syntax (e.g. `0a1`, `1,2c1,2`, `1,2d1`).
-				if ((blockData.originalLanguage ?? codeBlock.language) === 'diff') {
+				if (codeBlock.language === 'diff' || codeBlock.props.useDiffSyntax) {
 					const lines = codeBlock.getLines()
 
 					// Ensure that the first lines do not look like actual diff output
@@ -154,11 +176,9 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 				}
 			},
 			annotateCode: ({ codeBlock, cssVar }) => {
-				const blockData = pluginTextMarkersData.getOrCreateFor(codeBlock)
-
 				codeBlock.getLines().forEach((line) => {
 					// Check the line text for search term matches and collect their ranges
-					const markerRanges = getInlineSearchTermMatches(line.text, blockData)
+					const markerRanges = getInlineSearchTermMatches(line.text, codeBlock)
 					if (!markerRanges.length) return
 
 					// Flatten marked ranges to prevent any overlaps
@@ -254,11 +274,3 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 		},
 	}
 }
-
-export interface PluginTextMarkersData {
-	plaintextTerms: { markerType: MarkerType; text: string }[]
-	regExpTerms: { markerType: MarkerType; regExp: RegExp }[]
-	originalLanguage?: string | undefined
-}
-
-export const pluginTextMarkersData = new AttachedPluginData<PluginTextMarkersData>(() => ({ plaintextTerms: [], regExpTerms: [] }))

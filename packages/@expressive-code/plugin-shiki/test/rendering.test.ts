@@ -100,6 +100,23 @@ const ansiTestCode = `
 // eslint-disable-next-line no-control-regex
 const ansiEscapeCode = /\u001b\[\d+m/gu
 
+const addedTestLanguage = {
+	name: 'added-test-language',
+	scopeName: 'source.added-test-language',
+	displayName: 'test syntax',
+	patterns: [
+		{
+			name: 'keyword.added-test-language',
+			match: `\\b(import|const)\\b`,
+		},
+		{
+			name: 'string.quoted.double.added-test-language',
+			begin: '"',
+			end: '"',
+		},
+	],
+}
+
 describe('Renders syntax highlighting', async () => {
 	const themes = await loadTestThemes()
 
@@ -295,24 +312,7 @@ describe('Language handling', async () => {
 						meta: '',
 						plugins: [
 							pluginShiki({
-								langs: [
-									{
-										name: 'added-test-language',
-										scopeName: 'source.added-test-language',
-										displayName: 'test syntax',
-										patterns: [
-											{
-												name: 'keyword.added-test-language',
-												match: `\\b(import|const)\\b`,
-											},
-											{
-												name: 'string.quoted.double.added-test-language',
-												begin: '"',
-												end: '"',
-											},
-										],
-									},
-								],
+								langs: [addedTestLanguage],
 							}),
 						],
 						engineOptions: {
@@ -348,7 +348,64 @@ describe('Language handling', async () => {
 
 			expect(colorAssertionExecuted).toBe(true)
 
-			// Ensure that the logger was called with a warning
+			// Ensure that no warnings were logged
+			expect(warnings.join('\n')).toEqual('')
+		},
+		{ timeout: 5 * 1000 }
+	)
+	test(
+		'Still supports default languages after adding a custom language',
+		async ({ meta: { name: testName } }) => {
+			let colorAssertionExecuted = false
+			const warnings: string[] = []
+
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: [
+					{
+						fixtureName: '',
+						themes,
+						code: `import something from 'somewhere'`,
+						language: 'js',
+						meta: '',
+						plugins: [
+							pluginShiki({
+								langs: [addedTestLanguage],
+							}),
+						],
+						engineOptions: {
+							logger: {
+								warn: (message) => warnings.push(message),
+							},
+						},
+						blockValidationFn: ({ renderedGroupAst }) => {
+							const html = toHtml(renderedGroupAst)
+
+							// Select the contents of all spans that do not have the default
+							// dracula theme foreground color
+							const spansWithColorAndContent = [...html.matchAll(/<span [^>]*?style="--0:([^"]*?)">(.*?)<\/span>/g)]
+							const highlightedSpans = spansWithColorAndContent.filter((match) => match[1].toLowerCase() !== themes[0].fg.toLowerCase())
+							const highlightedContents = highlightedSpans.map((match) => match[2])
+							expect(highlightedContents).toEqual([
+								// Keywords
+								'import',
+								'from',
+								// Strings
+								"'",
+								'somewhere',
+								"'",
+							])
+
+							colorAssertionExecuted = true
+						},
+					},
+				],
+			})
+
+			expect(colorAssertionExecuted).toBe(true)
+
+			// Ensure that no warnings were logged
 			expect(warnings.join('\n')).toEqual('')
 		},
 		{ timeout: 5 * 1000 }

@@ -1,4 +1,4 @@
-import { lighten, ensureColorContrastOnBackground } from '../helpers/color-transforms'
+import { lighten, ensureColorContrastOnBackground, setAlpha } from '../helpers/color-transforms'
 import { ResolverContext } from '../common/plugin'
 import { PluginStyleSettings } from '../common/plugin-style-settings'
 import { UnresolvedStyleSettings, codeLineClass } from '../common/style-settings'
@@ -71,6 +71,36 @@ export interface CoreStyleSettings {
 	 * ({ theme }) => theme.colors['editor.selectionBackground']
 	 */
 	codeSelectionBackground: string
+	/**
+	 * Default color of the border between the gutter and code content,
+	 * unless overwritten by a line-level annotation.
+	 *
+	 * Only visible if a gutter is present (e.g. to display line numbers).
+	 *
+	 * @default
+	 * ({ theme }) => lighten(theme.colors['editor.background'], theme.type === 'dark' ? 0.2 : -0.15)
+	 */
+	gutterBorderColor: string
+	/**
+	 * Width of the border between the gutter and code content.
+	 *
+	 * @default '1.5px'
+	 */
+	gutterBorderWidth: string
+	/**
+	 * Default foreground color of gutter elements.
+	 *
+	 * @default
+	 * ({ theme, resolveSetting }) => ensureColorContrastOnBackground(theme.colors['editorLineNumber.foreground'] || resolveSetting('codeForeground'), resolveSetting('codeBackground'), 3.3, 3.6)
+	 */
+	gutterForeground: string
+	/**
+	 * Default foreground color of gutter elements in highlighted lines.
+	 *
+	 * @default
+	 * ({ theme, resolveSetting }) => ensureColorContrastOnBackground(theme.colors['editorLineNumber.activeForeground'] || theme.colors['editorLineNumber.foreground'] || resolveSetting('codeForeground'), resolveSetting('codeBackground'), 4.5, 5)
+	 */
+	gutterHighlightForeground: string
 	/**
 	 * Font family of UI elements.
 	 * @default "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'"
@@ -155,6 +185,18 @@ export const coreStyleSettings = new PluginStyleSettings({
 		codeBackground: ({ theme }) => theme.colors['editor.background'],
 		codeForeground: ({ theme }) => theme.colors['editor.foreground'],
 		codeSelectionBackground: ({ theme }) => theme.colors['editor.selectionBackground'],
+		// Gutter
+		gutterBorderColor: ({ resolveSetting }) => setAlpha(resolveSetting('gutterForeground'), 0.2),
+		gutterBorderWidth: '1.5px',
+		gutterForeground: ({ theme, resolveSetting }) =>
+			ensureColorContrastOnBackground(theme.colors['editorLineNumber.foreground'] || resolveSetting('codeForeground'), resolveSetting('codeBackground'), 3.3, 3.6),
+		gutterHighlightForeground: ({ theme, resolveSetting }) =>
+			ensureColorContrastOnBackground(
+				theme.colors['editorLineNumber.activeForeground'] || theme.colors['editorLineNumber.foreground'] || resolveSetting('codeForeground'),
+				resolveSetting('codeBackground'),
+				4.5,
+				5
+			),
 		// UI elements
 		uiFontFamily: minifyFontFamily(
 			`ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'`
@@ -241,6 +283,13 @@ export function getCoreBaseStyles({
 			/* Show horizontal scrollbar if required */
 			overflow-x: auto;
 
+			/* Enable word wrapping on demand */
+			&.wrap .${codeLineClass} .code {
+				white-space: pre-wrap;
+				overflow-wrap: break-word;
+				min-width: min(30ch, var(--ecMaxLine, 30ch));
+			}
+
 			${ifThemedScrollbars(`
 			&::-webkit-scrollbar,
 			&::-webkit-scrollbar-track {
@@ -263,12 +312,60 @@ export function getCoreBaseStyles({
 
 		/* Code lines */
 		.${codeLineClass} {
-			padding-inline: ${cssVar('codePaddingInline')};
-			padding-inline-end: calc(2rem + ${cssVar('codePaddingInline')});
-
 			/* RTL support: Code is always LTR */
 			direction: ltr;
 			unicode-bidi: isolate;
+
+			/* Prepare grid layout for optional gutter */
+			display: grid;
+			grid-template-areas: 'gutter code';
+			grid-template-columns: auto 1fr;
+			position: relative;
+
+			.gutter {
+				grid-area: gutter;
+				color: ${cssVar('gutterForeground')};
+
+				/* Make all gutter elements non-interactive by default */
+				& > * {
+					pointer-events: none;
+					user-select: none;
+					-webkit-user-select: none;
+				}
+
+				/* Apply conditional styles if a gutter is present */
+				& ~ .code {
+					--ecLineBrdCol: ${cssVar('gutterBorderColor')};
+				}
+			}
+
+			&.highlight .gutter {
+				color: ${cssVar('gutterHighlightForeground')};
+			}
+
+			.code {
+				grid-area: code;
+				position: relative;
+				box-sizing: content-box;
+				padding-inline-start: calc(var(--ecIndent, 0ch) + ${cssVar('codePaddingInline')} - var(--ecGtrBrdWd));
+				padding-inline-end: ${cssVar('codePaddingInline')};
+				text-indent: calc(var(--ecIndent, 0ch) * -1);
+
+				&::before,
+				&::after,
+				& :where(*) {
+					text-indent: 0;
+				}
+
+				/* Support a colorful border on the start of the code line */
+				--ecGtrBrdWd: ${cssVar('gutterBorderWidth')};
+				border-inline-start: var(--ecGtrBrdWd) solid var(--ecLineBrdCol, transparent);
+			}
+		}
+
+		/* Increase end padding of the first line for the copy button */
+		:nth-child(1 of .${codeLineClass}) .code {
+			padding-inline-end: calc(2rem + ${cssVar('codePaddingInline')});
 		}
 
 		/* Common style to hide elements from screen readers */

@@ -1,12 +1,10 @@
 import { describe, expect, test } from 'vitest'
-import { sanitize } from 'hast-util-sanitize'
-import { toHtml } from 'hast-util-to-html'
-import githubDarkRaw from 'shikiji/themes/github-dark.mjs'
-import githubLightRaw from 'shikiji/themes/github-light.mjs'
-import draculaRaw from 'shikiji/themes/dracula.mjs'
-import solarizedLightRaw from 'shikiji/themes/solarized-light.mjs'
-import type { ThemeRegistration } from 'shikiji'
-import { WrapperAnnotation, getHookTestResult, getMultiPluginTestResult, nonArrayValues, nonObjectValues } from './utils'
+import githubDarkRaw from 'shiki/themes/github-dark.mjs'
+import githubLightRaw from 'shiki/themes/github-light.mjs'
+import draculaRaw from 'shiki/themes/dracula.mjs'
+import solarizedLightRaw from 'shiki/themes/solarized-light.mjs'
+import type { ThemeRegistration } from 'shiki'
+import { WrapperAnnotation, getHookTestResult, getMultiPluginTestResult, lineCodeHtml, nonArrayValues, nonObjectValues, toSanitizedHtml } from './utils'
 import { ExpressiveCodeEngine, ExpressiveCodeEngineConfig } from '../src/common/engine'
 import { ExpressiveCodeBlock } from '../src/common/block'
 import { StyleVariant } from '../src/common/style-variants'
@@ -83,8 +81,8 @@ describe('ExpressiveCodeEngine', () => {
 		describe('Returns the rendered code block AST', () => {
 			test('Plain code block', async () => {
 				const { renderedBlockAst } = await getMultiPluginTestResult({ plugins: [] })
-				const html = toHtml(sanitize(renderedBlockAst, {}))
-				expect(html).toMatch(new RegExp('<pre(|\\s[^>]+)><code><div>Example code...</div><div>...with two lines!</div></code></pre>'))
+				const html = toSanitizedHtml(renderedBlockAst)
+				expect(html).toEqual(`<pre><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`)
 			})
 			test('Code block with inline annotation', async () => {
 				const searchTerm = 'two '
@@ -102,8 +100,8 @@ describe('ExpressiveCodeEngine', () => {
 						})
 					)
 				})
-				const html = toHtml(sanitize(renderedBlockAst, {}))
-				expect(html).toMatch(new RegExp('<pre(|\\s[^>]+)><code><div>Example code...</div><div>...with <del>two </del>lines!</div></code></pre>'))
+				const html = toSanitizedHtml(renderedBlockAst)
+				expect(html).toEqual(`<pre><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1].replace('two ', '<del>two </del>')}</div></code></pre>`)
 			})
 		})
 		describe('Allows plugin hooks to access theme colors', () => {

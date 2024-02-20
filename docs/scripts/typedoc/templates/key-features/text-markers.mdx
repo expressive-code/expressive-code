@@ -361,6 +361,33 @@ function demo() {
 }
 ```
 
+## Usage in the `<Code>` component
+
+The text markers plugin adds multiple props to the `<Code>` component that allow direct access to its features. The following props are available:
+
+````yml include
+name: "PluginTextMarkersProps"
+headingLevel: 2
+editSections:
+- path: "Properties"
+  replaceHeading: "Props"
+- path: ""
+  replaceHeading: ""
+replacements:
+- search: '\[text & line markers\]\(.*?\)'
+  replace: 'text & line markers'
+````
+
+### Referenced types
+
+````yml include
+name: "MarkerDefinition"
+headingLevel: 4
+replacements:
+- search: '\[`MarkerLineOrRange`\]\(.*?\)'
+  replace: '`number` \| `{ range: string; label?: string | undefined }`'
+````
+
 ## Configuration
 
 You can override this plugin's default styles by adding a `textMarkers` object to the `styleOverrides` engine config option. You can find a list of all [overridable styles](#available-style-overrides) below.
@@ -396,6 +423,6 @@ editSections:
 - path: ""
   replaceHeading: ""
 replacements:
-- search: '- Type: `string`\\'
+- search: '- Type: `string`$'
   replace: '- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)'
 ````

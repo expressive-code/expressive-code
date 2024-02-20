@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import fs from 'fs'
 import path from 'path'
-import { bundledThemes, type ThemeRegistration, type BuiltinTheme } from 'shikiji'
+import { bundledThemes, type BuiltinTheme } from 'shiki'
 import { ExpressiveCodeTheme } from '../src/common/theme'
 import { ExpressiveCodeEngine } from '../src/common/engine'
 
@@ -294,5 +294,5 @@ function loadThemeFromJsonFile(fileName: string) {
 }
 
 async function getBundledShikiTheme(bundledThemeName: string) {
-	return (await bundledThemes[bundledThemeName as BuiltinTheme]()).default as ThemeRegistration
+	return (await bundledThemes[bundledThemeName as BuiltinTheme]()).default
 }

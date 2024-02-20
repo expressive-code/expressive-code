@@ -214,6 +214,7 @@ describe('ExpressiveCodeLine', () => {
 				const block = new ExpressiveCodeBlock({ code: '', language: '', meta: '' })
 				line.parent = block
 				const state = {
+					canEditLanguage: true,
 					canEditMetadata: true,
 					canEditCode: true,
 					canEditAnnotations: true,
@@ -289,6 +290,7 @@ describe('ExpressiveCodeLine', () => {
 			const block = new ExpressiveCodeBlock({ code: '', language: '', meta: '' })
 			line.parent = block
 			const state = {
+				canEditLanguage: true,
 				canEditMetadata: true,
 				canEditCode: true,
 				canEditAnnotations: true,
@@ -332,6 +334,7 @@ describe('ExpressiveCodeLine', () => {
 			const block = new ExpressiveCodeBlock({ code: '', language: '', meta: '' })
 			line.parent = block
 			const state = {
+				canEditLanguage: true,
 				canEditMetadata: true,
 				canEditCode: true,
 				canEditAnnotations: true,

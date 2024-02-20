@@ -7,7 +7,7 @@ import {
 	VSCodeWorkbenchColors,
 } from '../internal/vscode-colors'
 import stripJsonComments from 'strip-json-comments'
-import type { ThemeRegistration } from 'shikiji'
+import type { ThemeRegistration } from 'shiki'
 import { chromaticRecolor, ChromaticRecolorTarget, ensureColorContrastOnBackground, onBackground } from '../helpers/color-transforms'
 import { StyleOverrides } from './style-settings'
 

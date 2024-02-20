@@ -92,6 +92,7 @@ export const cssVarReplacements = new Map<string, string>([
 	['terminal', 'trm'],
 	['scrollbar', 'sb'],
 	['toolbar', 'tb'],
+	['gutter', 'gtr'],
 	['titlebar', 'ttb'],
 	['textMarkers', 'tm'],
 	['frames', 'frm'],

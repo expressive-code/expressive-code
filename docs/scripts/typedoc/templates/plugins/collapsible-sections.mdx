@@ -1,0 +1,124 @@
+---
+title: Collapsible Sections
+---
+
+import ConfigVariants from '@components/ConfigVariants.astro'
+import PackageManagers from '@components/PackageManagers.astro'
+import { Tabs, TabItem } from '@astrojs/starlight/components'
+
+This optional plugin allows you to reduce long code examples to their relevant parts by collapsing any line ranges that are not relevant to the example.
+
+The lines of collapsed sections will be replaced by a clickable `X collapsed lines` element. When clicked, the collapsed section will be expanded, showing the previously hidden lines.
+
+## Installation
+
+Before being able to use collapsible sections in your code blocks, you need to install the plugin as a dependency and add it to your configuration:
+
+1. Add the package to your site's dependencies:
+
+    <PackageManagers pkg="@expressive-code/plugin-collapsible-sections" />
+
+2. Add the plugin to your site's configuration by passing it in the `plugins` list:
+
+    <ConfigVariants
+      imports={`
+        import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
+      `}
+      settings={`
+        plugins: [pluginCollapsibleSections()],
+      `}
+    />
+
+## Usage in markdown / MDX
+
+To mark a section as collapsible, you need to add **meta information** to your code blocks. This is done by appending `collapse={X-Y}` to your opening code fence, indicating a collapsed section from line `X` to (and including) line `Y`.
+
+You can also collapse multiple sections in a single code block by separating them with commas:
+
+````md ins="collapse={1-5, 12-14}"
+```js collapse={1-5, 12-14}
+// All this boilerplate setup code will be collapsed
+import { someBoilerplateEngine } from '@example/some-boilerplate'
+import { evenMoreBoilerplate } from '@example/even-more-boilerplate'
+
+const engine = someBoilerplateEngine(evenMoreBoilerplate())
+
+// This part of the code will be visible by default
+engine.doSomething(1, 2, 3, calcFn)
+
+function calcFn() {
+  // You can have multiple collapsed sections
+  const a = 1
+  const b = 2
+  return a + b
+}
+```
+````
+
+The above code block will be rendered like this:
+
+```js collapse={1-5, 12-14}
+// All this boilerplate setup code will be collapsed
+import { someBoilerplateEngine } from '@example/some-boilerplate'
+import { evenMoreBoilerplate } from '@example/even-more-boilerplate'
+
+const engine = someBoilerplateEngine(evenMoreBoilerplate())
+
+// This part of the code will be visible by default
+engine.doSomething(1, 2, 3, calcFn)
+
+function calcFn() {
+  // You can have multiple collapsed sections
+  const a = 1
+  const b = 2
+  return a + b
+}
+```
+
+## Usage in the `<Code>` component
+
+The collapsible sections plugin adds the following props to the `<Code>` component that allow direct access to its features:
+
+````yml include
+name: "PluginCollapsibleSectionsProps"
+headingLevel: 2
+editSections:
+- path: "Properties"
+  replaceHeading: "Props"
+- path: ""
+  replaceHeading: ""
+````
+
+## Styling
+
+This plugin adds a `collapsibleSections` object to the `styleOverrides` engine config option, allowing you to customize the visual appearance of the sections:
+
+<ConfigVariants
+  imports={`
+    import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections' // no-ins
+  `}
+  settings={`
+    plugins: [pluginCollapsibleSections()], // no-ins
+    styleOverrides: {
+      // You can optionally override the plugin's default styles here
+      collapsibleSections: {
+        closedBackgroundColor: '#68F',
+      },
+    },
+  `}
+/>
+
+### Available style overrides
+
+````yml include
+name: "CollapsibleSectionsStyleSettings"
+headingLevel: 2
+editSections:
+- path: "Properties"
+  replaceHeading: ""
+- path: ""
+  replaceHeading: ""
+replacements:
+- search: '- Type: `string`$'
+  replace: '- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)'
+````

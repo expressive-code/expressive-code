@@ -1,5 +1,5 @@
-import githubDark from 'shikiji/themes/github-dark.mjs'
-import githubLight from 'shikiji/themes/github-light.mjs'
+import githubDark from 'shiki/themes/github-dark.mjs'
+import githubLight from 'shiki/themes/github-light.mjs'
 import { ExpressiveCodePlugin, ResolverContext } from './plugin'
 import { renderGroup, RenderInput, RenderOptions } from '../internal/render-group'
 import { ExpressiveCodeTheme } from './theme'
@@ -10,6 +10,7 @@ import { StyleOverrides, StyleSettingPath, getCssVarName } from './style-setting
 import { ExpressiveCodeLogger, ExpressiveCodeLoggerOptions } from './logger'
 import { resolveStyleSettings } from '../internal/style-resolving'
 import { getFirstStaticColor } from '../helpers/color-transforms'
+import { ExpressiveCodeBlock } from './block'
 
 export interface ExpressiveCodeEngineConfig {
 	/**
@@ -149,6 +150,35 @@ export interface ExpressiveCodeEngineConfig {
 	 */
 	defaultLocale?: string | undefined
 	/**
+	 * An optional set of default props for all code blocks in your project.
+	 *
+	 * For example, setting this to `{ wrap: true }` enables word wrapping on all code blocks
+	 * by default, saving you from having to manually set this option on every single code block.
+	 */
+	defaultProps?:
+		| (ExpressiveCodeBlock['props'] & {
+				/**
+				 * Allows to override the default props based on a code block's
+				 * syntax highlighting language.
+				 *
+				 * Use the language IDs as keys and an object containing the props as values.
+				 * The keys also support specifying multiple language IDs separated by commas
+				 * to apply the same props to multiple languages.
+				 *
+				 * @example
+				 * ```js
+				 * defaultProps: {
+				 *   wrap: true,
+				 *   overridesByLang: {
+				 *     'bash,sh,zsh': { wrap: false }
+				 *   }
+				 * }
+				 * ```
+				 */
+				overridesByLang?: Record<string, ExpressiveCodeBlock['props']> | undefined
+		  })
+		| undefined
+	/**
 	 * An optional array of plugins that should be used when rendering code blocks.
 	 *
 	 * To add a plugin, import its initialization function and call it inside this array.
@@ -215,6 +245,7 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 		this.useThemedSelectionColors = config.useThemedSelectionColors ?? false
 		this.styleOverrides = { ...config.styleOverrides }
 		this.defaultLocale = config.defaultLocale || 'en-US'
+		this.defaultProps = config.defaultProps || {}
 		this.plugins = config.plugins?.flat() || []
 		this.logger = new ExpressiveCodeLogger(config.logger)
 
@@ -490,6 +521,7 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 	readonly styleOverrides: StyleOverrides
 	readonly styleVariants: StyleVariant[]
 	readonly defaultLocale: string
+	readonly defaultProps: NonNullable<ExpressiveCodeEngineConfig['defaultProps']>
 	readonly plugins: readonly ExpressiveCodePlugin[]
 	readonly logger: ExpressiveCodeLogger
 }

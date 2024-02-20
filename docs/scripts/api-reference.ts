@@ -6,6 +6,7 @@ import { generateTypeDoc, type PartialConfig } from './typedoc/typedoc-runner'
 const packages = [
 	'@expressive-code/core',
 	'@expressive-code/plugin-frames',
+	'@expressive-code/plugin-line-numbers',
 	'@expressive-code/plugin-shiki',
 	'@expressive-code/plugin-text-markers',
 	'@expressive-code/plugin-collapsible-sections',

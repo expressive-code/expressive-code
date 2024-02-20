@@ -1,6 +1,6 @@
 import { expect } from 'vitest'
 import { h } from 'hastscript'
-import { Element } from 'hast-util-to-html/lib/types'
+import { Element, Parent } from 'hast-util-to-html/lib/types'
 import { AnnotationBaseOptions, AnnotationRenderOptions, AnnotationRenderPhase, ExpressiveCodeAnnotation } from '../src/common/annotation'
 import { ExpressiveCodeLine } from '../src/common/line'
 import { ExpressiveCodeBlockOptions } from '../src/common/block'
@@ -8,6 +8,8 @@ import { ExpressiveCodeEngine } from '../src/common/engine'
 import { ExpressiveCodePlugin } from '../src/common/plugin'
 import { ExpressiveCodePluginHookName, ExpressiveCodeHook, ExpressiveCodePluginHooks } from '../src/common/plugin-hooks'
 import { addClassName } from '../src/helpers/ast'
+import { toHtml } from 'hast-util-to-html'
+import { sanitize } from 'hast-util-sanitize'
 
 const nothings = [undefined, null, NaN]
 const booleans = [true, false]
@@ -120,6 +122,13 @@ export const defaultBlockOptions = {
 	code: ['Example code...', '...with two lines!'].join('\n'),
 	language: 'md',
 	meta: 'test',
+}
+
+export const lineCodeHtml = ['<div class="code">Example code...</div>', '<div class="code">...with two lines!</div>']
+
+export function toSanitizedHtml(ast: Parent) {
+	const html = toHtml(sanitize(ast, { attributes: { '*': ['test', 'edited', ['className', /^code$/]], a: ['href'] } }))
+	return html.replace(/ class=""/g, '')
 }
 
 export async function getMultiPluginTestResult({ plugins, input = [defaultBlockOptions] }: { plugins: ExpressiveCodePlugin[]; input?: ExpressiveCodeBlockOptions[] | undefined }) {

@@ -4,8 +4,9 @@ import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
 import rehypeRaw from 'rehype-raw'
 import toHtml from 'rehype-stringify'
-import draculaRaw from 'shikiji/themes/dracula.mjs'
-import { ThemeRegistration } from 'shikiji/types.mjs'
+import draculaRaw from 'shiki/themes/dracula.mjs'
+import { ThemeRegistration } from 'shiki/types.mjs'
+import { hastToText, htmlToHast, selectHastElements } from '@internal/test-utils'
 import remarkExpressiveCode, { ExpressiveCodeTheme, RemarkExpressiveCodeOptions, StyleSettingPath, getCssVarName } from '../src'
 import { buildSampleCodeHtmlRegExp, sampleCodeMarkdown } from './utils'
 
@@ -30,7 +31,7 @@ describe('Usage inside unified/remark', () => {
 			title: 'test.js',
 			codeContents: [
 				// Ensure that the Text Markers plugin works by expecting a highlighted code line
-				'<div class="ec-line ins">',
+				'<div class="ec-line highlight ins">',
 				// Expect Shiki highlighting colors inside
 				'.*?--0:#.*?',
 				// Expect the code line to be closed
@@ -367,6 +368,6 @@ function createRemarkProcessor(options?: RemarkExpressiveCodeOptions) {
 }
 
 function getCodePlaintextFromHtml(html: string) {
-	const blockHtml = html.match(/<pre(?:|\s[^>]+)><code>(.*?)<\/code><\/pre>/)?.[1] || ''
-	return blockHtml.replace(/<span.*?>(.*?)<\/span>/g, '$1').replace(/<div class="ec-line.*?>(.*?)<\/div>/g, '$1\n')
+	const codeLines = selectHastElements('pre > code .ec-line .code', htmlToHast(html))
+	return codeLines.map((block) => hastToText(block, { whitespace: 'pre' })).join('\n')
 }

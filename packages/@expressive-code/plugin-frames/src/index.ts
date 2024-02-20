@@ -1,4 +1,4 @@
-import { AttachedPluginData, ExpressiveCodePlugin, PluginTexts, replaceDelimitedValues } from '@expressive-code/core'
+import { ExpressiveCodePlugin, PluginTexts } from '@expressive-code/core'
 import { h, Result as HastEntity } from 'hastscript'
 import { framesStyleSettings, getFramesBaseStyles } from './styles'
 import {
@@ -16,24 +16,53 @@ export { FramesStyleSettings } from './styles'
 
 export interface PluginFramesOptions {
 	/**
-	 * If `true` (which is the default), and no title was found in the code block's meta string,
+	 * If `true`, and no title was found in the code block's meta string,
 	 * the plugin will try to find and extract a comment line containing the code block file name
 	 * from the first 4 lines of the code.
+	 *
+	 * @default true
 	 */
 	extractFileNameFromCode?: boolean | undefined
 	/**
-	 * If `true` (which is the default), a "Copy to clipboard" button
-	 * will be shown for each code block.
+	 * If `true`, a "Copy to clipboard" button will be shown for each code block.
+	 *
+	 * @default true
 	 */
 	showCopyToClipboardButton?: boolean | undefined
 	/**
-	 * If `true` (which is the default), the "Copy to clipboard" button of terminal window frames
+	 * If `true`, the "Copy to clipboard" button of terminal window frames
 	 * will remove comment lines starting with `#` from the copied text.
 	 *
 	 * This is useful to reduce the copied text to the actual commands users need to run,
 	 * instead of also copying explanatory comments or instructions.
+	 *
+	 * @default true
 	 */
 	removeCommentsWhenCopyingTerminalFrames?: boolean | undefined
+}
+
+export interface PluginFramesProps {
+	/**
+	 * The code block's title. For terminal frames, this is displayed as the terminal window title,
+	 * and for code frames, it's displayed as the file name in an open file tab.
+	 *
+	 * If no title is given, the plugin will try to automatically extract a title from a
+	 * [file name comment](https://expressive-code.com/key-features/frames/#file-name-comments)
+	 * inside your code, unless disabled by the `extractFileNameFromCode` option.
+	 */
+	title: string
+	/**
+	 * Allows you to override the automatic frame type detection for a code block.
+	 *
+	 * The supported values are `code`, `terminal`, `none` and `auto`.
+	 *
+	 * @default `auto`
+	 */
+	frame: FrameType
+}
+
+declare module '@expressive-code/core' {
+	export interface ExpressiveCodeBlockProps extends PluginFramesProps {}
 }
 
 export const pluginFramesTexts = new PluginTexts({
@@ -63,40 +92,28 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 		jsModules: options.showCopyToClipboardButton ? [getCopyJsModule(`.expressive-code .copy button`)] : undefined,
 		hooks: {
 			preprocessMetadata: ({ codeBlock }) => {
-				const blockData = pluginFramesData.getOrCreateFor(codeBlock)
-
-				codeBlock.meta = replaceDelimitedValues(codeBlock.meta, ({ fullMatch, key, value }) => {
-					// Handle titles in meta string
-					if (key?.match(/^@?title$/i)) {
-						blockData.title = value
-						return ''
-					}
-
-					// Handle frame types in meta string
-					if (key?.match(/^@?frame(Type)?$/i)) {
-						const frameType = frameTypeFromString(value)
-						if (frameType === undefined)
-							throw new Error(
-								`Invalid frame type \`${value}\` found in code block meta string.
-								Valid frame types are: ${frameTypes.join(', ')}.`.replace(/\s+/g, ' ')
-							)
-						blockData.frameType = frameType
-						return ''
-					}
-
-					// Leave all other key-value pairs untouched
-					return fullMatch
-				})
+				// Transfer meta options (if any) to props
+				const { metaOptions, props } = codeBlock
+				props.title = metaOptions.getString('title') ?? props.title
+				const frame = metaOptions.getString('frame')
+				if (frame !== undefined) {
+					const frameType = frameTypeFromString(frame)
+					if (frameType === undefined)
+						throw new Error(
+							`Invalid frame type \`${frame}\` found in code block meta string.
+							Valid frame types are: ${frameTypes.join(', ')}.`.replace(/\s+/g, ' ')
+						)
+					props.frame = frameType
+				}
 			},
 			preprocessCode: ({ codeBlock }) => {
-				const blockData = pluginFramesData.getOrCreateFor(codeBlock)
+				const { props, language } = codeBlock
 
-				// If the block data we collected while parsing the meta information
-				// did not contain a title, the frame type wasn't set to "none",
+				// If our props do not contain a title, the frame type wasn't set to "none",
 				// and extracting file names from the code is enabled,
 				// try to find and extract a title from the code
-				if (blockData.title === undefined && blockData.frameType !== 'none' && options.extractFileNameFromCode) {
-					blockData.title = extractFileNameFromCodeBlock(codeBlock)
+				if (props.title === undefined && props.frame !== 'none' && options.extractFileNameFromCode) {
+					props.title = extractFileNameFromCodeBlock(codeBlock)
 				}
 
 				// If we're supposed to auto-detect the code block's frame type,
@@ -104,13 +121,12 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 				// we need to perform some extra checks. There are two possible cases:
 				// - It's a script file (= to be rendered as an editor frame)
 				// - It shows an interactive shell session (= terminal window frame)
-				const { frameType = 'auto' } = blockData
-				if (frameType === 'auto' && isTerminalLanguage(codeBlock.language)) {
+				if ((props.frame ?? 'auto') === 'auto' && isTerminalLanguage(language)) {
 					// If we found a valid file name comment or shebang,
 					// it's a script file and not a terminal session
-					const titleIsFileName = blockData.title && getFileNameFromComment(`// ${blockData.title}`, codeBlock.language)
+					const titleIsFileName = props.title && getFileNameFromComment(`// ${props.title}`, language)
 					if (titleIsFileName || codeBlock.getLines(0, 4).some((line) => line.text.match(/^\s*#!/))) {
-						blockData.frameType = 'code'
+						props.frame = 'code'
 					}
 				}
 			},
@@ -119,9 +135,8 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 				const texts = pluginFramesTexts.get(locale)
 
 				// Retrieve information about the current block
-				const blockData = pluginFramesData.getOrCreateFor(codeBlock)
-				const { title: titleText, frameType = 'auto' } = blockData
-				const isTerminal = frameType === 'terminal' || (frameType === 'auto' && isTerminalLanguage(codeBlock.language))
+				const { title: titleText, frame = 'auto' } = codeBlock.props
+				const isTerminal = frame === 'terminal' || (frame === 'auto' && isTerminalLanguage(codeBlock.language))
 
 				// TODO: Improve the ability to wrap long file paths into multiple lines
 				// by inserting a line break opportunity after each slash
@@ -130,7 +145,7 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 				// If frameType is not "none" and a title was given, render it as a visible span.
 				// Also render a visible (but empty) span for terminals without a title
 				// to keep the same window caption line height.
-				const visibleTitle = (frameType !== 'none' && titleText) || isTerminal ? [h('span', { className: 'title' }, titleText || '')] : []
+				const visibleTitle = (frame !== 'none' && titleText) || isTerminal ? [h('span', { className: 'title' }, titleText || '')] : []
 
 				// Otherwise, render a screen reader-only title for terminals
 				// to clarify that the code block is a terminal window
@@ -176,7 +191,7 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 							// If the code block is a terminal, add the `is-terminal` class
 							...(isTerminal ? ['is-terminal'] : []),
 							// If the code block has a title, add the `has-title` class
-							...(frameType !== 'none' && titleText ? ['has-title'] : []),
+							...(frame !== 'none' && titleText ? ['has-title'] : []),
 						],
 					},
 					[
@@ -191,12 +206,5 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 		},
 	}
 }
-
-export interface PluginFramesData {
-	title?: string | undefined
-	frameType?: FrameType | undefined
-}
-
-export const pluginFramesData = new AttachedPluginData<PluginFramesData>(() => ({}))
 
 export { LanguageGroups, LanguagesWithFencedFrontmatter }

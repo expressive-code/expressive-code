@@ -10,6 +10,17 @@ import PropertySignature from '@components/PropertySignature.astro'
 
 The engine calls the following hook functions in the order listed here:
 
+### preprocessLanguage
+
+<PropertySignature>
+- Type: [`ExpressiveCodeHook`](/reference/plugin-hooks/#expressivecodehook)\<[`ExpressiveCodeHookContext`](/reference/plugin-hooks/#expressivecodehookcontext)\>
+</PropertySignature>
+
+Allows preprocessing the code block's [language](/reference/core-api/#language) identifier before loading language-specific defaults into
+[props](/reference/core-api/#props).
+
+The Text Markers plugin uses this hook to override the `diff` language identifier with the language specified in the `lang` meta option (if given) to allow using diff syntax to mark inserted and deleted lines while using another language for syntax highlighting.
+
 ### preprocessMetadata
 
 <PropertySignature>
@@ -137,6 +148,22 @@ A context object that the engine passes to most hook functions.
 It provides access to theme-dependent CSS variables, all resolved style variants based on the configured themes and settings, and the config-dependent wrapper class name.
 
 #### Properties
+
+##### addGutterElement
+
+<PropertySignature>
+- Type: (`element`) => `void`
+</PropertySignature>
+
+Registers a gutter element for the current code block.
+
+The engine calls the `renderLine` function of the gutter elements registered by all plugins for every line of the code block. The returned elements are then added as children to the line's gutter container.
+
+###### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `element` | `GutterElement` |
 
 ##### addStyles
 
@@ -290,6 +317,16 @@ There is a wide range of existing utility packages that you can use to manipulat
 </dd>
 </dl>
 
+##### renderEmptyLine
+
+<PropertySignature>
+- Type: `RenderEmptyLineFn`
+</PropertySignature>
+
+Allows rendering an empty line that is not part of the original code.
+
+Some plugins may need to render lines that are not part of the original code, e.g. to display the expected output of a call right inside the code block. To align such lines with the original code, plugins can request an empty line from the engine using this function.
+
 
 ### PostprocessRenderedBlockContext
 
@@ -307,7 +344,7 @@ In addition to the properties made available by [ExpressiveCodeHookContext](/ref
 
 Allows modifying the block's rendered output. The `blockAst` property of this object contains the [Hypertext Abstract Syntax Tree (HAST)](https://github.com/syntax-tree/hast) node representing the rendered block.
 
-You have full control over the `blockAst` property to modify the rendered output. For example, you could add a class name to the block’s root element, wrap the entire block in a custom element, or traverse its children to find specific elements and modify them.
+You have full control over the `blockAst` property to modify the rendered output. For example, you could add a class name to the block's root element, wrap the entire block in a custom element, or traverse its children to find specific elements and modify them.
 
 There is a wide range of existing utility packages that you can use to manipulate HAST elements. For more information, see the [list of utilities](https://github.com/syntax-tree/hast#list-of-utilities) in the HAST documentation.
 
@@ -321,6 +358,16 @@ There is a wide range of existing utility packages that you can use to manipulat
 </PropertySignature>
 </dd>
 </dl>
+
+##### renderEmptyLine
+
+<PropertySignature>
+- Type: `RenderEmptyLineFn`
+</PropertySignature>
+
+Allows rendering an empty line that is not part of the original code.
+
+Some plugins may need to render lines that are not part of the original code, e.g. to display the expected output of a call right inside the code block. To align such lines with the original code, plugins can request an empty line from the engine using this function.
 
 
 ### PostprocessRenderedBlockGroupContext

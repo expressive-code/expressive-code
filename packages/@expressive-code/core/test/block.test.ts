@@ -155,6 +155,7 @@ describe('ExpressiveCodeBlock', () => {
 			const block = prepareTestBlock()
 			const initialCode = block.code
 			block.state = {
+				canEditLanguage: true,
 				canEditMetadata: true,
 				canEditCode: false,
 				canEditAnnotations: true,
@@ -265,6 +266,7 @@ describe('ExpressiveCodeBlock', () => {
 			const block = prepareTestBlock()
 			const initialCode = block.code
 			block.state = {
+				canEditLanguage: true,
 				canEditMetadata: true,
 				canEditCode: false,
 				canEditAnnotations: true,
@@ -302,6 +304,7 @@ describe('ExpressiveCodeBlock', () => {
 		test('Can be set to a state object', () => {
 			const block = prepareTestBlock()
 			const state = {
+				canEditLanguage: true,
 				canEditMetadata: true,
 				canEditCode: false,
 				canEditAnnotations: true,
@@ -316,6 +319,7 @@ describe('ExpressiveCodeBlock', () => {
 		test('Prevents reassigning the state object after setting it once', () => {
 			const block = prepareTestBlock()
 			const privateState = {
+				canEditLanguage: false,
 				canEditMetadata: true,
 				canEditCode: false,
 				canEditAnnotations: true,
@@ -326,6 +330,7 @@ describe('ExpressiveCodeBlock', () => {
 			// Now attempt setting it to a different object
 			expect(() => {
 				block.state = {
+					canEditLanguage: true,
 					canEditMetadata: true,
 					canEditCode: true,
 					canEditAnnotations: true,
@@ -344,6 +349,7 @@ describe('ExpressiveCodeBlock', () => {
 		test('Protects state object properties from outside modifications', () => {
 			const block = prepareTestBlock()
 			const privateState = {
+				canEditLanguage: true,
 				canEditMetadata: true,
 				canEditCode: false,
 				canEditAnnotations: true,
@@ -442,6 +448,7 @@ describe('ExpressiveCodeBlock', () => {
 		test('Edits can be prevented when a state is set', () => {
 			const block = prepareTestBlock({ language: '' })
 			const state = {
+				canEditLanguage: true,
 				canEditMetadata: true,
 				canEditCode: true,
 				canEditAnnotations: true,
@@ -452,15 +459,15 @@ describe('ExpressiveCodeBlock', () => {
 			block.language = 'js'
 			expect(block.language).toEqual('js')
 
-			// Prevent metadata editing and ensure the language cannot be changed
-			state.canEditMetadata = false
+			// Prevent language editing and ensure the language cannot be changed
+			state.canEditLanguage = false
 			expect(() => {
 				block.language = 'md'
 			}).toThrow()
 			expect(block.language).toEqual('js')
 
-			// Allow metadata editing and ensure changing the language is possible again
-			state.canEditMetadata = true
+			// Allow language editing and ensure changing the language is possible again
+			state.canEditLanguage = true
 			block.language = 'md'
 			expect(block.language).toEqual('md')
 		})
@@ -484,6 +491,7 @@ describe('ExpressiveCodeBlock', () => {
 		test('Edits can be prevented when a state is set', () => {
 			const block = prepareTestBlock({ meta: '' })
 			const state = {
+				canEditLanguage: false,
 				canEditMetadata: true,
 				canEditCode: true,
 				canEditAnnotations: true,

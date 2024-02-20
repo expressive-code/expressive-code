@@ -169,6 +169,11 @@ if (!ecConfigFile) {
 					const insLine = arr[i] ?? ''
 					if (!insLine.length) continue
 					if (insLine.startsWith('//')) continue
+					const codeLine = codeLines[startIdx + i]
+					if (codeLine?.includes('// no-ins')) {
+						codeLines[startIdx + i] = codeLine.replace(/\s+\/\/ no-ins\s*/, '')
+						continue
+					}
 					ins.push(startIdx + i + 1)
 				}
 			}

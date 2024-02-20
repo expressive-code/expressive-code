@@ -1,13 +1,25 @@
+import { formatTemplate, setInlineStyle, ExpressiveCodeBlock, RenderEmptyLineFn } from '@expressive-code/core'
 import { type ElementContent } from 'hast'
-import { Section } from './utils'
 import { h, s } from 'hastscript'
+import { Section } from './utils'
 import { collapsibleSectionClass } from './styles'
-import { formatTemplate } from '@expressive-code/core'
 
 /**
  * Transforms a list of line ASTs into one containing the provided collapsible sections
  */
-export function sectionizeAst({ lines, sections, text }: { lines: ElementContent[]; sections: Section[]; text: string }): ElementContent[] {
+export function sectionizeAst({
+	codeBlock,
+	lines,
+	sections,
+	text,
+	renderEmptyLine,
+}: {
+	codeBlock: ExpressiveCodeBlock
+	lines: ElementContent[]
+	sections: Section[]
+	text: string
+	renderEmptyLine: RenderEmptyLineFn
+}): ElementContent[] {
 	const outp = [...lines]
 
 	// icon yoinked from octicons (MIT licensed)
@@ -19,14 +31,27 @@ export function sectionizeAst({ lines, sections, text }: { lines: ElementContent
 		.sort((a, b) => b.to - a.to)
 		.forEach(({ from, to }) => {
 			const targetLines = lines.slice(from - 1, to)
-			const $details = h('details', { class: collapsibleSectionClass }, [
-				h('summary', [
-					s('svg', { xmlns: 'http://www.w3.org/2000/svg', 'aria-hidden': 'true', viewBox: '0 0 16 16', width: '16', height: '16' }, [s('path', { d: collapsedIconD })]),
-					formatTemplate(text, { lineCount: targetLines.length }),
-				]),
-				...targetLines,
-			])
-			outp.splice(from - 1, targetLines.length, $details)
+
+			// Create the summary line for the collapsible section
+			const summaryLine = renderEmptyLine()
+			summaryLine.codeWrapper.children.push(
+				s('svg', { xmlns: 'http://www.w3.org/2000/svg', 'aria-hidden': 'true', viewBox: '0 0 16 16', width: '16', height: '16' }, [s('path', { d: collapsedIconD })]),
+				{ type: 'text', value: formatTemplate(text, { lineCount: targetLines.length }) }
+			)
+			// Wrap it in a summary element, and then in a details element with the target lines
+			const summary = h('summary', [summaryLine.lineAst])
+			const details = h('details', { class: collapsibleSectionClass }, [summary, ...targetLines])
+			// Add information about the minimum indent level of the collapsed lines
+			// unless disabled in the props
+			if (codeBlock.props.collapsePreserveIndent !== false) {
+				const minIndent = codeBlock.getLines(from - 1, to).reduce((acc, line) => {
+					if (line.text.trim().length === 0) return acc
+					return Math.min(acc, line.text.match(/^\s*/)?.[0].length ?? 0)
+				}, Infinity)
+				if (minIndent > 0 && minIndent < Infinity) setInlineStyle(summaryLine.lineAst, '--ecIndent', `${minIndent}ch`)
+			}
+
+			outp.splice(from - 1, targetLines.length, details)
 		})
 
 	return outp

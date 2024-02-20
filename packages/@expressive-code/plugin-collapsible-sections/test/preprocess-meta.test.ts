@@ -31,15 +31,13 @@ const myFavoritePokemon = [/* ... */];
 	.replace(/^\s+/gm, '')
 
 type ExpectedMetaResult = {
-	meta: string
 	sections: Omit<Section, 'lines'>[]
 }
 
 /** Tests that a given input meta-string gets transformed into the expected meta-string and a corresponding sections data on the codeblock */
 const expectMetaResult = async (input: string, expected: Partial<ExpectedMetaResult>) => {
-	const { meta, sections } = expected
+	const { sections } = expected
 	const expectedResult: ExpectedMetaResult = {
-		meta: meta || '',
 		sections: sections || [],
 	}
 
@@ -58,130 +56,84 @@ const expectMetaResult = async (input: string, expected: Partial<ExpectedMetaRes
 	const codeBlock = renderedGroupContents[0].codeBlock
 
 	const actual: ExpectedMetaResult = {
-		meta: codeBlock.meta,
 		sections: pluginCollapsibleSectionsData.getOrCreateFor(codeBlock)?.sections,
 	}
 
 	expect(actual).toMatchObject(expectedResult)
 }
 
-describe('Leaves unknown contents untouched', () => {
+describe('Ignores unknown options', () => {
 	test('Simple text', async () => {
-		await expectMetaResult('twoslash', {
-			meta: 'twoslash',
-		})
-
-		await expectMetaResult('2-4', {
-			meta: '2-4',
-		})
+		await expectMetaResult('twoslash', {})
+		await expectMetaResult('2-4', {})
 	})
 
 	test('Unknown properties in single or double quotes', async () => {
-		await expectMetaResult('"2-4"', {
-			meta: '"2-4"',
-		})
-
-		await expectMetaResult('yabba="2-4"', {
-			meta: 'yabba="2-4"',
-		})
-
-		await expectMetaResult("'2-4'", {
-			meta: "'2-4'",
-		})
-
-		await expectMetaResult("multipass='2-4'", {
-			meta: "multipass='2-4'",
-		})
+		await expectMetaResult('"2-4"', {})
+		await expectMetaResult('yabba="2-4"', {})
+		await expectMetaResult("'2-4'", {})
+		await expectMetaResult("multipass='2-4'", {})
 	})
 
 	test('Unknown properties in curly braces', async () => {
-		await expectMetaResult('{2-4}', {
-			meta: '{2-4}',
-		})
-
-		await expectMetaResult('whoops={2-4}', {
-			meta: 'whoops={2-4}',
-		})
-
-		await expectMetaResult('nothingToSee={2-4}', {
-			meta: 'nothingToSee={2-4}',
-		})
+		await expectMetaResult('{2-4}', {})
+		await expectMetaResult('whoops={2-4}', {})
+		await expectMetaResult('nothingToSee={2-4}', {})
 	})
 })
 
-describe('Extracts known properties', () => {
-	test('Sections in curly braces', async () => {
-		await expectMetaResult('collapse={2-5}', {
-			meta: '',
-			sections: [{ from: 2, to: 5 }],
-		})
+test('Ignores invalid ranges', async () => {
+	await expectMetaResult('collapse={5-2}', {})
+	await expectMetaResult('collapse={2-}', {})
+	await expectMetaResult('collapse={-5}', {})
+	await expectMetaResult('collapse={none}', {})
+	await expectMetaResult('hello collapse={world} world', {})
+	await expectMetaResult('collapse={}', {})
+})
 
-		await expectMetaResult('collapse={2-5,6-10}', {
-			meta: '',
-			sections: [
-				{ from: 2, to: 5 },
-				{ from: 6, to: 10 },
-			],
-		})
-
-		await expectMetaResult('collapse={ 2-5, 6-10 }', {
-			meta: '',
-			sections: [
-				{ from: 2, to: 5 },
-				{ from: 6, to: 10 },
-			],
-		})
-
-		await expectMetaResult('hello collapse={2-5} world', {
-			meta: 'hello world',
-			sections: [{ from: 2, to: 5 }],
-		})
+test('Handles the option `collapse` with valid ranges', async () => {
+	await expectMetaResult('collapse={2-5}', {
+		sections: [{ from: 2, to: 5 }],
 	})
 
-	test('Invalid sections in curly braces', async () => {
-		await expectMetaResult('collapse={5-2}', {
-			meta: '',
-			sections: [],
-		})
+	await expectMetaResult('collapse={2-5,6-10}', {
+		sections: [
+			{ from: 2, to: 5 },
+			{ from: 6, to: 10 },
+		],
+	})
 
-		await expectMetaResult('collapse={2-}', {
-			meta: '',
-			sections: [],
-		})
+	await expectMetaResult('collapse={ 2-5, 6-10 }', {
+		sections: [
+			{ from: 2, to: 5 },
+			{ from: 6, to: 10 },
+		],
+	})
 
-		await expectMetaResult('collapse={-5}', {
-			meta: '',
-			sections: [],
-		})
+	await expectMetaResult('hello collapse={2-5} world', {
+		sections: [{ from: 2, to: 5 }],
+	})
+})
 
-		await expectMetaResult('collapse={2-5,3-6}', {
-			meta: '',
-			sections: [{ from: 2, to: 5 }],
-		})
+test('Supports specifying the `collapse` option multiple times', async () => {
+	await expectMetaResult('collapse={2-5} collapse={6-10}', {
+		sections: [
+			{ from: 2, to: 5 },
+			{ from: 6, to: 10 },
+		],
+	})
+})
 
-		await expectMetaResult('collapse={2-5,5-6}', {
-			meta: '',
-			sections: [{ from: 2, to: 5 }],
-		})
+test('Merges overlapping sections', async () => {
+	await expectMetaResult('collapse={2-5,3-6}', {
+		sections: [{ from: 2, to: 5 }],
+	})
 
-		await expectMetaResult('collapse={2-5,1-2}', {
-			meta: '',
-			sections: [{ from: 2, to: 5 }],
-		})
+	await expectMetaResult('collapse={2-5,5-6}', {
+		sections: [{ from: 2, to: 5 }],
+	})
 
-		await expectMetaResult('collapse={none}', {
-			meta: '',
-			sections: [],
-		})
-
-		await expectMetaResult('hello collapse={world} world', {
-			meta: 'hello world',
-			sections: [],
-		})
-
-		await expectMetaResult('collapse={}', {
-			meta: '',
-			sections: [],
-		})
+	await expectMetaResult('collapse={2-5,1-2}', {
+		sections: [{ from: 2, to: 5 }],
 	})
 })

@@ -233,7 +233,7 @@ class StarlightTypeDocThemeRenderContext extends MarkdownThemeRenderContext {
 			// Add default value (if any)
 			const defaultValue = this.#getDefaultValue(reflection)
 			if (defaultValue) {
-				markdown += `\\\n- Default: ${defaultValue}`
+				markdown += `\n- Default: ${defaultValue}`
 			}
 		}
 		markdown = `<PropertySignature>\n${markdown}\n</PropertySignature>`

@@ -1,4 +1,4 @@
-import { PluginStyleSettings, ResolverContext, setAlpha } from '@expressive-code/core'
+import { PluginStyleSettings, ResolverContext, codeLineClass, setAlpha } from '@expressive-code/core'
 
 export const collapsibleSectionClass = 'ec-section'
 
@@ -9,11 +9,10 @@ export interface CollapsibleSectionsStyleSettings {
 	 */
 	closedBorderWidth: string
 	/**
-	 * The padding of closed sections.
-	 * @default
-	 * ({ resolveSetting }) => `4px 0 4px ${resolveSetting('codePaddingInline')}`
+	 * The block padding of closed sections.
+	 * @default '4px'
 	 */
-	closedPadding: string
+	closedPaddingBlock: string
 	/**
 	 * The margin around closed sections.
 	 * @default '0'
@@ -82,7 +81,7 @@ export const collapsibleSectionsStyleSettings = new PluginStyleSettings({
 	defaultValues: {
 		collapsibleSections: {
 			closedBorderWidth: '0',
-			closedPadding: ({ resolveSetting }) => `4px 0 4px ${resolveSetting('codePaddingInline')}`,
+			closedPaddingBlock: '4px',
 			closedMargin: '0',
 			closedFontFamily: 'inherit',
 			closedFontSize: 'inherit',
@@ -135,8 +134,12 @@ export function getCollapsibleSectionsBaseStyles({ cssVar }: ResolverContext) {
 				--border-color: ${cssVar('collapsibleSections.closedBorderColor')};
 				--border-width: ${cssVar('collapsibleSections.closedBorderWidth')};
 				box-shadow: inset 0 calc(-1 * var(--border-width)) var(--border-color), inset 0 var(--border-width) var(--border-color);
-				padding: ${cssVar('collapsibleSections.closedPadding')};
 				margin: ${cssVar('collapsibleSections.closedMargin')};
+
+				.${codeLineClass} .code {
+					padding-block: ${cssVar('collapsibleSections.closedPaddingBlock')};
+					text-indent: 0;
+				}
 			}
 
 			&[open] {

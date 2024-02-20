@@ -1,0 +1,44 @@
+{
+  "name": "@expressive-code/plugin-line-numbers",
+  "version": "0.32.4",
+  "description": "Line numbers plugin for Expressive Code, a text marking & annotation engine for presenting source code on the web.",
+  "keywords": [],
+  "author": "Tibor Schiemann",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/expressive-code/expressive-code.git",
+    "directory": "packages/@expressive-code/plugin-line-numbers"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "exports": {
+    "types": "./dist/index.d.ts",
+    "require": "./dist/index.cjs",
+    "default": "./dist/index.js"
+  },
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup ./src/index.ts --format esm,cjs --dts --sourcemap --clean",
+    "coverage": "vitest run --coverage",
+    "test": "vitest run --reporter verbose",
+    "test-short": "vitest run --reporter basic",
+    "test-watch": "vitest --reporter verbose",
+    "watch": "pnpm build --watch src"
+  },
+  "dependencies": {
+    "@expressive-code/core": "workspace:^0.32.4",
+    "hastscript": "^7.2.0"
+  },
+  "devDependencies": {
+    "@expressive-code/plugin-collapsible-sections": "workspace:^0.32.4",
+    "@expressive-code/plugin-frames": "workspace:^0.32.4",
+    "@expressive-code/plugin-shiki": "workspace:^0.32.4",
+    "@expressive-code/plugin-text-markers": "workspace:^0.32.4",
+    "@internal/test-utils": "workspace:^"
+  }
+}

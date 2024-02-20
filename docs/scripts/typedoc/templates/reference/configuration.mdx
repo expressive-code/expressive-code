@@ -89,6 +89,38 @@ You can optionally return an `ExpressiveCodeTheme` instance from this function t
 
 The locale that should be used for text content.
 
+### defaultProps
+
+<PropertySignature>
+- Type: Partial\<[`ExpressiveCodeBlockProps`](#expressivecodeblockprops)\> & \{ overridesByLang: Object \}
+- Default: `undefined`
+</PropertySignature>
+
+An optional set of default props for all code blocks in your project.
+
+For example, setting this to `{ wrap: true }` enables word wrapping on all code blocks by default, saving you from having to manually set this option on every single code block.
+
+#### Object properties
+
+##### overridesByLang
+
+<PropertySignature>
+- Type: Record\<string, Partial\<[`ExpressiveCodeBlockProps`](#expressivecodeblockprops)\>\>
+</PropertySignature>
+Allows to override the default props based on a code block's syntax highlighting language.
+
+Use the language IDs as keys and an object containing the props as values. The keys also support specifying multiple language IDs separated by commas to apply the same props to multiple languages.
+
+**Example**
+```js
+defaultProps: {
+  wrap: true,
+  overridesByLang: {
+    'bash,sh,zsh': { wrap: false }
+  }
+}
+```
+
 ### logger
 
 <PropertySignature>
@@ -408,3 +440,10 @@ To actually benefit from caching, please ensure that your hosting provider serve
 In addition to the options above, the Starlight integration provides two themes (`starlight-dark` and `starlight-light`) and options (`useStarlightDarkModeSwitch` and `useStarlightUiThemeColors`) that are specific to Starlight.
 
 Please refer to the [Starlight Configuration Reference](https://starlight.astro.build/reference/configuration/#expressivecode) for more details.
+
+## Referenced types
+
+````yml include
+name: "ExpressiveCodeBlockProps"
+headingLevel: 3
+````

@@ -1,25 +1,36 @@
 import { describe, expect, test } from 'vitest'
 import { Element } from 'hast-util-to-html/lib/types'
-import { sanitize } from 'hast-util-sanitize'
-import { toHtml } from 'hast-util-to-html'
 import { h } from 'hastscript'
-import { WrapperAnnotation, defaultBlockOptions, expectToWorkOrThrow, getHookTestResult, getMultiHookTestResult, getMultiPluginTestResult, nonObjectValues } from './utils'
+import {
+	WrapperAnnotation,
+	defaultBlockOptions,
+	expectToWorkOrThrow,
+	lineCodeHtml,
+	getHookTestResult,
+	getMultiHookTestResult,
+	getMultiPluginTestResult,
+	nonObjectValues,
+	toSanitizedHtml,
+} from './utils'
 import { ExpressiveCodePluginHookName } from '../src/common/plugin-hooks'
 import { ExpressiveCodeProcessingState } from '../src/internal/render-block'
 import { groupWrapperElement } from '../src/internal/css'
 
 describe('Block-level hooks are called with the correct processing state', () => {
 	const baseState: ExpressiveCodeProcessingState = {
+		canEditLanguage: false,
 		canEditMetadata: true,
 		canEditCode: true,
 		canEditAnnotations: true,
 	}
 	const readonlyState: ExpressiveCodeProcessingState = {
+		canEditLanguage: false,
 		canEditMetadata: false,
 		canEditCode: false,
 		canEditAnnotations: false,
 	}
 	const testCases: [ExpressiveCodePluginHookName, number, ExpressiveCodeProcessingState][] = [
+		['preprocessLanguage', 1, { ...baseState, canEditCode: false, canEditLanguage: true }],
 		['preprocessMetadata', 1, { ...baseState, canEditCode: false }],
 		['preprocessCode', 1, baseState],
 		['performSyntaxAnalysis', 1, baseState],
@@ -41,8 +52,8 @@ describe('Block-level hooks are called with the correct processing state', () =>
 		expect(actualCallCount).toEqual(expectedCallCount)
 
 		// Perform edits of all properties to ensure they work or throw as expected
+		await expectToWorkOrThrow(state.canEditLanguage, () => testEditingProperty(hookName, 'language'))
 		await expectToWorkOrThrow(state.canEditMetadata, () => testEditingProperty(hookName, 'meta'))
-		await expectToWorkOrThrow(state.canEditMetadata, () => testEditingProperty(hookName, 'language'))
 		await expectToWorkOrThrow(state.canEditAnnotations, () => testAddingAnnotation(hookName))
 		await expectToWorkOrThrow(state.canEditCode, () => testEditingCode(hookName))
 	})
@@ -62,8 +73,8 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 				},
 			})
 			expect(totalHookCalls).toEqual(2)
-			const html = toHtml(sanitize(renderedBlockAst, { attributes: { '*': ['test'] } }))
-			expect(html).toEqual('<pre><code><div test="1">Example code...</div><div test="2">...with two lines!</div></code></pre>')
+			const html = toSanitizedHtml(renderedBlockAst)
+			expect(html).toEqual(`<pre><code><div test="1">${lineCodeHtml[0]}</div><div test="2">${lineCodeHtml[1]}</div></code></pre>`)
 		})
 		test('Can completely replace line AST', async () => {
 			let totalHookCalls = 0
@@ -76,7 +87,7 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 				},
 			})
 			expect(totalHookCalls).toEqual(2)
-			const html = toHtml(sanitize(renderedBlockAst, { attributes: { '*': ['test'] } }))
+			const html = toSanitizedHtml(renderedBlockAst)
 			expect(html).toEqual('<pre><code><div test="1">Replaced line</div><div test="2">Replaced line</div></code></pre>')
 		})
 		test('Throws on invalid replacement ASTs', async () => {
@@ -145,12 +156,12 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 				],
 			})
 			expect(totalHookCalls).toEqual(6)
-			const html = toHtml(sanitize(renderedBlockAst, { attributes: { '*': ['test', 'edited'], a: ['href'] } }))
+			const html = toSanitizedHtml(renderedBlockAst)
 			expect(html).toEqual(
 				[
 					`<pre><code>`,
-					`<a href="#2" edited="3"><div test="1">Example code...</div></a>`,
-					`<a href="#5" edited="6"><div test="4">...with two lines!</div></a>`,
+					`<a href="#2" edited="3"><div test="1">${lineCodeHtml[0]}</div></a>`,
+					`<a href="#5" edited="6"><div test="4">${lineCodeHtml[1]}</div></a>`,
 					`</code></pre>`,
 				].join('')
 			)
@@ -169,8 +180,8 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 				},
 			})
 			expect(totalHookCalls).toEqual(1)
-			const html = toHtml(sanitize(renderedBlockAst, { attributes: { '*': ['test'] } }))
-			expect(html).toEqual('<pre test="1"><code><div>Example code...</div><div>...with two lines!</div></code></pre>')
+			const html = toSanitizedHtml(renderedBlockAst)
+			expect(html).toEqual(`<pre test="1"><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`)
 		})
 		test('Can completely replace block AST', async () => {
 			let totalHookCalls = 0
@@ -184,7 +195,7 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 				},
 			})
 			expect(totalHookCalls).toEqual(1)
-			const html = toHtml(sanitize(renderedBlockAst, { attributes: { '*': ['test'] } }))
+			const html = toSanitizedHtml(renderedBlockAst)
 			expect(html).toEqual('<div test="1">I am completely different now!</div>')
 		})
 		test('Throws on invalid replacement ASTs', async () => {
@@ -251,8 +262,8 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 				],
 			})
 			expect(totalHookCalls).toEqual(3)
-			const html = toHtml(sanitize(renderedBlockAst, { attributes: { '*': ['test', 'edited'], a: ['href'] } }))
-			expect(html).toEqual('<div test="2" edited="3"><pre test="1"><code><div>Example code...</div><div>...with two lines!</div></code></pre></div>')
+			const html = toSanitizedHtml(renderedBlockAst)
+			expect(html).toEqual(`<div test="2" edited="3"><pre test="1"><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre></div>`)
 		})
 	})
 	describe('postprocessRenderedBlockGroup', () => {
@@ -268,13 +279,13 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 				},
 			})
 			expect(totalHookCalls).toEqual(1)
-			const html = toHtml(sanitize(renderedGroupAst, { attributes: { '*': ['test'] } }))
+			const html = toSanitizedHtml(renderedGroupAst)
 			expect(html).toEqual(
 				[
 					// Start of group wrapper
 					`<${groupWrapperElement}>`,
 					'<figure>',
-					'<pre><code><div>Example code...</div><div>...with two lines!</div></code></pre>',
+					`<pre><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`,
 					'</figure>',
 					// End of group wrapper
 					`</${groupWrapperElement}>`,
@@ -296,18 +307,18 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 				},
 			})
 			expect(totalHookCalls).toEqual(1)
-			const html = toHtml(sanitize(renderedGroupAst, { attributes: { '*': ['test'] } }))
+			const html = toSanitizedHtml(renderedGroupAst)
 			expect(html).toEqual(
 				[
 					// Start of group wrapper
 					`<${groupWrapperElement}>`,
 					// Wrapper added by hook around first child
 					'<figure>',
-					'<pre><code><div>Example code...</div><div>...with two lines!</div></code></pre>',
+					`<pre><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`,
 					'</figure>',
 					// Wrapper added by hook around second child
 					'<figure>',
-					'<pre><code><div>Just one line here!</div></code></pre>',
+					'<pre><code><div><div class="code">Just one line here!</div></div></code></pre>',
 					'</figure>',
 					// End of group wrapper
 					`</${groupWrapperElement}>`,
@@ -339,7 +350,7 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 				},
 			})
 			expect(totalHookCalls).toEqual(1)
-			const html = toHtml(sanitize(renderedGroupAst, { attributes: { '*': ['test'] } }))
+			const html = toSanitizedHtml(renderedGroupAst)
 			expect(html).toEqual(
 				[
 					// Start of group wrapper (should be untouchable by plugins)
@@ -347,7 +358,7 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 					// Wrapper added by hook
 					'<details test="1">',
 					// Regular code block HTML
-					'<pre><code><div>Example code...</div><div>...with two lines!</div></code></pre>',
+					`<pre><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`,
 					// End of wrapper added by hook
 					'</details>',
 					// End of group wrapper
@@ -421,7 +432,7 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 				],
 			})
 			expect(totalHookCalls).toEqual(3)
-			const html = toHtml(sanitize(renderedGroupAst, { attributes: { '*': ['test', 'edited'], a: ['href'] } }))
+			const html = toSanitizedHtml(renderedGroupAst)
 			expect(html).toEqual(
 				[
 					// Start of group wrapper (should be untouchable by plugins)
@@ -431,7 +442,7 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 					// Figure added by first hook
 					'<figure test="1">',
 					// Regular code block HTML
-					'<pre><code><div>Example code...</div><div>...with two lines!</div></code></pre>',
+					`<pre><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`,
 					// End of figure added by first hook
 					'</figure>',
 					// End of wrapper added by second hook

@@ -78,6 +78,13 @@ describe('Renders collapsed sections', async () => {
 						code: `\n\t\n  \n${lineMarkerTestText}`,
 						meta: `del={5} ins={6-7} mark={1,2} collapse={2-2, 5-7}`,
 						plugins: [pluginShiki(), pluginTextMarkers(), pluginCollapsibleSections()],
+						engineOptions: {
+							styleOverrides: {
+								collapsibleSections: {
+									closedBorderWidth: '1px',
+								},
+							},
+						},
 						blockValidationFn: buildMarkerValidationFn([
 							{ from: 2, to: 2, text: '1 collapsed line' },
 							{ from: 5, to: 7, text: '3 collapsed lines' },
@@ -96,7 +103,7 @@ describe('Renders collapsed sections', async () => {
 				fixtures: buildThemeFixtures(themes, {
 					engineOptions: { defaultLocale: 'xy' },
 					code: lineMarkerTestText,
-					meta: `collapse={5-7,1-4}`,
+					meta: `collapse={5-7,1-4} collapsePreserveIndent=false`,
 					plugins: [pluginCollapsibleSections()],
 					blockValidationFn: buildMarkerValidationFn([
 						{ from: 1, to: 4, text: 'Test 4' },

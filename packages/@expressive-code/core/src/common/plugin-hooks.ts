@@ -5,8 +5,9 @@ import { ExpressiveCodeBlock } from './block'
 import { ExpressiveCodeLine } from './line'
 import { ExpressiveCodePlugin, ResolverContext } from './plugin'
 import { ResolvedExpressiveCodeEngineConfig } from './engine'
+import { GutterElement } from './gutter'
 
-export interface ExpressiveCodeHookContext extends ResolverContext {
+export interface ExpressiveCodeHookContextBase extends ResolverContext {
 	codeBlock: ExpressiveCodeBlock
 	groupContents: GroupContents
 	locale: string
@@ -15,6 +16,9 @@ export interface ExpressiveCodeHookContext extends ResolverContext {
 	 * resolved to their default values.
 	 */
 	config: ResolvedExpressiveCodeEngineConfig
+}
+
+export interface ExpressiveCodeHookContext extends ExpressiveCodeHookContextBase {
 	/**
 	 * Adds CSS styles to the document that contains the rendered code.
 	 *
@@ -37,6 +41,14 @@ export interface ExpressiveCodeHookContext extends ResolverContext {
 	 * to optionally extract these styles into a separate CSS file.
 	 */
 	addStyles: (css: string) => void
+	/**
+	 * Registers a gutter element for the current code block.
+	 *
+	 * The engine calls the {@link GutterElement.renderLine `renderLine`} function
+	 * of the gutter elements registered by all plugins for every line of the code block.
+	 * The returned elements are then added as children to the line's gutter container.
+	 */
+	addGutterElement: (element: GutterElement) => void
 }
 
 /**
@@ -46,7 +58,7 @@ export interface ExpressiveCodeHookContext extends ResolverContext {
  * it provides access to information about the line currently being rendered,
  * and allows modifying the rendered output.
  */
-export interface PostprocessRenderedLineContext extends ExpressiveCodeHookContext {
+export interface PostprocessRenderedLineContext extends Omit<ExpressiveCodeHookContext, 'addGutterElement'> {
 	/**
 	 * A reference to the line that is currently being rendered. It is read-only at this point,
 	 * but you can access all line properties, including its source code and annotations.
@@ -73,6 +85,14 @@ export interface PostprocessRenderedLineContext extends ExpressiveCodeHookContex
 	renderData: {
 		lineAst: Element
 	}
+	/**
+	 * Allows rendering an empty line that is not part of the original code.
+	 *
+	 * Some plugins may need to render lines that are not part of the original code, e.g. to display
+	 * the expected output of a call right inside the code block. To align such lines with the
+	 * original code, plugins can request an empty line from the engine using this function.
+	 */
+	renderEmptyLine: RenderEmptyLineFn
 }
 
 /**
@@ -82,14 +102,14 @@ export interface PostprocessRenderedLineContext extends ExpressiveCodeHookContex
  * it provides access to render data of the code block currently being rendered,
  * and allows modifying the rendered output.
  */
-export interface PostprocessRenderedBlockContext extends ExpressiveCodeHookContext {
+export interface PostprocessRenderedBlockContext extends Omit<ExpressiveCodeHookContext, 'addGutterElement'> {
 	/**
 	 * Allows modifying the block's rendered output. The `blockAst` property of this object contains
 	 * the [Hypertext Abstract Syntax Tree (HAST)](https://github.com/syntax-tree/hast) node
 	 * representing the rendered block.
 	 *
 	 * You have full control over the `blockAst` property to modify the rendered output.
-	 * For example, you could add a class name to the block’s root element,
+	 * For example, you could add a class name to the block's root element,
 	 * wrap the entire block in a custom element, or traverse its children
 	 * to find specific elements and modify them.
 	 *
@@ -101,7 +121,17 @@ export interface PostprocessRenderedBlockContext extends ExpressiveCodeHookConte
 	renderData: {
 		blockAst: Element
 	}
+	/**
+	 * Allows rendering an empty line that is not part of the original code.
+	 *
+	 * Some plugins may need to render lines that are not part of the original code, e.g. to display
+	 * the expected output of a call right inside the code block. To align such lines with the
+	 * original code, plugins can request an empty line from the engine using this function.
+	 */
+	renderEmptyLine: RenderEmptyLineFn
 }
+
+export type RenderEmptyLineFn = () => { lineAst: Element; gutterWrapper: Element | undefined; codeWrapper: Element }
 
 /**
  * A context object that the engine passes to the `postprocessRenderedBlockGroup` hook function.
@@ -152,11 +182,22 @@ export type ExpressiveCodeHook<ContextType = ExpressiveCodeHookContext> = (conte
 /** @internal */
 export interface ExpressiveCodePluginHooks_BeforeRendering {
 	/**
-	 * Allows preprocessing the meta string and the language before any plugins can
+	 * Allows preprocessing the code block's {@link ExpressiveCodeBlock.language language}
+	 * identifier before loading language-specific defaults into
+	 * {@link ExpressiveCodeBlock.props props}.
+	 *
+	 * The Text Markers plugin uses this hook to override the `diff` language identifier
+	 * with the language specified in the `lang` meta option (if given) to allow using diff syntax
+	 * to mark inserted and deleted lines while using another language for syntax highlighting.
+	 */
+	preprocessLanguage?: ExpressiveCodeHook | undefined
+
+	/**
+	 * Allows preprocessing the meta string and the props before any plugins can
 	 * modify the code.
 	 *
-	 * Plugins are expected to use this hook to remove any of their syntax from the meta string.
-	 * Removed information can either be stored internally or used to create annotations.
+	 * Instead of accessing the raw meta string, plugins are recommended to use the parsed version
+	 * of the contained options through the {@link ExpressiveCodeBlock.metaOptions} property.
 	 *
 	 * As the code still matches the plaintext in the containing Markdown/MDX document at this
 	 * point, this hook can be used to apply annotations by line numbers.

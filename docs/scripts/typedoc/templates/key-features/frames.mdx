@@ -1,0 +1,203 @@
+---
+title: Editor & Terminal Frames
+---
+
+import ConfigVariants from '@components/ConfigVariants.astro'
+import { Tabs, TabItem } from '@astrojs/starlight/components'
+
+Expressive Code supports rendering frames around your code blocks. By default, the type of frame (editor window or terminal window) is selected automatically based on the language identifier in your code block's opening fence.
+
+Frames can have optional titles, which are either taken from the code block's meta string, or from a file name comment in the first lines of the code.
+
+:::tip[No installation required]
+These features are provided by `@expressive-code/plugin-frames`, which is installed & enabled by default in all framework integrations. You can start using it right away in your documents!
+:::
+
+## Usage in markdown / MDX
+
+### Code editor frames
+
+To make code blocks look like an editor window similar to VS Code, you must provide a file name that can be displayed in the open file tab.
+
+To do this, you can either set the `title` attribute in the opening code fence to a file name, or add a [file name comment](#file-name-comments) to the first lines of the code.
+
+See the markdown code below for examples of both methods:
+
+````md title="editor-example.md" ins=/title=".*?"/ ins=/<!--.*?-->/
+```js title="my-test-file.js"
+console.log('Title attribute example')
+```
+
+```html
+<!-- src/content/index.html -->
+<div>File name comment example</div>
+```
+````
+
+The rendered result looks like this:
+
+```js title="my-test-file.js"
+console.log('Title attribute example')
+```
+
+```html
+<!-- src/content/index.html -->
+<div>File name comment example</div>
+```
+
+### Terminal frames
+
+When encountering code blocks with a language identifier that is typically used for terminal sessions or shell scripts (`ansi`, `bash`, `bat`, `batch`, `cmd`, `console`, `powershell`, `ps`, `ps1`, `psd1`, `psm1`, `sh`, `shell`, `shellscript`, `shellsession`, `zsh`), Expressive Code performs additional checks to detect the frame type to use:
+
+- If the code block contains a shell script file name in the `title` attribute of the opening code fence or a [file name comment](#file-name-comments), or if the code starts with a shebang (`#!`), it is considered to be a script file instead of a terminal session, and is rendered with a code editor frame if a file name was provided, or as a plain code block otherwise.
+- In all other cases, the code block is considered to be a terminal session and rendered with a terminal frame.
+
+In contrast to code editor frames, terminal frames do not require a title. The title bar will always be rendered, and you can optionally add a title using the `title` attribute:
+
+````md ins=/title=".*?"/
+```bash
+echo "This terminal frame has no title"
+```
+
+```powershell title="PowerShell terminal example"
+Write-Output "This one has a title!"
+```
+````
+
+The rendered result looks like this:
+
+```bash
+echo "This frame has no title"
+```
+
+```powershell title="PowerShell terminal example"
+Write-Output "This one has a title!"
+```
+
+### File name comments
+
+If a code block does not have a `title` attribute, Expressive Code supports automatically extracting a title from a file name comment inside your code.
+
+The following conditions must be met for a comment to be recognized as a file name comment:
+
+- It must appear within the first 4 lines of the code block.
+- Its line must start with `//`, `<!--`, `/*` or `#`, but not `#!`. Although not required, we recommend using the comment syntax matching your code block's language.
+- It can optionally have a prefix that ends with a colon (`:`). This allows you to prefix the file name with some text: `// File name: index.js`
+- The file name appears to be valid in the context of the code block's language. For example, a comment containing a CSS file name in a JavaScript code block will be ignored.
+
+Once a file name comment is found, it is removed from the code block's content, and the extracted file name is used as the code block's title.
+
+:::note
+You can prevent automatic file name comment extraction using any of the following options:
+- Provide a `title` in the opening code fence
+- [Set the frame type](#overriding-frame-types) of the code block to `none`
+- Disable it globally by setting `extractFileNameFromCode` to `false` in the configuration
+:::
+
+### Overriding frame types
+
+If you want to override the automatic frame type detection for some code blocks, you can add the `frame="..."` attribute to the opening code fence.
+
+The supported values for this attribute are `code`, `terminal`, `none` and `auto`. The default value is `auto`.
+
+:::tip
+Setting the frame type to `none` can reduce visual clutter when showing many single-line terminal blocks on a page, e.g. in a tutorial.
+:::
+
+````md ins=/frame=".*?"/
+```sh frame="none"
+echo "Look ma, no frame!"
+```
+
+```ps frame="code" title="PowerShell Profile.ps1"
+# Without overriding, this would be a terminal frame
+function Watch-Tail { Get-Content -Tail 20 -Wait $args }
+New-Alias tail Watch-Tail
+```
+````
+
+The rendered result looks like this:
+
+```sh frame="none"
+echo "Look ma, no frame!"
+```
+
+```ps frame="code" title="PowerShell Profile.ps1"
+# Without overriding, this would be a terminal frame
+function Watch-Tail { Get-Content -Tail 20 -Wait $args }
+New-Alias tail Watch-Tail
+```
+
+## Usage in the `<Code>` component
+
+The frames plugin adds multiple props to the `<Code>` component that allow direct access to its features. The following props are available:
+
+````yml include
+name: "PluginFramesProps"
+headingLevel: 2
+editSections:
+- path: "Properties"
+  replaceHeading: "Props"
+- path: ""
+  replaceHeading: ""
+````
+
+## Configuration
+
+When using this plugin through a framework integration, you can configure it by passing options to the integration.
+
+In addition, you can also override its default styles by adding a `frames` object to the `styleOverrides` engine config option. You can find a list of all [overridable styles](#available-style-overrides) below.
+
+Here are configuration examples for some popular site generators:
+
+<ConfigVariants
+  settings={`
+    // You can optionally override the plugin's default settings here
+    frames: {
+      // Example: Hide the "Copy to clipboard" button
+      showCopyToClipboardButton: false,
+    },
+    styleOverrides: {
+      // You can optionally override the plugin's default styles here
+      frames: {
+        shadowColor: '#124',
+      },
+    },
+  `}
+/>
+
+### Available plugin options
+
+You can configure the plugin's features using the following options:
+
+````yml include
+name: "PluginFramesOptions"
+headingLevel: 2
+editSections:
+- path: "Properties"
+  replaceHeading: ""
+- path: ""
+  replaceHeading: ""
+replacements:
+- search: '^(#+ .*)\?$'
+  replace: '$1'
+````
+
+### Available style overrides
+
+This plugin adds a `frames` object to the `styleOverrides` engine config option, allowing you to customize the visual appearance of the rendered frames. The object contains the following properties:
+
+````yml include
+name: "FramesStyleSettings"
+headingLevel: 2
+editSections:
+- path: "Properties"
+  replaceHeading: ""
+- path: ""
+  replaceHeading: ""
+replacements:
+- search: '- Type: `string`$'
+  replace: '- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)'
+- search: '/api/expressive-code/plugin-frames/interfaces/FramesStyleSettings/#'
+  replace: '#'
+````

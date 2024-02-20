@@ -259,7 +259,7 @@ May throw an error if not allowed in the current [state](/reference/core-api/#st
 
 - <code class="function-signature">**get** **code**(): string</code>
 
-Provides read-only access to the code block’s plaintext contents.
+Provides read-only access to the code block's plaintext contents.
 
 ##### language
 
@@ -267,7 +267,7 @@ Provides read-only access to the code block’s plaintext contents.
 
 - <code class="function-signature">**set** **language**(value): void</code>
 
-Allows getting and setting the code block’s language.
+Allows getting and setting the code block's language.
 
 Setting this property may throw an error if not allowed in the current [state](/reference/core-api/#state).
 
@@ -293,7 +293,7 @@ If no locale is defined here, `ExpressiveCodeEngine` will render the code block 
 
 - <code class="function-signature">**set** **meta**(value): void</code>
 
-Allows getting or setting the code block’s meta string. In markdown or MDX documents, this is the part of the code block’s opening fence that comes after the language name.
+Allows getting or setting the code block's meta string. In markdown or MDX documents, this is the part of the code block's opening fence that comes after the language name.
 
 Setting this property may throw an error if not allowed in the current [state](/reference/core-api/#state).
 
@@ -303,6 +303,12 @@ Setting this property may throw an error if not allowed in the current [state](/
 | :------ | :------ |
 | `value` | `string` |
 
+##### metaOptions
+
+- <code class="function-signature">**get** **metaOptions**(): [MetaOptions](/reference/core-api/#metaoptions-1)</code>
+
+Provides read-only access to the parsed version of the block's [meta](/reference/core-api/#meta) string.
+
 ##### parentDocument
 
 - <code class="function-signature">**get** **parentDocument**(): undefined \| Object</code>
@@ -311,11 +317,22 @@ Provides read-only access to optional data about the parent document the code bl
 
 Integrations like `remark-expressive-code` can provide this information based on the source document being processed. There may be cases where no document is available, e.g. when the code block was created dynamically.
 
+##### props
+
+- <code class="function-signature">**get** **props**(): Partial\<[ExpressiveCodeBlockProps](/reference/configuration/#expressivecodeblockprops)\></code>
+
+Provides access to the code block's props.
+
+To allow users to set these props through the meta string, plugins can use the
+`preprocessMetadata` hook to read `metaOptions` and update their props accordingly.
+
+Props can be modified until rendering starts and become read-only afterwards.
+
 ##### state
 
 - <code class="function-signature">**get** **state**(): undefined \| [ExpressiveCodeProcessingState](/reference/core-api/#expressivecodeprocessingstate)</code>
 
-Provides read-only access to the code block’s processing state.
+Provides read-only access to the code block's processing state.
 
 The processing state controls which properties of the code block can be modified. The engine updates it automatically during rendering.
 
@@ -409,6 +426,16 @@ The full path to the source file containing the code block.
 </dd>
 </dl>
 
+##### props?
+
+<PropertySignature>
+- Type: Partial\<[ExpressiveCodeBlockProps](/reference/configuration/#expressivecodeblockprops)\>
+</PropertySignature>
+
+Optional props that can be used to influence the rendering of this code block.
+
+Plugins can add their own props to this type. To allow users to set these props through the meta string, plugins can use the `preprocessMetadata` hook to read `metaOptions` and update the `props` object accordingly.
+
 ### ExpressiveCodeLine
 
 #### Constructors
@@ -478,6 +505,174 @@ The full path to the source file containing the code block.
 ##### text
 
 - <code class="function-signature">**get** **text**(): string</code>
+
+### MetaOptions
+
+#### Constructors
+
+##### new MetaOptions(input)
+
+- <code class="function-signature">**new MetaOptions**(input): [MetaOptions](/reference/core-api/#metaoptions-1)</code>
+
+###### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `input` | `string` |
+
+#### Methods
+
+##### getBoolean()
+
+- <code class="function-signature">**getBoolean**(key): undefined \| boolean</code>
+
+Returns the last boolean value with the given key (case-insensitive).
+
+###### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `key` | `string` |
+
+##### getInteger()
+
+- <code class="function-signature">**getInteger**(key): undefined \| number</code>
+
+Returns the last integer value with the given key (case-insensitive), or without a key by passing an empty string.
+
+###### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `key` | `string` |
+
+##### getIntegers()
+
+- <code class="function-signature">**getIntegers**(keyOrKeys?): number[]</code>
+
+Returns an array of all integer values with the given keys (case-insensitive), or without a key by passing an empty string.
+
+###### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `keyOrKeys`? | `string` \| `string`[] |
+
+##### getRange()
+
+- <code class="function-signature">**getRange**(key): undefined \| string</code>
+
+Returns the last range value (`{value}`) with the given key (case-insensitive), or without a key by passing an empty string.
+
+###### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `key` | `string` |
+
+##### getRanges()
+
+- <code class="function-signature">**getRanges**(keyOrKeys?): string[]</code>
+
+Returns an array of all range values (`{value}`) with the given keys (case-insensitive), or without a key by passing an empty string.
+
+###### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `keyOrKeys`? | `string` \| `string`[] |
+
+##### getRegExp()
+
+- <code class="function-signature">**getRegExp**(key): undefined \| RegExp</code>
+
+Returns the last RegExp value (`/value/`) with the given key (case-insensitive), or without a key by passing an empty string.
+
+###### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `key` | `string` |
+
+##### getRegExps()
+
+- <code class="function-signature">**getRegExps**(keyOrKeys?): RegExp[]</code>
+
+Returns an array of all RegExp values (`/value/`) with the given keys (case-insensitive), or without a key by passing an empty string.
+
+###### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `keyOrKeys`? | `string` \| `string`[] |
+
+##### getString()
+
+- <code class="function-signature">**getString**(key): undefined \| string</code>
+
+Returns the last string value with the given key (case-insensitive), or without a key by passing an empty string.
+
+###### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `key` | `string` |
+
+##### getStrings()
+
+- <code class="function-signature">**getStrings**(keyOrKeys?): string[]</code>
+
+Returns an array of all string values with the given keys (case-insensitive), or without a key by passing an empty string.
+
+###### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `keyOrKeys`? | `string` \| `string`[] |
+
+##### list()
+
+- <code class="function-signature">**list**\<K\>(keyOrKeys?, kind?): ReturnType</code>
+
+Returns a list of meta options, optionally filtered by their key and/or MetaOptionKind.
+
+###### Type parameters
+
+| Parameter | Value |
+| :------ | :------ |
+| `K` extends `undefined` \| `"string"` \| `"boolean"` \| `"range"` \| `"regexp"` | `undefined` |
+
+###### Arguments
+
+| Parameter | Type | Description |
+| :------ | :------ | :------ |
+| `keyOrKeys`? | `string` \| `string`[] | Allows to filter the options by key. An empty string will return options without a key. A non-empty string will return options with a matching key (case-insensitive). An array of strings will return options with any of the matching keys. If omitted, no key-based filtering will be applied. |
+| `kind`? | `K` | Allows to filter the options by MetaOptionKind. If omitted, no kind-based filtering will be applied. |
+
+##### value()
+
+- <code class="function-signature">**value**\<K\>(key, kind?): undefined \| OptionType\["value"\]</code>
+
+###### Type parameters
+
+| Parameter | Value |
+| :------ | :------ |
+| `K` extends `undefined` \| `"string"` \| `"boolean"` \| `"range"` \| `"regexp"` | `undefined` |
+
+###### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `key` | `string` |
+| `kind`? | `K` |
+
+#### Accessors
+
+##### errors
+
+- <code class="function-signature">**get** **errors**(): undefined \| string[]</code>
+
+A list of error messages that occurred when parsing the meta string, or `undefined` if no errors occurred.
 
 ## Themes
 
@@ -762,6 +957,12 @@ the entire list.
 - Type: [`ExpressiveCodeLine`](/reference/core-api/#expressivecodeline)
 </PropertySignature>
 </dd>
+<dt>lineIndex</dt>
+<dd>
+<PropertySignature>
+- Type: `number`
+</PropertySignature>
+</dd>
 <dt>nodesToTransform</dt>
 <dd>
 <PropertySignature>
@@ -846,6 +1047,12 @@ If given, the chroma will be adjusted relative to this lightness before applying
 </PropertySignature>
 
 ##### canEditCode
+
+<PropertySignature>
+- Type: `boolean`
+</PropertySignature>
+
+##### canEditLanguage
 
 <PropertySignature>
 - Type: `boolean`

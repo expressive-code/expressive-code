@@ -79,6 +79,10 @@ export default defineConfig({
 							link: '/key-features/text-markers/',
 						},
 						{
+							label: 'Word Wrap',
+							link: '/key-features/word-wrap/',
+						},
+						{
 							label: 'Code Component',
 							link: '/key-features/code-component/',
 						},
@@ -90,6 +94,10 @@ export default defineConfig({
 						{
 							label: 'Collapsible Sections',
 							link: '/plugins/collapsible-sections/',
+						},
+						{
+							label: 'Line Numbers',
+							link: '/plugins/line-numbers/',
 						},
 					],
 				},

@@ -6,6 +6,17 @@ title: Plugin Hooks
 
 The engine calls the following hook functions in the order listed here:
 
+### preprocessLanguage
+
+<PropertySignature>
+- Type: [`ExpressiveCodeHook`](/api/expressive-code/core/type-aliases/ExpressiveCodeHook/)\<[`ExpressiveCodeHookContext`](/api/expressive-code/core/interfaces/ExpressiveCodeHookContext/)\>
+</PropertySignature>
+
+Allows preprocessing the code block's [language](/api/expressive-code/core/classes/ExpressiveCodeBlock/#language) identifier before loading language-specific defaults into
+[props](/api/expressive-code/core/classes/ExpressiveCodeBlock/#props).
+
+The Text Markers plugin uses this hook to override the `diff` language identifier with the language specified in the `lang` meta option (if given) to allow using diff syntax to mark inserted and deleted lines while using another language for syntax highlighting.
+
 ### preprocessMetadata
 
 <PropertySignature>
