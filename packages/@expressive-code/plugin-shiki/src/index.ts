@@ -59,10 +59,10 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 				let highlighter
 				try {
 					highlighter = await getCachedHighlighter({ langs })
-				} catch (error) {
+				} catch (err) {
 					/* c8 ignore next */
-					const msg = error instanceof Error ? error.message : (error as string)
-					throw new Error(`Failed to load syntax highlighter. Please ensure that the configured langs are supported by Shiki. Received error message: "${msg}"`, {
+					const error = err instanceof Error ? err : new Error(String(err))
+					throw new Error(`Failed to load syntax highlighter. Please ensure that the configured langs are supported by Shiki.\nReceived error message: "${error.message}"`, {
 						cause: error,
 					})
 				}
@@ -94,8 +94,10 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 							theme: loadedThemeName,
 							includeExplanation: false,
 						})
-					} catch (error) {
-						throw new Error(`Shiki failed to highlight code block with language "${codeBlock.language}" and theme "${theme.name}".`, {
+					} catch (err) {
+						/* c8 ignore next */
+						const error = err instanceof Error ? err : new Error(String(err))
+						throw new Error(`Shiki failed to highlight code block with language "${codeBlock.language}" and theme "${theme.name}".\nReceived error message: "${error.message}"`, {
 							cause: error,
 						})
 					}

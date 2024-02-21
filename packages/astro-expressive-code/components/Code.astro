@@ -61,10 +61,10 @@ async function renderToHtml() {
 let html = ''
 try {
 	html = await renderToHtml()
-} catch (error) {
+} catch (err) {
 	const prefix = `Failed to render a \`<Code>\` component on page ${Astro.request.url}:`
-	const msg = error instanceof Error ? error.message : (error as string)
-	throw new Error(`${prefix}\n\n${msg}`)
+	const error = err instanceof Error ? err : new Error(String(err))
+	throw new Error(`${prefix}\n\n${error.message}`, { cause: error })
 }
 ---
 
