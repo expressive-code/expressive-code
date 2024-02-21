@@ -1,5 +1,13 @@
 # remark-expressive-code
 
+## 0.33.1
+
+### Patch Changes
+
+- f3ac898: Fixes an issue where lines containing a very long word after the initial indentation would wrap incorrectly.
+- Updated dependencies [f3ac898]
+  - expressive-code@0.33.1
+
 ## 0.33.0
 
 ### Minor Changes

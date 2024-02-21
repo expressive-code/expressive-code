@@ -1,5 +1,16 @@
 # expressive-code
 
+## 0.33.1
+
+### Patch Changes
+
+- f3ac898: Fixes an issue where lines containing a very long word after the initial indentation would wrap incorrectly.
+- Updated dependencies [f3ac898]
+  - @expressive-code/core@0.33.1
+  - @expressive-code/plugin-frames@0.33.1
+  - @expressive-code/plugin-shiki@0.33.1
+  - @expressive-code/plugin-text-markers@0.33.1
+
 ## 0.33.0
 
 ### Patch Changes

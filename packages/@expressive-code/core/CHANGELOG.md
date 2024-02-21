@@ -1,5 +1,11 @@
 # @expressive-code/core
 
+## 0.33.1
+
+### Patch Changes
+
+- f3ac898: Fixes an issue where lines containing a very long word after the initial indentation would wrap incorrectly.
+
 ## 0.33.0
 
 ### Minor Changes
