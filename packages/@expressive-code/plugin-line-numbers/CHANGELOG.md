@@ -1,5 +1,12 @@
 # @expressive-code/plugin-line-numbers
 
+## 0.33.2
+
+### Patch Changes
+
+- Updated dependencies [a408e31]
+  - @expressive-code/core@0.33.2
+
 ## 0.33.1
 
 ### Patch Changes

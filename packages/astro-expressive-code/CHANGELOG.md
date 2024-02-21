@@ -1,5 +1,12 @@
 # astro-expressive-code
 
+## 0.33.2
+
+### Patch Changes
+
+- a408e31: Improves error logging in case any plugin hooks fail.
+  - remark-expressive-code@0.33.2
+
 ## 0.33.1
 
 ### Patch Changes

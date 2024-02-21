@@ -1,5 +1,13 @@
 # @expressive-code/plugin-shiki
 
+## 0.33.2
+
+### Patch Changes
+
+- a408e31: Improves error logging in case any plugin hooks fail.
+- Updated dependencies [a408e31]
+  - @expressive-code/core@0.33.2
+
 ## 0.33.1
 
 ### Patch Changes
