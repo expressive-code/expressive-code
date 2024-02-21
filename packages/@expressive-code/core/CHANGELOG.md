@@ -1,5 +1,11 @@
 # @expressive-code/core
 
+## 0.33.2
+
+### Patch Changes
+
+- a408e31: Improves error logging in case any plugin hooks fail.
+
 ## 0.33.1
 
 ### Patch Changes
