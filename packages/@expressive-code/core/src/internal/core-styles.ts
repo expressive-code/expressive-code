@@ -288,6 +288,9 @@ export function getCoreBaseStyles({
 				white-space: pre-wrap;
 				overflow-wrap: break-word;
 				min-width: min(30ch, var(--ecMaxLine, 30ch));
+				& span.indent {
+					white-space: pre;
+				}
 			}
 
 			${ifThemedScrollbars(`

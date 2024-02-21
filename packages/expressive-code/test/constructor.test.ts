@@ -1,10 +1,14 @@
 import { describe, expect, test } from 'vitest'
-import { ExpressiveCode } from '../src'
+import { ExpressiveCode, ExpressiveCodePlugin } from '../src'
 
 describe('ExpressiveCode constructor', () => {
+	const onlyDefault = (plugins: readonly ExpressiveCodePlugin[]) =>
+		plugins.filter((plugin) => {
+			return ['Shiki', 'TextMarkers', 'Frames'].includes(plugin.name)
+		})
 	test('Adds all bundled plugins by default', () => {
 		const ec = new ExpressiveCode()
-		expect(ec.plugins).toMatchObject([
+		expect(onlyDefault(ec.plugins)).toMatchObject([
 			// Validate plugin names and order
 			{ name: 'Shiki' },
 			{ name: 'TextMarkers' },
@@ -15,7 +19,7 @@ describe('ExpressiveCode constructor', () => {
 		const ec = new ExpressiveCode({
 			shiki: false,
 		})
-		expect(ec.plugins).toMatchObject([
+		expect(onlyDefault(ec.plugins)).toMatchObject([
 			// Validate plugin names and order
 			{ name: 'TextMarkers' },
 			{ name: 'Frames' },

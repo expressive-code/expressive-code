@@ -11,6 +11,7 @@ import { ExpressiveCodeLogger, ExpressiveCodeLoggerOptions } from './logger'
 import { resolveStyleSettings } from '../internal/style-resolving'
 import { getFirstStaticColor } from '../helpers/color-transforms'
 import { ExpressiveCodeBlock } from './block'
+import { corePlugins } from '../internal/core-plugins'
 
 export interface ExpressiveCodeEngineConfig {
 	/**
@@ -246,7 +247,7 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 		this.styleOverrides = { ...config.styleOverrides }
 		this.defaultLocale = config.defaultLocale || 'en-US'
 		this.defaultProps = config.defaultProps || {}
-		this.plugins = config.plugins?.flat() || []
+		this.plugins = [...corePlugins, ...(config.plugins?.flat() || [])]
 		this.logger = new ExpressiveCodeLogger(config.logger)
 
 		// Allow customizing the loaded themes
