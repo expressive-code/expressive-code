@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { getStableObjectHash, stableStringify } from '../src/helpers/objects'
 import { ExpressiveCodeEngine } from '../src/common/engine'
+import { ExpressiveCodePlugin } from '../src/common/plugin'
 
 describe('stableStringify()', () => {
 	test('Returns a stable sort order', () => {
@@ -113,27 +114,25 @@ describe('stableStringify()', () => {
 		expect(stableStringify(obj, { includeFunctionContents: true })).toBe('{"a":1,"b":2,"c":"(input) => input.length"}')
 	})
 	test('Serializes an Expressive Code plugins array', () => {
-		const engine = new ExpressiveCodeEngine({
-			plugins: [
-				{
-					name: 'test',
-					hooks: {
-						preprocessMetadata: ({ codeBlock }) => {
-							codeBlock.meta = ''
-						},
+		const plugins: ExpressiveCodePlugin[] = [
+			{
+				name: 'test',
+				hooks: {
+					preprocessMetadata: ({ codeBlock }) => {
+						codeBlock.meta = ''
 					},
 				},
-				{
-					name: 'another-test',
-					hooks: {
-						annotateCode: ({ addStyles }) => {
-							addStyles('body { background: red; }')
-						},
+			},
+			{
+				name: 'another-test',
+				hooks: {
+					annotateCode: ({ addStyles }) => {
+						addStyles('body { background: red; }')
 					},
 				},
-			],
-		})
-		expect(stableStringify(engine.plugins)).toBe(
+			},
+		]
+		expect(stableStringify(plugins)).toBe(
 			`[${[
 				'{"hooks":{"preprocessMetadata":"[Function]"},"name":"test"}',
 				// Validate that hooks are not sorted alphabetically,

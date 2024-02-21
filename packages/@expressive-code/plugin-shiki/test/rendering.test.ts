@@ -227,11 +227,11 @@ describe('Renders syntax highlighting', async () => {
 						expect(html).not.toMatch(ansiEscapeCode)
 
 						// Expect the ANSI colors of the "github-dark" theme to be present
-						expect(html).toMatch(/<span [^>]*?style="[^"]*?:#56d4dd[^"]*?"> Context Testing ANSI<\/span>/)
+						expect(html).toMatch(/<span [^>]*?style="[^"]*?:#56d4dd[^"]*?">Context Testing ANSI<\/span>/)
 						expect(html).toMatch(/<span [^>]*?style="[^"]*?:#fafbfc[^"]*?">Tests Passed: 1 <\/span>/)
 
 						// Also expect the ANSI colors of the "dracula" theme to be present
-						expect(html).toMatch(/<span [^>]*?style="[^"]*?:#a4ffff[^"]*?"> Context Testing ANSI<\/span>/)
+						expect(html).toMatch(/<span [^>]*?style="[^"]*?:#a4ffff[^"]*?">Context Testing ANSI<\/span>/)
 						expect(html).toMatch(/<span [^>]*?style="[^"]*?:#ffffff[^"]*?">Tests Passed: 1 <\/span>/)
 
 						colorAssertionExecuted = true
