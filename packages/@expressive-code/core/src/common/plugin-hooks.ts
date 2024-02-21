@@ -6,6 +6,7 @@ import { ExpressiveCodeLine } from './line'
 import { ExpressiveCodePlugin, ResolverContext } from './plugin'
 import { ResolvedExpressiveCodeEngineConfig } from './engine'
 import { GutterElement } from './gutter'
+import { logErrorDetails } from './logger'
 
 export interface ExpressiveCodeHookContextBase extends ResolverContext {
 	codeBlock: ExpressiveCodeBlock
@@ -300,9 +301,13 @@ export type ExpressiveCodePluginHookName = keyof ExpressiveCodePluginHooks
  */
 export async function runHooks<HookType extends keyof ExpressiveCodePluginHooks>(
 	key: HookType,
-	plugins: readonly ExpressiveCodePlugin[],
+	context: {
+		plugins: readonly ExpressiveCodePlugin[]
+		config: ResolvedExpressiveCodeEngineConfig
+	},
 	runner: (hook: { hookName: HookType; hookFn: NonNullable<ExpressiveCodePluginHooks[HookType]>; plugin: ExpressiveCodePlugin }) => void | Promise<void>
 ) {
+	const { plugins, config } = context
 	for (const plugin of plugins) {
 		const hookFn = plugin.hooks?.[key]
 		if (!hookFn) continue
@@ -312,7 +317,9 @@ export async function runHooks<HookType extends keyof ExpressiveCodePluginHooks>
 		} catch (error) {
 			/* c8 ignore next */
 			const msg = error instanceof Error ? error.message : (error as string)
-			throw new Error(`Plugin "${plugin.name}" caused an error in its "${key}" hook. Error message: ${msg}`, { cause: error })
+			const prefix = `Plugin "${plugin.name}" caused an error in its "${key}" hook.`
+			logErrorDetails({ logger: config.logger, prefix, error })
+			throw new Error(`${prefix} Error message: ${msg}`, { cause: error })
 		}
 	}
 }

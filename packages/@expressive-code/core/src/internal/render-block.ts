@@ -33,6 +33,10 @@ export async function renderBlock({
 	const blockStyles: PluginStyles[] = []
 	const gutterElements: PluginGutterElement[] = []
 
+	const runHooksContext = {
+		plugins,
+		config,
+	}
 	const baseContext: Omit<ExpressiveCodeHookContext, 'addStyles' | 'addGutterElement'> = {
 		codeBlock,
 		groupContents,
@@ -44,7 +48,7 @@ export async function renderBlock({
 	}
 
 	const runBeforeRenderingHooks = async (key: keyof ExpressiveCodePluginHooks_BeforeRendering) => {
-		await runHooks(key, plugins, async ({ hookFn, plugin }) => {
+		await runHooks(key, runHooksContext, async ({ hookFn, plugin }) => {
 			await hookFn({
 				...baseContext,
 				addStyles: (styles: string) => blockStyles.push({ pluginName: plugin.name, styles }),
@@ -98,7 +102,7 @@ export async function renderBlock({
 			if (indent > 0) setInlineStyle(lineRenderData.lineAst, '--ecIndent', `${indent}ch`)
 		}
 		// Allow plugins to modify or even completely replace the AST
-		await runHooks('postprocessRenderedLine', plugins, async ({ hookFn, plugin }) => {
+		await runHooks('postprocessRenderedLine', runHooksContext, async ({ hookFn, plugin }) => {
 			await hookFn({
 				...baseContext,
 				addStyles: (styles: string) => blockStyles.push({ pluginName: plugin.name, styles }),
@@ -119,7 +123,7 @@ export async function renderBlock({
 	const blockRenderData = {
 		blockAst: buildCodeBlockAstFromRenderedLines(codeBlock, renderedAstLines),
 	}
-	await runHooks('postprocessRenderedBlock', plugins, async ({ hookFn, plugin }) => {
+	await runHooks('postprocessRenderedBlock', runHooksContext, async ({ hookFn, plugin }) => {
 		await hookFn({
 			...baseContext,
 			addStyles: (styles: string) => blockStyles.push({ pluginName: plugin.name, styles }),

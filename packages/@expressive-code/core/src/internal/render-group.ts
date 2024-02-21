@@ -92,7 +92,12 @@ export async function renderGroup({
 		),
 	}
 
-	await runHooks('postprocessRenderedBlockGroup', plugins, async ({ hookFn, plugin }) => {
+	// Run postprocessing hooks
+	const runHooksContext = {
+		plugins,
+		config,
+	}
+	await runHooks('postprocessRenderedBlockGroup', runHooksContext, async ({ hookFn, plugin }) => {
 		await hookFn({
 			renderedGroupContents,
 			pluginStyles: pluginStyles,
