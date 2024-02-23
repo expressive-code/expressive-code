@@ -45,7 +45,7 @@
     "hast-util-sanitize": "^4.1.0",
     "html-escaper": "^3.0.3",
     "htmlparser2": "^8.0.2",
-    "shiki": "^1.1.6",
+    "shiki": "^1.1.7",
     "strip-json-comments": "^5.0.0"
   }
 }

@@ -19,6 +19,10 @@ async function getMetaResult(input: string) {
 	// and use it to render the test code
 	const engine = new ExpressiveCodeEngine({
 		plugins: [plugin],
+		logger: {
+			warn: () => undefined,
+			error: () => undefined,
+		},
 	})
 	const data = {
 		code: 'This is some *markdown* sample text.',
