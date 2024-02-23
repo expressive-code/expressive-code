@@ -1,5 +1,16 @@
 # expressive-code
 
+## 0.33.3
+
+### Patch Changes
+
+- f15b9f4: Reverts language loading of `plugin-shiki` to the previous behavior to work around an apparent race condition.
+- Updated dependencies [f15b9f4]
+  - @expressive-code/plugin-shiki@0.33.3
+  - @expressive-code/plugin-frames@0.33.3
+  - @expressive-code/core@0.33.3
+  - @expressive-code/plugin-text-markers@0.33.3
+
 ## 0.33.2
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # @expressive-code/plugin-shiki
 
+## 0.33.3
+
+### Patch Changes
+
+- f15b9f4: Reverts language loading of `plugin-shiki` to the previous behavior to work around an apparent race condition.
+  - @expressive-code/core@0.33.3
+
 ## 0.33.2
 
 ### Patch Changes
