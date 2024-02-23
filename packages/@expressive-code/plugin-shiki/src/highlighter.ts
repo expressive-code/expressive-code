@@ -27,10 +27,10 @@ export async function getCachedHighlighter(config: { langs?: LanguageInput[] | u
 		const langs: (ShikiLanguageInput | BundledLanguage)[] = []
 		if (config.langs?.length) {
 			langs.push(...(config.langs as ShikiLanguageInput[]))
-			// When custom languages are used, also load all bundled languages right away
-			// to avoid issues with lazy-loaded embedded languages in markdown and MDX
-			langs.push(...(Object.keys(bundledLanguages) as BundledLanguage[]))
 		}
+		// For now, always preload all the languages because we had some strange race conditions
+		// with lazy-loading that we couldn't solve yet. This is what the old version did as well.
+		langs.push(...(Object.keys(bundledLanguages) as BundledLanguage[]))
 		highlighterPromise = getHighlighter({
 			themes: [],
 			langs,

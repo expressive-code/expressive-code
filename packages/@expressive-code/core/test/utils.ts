@@ -134,6 +134,10 @@ export function toSanitizedHtml(ast: Parent) {
 export async function getMultiPluginTestResult({ plugins, input = [defaultBlockOptions] }: { plugins: ExpressiveCodePlugin[]; input?: ExpressiveCodeBlockOptions[] | undefined }) {
 	const engine = new ExpressiveCodeEngine({
 		plugins,
+		logger: {
+			warn: () => undefined,
+			error: () => undefined,
+		},
 	})
 
 	const { renderedGroupAst, renderedGroupContents, styles } = await engine.render(input)
