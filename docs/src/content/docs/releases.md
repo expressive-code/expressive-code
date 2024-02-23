@@ -7,6 +7,10 @@ This page combines all release notes of the Expressive Code monorepo.
 You can find the source changelogs on GitHub in the subfolders of
 [`packages`](https://github.com/expressive-code/expressive-code/tree/main/packages).
 
+## 0.33.2
+
+- Improves error logging in case any plugin hooks fail.
+
 ## 0.33.1
 
 - Fixes an issue where lines containing a very long word after the initial indentation would wrap incorrectly.
