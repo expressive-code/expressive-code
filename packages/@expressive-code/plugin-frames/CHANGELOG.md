@@ -1,5 +1,11 @@
 # @expressive-code/plugin-frames
 
+## 0.33.4
+
+### Patch Changes
+
+- @expressive-code/core@0.33.4
+
 ## 0.33.3
 
 ### Patch Changes
