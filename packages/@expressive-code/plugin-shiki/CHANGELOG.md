@@ -1,5 +1,12 @@
 # @expressive-code/plugin-shiki
 
+## 0.33.4
+
+### Patch Changes
+
+- 6f26c3b: Rolls back even more plugin-shiki changes. They will be re-added later. :)
+  - @expressive-code/core@0.33.4
+
 ## 0.33.3
 
 ### Patch Changes
