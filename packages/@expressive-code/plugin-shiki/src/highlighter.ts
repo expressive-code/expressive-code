@@ -59,27 +59,17 @@ export async function ensureThemeIsLoaded(highlighter: Highlighter, theme: Expre
 }
 
 export async function ensureLanguageIsLoaded(highlighter: Highlighter, language: string) {
+	const loadedLanguages = new Set(highlighter.getLoadedLanguages())
+	const isLoaded = loadedLanguages.has(language)
+	const isSpecial = isSpecialLang(language)
+	const isBundled = Object.keys(bundledLanguages).includes(language)
+	// If the language is not available, fall back to "txt"
+	const isAvailable = isLoaded || isSpecial || isBundled
+	if (!isAvailable) return 'txt'
+	if (isLoaded || isSpecial) return language
 	// Load the language or wait for an existing load task to finish
 	const loadedLanguage = await memoizeHighlighterTask(highlighter, `loadLanguage:${language}`, async () => {
-		const loadedLanguages = new Set(highlighter.getLoadedLanguages())
-		const isLoaded = loadedLanguages.has(language)
-		const isSpecial = isSpecialLang(language)
-		const isBundled = Object.keys(bundledLanguages).includes(language)
-		// If the language is not available, fall back to "txt"
-		const isAvailable = isLoaded || isSpecial || isBundled
-		if (!isAvailable) return 'txt'
-		// Collect all languages that need to be loaded
-		const langsToLoad: BundledLanguage[] = []
-		// If the language is markdown or MDX, also load all lazy-loaded embedded languages
-		// to ensure that nested code blocks are properly highlighted
-		if (['md', 'markdown', 'mdx'].includes(language)) {
-			const bundledLang = (await bundledLanguages[language as BundledLanguage]()).default
-			const embeddedLangsLazy = [...new Set(bundledLang.flatMap((lang) => lang.embeddedLangsLazy ?? []))] as BundledLanguage[]
-			const missingEmbeddedLangs = embeddedLangsLazy.filter((lang) => !loadedLanguages.has(lang))
-			langsToLoad.push(...missingEmbeddedLangs)
-		}
-		if (!isLoaded && !isSpecial) langsToLoad.push(language as BundledLanguage)
-		if (langsToLoad.length) await highlighter.loadLanguage(...langsToLoad)
+		await highlighter.loadLanguage(language as BundledLanguage)
 		return language
 	})
 	return loadedLanguage
