@@ -7,6 +7,8 @@ import { getInlineStyles } from 'remark-expressive-code'
 import { hastToText, htmlToHast, selectHastElements } from '@internal/test-utils'
 import { buildSampleCodeHtmlRegExp } from '../../remark-expressive-code/test/utils'
 
+const skipAstro3Tests = !!process.env.npm_config_ecosystem_ci
+
 const complexHtmlRegExp = buildSampleCodeHtmlRegExp({
 	title: 'src/layouts/BaseLayout.astro',
 	codeContents: [
@@ -42,7 +44,7 @@ const multiCodeComponentHtmlRegExp = buildSampleCodeHtmlRegExp({
 	],
 })
 
-describe.skipIf(process.env.ECOSYSTEM_CI)('Integration into Astro 3.3.0', () => {
+describe.skipIf(skipAstro3Tests)('Integration into Astro 3.3.0', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	beforeAll(async () => {
@@ -75,7 +77,7 @@ describe.skipIf(process.env.ECOSYSTEM_CI)('Integration into Astro 3.3.0', () => 
 	})
 })
 
-describe.skipIf(process.env.ECOSYSTEM_CI)('Integration into Astro ^3.5.0 with `emitExternalStylesheet: false`', () => {
+describe.skipIf(skipAstro3Tests)('Integration into Astro ^3.5.0 with `emitExternalStylesheet: false`', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	beforeAll(async () => {
@@ -108,7 +110,7 @@ describe.skipIf(process.env.ECOSYSTEM_CI)('Integration into Astro ^3.5.0 with `e
 	})
 })
 
-describe.skipIf(process.env.ECOSYSTEM_CI)('Integration into Astro ^3.5.0 using custom `base` and `build.assets` paths', () => {
+describe.skipIf(skipAstro3Tests)('Integration into Astro ^3.5.0 using custom `base` and `build.assets` paths', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	// Provide a copy of the settings defined in `astro.config.mjs` to the tests
