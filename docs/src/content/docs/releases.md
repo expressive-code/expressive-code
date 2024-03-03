@@ -7,6 +7,10 @@ This page combines all release notes of the Expressive Code monorepo.
 You can find the source changelogs on GitHub in the subfolders of
 [`packages`](https://github.com/expressive-code/expressive-code/tree/main/packages).
 
+## 0.33.4
+
+- Rolls back even more plugin-shiki changes. They will be re-added later. :)
+
 ## 0.33.3
 
 - Reverts language loading of `plugin-shiki` to the previous behavior to work around an apparent race condition.

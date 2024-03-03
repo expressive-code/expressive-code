@@ -39,7 +39,7 @@
     "watch": "pnpm build --watch src"
   },
   "peerDependencies": {
-    "astro": "^3.3.0 || ^4.0.0-beta"
+    "astro": "^4.0.0-beta || ^3.3.0"
   },
   "dependencies": {
     "hast-util-to-html": "^8.0.4",
