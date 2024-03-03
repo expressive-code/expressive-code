@@ -67,18 +67,18 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 					const entrypoint = new URL('../routes/styles.ts', import.meta.url).href
 					injectRoute({
 						pattern: hashedRoute,
-						entryPoint: entrypoint,
-						// @ts-expect-error: `entrypoint` is the new name since Astro 4
 						entrypoint,
+						// @ts-expect-error: Also provide the old property name used in Astro 3
+						entryPoint: entrypoint,
 					})
 				})
 				hashedScripts.forEach(([hashedRoute]) => {
 					const entrypoint = new URL('../routes/scripts.ts', import.meta.url).href
 					injectRoute({
 						pattern: hashedRoute,
-						entryPoint: entrypoint,
-						// @ts-expect-error: `entrypoint` is the new name since Astro 4
 						entrypoint,
+						// @ts-expect-error: Also provide the old property name used in Astro 3
+						entryPoint: entrypoint,
 					})
 				})
 
