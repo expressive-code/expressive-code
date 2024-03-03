@@ -42,7 +42,7 @@ const multiCodeComponentHtmlRegExp = buildSampleCodeHtmlRegExp({
 	],
 })
 
-describe('Integration into Astro 3.3.0', () => {
+describe.skipIf(process.env.ECOSYSTEM_CI)('Integration into Astro 3.3.0', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	beforeAll(async () => {
@@ -75,7 +75,7 @@ describe('Integration into Astro 3.3.0', () => {
 	})
 })
 
-describe('Integration into Astro ^3.5.0 with `emitExternalStylesheet: false`', () => {
+describe.skipIf(process.env.ECOSYSTEM_CI)('Integration into Astro ^3.5.0 with `emitExternalStylesheet: false`', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	beforeAll(async () => {
@@ -108,7 +108,7 @@ describe('Integration into Astro ^3.5.0 with `emitExternalStylesheet: false`', (
 	})
 })
 
-describe('Integration into Astro ^3.5.0 using custom `base` and `build.assets` paths', () => {
+describe.skipIf(process.env.ECOSYSTEM_CI)('Integration into Astro ^3.5.0 using custom `base` and `build.assets` paths', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	// Provide a copy of the settings defined in `astro.config.mjs` to the tests
