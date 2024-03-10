@@ -68,6 +68,7 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 					injectRoute({
 						pattern: hashedRoute,
 						entrypoint,
+						prerender: true,
 						// @ts-expect-error: Also provide the old property name used in Astro 3
 						entryPoint: entrypoint,
 					})
@@ -77,6 +78,7 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 					injectRoute({
 						pattern: hashedRoute,
 						entrypoint,
+						prerender: true,
 						// @ts-expect-error: Also provide the old property name used in Astro 3
 						entryPoint: entrypoint,
 					})
