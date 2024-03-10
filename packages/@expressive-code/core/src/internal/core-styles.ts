@@ -287,7 +287,7 @@ export function getCoreBaseStyles({
 			&.wrap .${codeLineClass} .code {
 				white-space: pre-wrap;
 				overflow-wrap: break-word;
-				min-width: min(30ch, var(--ecMaxLine, 30ch));
+				min-width: min(20ch, var(--ecMaxLine, 20ch));
 				& span.indent {
 					white-space: pre;
 				}
