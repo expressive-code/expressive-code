@@ -1,6 +1,6 @@
 import { RemarkExpressiveCodeRenderer, createRenderer, getStableObjectHash } from 'remark-expressive-code'
 import { AstroExpressiveCodeOptions } from './ec-config'
-import { PartialAstroConfig, ConfigSetupHookArgs } from './astro-config'
+import { PartialAstroConfig, ConfigSetupHookArgs, getAssetsBaseHref } from './astro-config'
 
 export type CreateAstroRendererArgs = {
 	ecConfig: AstroExpressiveCodeOptions
@@ -19,7 +19,6 @@ export async function createAstroRenderer({ ecConfig, astroConfig, logger }: Cre
 
 	// Determine the assets directory and href prefix from the Astro config
 	const assetsDir = astroConfig.build?.assets || '_astro'
-	const assetsHrefPrefix = (astroConfig.build?.assetsPrefix || astroConfig.base || '').trim().replace(/\/+$/g, '')
 
 	// Add a plugin that inserts external references to the styles and scripts
 	// that would normally be inlined into the first code block of every page
@@ -36,12 +35,12 @@ export async function createAstroRenderer({ ecConfig, astroConfig, logger }: Cre
 				type HastElement = Extract<(typeof renderData.groupAst.children)[number], { type: 'element' }>
 				const extraElements: HastElement[] = []
 
-				// Add a hashed stylesheet links
+				// Add hashed stylesheet links
 				hashedStyles.forEach(([hashedRoute]) => {
 					extraElements.push({
 						type: 'element',
 						tagName: 'link',
-						properties: { rel: 'stylesheet', href: `${assetsHrefPrefix}${hashedRoute}` },
+						properties: { rel: 'stylesheet', href: `${getAssetsBaseHref('.css', astroConfig.build?.assetsPrefix, astroConfig.base)}${hashedRoute}` },
 						children: [],
 					})
 				})
@@ -51,7 +50,7 @@ export async function createAstroRenderer({ ecConfig, astroConfig, logger }: Cre
 					extraElements.push({
 						type: 'element',
 						tagName: 'script',
-						properties: { type: 'module', src: `${assetsHrefPrefix}${hashedRoute}` },
+						properties: { type: 'module', src: `${getAssetsBaseHref('.js', astroConfig.build?.assetsPrefix, astroConfig.base)}${hashedRoute}` },
 						children: [],
 					})
 				})

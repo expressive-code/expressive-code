@@ -72,7 +72,7 @@ export type ConfigPreprocessorFn = (args: { ecConfig: unknown; astroConfig: Part
 /**
  * Returns an array of supported absolute EC config file paths in the Astro project root.
  */
-export function getSupportedEcConfigFilePaths(projectRootUrl: URL) {
+export function getSupportedEcConfigFilePaths(projectRootUrl: URL | string) {
 	const projectRootPath = fileURLToPath(projectRootUrl)
 	return [resolve(projectRootPath, 'ec.config.mjs')]
 }
@@ -80,7 +80,7 @@ export function getSupportedEcConfigFilePaths(projectRootUrl: URL) {
 /**
  * Returns the first existing config file path of {@link getSupportedEcConfigFilePaths}.
  */
-export function findEcConfigFilePath(projectRootUrl: URL) {
+export function findEcConfigFilePath(projectRootUrl: URL | string) {
 	const ecConfigFile = getSupportedEcConfigFilePaths(projectRootUrl).find((fileName) => existsSync(fileName))
 	return ecConfigFile
 }
@@ -90,7 +90,7 @@ export function findEcConfigFilePath(projectRootUrl: URL) {
  *
  * If no config file is found, an empty object is returned.
  */
-export async function loadEcConfigFile(projectRootUrl: URL): Promise<AstroExpressiveCodeOptions> {
+export async function loadEcConfigFile(projectRootUrl: URL | string): Promise<AstroExpressiveCodeOptions> {
 	const pathsToTry = [
 		// This path works in most scenarios, but not when the integration is processed by Vite
 		// due to a Vite bug affecting import URLs using the "file:" protocol
