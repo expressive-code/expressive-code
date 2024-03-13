@@ -13,7 +13,7 @@ export type PartialAstroConfig = {
 	build?:
 		| Partial<{
 				assets: string
-				assetsPrefix: string | undefined
+				assetsPrefix: AssetsPrefix
 		  }>
 		| undefined
 	markdown?:
@@ -23,9 +23,16 @@ export type PartialAstroConfig = {
 				}>
 		  }>
 		| undefined
-	root: URL
+	root: URL | string
 	srcDir: URL
 }
+
+type AssetsPrefix =
+	| string
+	| ({
+			fallback: string
+	  } & Record<string, string>)
+	| undefined
 
 export function serializePartialAstroConfig(config: PartialAstroConfig): string {
 	const partialConfig: PartialAstroConfig = {
@@ -42,4 +49,24 @@ export function serializePartialAstroConfig(config: PartialAstroConfig): string 
 		partialConfig.markdown = { shikiConfig: { langs: config.markdown.shikiConfig.langs } }
 	}
 	return JSON.stringify(partialConfig)
+}
+
+function getAssetsPrefix(fileExtension: string, assetsPrefix?: AssetsPrefix): string {
+	if (!assetsPrefix) return ''
+	if (typeof assetsPrefix === 'string') return assetsPrefix
+	// we assume the file extension has a leading '.' and we remove it
+	const dotLessFileExtension = fileExtension.slice(1)
+	if (assetsPrefix[dotLessFileExtension]) {
+		return assetsPrefix[dotLessFileExtension]
+	}
+	return assetsPrefix.fallback
+}
+
+/**
+ * Returns the base URL href for assets with the given file extension (e.g. `.js`).
+ *
+ * The returned value does not include a trailing slash.
+ */
+export function getAssetsBaseHref(fileExtension: string, assetsPrefix: AssetsPrefix | undefined, base: string | undefined): string {
+	return (getAssetsPrefix(fileExtension, assetsPrefix) || base || '').trim().replace(/\/+$/g, '')
 }

@@ -6,6 +6,7 @@ import type { AstroUserConfig } from 'astro/config'
 import { getInlineStyles } from 'remark-expressive-code'
 import { hastToText, htmlToHast, selectHastElements } from '@internal/test-utils'
 import { buildSampleCodeHtmlRegExp } from '../../remark-expressive-code/test/utils'
+import { getAssetsBaseHref } from '../src/astro-config'
 
 const skipAstro3Tests = !!process.env.npm_config_ecosystem_ci
 
@@ -281,7 +282,6 @@ function validateHtml(
 	const { emitExternalStylesheet = true, astroConfig, expectedHtmlRegExp = complexHtmlRegExp, expectedCodeBlockCount = 1 } = options ?? {}
 
 	const assetsDir = astroConfig?.build?.assets || '_astro'
-	const assetsBaseHref = `${astroConfig?.build?.assetsPrefix || astroConfig?.base || ''}/${assetsDir}/`.replace(/\/+/g, '/')
 
 	// Expect the HTML structure to match our regular expression
 	const matches = html.match(expectedHtmlRegExp)
@@ -291,8 +291,9 @@ function validateHtml(
 	// to either contain an external stylesheet or an inline style element
 	const styles = matches?.groups?.['styles']
 	if (emitExternalStylesheet) {
-		expect(styles, `Expected a stylesheet link href beginning with "${assetsBaseHref}", but got "${styles}"`).toMatch(
-			new RegExp(`<link rel="stylesheet" href="${assetsBaseHref}ec\\..*?\\.css"\\s*/?>`)
+		const styleBaseHref = `${getAssetsBaseHref('.css', astroConfig?.build?.assetsPrefix, astroConfig?.base)}/${assetsDir}/`.replace(/\/+/g, '/')
+		expect(styles, `Expected a stylesheet link href beginning with "${styleBaseHref}", but got "${styles}"`).toMatch(
+			new RegExp(`<link rel="stylesheet" href="${styleBaseHref}ec\\..*?\\.css"\\s*/?>`)
 		)
 	} else {
 		expect(styles).toContain('<style>')
@@ -300,8 +301,9 @@ function validateHtml(
 
 	// Expect the `scripts` capture group to contain an external script module
 	const scripts = matches?.groups?.['scripts']
-	expect(scripts, `Expected a script module src beginning with "${assetsBaseHref}", but got "${scripts}"`).toMatch(
-		new RegExp(`<script type="module" src="${assetsBaseHref}ec\\..*?\\.js"\\s*/?>`)
+	const scriptBaseHref = `${getAssetsBaseHref('.js', astroConfig?.build?.assetsPrefix, astroConfig?.base)}/${assetsDir}/`.replace(/\/+/g, '/')
+	expect(scripts, `Expected a script module src beginning with "${scriptBaseHref}", but got "${scripts}"`).toMatch(
+		new RegExp(`<script type="module" src="${scriptBaseHref}ec\\..*?\\.js"\\s*/?>`)
 	)
 
 	// Collect all code blocks
