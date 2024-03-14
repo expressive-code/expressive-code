@@ -1,13 +1,13 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
+
 /**
- * Workaround code for cases in which the Clipboard API is not available.
+ * Fallback approach to copy text to the clipboard in case the Clipboard API is not available.
  */
-const domCopy = [
-	// Define copy function
-	`function domCopy(text) {`,
+function domCopy(text: string) {
 	// Create a new DOM element to copy from and append it to the document,
 	// but make sure it's not visible and does not cause reflow
-	`let n = document.createElement('pre');
-	Object.assign(n.style, {
+	const pre = document.createElement('pre')
+	Object.assign(pre.style, {
 		opacity: '0',
 		pointerEvents: 'none',
 		position: 'absolute',
@@ -17,112 +17,98 @@ const domCopy = [
 		width: '20px',
 		height: '20px',
 		webkitUserSelect: 'auto',
-		userSelect: 'all'
-	});
-	n.ariaHidden = 'true';
-	n.textContent = text;
-	document.body.appendChild(n);`,
+		userSelect: 'all',
+	})
+	pre.ariaHidden = 'true'
+	pre.textContent = text
+	document.body.appendChild(pre)
+
 	// Select the DOM element's contents
-	`let r = document.createRange();
-	r.selectNode(n);
-	let s = getSelection();
-	s.removeAllRanges();
-	s.addRange(r);`,
+	const range = document.createRange()
+	range.selectNode(pre)
+	const selection = getSelection()
+	if (!selection) return false
+	selection.removeAllRanges()
+	selection.addRange(range)
+
 	// Copy the selection to the clipboard
-	`let ok = false;
+	let ok = false
 	try {
-		ok = document.execCommand('copy');
+		ok = document.execCommand('copy')
 	} finally {
-		s.removeAllRanges();
-		document.body.removeChild(n);
+		selection.removeAllRanges()
+		document.body.removeChild(pre)
 	}
-	return ok;`,
-	// End of function body
-	`}`,
-]
+	return ok
+}
 
 /**
  * Function to handle clicks on a single copy button.
  */
-const clickHandler = [
-	// Define click handler function
-	`async function clickHandler(event) {`,
-	// Attempt to perform copy operation, first using the Clipboard API,
+async function clickHandler(event: Event) {
+	// Attempt to perform the copy operation, first using the Clipboard API,
 	// and then falling back to a DOM-based approach
-	`let btn = event.currentTarget;
-	let ok = false;
-	let code = btn.dataset.code.replace(/\\u007f/g, '\\n');
+	const button = event.currentTarget as HTMLButtonElement
+	const dataset = button.dataset as { code: string; copied: string }
+	let ok = false
+	const code = dataset.code.replace(/\u007f/g, '\n')
 	try {
-		await navigator.clipboard.writeText(code);
-		ok = true;
+		await navigator.clipboard.writeText(code)
+		ok = true
 	} catch (err) {
-		ok = domCopy(code);
-	}`,
+		ok = domCopy(code)
+	}
+
 	// Exit if the copy operation failed or there is already a tooltip present
-	`if (!ok || btn.parentNode.querySelector('.feedback')) return;`,
+	if (!ok || button.parentNode?.querySelector('.feedback')) return
+
 	// Show feedback tooltip
-	`let tt = document.createElement('div');
-	tt.classList.add('feedback');
-	tt.append(btn.dataset.copied);
-	btn.before(tt);`,
+	let tooltip: HTMLDivElement | undefined = document.createElement('div')
+	tooltip.classList.add('feedback')
+	tooltip.append(dataset.copied)
+	button.before(tooltip)
+
 	// Use offsetWidth and requestAnimationFrame to opt out of DOM batching,
 	// which helps to ensure that the transition on 'show' works
-	`tt.offsetWidth;
-	requestAnimationFrame(() => tt.classList.add('show'));`,
+	tooltip.offsetWidth
+	requestAnimationFrame(() => tooltip?.classList.add('show'))
+
 	// Hide & remove the tooltip again when we no longer need it
-	`let h = () => !tt || tt.classList.remove('show');
-	let r = () => {
-		if (!(!tt || parseFloat(getComputedStyle(tt).opacity) > 0)) {
-			tt.remove();
-			tt = null;
+	const hideTooltip = () => !tooltip || tooltip.classList.remove('show')
+	const removeTooltip = () => {
+		if (!(!tooltip || parseFloat(getComputedStyle(tooltip).opacity) > 0)) {
+			tooltip.remove()
+			tooltip = undefined
 		}
-	};
-	setTimeout(h, 1500);
-	setTimeout(r, 2500);
-	btn.addEventListener('blur', h);
-	tt.addEventListener('transitioncancel', r);
-	tt.addEventListener('transitionend', r);`,
-	// End of function body
-	`}`,
-]
-
-/**
- * Code to initialize all copy buttons on the page.
- *
- * It first attaches the click handler to all buttons that exist on the page right now,
- * and then registers a MutationObserver that handles any new buttons added later
- * (e.g. when the page dynamically loads more content or replaces existing content).
- */
-const attachHandlers = [
-	// Define a function that searches a node for matching buttons and initializes them
-	// unless the node does not support querySelectorAll (e.g. a text node)
-	`let initButtons = n => !n.querySelectorAll || n.querySelectorAll('[SELECTOR]').forEach(btn =>
-		btn.addEventListener('click', clickHandler)
-	);`,
-	// Use the function to initialize all buttons that exist right now
-	`initButtons(document);`,
-	// Register a MutationObserver to initialize any new buttons added later
-	`let obs = new MutationObserver(ms =>
-		ms.forEach(m =>
-			m.addedNodes.forEach(n =>
-				initButtons(n)
-			)
-		)
-	);
-	obs.observe(document.body, { childList: true, subtree: true });`,
-	// Also re-initialize all buttons after view transitions initiated by popular frameworks
-	`document.addEventListener('astro:page-load', () => initButtons(document));`,
-]
-
-export const getCopyJsModule = (buttonSelector: string) => {
-	return [...domCopy, ...clickHandler, ...attachHandlers]
-		.map((line) =>
-			line
-				.trim()
-				.replace(/\s*[\r\n]\s*/g, '')
-				.replace(/\s*([:;,={}()<>])\s*/g, '$1')
-				.replace(/;}/g, '}')
-		)
-		.join('')
-		.replace(/\[SELECTOR\]/g, buttonSelector)
+	}
+	setTimeout(hideTooltip, 1500)
+	setTimeout(removeTooltip, 2500)
+	button.addEventListener('blur', hideTooltip)
+	tooltip.addEventListener('transitioncancel', removeTooltip)
+	tooltip.addEventListener('transitionend', removeTooltip)
 }
+
+// Define a function that searches a node for matching buttons and initializes them
+// unless the node does not support querySelectorAll (e.g. a text node)
+const initButtons = (container: ParentNode | Document) => {
+	if (!container.querySelectorAll) return
+	container.querySelectorAll('[SELECTOR]').forEach((btn) => btn.addEventListener('click', clickHandler))
+}
+
+// Use the function to initialize all buttons that exist right now
+initButtons(document)
+
+// Register a MutationObserver to initialize any new buttons added later
+const newButtonsObserver = new MutationObserver((mutations) =>
+	mutations.forEach((mutation) =>
+		mutation.addedNodes.forEach((node) => {
+			initButtons(node as ParentNode)
+		})
+	)
+)
+newButtonsObserver.observe(document.body, { childList: true, subtree: true })
+
+// Also re-initialize all buttons after view transitions initiated by popular frameworks
+document.addEventListener('astro:page-load', () => {
+	initButtons(document)
+})
