@@ -21,7 +21,16 @@ await build({
 // Read the built JS module and generate a `.min.ts` file that exports it as a string
 let builtJsModule = readFileSync(`${outputBaseFilePath}.min.js`, 'utf-8')
 builtJsModule = builtJsModule.replace(/^"use strict";\n?/, '').trim()
-const jsModuleAsString = `export default ${serializeStringWithSingleQuotes(builtJsModule)}\n`
+const jsModuleAsString = `
+/*
+	GENERATED FILE - DO NOT EDIT
+	----------------------------
+	This JS module code was built from the source file "${basename(moduleFilePath)}".
+	To change it, modify the source file and then re-run the build script.
+*/
+
+export default ${serializeStringWithSingleQuotes(builtJsModule)}
+`.trimStart()
 writeFileSync(moduleFilePath.replace(/\.ts$/, '.min.ts'), jsModuleAsString)
 
 // Cleanup: Remove temporary files

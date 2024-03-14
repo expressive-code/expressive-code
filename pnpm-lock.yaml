@@ -14,6 +14,9 @@ importers:
       '@changesets/cli':
         specifier: ^2.26.2
         version: 2.26.2
+      '@types/node':
+        specifier: ^18.15.11
+        version: 18.15.11
       '@typescript-eslint/eslint-plugin':
         specifier: ^6.11.0
         version: 6.11.0(@typescript-eslint/parser@6.11.0)(eslint@8.53.0)(typescript@5.2.2)
@@ -76,7 +79,7 @@ importers:
         version: link:../packages/@expressive-code/plugin-line-numbers
       astro:
         specifier: ^4.5.2
-        version: 4.5.2(typescript@5.2.2)
+        version: 4.5.2(@types/node@18.15.11)(typescript@5.2.2)
       astro-expressive-code:
         specifier: workspace:^
         version: link:../packages/astro-expressive-code
@@ -358,7 +361,7 @@ importers:
         version: link:../../internal/test-utils
       astro:
         specifier: ^4.5.2
-        version: 4.5.2(typescript@5.2.2)
+        version: 4.5.2(@types/node@18.15.11)(typescript@5.2.2)
       execa:
         specifier: ^7.1.1
         version: 7.1.1
@@ -373,7 +376,7 @@ importers:
         version: link:../../../../@expressive-code/plugin-collapsible-sections
       astro:
         specifier: 3.3.0
-        version: 3.3.0(typescript@5.2.2)
+        version: 3.3.0(@types/node@18.15.11)(typescript@5.2.2)
       astro-expressive-code:
         specifier: workspace:^
         version: link:../../..
@@ -391,7 +394,7 @@ importers:
         version: link:../../../../@expressive-code/plugin-collapsible-sections
       astro:
         specifier: ^3.5.0
-        version: 3.5.0(typescript@5.2.2)
+        version: 3.5.0(@types/node@18.15.11)(typescript@5.2.2)
       astro-expressive-code:
         specifier: workspace:^
         version: link:../../..
@@ -409,7 +412,7 @@ importers:
         version: link:../../../../@expressive-code/plugin-collapsible-sections
       astro:
         specifier: ^3.5.0
-        version: 3.5.0(typescript@5.2.2)
+        version: 3.5.0(@types/node@18.15.11)(typescript@5.2.2)
       astro-expressive-code:
         specifier: workspace:^
         version: link:../../..
@@ -427,7 +430,7 @@ importers:
         version: link:../../../../@expressive-code/plugin-collapsible-sections
       astro:
         specifier: ^4.0.1
-        version: 4.0.1(typescript@5.2.2)
+        version: 4.0.1(@types/node@18.15.11)(typescript@5.2.2)
       astro-expressive-code:
         specifier: workspace:^
         version: link:../../..
@@ -524,7 +527,7 @@ packages:
       astro: ^3.3.0
     dependencies:
       '@astrojs/prism': 3.0.0
-      astro: 3.3.0(typescript@5.2.2)
+      astro: 3.3.0(@types/node@18.15.11)(typescript@5.2.2)
       github-slugger: 2.0.0
       import-meta-resolve: 3.0.0
       mdast-util-definitions: 6.0.0
@@ -548,7 +551,7 @@ packages:
       astro: ^3.0.0
     dependencies:
       '@astrojs/prism': 3.0.0
-      astro: 3.5.0(typescript@5.2.2)
+      astro: 3.5.0(@types/node@18.15.11)(typescript@5.2.2)
       github-slugger: 2.0.0
       import-meta-resolve: 3.0.0
       mdast-util-definitions: 6.0.0
@@ -572,7 +575,7 @@ packages:
       astro: ^4.0.0-beta.0
     dependencies:
       '@astrojs/prism': 3.0.0
-      astro: 4.0.1(typescript@5.2.2)
+      astro: 4.0.1(@types/node@18.15.11)(typescript@5.2.2)
       github-slugger: 2.0.0
       import-meta-resolve: 4.0.0
       mdast-util-definitions: 6.0.0
@@ -623,7 +626,7 @@ packages:
       '@astrojs/markdown-remark': 3.3.0(astro@3.3.0)
       '@mdx-js/mdx': 2.3.0
       acorn: 8.11.2
-      astro: 3.3.0(typescript@5.2.2)
+      astro: 3.3.0(@types/node@18.15.11)(typescript@5.2.2)
       es-module-lexer: 1.4.1
       estree-util-visit: 1.2.1
       github-slugger: 2.0.0
@@ -649,7 +652,7 @@ packages:
       '@astrojs/markdown-remark': 3.4.0(astro@3.5.0)
       '@mdx-js/mdx': 2.3.0
       acorn: 8.11.2
-      astro: 3.5.0(typescript@5.2.2)
+      astro: 3.5.0(@types/node@18.15.11)(typescript@5.2.2)
       es-module-lexer: 1.3.0
       estree-util-visit: 1.2.1
       github-slugger: 2.0.0
@@ -675,7 +678,7 @@ packages:
       '@astrojs/markdown-remark': 4.0.0(astro@4.0.1)
       '@mdx-js/mdx': 3.0.0
       acorn: 8.11.2
-      astro: 4.0.1(typescript@5.2.2)
+      astro: 4.0.1(@types/node@18.15.11)(typescript@5.2.2)
       es-module-lexer: 1.4.1
       estree-util-visit: 2.0.0
       github-slugger: 2.0.0
@@ -701,7 +704,7 @@ packages:
       '@astrojs/markdown-remark': 4.3.0
       '@mdx-js/mdx': 3.0.0
       acorn: 8.11.2
-      astro: 4.5.2(typescript@5.2.2)
+      astro: 4.5.2(@types/node@18.15.11)(typescript@5.2.2)
       es-module-lexer: 1.4.1
       estree-util-visit: 2.0.0
       github-slugger: 2.0.0
@@ -741,7 +744,7 @@ packages:
       '@pagefind/default-ui': 1.0.4
       '@types/hast': 3.0.3
       '@types/mdast': 4.0.3
-      astro: 4.5.2(typescript@5.2.2)
+      astro: 4.5.2(@types/node@18.15.11)(typescript@5.2.2)
       astro-expressive-code: link:packages/astro-expressive-code
       bcp-47: 2.1.0
       hast-util-from-html: 2.0.1
@@ -2506,13 +2509,13 @@ packages:
     peerDependencies:
       astro: ^3.0.0 || ^4.0.0
     dependencies:
-      astro: 4.5.2(typescript@5.2.2)
+      astro: 4.5.2(@types/node@18.15.11)(typescript@5.2.2)
       canvaskit-wasm: 0.37.2
       deterministic-object-hash: 2.0.2
       entities: 4.5.0
     dev: false
 
-  /astro@3.3.0(typescript@5.2.2):
+  /astro@3.3.0(@types/node@18.15.11)(typescript@5.2.2):
     resolution: {integrity: sha512-O3MsXULamxQMy6sBgv07iVe5teJ41o+9tVScB/Yo2Io0XwvLXVhjVrjAxKpulBcKpU3/LyOpVfj/x63fcONbPA==}
     engines: {node: '>=18.14.1', npm: '>=6.14.0'}
     hasBin: true
@@ -2586,7 +2589,7 @@ packages:
       - typescript
     dev: false
 
-  /astro@3.5.0(typescript@5.2.2):
+  /astro@3.5.0(@types/node@18.15.11)(typescript@5.2.2):
     resolution: {integrity: sha512-Wwu9gXIlxqCUEY6Bj9e08TeBm7I/CupyzHrWTNSPL+iwrTo/3/pL+itCeYz2u84jRygBgd2oPEN0FbK/sjj+uQ==}
     engines: {node: '>=18.14.1', npm: '>=6.14.0'}
     hasBin: true
@@ -2663,7 +2666,7 @@ packages:
       - typescript
     dev: false
 
-  /astro@4.0.1(typescript@5.2.2):
+  /astro@4.0.1(@types/node@18.15.11)(typescript@5.2.2):
     resolution: {integrity: sha512-QSZGFbgWw5nWr7pdKkjOz1E+1KMSheX8+dCNi/DstMVlQMIYyUrBuAjGL3fYsR9vc9kGbfhQMgSpM1/p5JYEWA==}
     engines: {node: '>=18.14.1', npm: '>=6.14.0'}
     hasBin: true
@@ -2724,7 +2727,7 @@ packages:
       tsconfck: 3.0.0(typescript@5.2.2)
       unist-util-visit: 5.0.0
       vfile: 6.0.1
-      vite: 5.0.5
+      vite: 5.0.5(@types/node@18.15.11)
       vitefu: 0.2.5(vite@5.0.5)
       which-pm: 2.1.1
       yargs-parser: 21.1.1
@@ -2743,7 +2746,7 @@ packages:
       - typescript
     dev: false
 
-  /astro@4.5.2(typescript@5.2.2):
+  /astro@4.5.2(@types/node@18.15.11)(typescript@5.2.2):
     resolution: {integrity: sha512-Nq3GojlwXJ3XD047khraCWu/6aqGFfcyq7Q0blpTBSZnCz2s4Zri04PHvUkbKF7TK2UljkFuTXKP0CE4ZuJi9Q==}
     engines: {node: '>=18.14.1', npm: '>=6.14.0'}
     hasBin: true
@@ -2806,7 +2809,7 @@ packages:
       tsconfck: 3.0.0(typescript@5.2.2)
       unist-util-visit: 5.0.0
       vfile: 6.0.1
-      vite: 5.1.6
+      vite: 5.1.6(@types/node@18.15.11)
       vitefu: 0.2.5(vite@5.1.6)
       which-pm: 2.1.1
       yargs-parser: 21.1.1
@@ -7980,7 +7983,7 @@ packages:
       astro: '>=4.0.0'
     dependencies:
       '@astrojs/starlight': 0.21.1(astro@4.5.2)
-      astro: 4.5.2(typescript@5.2.2)
+      astro: 4.5.2(@types/node@18.15.11)(typescript@5.2.2)
       github-slugger: 2.0.0
       hast-util-from-html: 2.0.1
       hast-util-has-property: 3.0.0
@@ -8866,7 +8869,7 @@ packages:
     optionalDependencies:
       fsevents: 2.3.3
 
-  /vite@5.0.5:
+  /vite@5.0.5(@types/node@18.15.11):
     resolution: {integrity: sha512-OekeWqR9Ls56f3zd4CaxzbbS11gqYkEiBtnWFFgYR2WV8oPJRRKq0mpskYy/XaoCL3L7VINDhqqOMNDiYdGvGg==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
@@ -8894,6 +8897,7 @@ packages:
       terser:
         optional: true
     dependencies:
+      '@types/node': 18.15.11
       esbuild: 0.19.8
       postcss: 8.4.32
       rollup: 4.6.1
@@ -8901,7 +8905,7 @@ packages:
       fsevents: 2.3.3
     dev: false
 
-  /vite@5.1.6:
+  /vite@5.1.6(@types/node@18.15.11):
     resolution: {integrity: sha512-yYIAZs9nVfRJ/AiOLCA91zzhjsHUgMjB+EigzFb6W2XTLO8JixBCKCjvhKZaye+NKYHCrkv3Oh50dH9EdLU2RA==}
     engines: {node: ^18.0.0 || >=20.0.0}
     hasBin: true
@@ -8929,6 +8933,7 @@ packages:
       terser:
         optional: true
     dependencies:
+      '@types/node': 18.15.11
       esbuild: 0.19.8
       postcss: 8.4.35
       rollup: 4.6.1
@@ -8954,7 +8959,7 @@ packages:
       vite:
         optional: true
     dependencies:
-      vite: 5.0.5
+      vite: 5.0.5(@types/node@18.15.11)
     dev: false
 
   /vitefu@0.2.5(vite@5.1.6):
@@ -8965,7 +8970,7 @@ packages:
       vite:
         optional: true
     dependencies:
-      vite: 5.1.6
+      vite: 5.1.6(@types/node@18.15.11)
 
   /vitest@0.34.3(happy-dom@12.10.3):
     resolution: {integrity: sha512-7+VA5Iw4S3USYk+qwPxHl8plCMhA5rtfwMjgoQXMT7rO5ldWcdsdo3U1QD289JgglGK4WeOzgoLTsGFu6VISyQ==}
