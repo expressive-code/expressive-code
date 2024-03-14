@@ -1,6 +1,6 @@
 {
   "name": "expressive-code",
-  "version": "0.33.4",
+  "version": "0.33.5",
   "description": "A text marking & annotation engine for presenting source code on the web.",
   "keywords": [],
   "author": "Tibor Schiemann",
@@ -31,9 +31,9 @@
     "watch": "pnpm build --watch src"
   },
   "dependencies": {
-    "@expressive-code/core": "workspace:^0.33.4",
-    "@expressive-code/plugin-frames": "workspace:^0.33.4",
-    "@expressive-code/plugin-shiki": "workspace:^0.33.4",
-    "@expressive-code/plugin-text-markers": "workspace:^0.33.4"
+    "@expressive-code/core": "workspace:^0.33.5",
+    "@expressive-code/plugin-frames": "workspace:^0.33.5",
+    "@expressive-code/plugin-shiki": "workspace:^0.33.5",
+    "@expressive-code/plugin-text-markers": "workspace:^0.33.5"
   }
 }

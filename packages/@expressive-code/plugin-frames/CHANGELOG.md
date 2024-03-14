@@ -1,5 +1,12 @@
 # @expressive-code/plugin-frames
 
+## 0.33.5
+
+### Patch Changes
+
+- Updated dependencies [2469749]
+  - @expressive-code/core@0.33.5
+
 ## 0.33.4
 
 ### Patch Changes
