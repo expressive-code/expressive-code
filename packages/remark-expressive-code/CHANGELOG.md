@@ -1,5 +1,13 @@
 # remark-expressive-code
 
+## 0.33.5
+
+### Patch Changes
+
+- 2469749: Improves word wrap behavior on very narrow screens and when using larger font sizes by allowing wrapping to start at column 20 instead of 30.
+- Updated dependencies [2469749]
+  - expressive-code@0.33.5
+
 ## 0.33.4
 
 ### Patch Changes

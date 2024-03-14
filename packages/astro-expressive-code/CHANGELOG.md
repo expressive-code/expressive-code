@@ -1,5 +1,15 @@
 # astro-expressive-code
 
+## 0.33.5
+
+### Patch Changes
+
+- ccbc264: Updates handling of Astro config option `build.assetsPrefix` to support new file extension-based alternatives added in Astro 4.5.0.
+- 2469749: Improves word wrap behavior on very narrow screens and when using larger font sizes by allowing wrapping to start at column 20 instead of 30.
+- acd3266: Adds `prerender: true` flag to injected asset routes to enable hybrid rendering once it's also supported for `.ts` entrypoints by Astro.
+- Updated dependencies [2469749]
+  - remark-expressive-code@0.33.5
+
 ## 0.33.4
 
 ### Patch Changes
