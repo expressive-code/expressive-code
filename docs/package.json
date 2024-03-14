@@ -11,8 +11,8 @@
     "dev": "astro dev",
     "build": "pnpm api && pnpm release-notes && astro build",
     "preview": "astro preview",
-    "api": "tsm --require=./scripts/lib/filter-warnings.cjs ./scripts/api-reference.ts",
-    "release-notes": "tsm --require=./scripts/lib/filter-warnings.cjs ./scripts/release-notes.ts"
+    "api": "tsm --require=../scripts/lib/filter-warnings.cjs ./scripts/api-reference.ts",
+    "release-notes": "tsm --require=../scripts/lib/filter-warnings.cjs ./scripts/release-notes.ts"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.21.1",
@@ -31,7 +31,6 @@
     "mdast-util-to-string": "^4.0.0",
     "sharp": "^0.32.5",
     "starlight-links-validator": "^0.5.1",
-    "tsm": "^2.3.0",
     "typedoc": "^0.25.4",
     "typedoc-plugin-markdown": "^4.0.0-next.21",
     "typedoc-plugin-missing-exports": "^2.1.0",

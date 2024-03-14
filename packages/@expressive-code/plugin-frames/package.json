@@ -23,7 +23,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup ./src/index.ts --format esm,cjs --dts --sourcemap --clean",
+    "build": "pnpm build-js-modules && tsup ./src/index.ts --format esm,cjs --dts --sourcemap --clean",
+    "build-js-modules": "tsm --require=../../../scripts/lib/filter-warnings.cjs ../../../scripts/build-js-module.ts ./src/copy-js-module.ts",
     "coverage": "vitest run --coverage",
     "test": "vitest run --reporter verbose",
     "test-short": "vitest run --reporter basic",

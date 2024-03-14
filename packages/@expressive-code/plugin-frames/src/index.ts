@@ -11,7 +11,7 @@ import {
 	LanguageGroups,
 	LanguagesWithFencedFrontmatter,
 } from './utils'
-import { getCopyJsModule } from './copy-js-module'
+import copyJsModule from './copy-js-module.min'
 export { FramesStyleSettings } from './styles'
 
 export interface PluginFramesOptions {
@@ -89,7 +89,7 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 		name: 'Frames',
 		styleSettings: framesStyleSettings,
 		baseStyles: (context) => getFramesBaseStyles(context, options),
-		jsModules: options.showCopyToClipboardButton ? [getCopyJsModule(`.expressive-code .copy button`)] : undefined,
+		jsModules: options.showCopyToClipboardButton ? [copyJsModule.replace(/\[SELECTOR\]/g, '.expressive-code .copy button')] : undefined,
 		hooks: {
 			preprocessMetadata: ({ codeBlock }) => {
 				// Transfer meta options (if any) to props
