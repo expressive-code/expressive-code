@@ -1,7 +1,7 @@
 import { build } from 'tsup'
-import { readFileSync, writeFileSync, unlinkSync } from 'node:fs'
+import { readFileSync, unlinkSync } from 'node:fs'
 import { join, basename } from 'node:path'
-import { serializeStringWithSingleQuotes } from './lib/utils'
+import { serializeStringWithSingleQuotes, writeFileLines } from './lib/utils'
 
 const moduleFilePath = process.argv[2]
 if (!moduleFilePath) throw new Error('Module file path is required')
@@ -20,7 +20,7 @@ await build({
 
 // Read the built JS module and generate a `.min.ts` file that exports it as a string
 let builtJsModule = readFileSync(`${outputBaseFilePath}.min.js`, 'utf-8')
-builtJsModule = builtJsModule.replace(/^"use strict";\n?/, '').trim()
+builtJsModule = builtJsModule.replace(/^"use strict";\r?\n?/, '').trim()
 const jsModuleAsString = `
 /*
 	GENERATED FILE - DO NOT EDIT
@@ -31,7 +31,7 @@ const jsModuleAsString = `
 
 export default ${serializeStringWithSingleQuotes(builtJsModule)}
 `.trimStart()
-writeFileSync(moduleFilePath.replace(/\.ts$/, '.min.ts'), jsModuleAsString)
+writeFileLines(moduleFilePath.replace(/\.ts$/, '.min.ts'), jsModuleAsString)
 
 // Cleanup: Remove temporary files
 unlinkSync(`${outputBaseFilePath}.d.ts`)
