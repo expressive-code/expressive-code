@@ -7,6 +7,14 @@ This page combines all release notes of the Expressive Code monorepo.
 You can find the source changelogs on GitHub in the subfolders of
 [`packages`](https://github.com/expressive-code/expressive-code/tree/main/packages).
 
+## 0.33.5
+
+- Updates handling of Astro config option `build.assetsPrefix` to support new file extension-based alternatives added in Astro 4.5.0.
+
+- Improves word wrap behavior on very narrow screens and when using larger font sizes by allowing wrapping to start at column 20 instead of 30.
+
+- Adds `prerender: true` flag to injected asset routes to enable hybrid rendering once it's also supported for `.ts` entrypoints by Astro.
+
 ## 0.33.4
 
 - Rolls back even more plugin-shiki changes. They will be re-added later. :)
