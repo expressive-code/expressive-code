@@ -1,7 +1,7 @@
 import { toMarkdown } from 'mdast-util-to-markdown'
 import type { List, Root } from 'mdast'
 import { getPackageChangelogs, loadChangelog, mergeIncludes, semverCategories } from './lib/changelogs'
-import { writeFileLines } from './typedoc/utils'
+import { writeFileLines } from '../../scripts/lib/utils'
 
 // Find changelog paths on disk
 const changelogPaths = [
