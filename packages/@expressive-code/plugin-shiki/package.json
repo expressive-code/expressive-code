@@ -11,11 +11,10 @@
     "directory": "packages/@expressive-code/plugin-shiki"
   },
   "type": "module",
-  "main": "./dist/index.cjs",
+  "main": "./dist/index.js",
   "module": "./dist/index.js",
   "exports": {
     "types": "./dist/index.d.ts",
-    "require": "./dist/index.cjs",
     "default": "./dist/index.js"
   },
   "types": "./dist/index.d.ts",
@@ -23,7 +22,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup ./src/index.ts --format esm,cjs --dts --sourcemap --clean",
+    "build": "tsup ./src/index.ts --format esm --dts --sourcemap --clean",
     "coverage": "vitest run --coverage",
     "test": "vitest run --reporter verbose",
     "test-short": "vitest run --reporter basic",

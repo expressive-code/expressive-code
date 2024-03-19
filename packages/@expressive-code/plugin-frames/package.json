@@ -11,11 +11,10 @@
     "directory": "packages/@expressive-code/plugin-frames"
   },
   "type": "module",
-  "main": "./dist/index.cjs",
+  "main": "./dist/index.js",
   "module": "./dist/index.js",
   "exports": {
     "types": "./dist/index.d.ts",
-    "require": "./dist/index.cjs",
     "default": "./dist/index.js"
   },
   "types": "./dist/index.d.ts",
@@ -23,7 +22,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "pnpm build-js-modules && tsup ./src/index.ts --format esm,cjs --dts --sourcemap --clean",
+    "build": "pnpm build-js-modules && tsup ./src/index.ts --format esm --dts --sourcemap --clean",
     "build-js-modules": "tsm --require=../../../scripts/lib/filter-warnings.cjs ../../../scripts/build-js-module.ts ./src/copy-js-module.ts",
     "coverage": "vitest run --coverage",
     "test": "vitest run --reporter verbose",
