@@ -1,5 +1,18 @@
 # remark-expressive-code
 
+## 0.34.0
+
+### Minor Changes
+
+- b6e7167: Since this version, all packages are only distributed in modern ESM format, which greatly reduces bundle size.
+
+  Most projects should not be affected by this change at all, but in case you still need to import Expressive Code packages into a CommonJS project, you can use the widely supported `await import(...)` syntax.
+
+### Patch Changes
+
+- Updated dependencies [b6e7167]
+  - expressive-code@0.34.0
+
 ## 0.33.5
 
 ### Patch Changes
