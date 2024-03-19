@@ -23,7 +23,7 @@ describe('Renders collapsed sections', async () => {
 	const themes = await loadTestThemes()
 
 	describe('Collapsed lines', () => {
-		test(`Collapses the expected lines`, async ({ meta: { name: testName } }) => {
+		test(`Collapses the expected lines`, async ({ task: { name: testName } }) => {
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,
@@ -39,7 +39,7 @@ describe('Renders collapsed sections', async () => {
 			})
 		})
 
-		test(`Correctly targets lines when code block starts with empty lines`, async ({ meta: { name: testName } }) => {
+		test(`Correctly targets lines when code block starts with empty lines`, async ({ task: { name: testName } }) => {
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,
@@ -55,7 +55,7 @@ describe('Renders collapsed sections', async () => {
 			})
 		})
 
-		test(`Correctly limits sections to the boundaries of the code sample`, async ({ meta: { name: testName } }) => {
+		test(`Correctly limits sections to the boundaries of the code sample`, async ({ task: { name: testName } }) => {
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,
@@ -70,7 +70,7 @@ describe('Renders collapsed sections', async () => {
 
 		test(
 			`Correctly handles code with text-markers and syntax highlighting`,
-			async ({ meta: { name: testName } }) => {
+			async ({ task: { name: testName } }) => {
 				await renderAndOutputHtmlSnapshot({
 					testName,
 					testBaseDir: __dirname,
@@ -95,7 +95,7 @@ describe('Renders collapsed sections', async () => {
 			{ timeout: 5 * 1000 }
 		)
 
-		test(`Uses the correct section summary if given as option`, async ({ meta: { name: testName } }) => {
+		test(`Uses the correct section summary if given as option`, async ({ task: { name: testName } }) => {
 			pluginCollapsibleSectionsTexts.addLocale('xy', { collapsedLines: 'Test {lineCount}' })
 			await renderAndOutputHtmlSnapshot({
 				testName,

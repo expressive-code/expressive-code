@@ -229,7 +229,7 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 	 */
 	constructor(config: ExpressiveCodeEngineConfig) {
 		// Transfer deprecated `theme` option to `themes` without triggering the deprecation warning
-		const deprecatedConfig: ExpressiveCodeEngineConfig & { theme?: ExpressiveCodeTheme | undefined } = config
+		const deprecatedConfig: Omit<ExpressiveCodeEngineConfig, 'theme'> & { theme?: ExpressiveCodeTheme | undefined } = config
 		if (deprecatedConfig.theme && !config.themes) {
 			config.themes = Array.isArray(deprecatedConfig.theme) ? deprecatedConfig.theme : [deprecatedConfig.theme]
 			delete deprecatedConfig.theme

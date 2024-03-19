@@ -17,7 +17,7 @@ import {
 } from 'typedoc'
 import type { PluginOptions as MarkdownPluginOptions } from 'typedoc-plugin-markdown'
 import { StarlightTypeDocTheme } from './typedoc-theme'
-import { normalizeLineEndings } from './utils'
+import { normalizeLineEndings } from '../../../scripts/lib/utils'
 
 export type PartialConfig = Partial<TypeDocOptions & MarkdownPluginOptions>
 

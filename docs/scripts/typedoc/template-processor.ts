@@ -4,7 +4,7 @@ import path from 'node:path'
 import { globSync } from 'glob'
 import { parse } from 'yaml'
 import GithubSlugger from 'github-slugger'
-import { readFileLines, normalizeLineEndings, splitLines, writeFileLines } from './utils'
+import { readFileLines, normalizeLineEndings, splitLines, writeFileLines } from '../../../scripts/lib/utils'
 
 type IncludeDirective = {
 	name: string

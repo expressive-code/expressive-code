@@ -56,7 +56,7 @@ module.exports = {
       files: ['**/*.ts'],
       parser: '@typescript-eslint/parser',
       extends: ['plugin:@typescript-eslint/recommended', 'plugin:@typescript-eslint/recommended-requiring-type-checking'],
-      plugins: ['redundant-undefined'],
+      plugins: ['redundant-undefined', 'deprecation'],
       rules: {
         '@typescript-eslint/no-unused-vars': [
           'warn',
@@ -74,6 +74,7 @@ module.exports = {
             followExactOptionalPropertyTypes: true,
           },
         ],
+        'deprecation/deprecation': 'warn',
       },
     },
     {
