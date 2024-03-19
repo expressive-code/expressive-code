@@ -122,7 +122,7 @@ describe('Renders syntax highlighting', async () => {
 
 	test(
 		'Supports themes in JS code',
-		async ({ meta: { name: testName } }) => {
+		async ({ task: { name: testName } }) => {
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,
@@ -139,7 +139,7 @@ describe('Renders syntax highlighting', async () => {
 
 	test(
 		'Supports themes in Astro code',
-		async ({ meta: { name: testName } }) => {
+		async ({ task: { name: testName } }) => {
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,
@@ -156,7 +156,7 @@ describe('Renders syntax highlighting', async () => {
 
 	test(
 		'Supports themes in Python code',
-		async ({ meta: { name: testName } }) => {
+		async ({ task: { name: testName } }) => {
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,
@@ -173,7 +173,7 @@ describe('Renders syntax highlighting', async () => {
 
 	test(
 		'Supports themes in CSS code',
-		async ({ meta: { name: testName } }) => {
+		async ({ task: { name: testName } }) => {
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,
@@ -190,7 +190,7 @@ describe('Renders syntax highlighting', async () => {
 
 	test(
 		'Supports themes in terminal',
-		async ({ meta: { name: testName } }) => {
+		async ({ task: { name: testName } }) => {
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,
@@ -211,7 +211,7 @@ describe('Renders syntax highlighting', async () => {
 
 	test(
 		'Supports ansi highlighting',
-		async ({ meta: { name: testName } }) => {
+		async ({ task: { name: testName } }) => {
 			let colorAssertionExecuted = false
 
 			await renderAndOutputHtmlSnapshot({
@@ -250,7 +250,7 @@ describe('Language handling', async () => {
 
 	test(
 		'Falls back to plaintext and logs a warning for unknown languages',
-		async ({ meta: { name: testName } }) => {
+		async ({ task: { name: testName } }) => {
 			let colorAssertionExecuted = false
 			const warnings: string[] = []
 
@@ -296,7 +296,7 @@ describe('Language handling', async () => {
 	)
 	test(
 		'Allows adding custom languages',
-		async ({ meta: { name: testName } }) => {
+		async ({ task: { name: testName } }) => {
 			let colorAssertionExecuted = false
 			const warnings: string[] = []
 
@@ -355,7 +355,7 @@ describe('Language handling', async () => {
 	)
 	test(
 		'Still supports default languages after adding a custom language',
-		async ({ meta: { name: testName } }) => {
+		async ({ task: { name: testName } }) => {
 			let colorAssertionExecuted = false
 			const warnings: string[] = []
 

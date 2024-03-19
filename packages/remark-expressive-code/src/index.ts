@@ -98,7 +98,7 @@ export type RemarkExpressiveCodeRenderer = {
  */
 export async function createRenderer(options: RemarkExpressiveCodeOptions = {}): Promise<RemarkExpressiveCodeRenderer> {
 	// Transfer deprecated `theme` option to `themes` without triggering the deprecation warning
-	const deprecatedOptions: RemarkExpressiveCodeOptions & { theme?: ThemeObjectOrShikiThemeName | ThemeObjectOrShikiThemeName[] | undefined } = options
+	const deprecatedOptions: Omit<RemarkExpressiveCodeOptions, 'theme'> & { theme?: ThemeObjectOrShikiThemeName | ThemeObjectOrShikiThemeName[] | undefined } = options
 	if (deprecatedOptions.theme && !options.themes) {
 		options.themes = Array.isArray(deprecatedOptions.theme) ? deprecatedOptions.theme : [deprecatedOptions.theme]
 		delete deprecatedOptions.theme

@@ -18,7 +18,7 @@ pnpm i --save-dev expressive-code some-other-package yet-another-package
 describe('Renders frames around the code', async () => {
 	const themes = await loadTestThemes()
 
-	test('Single JS block without title', async ({ meta: { name: testName } }) => {
+	test('Single JS block without title', async ({ task: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
 			testName,
 			testBaseDir: __dirname,
@@ -37,7 +37,7 @@ describe('Renders frames around the code', async () => {
 	})
 	test(
 		'Single JS block with title',
-		async ({ meta: { name: testName } }) => {
+		async ({ task: { name: testName } }) => {
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,
@@ -61,7 +61,7 @@ ${exampleCode}
 		},
 		{ timeout: 5 * 1000 }
 	)
-	test('Single terminal block without title', async ({ meta: { name: testName } }) => {
+	test('Single terminal block without title', async ({ task: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
 			testName,
 			testBaseDir: __dirname,
@@ -82,7 +82,7 @@ ${exampleCode}
 	})
 	test(
 		'Single terminal block with title',
-		async ({ meta: { name: testName } }) => {
+		async ({ task: { name: testName } }) => {
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,
@@ -167,7 +167,7 @@ ${exampleCode}
 			})
 		}
 
-		test('Style with thick borders', async ({ meta: { name: testName } }) => {
+		test('Style with thick borders', async ({ task: { name: testName } }) => {
 			await runStyleOverridesTest({
 				testName,
 				engineOptions: {
@@ -185,7 +185,7 @@ ${exampleCode}
 			})
 		})
 
-		test('Style without tab bar background', async ({ meta: { name: testName } }) => {
+		test('Style without tab bar background', async ({ task: { name: testName } }) => {
 			await runStyleOverridesTest({
 				testName,
 				engineOptions: {
@@ -222,7 +222,7 @@ ${exampleCode}
 			})
 		})
 
-		test('Style overwritten by theme', async ({ meta: { name: testName } }) => {
+		test('Style overwritten by theme', async ({ task: { name: testName } }) => {
 			await runStyleOverridesTest({
 				testName,
 				engineOptions: {
@@ -264,7 +264,7 @@ ${exampleCode}
 describe('Differentiates between terminal and code editor frames', async () => {
 	const themes = await loadTestThemes()
 
-	test('Renders a shell script with shebang as frame="code"', async ({ meta: { name: testName } }) => {
+	test('Renders a shell script with shebang as frame="code"', async ({ task: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
 			testName,
 			testBaseDir: __dirname,
@@ -286,7 +286,7 @@ ${exampleTerminalCode}
 		})
 	})
 
-	test('Renders a shell script with file name comment as frame="code"', async ({ meta: { name: testName } }) => {
+	test('Renders a shell script with file name comment as frame="code"', async ({ task: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
 			testName,
 			testBaseDir: __dirname,
@@ -313,7 +313,7 @@ ${exampleTerminalCode}
 describe('Allows changing the frame type to "terminal" using meta information', async () => {
 	const themes = await loadTestThemes()
 
-	test('Change JS block without title to frame="terminal"', async ({ meta: { name: testName } }) => {
+	test('Change JS block without title to frame="terminal"', async ({ task: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
 			testName,
 			testBaseDir: __dirname,
@@ -332,7 +332,7 @@ describe('Allows changing the frame type to "terminal" using meta information', 
 			}),
 		})
 	})
-	test('Change JS block with title to frame="terminal"', async ({ meta: { name: testName } }) => {
+	test('Change JS block with title to frame="terminal"', async ({ task: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
 			testName,
 			testBaseDir: __dirname,
@@ -355,7 +355,7 @@ ${exampleCode}
 			}),
 		})
 	})
-	test('Change shell script block with title to frame="terminal"', async ({ meta: { name: testName } }) => {
+	test('Change shell script block with title to frame="terminal"', async ({ task: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
 			testName,
 			testBaseDir: __dirname,
@@ -384,7 +384,7 @@ ${exampleTerminalCode}
 describe('Allows changing the frame type to "code" using meta information', async () => {
 	const themes = await loadTestThemes()
 
-	test('Change terminal block without title to frame="code"', async ({ meta: { name: testName } }) => {
+	test('Change terminal block without title to frame="code"', async ({ task: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
 			testName,
 			testBaseDir: __dirname,
@@ -408,7 +408,7 @@ describe('Allows changing the frame type to "code" using meta information', asyn
 describe('Allows changing the frame type to "none" using meta information', async () => {
 	const themes = await loadTestThemes()
 
-	test('Change JS block without title to frame="none"', async ({ meta: { name: testName } }) => {
+	test('Change JS block without title to frame="none"', async ({ task: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
 			testName,
 			testBaseDir: __dirname,
@@ -426,7 +426,7 @@ describe('Allows changing the frame type to "none" using meta information', asyn
 			}),
 		})
 	})
-	test('Change JS block with title to frame="none"', async ({ meta: { name: testName } }) => {
+	test('Change JS block with title to frame="none"', async ({ task: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
 			testName,
 			testBaseDir: __dirname,
@@ -448,7 +448,7 @@ ${exampleCode}
 			}),
 		})
 	})
-	test('Change terminal block without title to frame="none"', async ({ meta: { name: testName } }) => {
+	test('Change terminal block without title to frame="none"', async ({ task: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
 			testName,
 			testBaseDir: __dirname,
@@ -467,7 +467,7 @@ ${exampleCode}
 			}),
 		})
 	})
-	test('Change terminal block with title to frame="none"', async ({ meta: { name: testName } }) => {
+	test('Change terminal block with title to frame="none"', async ({ task: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
 			testName,
 			testBaseDir: __dirname,

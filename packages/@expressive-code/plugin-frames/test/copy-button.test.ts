@@ -20,7 +20,7 @@ pnpm i one-more-package
 describe('Allows removing comments from terminal window frames', async () => {
 	const themes = await loadTestThemes()
 
-	test('Terminal comments are removed by default', async ({ meta: { name: testName } }) => {
+	test('Terminal comments are removed by default', async ({ task: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
 			testName,
 			testBaseDir: __dirname,
@@ -37,7 +37,7 @@ describe('Allows removing comments from terminal window frames', async () => {
 			}),
 		})
 	})
-	test('Terminal comments can be retained through options', async ({ meta: { name: testName } }) => {
+	test('Terminal comments can be retained through options', async ({ task: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
 			testName,
 			testBaseDir: __dirname,
@@ -54,7 +54,7 @@ describe('Allows removing comments from terminal window frames', async () => {
 			}),
 		})
 	})
-	test('Comments are not removed from non-terminal frames', async ({ meta: { name: testName } }) => {
+	test('Comments are not removed from non-terminal frames', async ({ task: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
 			testName,
 			testBaseDir: __dirname,

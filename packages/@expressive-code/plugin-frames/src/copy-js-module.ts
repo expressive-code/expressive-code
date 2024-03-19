@@ -34,6 +34,8 @@ function domCopy(text: string) {
 	// Copy the selection to the clipboard
 	let ok = false
 	try {
+		// Although this is a deprecated API, it is still the only way to copy in some browsers
+		// eslint-disable-next-line deprecation/deprecation
 		ok = document.execCommand('copy')
 	} finally {
 		selection.removeAllRanges()
@@ -43,7 +45,7 @@ function domCopy(text: string) {
 }
 
 /**
- * Function to handle clicks on a single copy button.
+ * Handles clicks on a single copy button.
  */
 async function clickHandler(event: Event) {
 	// Attempt to perform the copy operation, first using the Clipboard API,
@@ -88,11 +90,12 @@ async function clickHandler(event: Event) {
 	tooltip.addEventListener('transitionend', removeTooltip)
 }
 
-// Define a function that searches a node for matching buttons and initializes them
-// unless the node does not support querySelectorAll (e.g. a text node)
-const initButtons = (container: ParentNode | Document) => {
-	if (!container.querySelectorAll) return
-	container.querySelectorAll('[SELECTOR]').forEach((btn) => btn.addEventListener('click', clickHandler))
+/**
+ * Searches a node for matching buttons and initializes them
+ * unless the node does not support querySelectorAll (e.g. a text node).
+ */
+function initButtons(container: ParentNode | Document) {
+	container.querySelectorAll?.('[SELECTOR]').forEach((btn) => btn.addEventListener('click', clickHandler))
 }
 
 // Use the function to initialize all buttons that exist right now

@@ -32,7 +32,7 @@ describe('Renders line numbers', async () => {
 
 	test(
 		`With all plugins and wrap`,
-		async ({ meta: { name: testName } }) => {
+		async ({ task: { name: testName } }) => {
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,

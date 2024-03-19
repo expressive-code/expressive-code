@@ -14,7 +14,7 @@ describe('Renders text markers', async () => {
 	const themes = await loadTestThemes()
 
 	describe('Line-level markers', () => {
-		test(`Marks the expected lines`, async ({ meta: { name: testName } }) => {
+		test(`Marks the expected lines`, async ({ task: { name: testName } }) => {
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,
@@ -33,7 +33,7 @@ describe('Renders text markers', async () => {
 			})
 		})
 
-		test(`Correctly targets lines when code block starts with empty lines`, async ({ meta: { name: testName } }) => {
+		test(`Correctly targets lines when code block starts with empty lines`, async ({ task: { name: testName } }) => {
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,
@@ -54,7 +54,7 @@ describe('Renders text markers', async () => {
 	})
 
 	describe('Inline markers', () => {
-		test(`Inline plaintext markers`, async ({ meta: { name: testName } }) => {
+		test(`Inline plaintext markers`, async ({ task: { name: testName } }) => {
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,
@@ -73,7 +73,7 @@ describe('Renders text markers', async () => {
 			})
 		})
 
-		test(`Inline plaintext markers in any order`, async ({ meta: { name: testName } }) => {
+		test(`Inline plaintext markers in any order`, async ({ task: { name: testName } }) => {
 			const permutations: MarkerType[][] = [
 				['mark', 'ins', 'del'],
 				['ins', 'del', 'mark'],
@@ -121,7 +121,7 @@ describe('Renders text markers', async () => {
 			})
 		})
 
-		test(`Inline RegExp markers`, async ({ meta: { name: testName } }) => {
+		test(`Inline RegExp markers`, async ({ task: { name: testName } }) => {
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,
@@ -155,7 +155,7 @@ describe('Renders text markers', async () => {
 		})
 
 		describe(`Handles inline markers intersecting with other annotations`, () => {
-			test(`Other annotations rendered earlier are split`, async ({ meta: { name: testName } }) => {
+			test(`Other annotations rendered earlier are split`, async ({ task: { name: testName } }) => {
 				const colors1 = ['#a4ccff', '#2090ff']
 				const colors2 = ['#ffa4cc', '#ff2090']
 				await renderAndOutputHtmlSnapshot({
@@ -209,7 +209,7 @@ describe('Renders text markers', async () => {
 					}),
 				})
 			})
-			test(`Other annotations rendered later split markers`, async ({ meta: { name: testName } }) => {
+			test(`Other annotations rendered later split markers`, async ({ task: { name: testName } }) => {
 				const colors1 = ['#a4ccff', '#2090ff']
 				const colors2 = ['#ffa4cc', '#ff2090']
 				await renderAndOutputHtmlSnapshot({
@@ -281,7 +281,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 </MyReactComponent>
 		`.trim()
 
-			test('Markers of the same type get merged', async ({ meta: { name: testName } }) => {
+			test('Markers of the same type get merged', async ({ task: { name: testName } }) => {
 				await renderAndOutputHtmlSnapshot({
 					testName,
 					testBaseDir: __dirname,
@@ -312,7 +312,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 				})
 			})
 
-			test('Deletions override markings', async ({ meta: { name: testName } }) => {
+			test('Deletions override markings', async ({ task: { name: testName } }) => {
 				await renderAndOutputHtmlSnapshot({
 					testName,
 					testBaseDir: __dirname,
@@ -343,7 +343,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 				})
 			})
 
-			test('Insertions override deletions and markings', async ({ meta: { name: testName } }) => {
+			test('Insertions override deletions and markings', async ({ task: { name: testName } }) => {
 				await renderAndOutputHtmlSnapshot({
 					testName,
 					testBaseDir: __dirname,
@@ -381,7 +381,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 				})
 			})
 
-			test('Lower priority markers cannot override higher ones', async ({ meta: { name: testName } }) => {
+			test('Lower priority markers cannot override higher ones', async ({ task: { name: testName } }) => {
 				await renderAndOutputHtmlSnapshot({
 					testName,
 					testBaseDir: __dirname,
@@ -422,7 +422,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 	})
 
 	describe('Diff language', () => {
-		test(`Converts diff syntax to line-level markers`, async ({ meta: { name: testName } }) => {
+		test(`Converts diff syntax to line-level markers`, async ({ task: { name: testName } }) => {
 			const code = jsCodeWithDiffMarkers
 			const expectedCode = code
 				.split('\n')
@@ -445,7 +445,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 				}),
 			})
 		})
-		test(`Removes common minimum indentation level`, async ({ meta: { name: testName } }) => {
+		test(`Removes common minimum indentation level`, async ({ task: { name: testName } }) => {
 			const code = indentedJsCodeWithDiffMarkers
 			const expectedCode = code
 				.split('\n')
@@ -470,7 +470,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 		})
 		test(
 			`Does not modify actual diff content`,
-			async ({ meta: { name: testName } }) => {
+			async ({ task: { name: testName } }) => {
 				const code = actualDiff
 				await renderAndOutputHtmlSnapshot({
 					testName,
@@ -487,7 +487,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 		)
 	})
 
-	test(`Combined line and inline plaintext markers`, async ({ meta: { name: testName } }) => {
+	test(`Combined line and inline plaintext markers`, async ({ task: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
 			testName,
 			testBaseDir: __dirname,
@@ -509,7 +509,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 
 	test(
 		`Actual example with Shiki highlighting`,
-		async ({ meta: { name: testName } }) => {
+		async ({ task: { name: testName } }) => {
 			const validateMarkers = buildMarkerValidationFn([
 				{ fullLine: true, markerType: 'del', text: `layout: ../../layouts/BaseLayout.astro` },
 				// Expect the diff prefix `+` to have been converted to a line-level ins marker
@@ -567,7 +567,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 
 	test(
 		`Actual example with Shiki and gutter`,
-		async ({ meta: { name: testName } }) => {
+		async ({ task: { name: testName } }) => {
 			const validateMarkers = buildMarkerValidationFn([
 				{ fullLine: true, markerType: 'del', text: `layout: ../../layouts/BaseLayout.astro` },
 				// Expect the diff prefix `+` to have been converted to a line-level ins marker
@@ -626,7 +626,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 	describe('Ensures accessible color contrast', () => {
 		test(
 			'Contrast with default settings',
-			async ({ meta: { name: testName } }) => {
+			async ({ task: { name: testName } }) => {
 				await renderAndOutputHtmlSnapshot({
 					testName,
 					testBaseDir: __dirname,
@@ -643,7 +643,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 		)
 		test(
 			'Contrast on marker backgrounds with bright and dark colors',
-			async ({ meta: { name: testName } }) => {
+			async ({ task: { name: testName } }) => {
 				await renderAndOutputHtmlSnapshot({
 					testName,
 					testBaseDir: __dirname,
@@ -672,7 +672,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 		)
 		test(
 			'Contrast on code backgrounds using fixed colors',
-			async ({ meta: { name: testName } }) => {
+			async ({ task: { name: testName } }) => {
 				await renderAndOutputHtmlSnapshot({
 					testName,
 					testBaseDir: __dirname,
@@ -694,7 +694,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 		)
 		test(
 			'Contrast on code backgrounds using CSS variables with fallback',
-			async ({ meta: { name: testName } }) => {
+			async ({ task: { name: testName } }) => {
 				await renderAndOutputHtmlSnapshot({
 					testName,
 					testBaseDir: __dirname,
@@ -740,7 +740,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 		)
 		test(
 			'Contrast on code backgrounds using CSS variables without fallback',
-			async ({ meta: { name: testName } }) => {
+			async ({ task: { name: testName } }) => {
 				await renderAndOutputHtmlSnapshot({
 					testName,
 					testBaseDir: __dirname,
