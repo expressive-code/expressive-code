@@ -1,4 +1,5 @@
-import { addClassName, ExpressiveCodeAnnotation, AnnotationBaseOptions, AnnotationRenderOptions, setInlineStyle } from '@expressive-code/core'
+import { ExpressiveCodeAnnotation, AnnotationBaseOptions, AnnotationRenderOptions } from '@expressive-code/core'
+import { addClassName, setInlineStyle } from '@expressive-code/core/hast'
 import { h } from 'hastscript'
 import { MarkerType } from './marker-types'
 

@@ -2,7 +2,7 @@ import { Parent, Element } from 'hast-util-to-html/lib/types'
 import { isNumber, newTypeError } from '../internal/type-checks'
 import { ExpressiveCodeLine } from './line'
 import { h } from 'hastscript'
-import { getClassNames, setProperty } from '../helpers/ast'
+import { getClassNames, setProperty } from '../hast'
 import { ResolverContext } from './plugin'
 
 export type ExpressiveCodeInlineRange = {

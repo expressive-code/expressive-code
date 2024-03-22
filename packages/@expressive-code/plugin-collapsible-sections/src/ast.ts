@@ -1,4 +1,5 @@
-import { formatTemplate, setInlineStyle, ExpressiveCodeBlock, RenderEmptyLineFn } from '@expressive-code/core'
+import { formatTemplate, ExpressiveCodeBlock, RenderEmptyLineFn } from '@expressive-code/core'
+import { setInlineStyle } from '@expressive-code/core/hast'
 import { type ElementContent } from 'hast'
 import { h, s } from 'hastscript'
 import { Section } from './utils'

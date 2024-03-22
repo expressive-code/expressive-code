@@ -8,7 +8,7 @@ import { isBoolean, isHastElement, isHastParent, newTypeError } from './type-che
 import { AnnotationRenderPhaseOrder } from '../common/annotation'
 import { ExpressiveCodeBlock } from '../common/block'
 import { GutterElement } from '../common/gutter'
-import { addClassName, setInlineStyle } from '../helpers/ast'
+import { addClassName, setInlineStyle } from '../hast'
 
 export async function renderBlock({
 	codeBlock,

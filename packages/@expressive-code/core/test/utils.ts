@@ -7,7 +7,7 @@ import { ExpressiveCodeBlockOptions } from '../src/common/block'
 import { ExpressiveCodeEngine } from '../src/common/engine'
 import { ExpressiveCodePlugin } from '../src/common/plugin'
 import { ExpressiveCodePluginHookName, ExpressiveCodeHook, ExpressiveCodePluginHooks } from '../src/common/plugin-hooks'
-import { addClassName } from '../src/helpers/ast'
+import { addClassName } from '../src/hast'
 import { toHtml } from 'hast-util-to-html'
 import { sanitize } from 'hast-util-sanitize'
 

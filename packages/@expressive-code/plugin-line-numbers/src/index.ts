@@ -1,4 +1,5 @@
-import { ExpressiveCodePlugin, setInlineStyle } from '@expressive-code/core'
+import { ExpressiveCodePlugin } from '@expressive-code/core'
+import { setInlineStyle } from '@expressive-code/core/hast'
 import { h } from 'hastscript'
 import { lineNumbersStyleSettings, getLineNumbersBaseStyles } from './styles'
 export { LineNumbersStyleSettings } from './styles'
