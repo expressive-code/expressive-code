@@ -1,9 +1,8 @@
 import { visit } from 'unist-util-visit'
 import { visitParents } from 'unist-util-visit-parents'
-import { toText } from 'hast-util-to-text'
-import { Element } from 'hast-util-to-text/lib'
-import { Parent, StyleSettingPath, StyleVariant, getColorContrast, getStaticBackgroundColor, onBackground } from '@expressive-code/core'
-import { getClassNames } from '@expressive-code/core/hast'
+import { StyleSettingPath, StyleVariant, getColorContrast, getStaticBackgroundColor, onBackground } from '@expressive-code/core'
+import type { Element, Parent } from '@expressive-code/core/hast'
+import { getClassNames, toText } from '@expressive-code/core/hast'
 
 export function validateColorContrast({ renderedGroupAst, styleVariants }: { renderedGroupAst: Parent; styleVariants: StyleVariant[] }) {
 	const themesWithInsufficientContrast: string[] = []

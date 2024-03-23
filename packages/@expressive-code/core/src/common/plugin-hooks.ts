@@ -1,4 +1,4 @@
-import type { Element, Parent } from 'hast-util-to-html/lib/types'
+import type { Element, Parent } from '../hast'
 import { PluginStyles } from '../internal/css'
 import { GroupContents, RenderedGroupContents } from '../internal/render-group'
 import { ExpressiveCodeBlock } from './block'

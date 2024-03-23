@@ -1,8 +1,7 @@
-import { Parent, Element } from 'hast-util-to-html/lib/types'
+import type { Element, Parent } from '../hast'
+import { getClassNames, setProperty, h } from '../hast'
 import { isNumber, newTypeError } from '../internal/type-checks'
 import { ExpressiveCodeLine } from './line'
-import { h } from 'hastscript'
-import { getClassNames, setProperty } from '../hast'
 import { ResolverContext } from './plugin'
 
 export type ExpressiveCodeInlineRange = {

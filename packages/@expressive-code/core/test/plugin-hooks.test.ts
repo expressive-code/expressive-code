@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
-import { Element } from 'hast-util-to-html/lib/types'
-import { h } from 'hastscript'
+import type { Element } from '../src/hast'
+import { h } from '../src/hast'
 import {
 	WrapperAnnotation,
 	defaultBlockOptions,

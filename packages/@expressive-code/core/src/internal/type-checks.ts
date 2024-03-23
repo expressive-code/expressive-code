@@ -1,4 +1,4 @@
-import { Element, Parent } from 'hast-util-to-html/lib/types'
+import { Element, Parent } from '../hast'
 
 export function isNumber(input: number) {
 	return typeof input === 'number' && !isNaN(input)

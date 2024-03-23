@@ -1,8 +1,8 @@
 import { mkdirSync, writeFileSync } from 'fs'
 import { join, dirname } from 'path'
 import { ExpressiveCodeEngine, ExpressiveCodeEngineConfig, ExpressiveCodePlugin, ExpressiveCodeTheme, StyleVariant } from '@expressive-code/core'
-import { Parent } from 'hast-util-to-html/lib/types'
-import { toHtml } from 'hast-util-to-html'
+import type { Parent } from '@expressive-code/core/hast'
+import { toHtml } from '@expressive-code/core/hast'
 
 export type BlockValidationFn = ({ renderedGroupAst, baseStyles, styleVariants }: { renderedGroupAst: Parent; baseStyles: string; styleVariants: StyleVariant[] }) => void
 

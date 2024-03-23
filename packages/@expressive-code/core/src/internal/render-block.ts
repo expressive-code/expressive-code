@@ -1,5 +1,5 @@
-import { Element } from 'hast-util-to-html/lib/types'
-import { h } from 'hastscript'
+import type { Element } from '../hast'
+import { addClassName, setInlineStyle, h } from '../hast'
 import { ExpressiveCodePlugin } from '../common/plugin'
 import { ExpressiveCodeHookContext, ExpressiveCodeHookContextBase, ExpressiveCodePluginHooks_BeforeRendering, runHooks } from '../common/plugin-hooks'
 import { PluginStyles } from './css'
@@ -8,7 +8,6 @@ import { isBoolean, isHastElement, isHastParent, newTypeError } from './type-che
 import { AnnotationRenderPhaseOrder } from '../common/annotation'
 import { ExpressiveCodeBlock } from '../common/block'
 import { GutterElement } from '../common/gutter'
-import { addClassName, setInlineStyle } from '../hast'
 
 export async function renderBlock({
 	codeBlock,

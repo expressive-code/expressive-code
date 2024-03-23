@@ -22,7 +22,7 @@ npm install @expressive-code/core
 
 ```js
 import { ExpressiveCodeEngine } from '@expressive-code/core'
-import { toHtml } from 'hast-util-to-html'
+import { toHtml } from '@expressive-code/core/hast'
 
 const ec = new ExpressiveCodeEngine({
   plugins: [

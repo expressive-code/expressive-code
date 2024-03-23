@@ -1,5 +1,5 @@
-import type { Parent } from 'hast-util-to-html/lib/types'
-import { h } from 'hastscript'
+import type { Parent } from '../hast'
+import { h } from '../hast'
 import { ExpressiveCodeLine } from '../common/line'
 import { AnnotationRenderPhase, AnnotationRenderPhaseOrder, ExpressiveCodeAnnotation } from '../common/annotation'
 import { codeLineClass } from '../common/style-settings'

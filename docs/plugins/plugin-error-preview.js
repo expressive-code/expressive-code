@@ -1,6 +1,6 @@
 // @ts-check
 import { ExpressiveCodeAnnotation } from '@expressive-code/core'
-import { h } from 'hastscript'
+import { h } from '@expressive-code/core/hast'
 
 class SquigglesAnnotation extends ExpressiveCodeAnnotation {
 	/** @param {import('@expressive-code/core').AnnotationRenderOptions} context */

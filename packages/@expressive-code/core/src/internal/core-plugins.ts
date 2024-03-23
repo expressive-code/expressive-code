@@ -1,6 +1,6 @@
 import { AnnotationRenderOptions, ExpressiveCodeAnnotation, InlineStyleAnnotation } from '../common/annotation'
 import { ExpressiveCodePlugin } from '../common/plugin'
-import { h } from 'hastscript'
+import { h } from '../hast'
 
 export const corePlugins: ExpressiveCodePlugin[] = [
 	{

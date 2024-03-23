@@ -31,7 +31,7 @@ npm install expressive-code
 
 ```js
 import { ExpressiveCode, ExpressiveCodeConfig } from 'expressive-code'
-import { toHtml } from 'hast-util-to-html'
+import { toHtml } from 'expressive-code/hast'
 
 const ec = new ExpressiveCode()
 

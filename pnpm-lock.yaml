@@ -98,12 +98,6 @@ importers:
       glob:
         specifier: ^10.3.10
         version: 10.3.10
-      hast-util-to-html:
-        specifier: ^8.0.4
-        version: 8.0.4
-      hastscript:
-        specifier: ^7.2.0
-        version: 7.2.0
       mdast-util-from-markdown:
         specifier: ^2.0.0
         version: 2.0.0
@@ -154,18 +148,6 @@ importers:
       '@types/node':
         specifier: ^18.15.11
         version: 18.15.11
-      hast-util-from-html:
-        specifier: '1'
-        version: 1.0.2
-      hast-util-select:
-        specifier: ^5.0.5
-        version: 5.0.5
-      hast-util-to-html:
-        specifier: ^8.0.4
-        version: 8.0.4
-      hast-util-to-text:
-        specifier: ^3.1.2
-        version: 3.1.2
       postcss:
         specifier: ^8.4.29
         version: 8.4.29
@@ -187,9 +169,18 @@ importers:
       '@ctrl/tinycolor':
         specifier: ^3.6.0
         version: 3.6.0
+      hast-util-from-html:
+        specifier: '1'
+        version: 1.0.2
+      hast-util-select:
+        specifier: ^5.0.5
+        version: 5.0.5
       hast-util-to-html:
         specifier: ^8.0.4
         version: 8.0.4
+      hast-util-to-text:
+        specifier: ^3.1.2
+        version: 3.1.2
       hastscript:
         specifier: ^7.2.0
         version: 7.2.0
@@ -233,12 +224,6 @@ importers:
       '@expressive-code/core':
         specifier: workspace:^0.33.5
         version: link:../core
-      hast-util-select:
-        specifier: ^5.0.5
-        version: 5.0.5
-      hastscript:
-        specifier: ^7.2.0
-        version: 7.2.0
     devDependencies:
       '@expressive-code/plugin-shiki':
         specifier: workspace:^0.33.5
@@ -252,18 +237,12 @@ importers:
       '@types/hast':
         specifier: ^2.3.4
         version: 2.3.4
-      hast-util-to-text:
-        specifier: ^3.1.2
-        version: 3.1.2
 
   packages/@expressive-code/plugin-frames:
     dependencies:
       '@expressive-code/core':
         specifier: workspace:^0.33.5
         version: link:../core
-      hastscript:
-        specifier: ^7.2.0
-        version: 7.2.0
     devDependencies:
       '@expressive-code/plugin-shiki':
         specifier: workspace:^
@@ -271,21 +250,12 @@ importers:
       '@internal/test-utils':
         specifier: workspace:^
         version: link:../../../internal/test-utils
-      hast-util-select:
-        specifier: ^5.0.5
-        version: 5.0.5
-      hast-util-to-html:
-        specifier: ^8.0.4
-        version: 8.0.4
 
   packages/@expressive-code/plugin-line-numbers:
     dependencies:
       '@expressive-code/core':
         specifier: workspace:^0.33.5
         version: link:../core
-      hastscript:
-        specifier: ^7.2.0
-        version: 7.2.0
     devDependencies:
       '@expressive-code/plugin-collapsible-sections':
         specifier: workspace:^0.33.5
@@ -315,21 +285,12 @@ importers:
       '@internal/test-utils':
         specifier: workspace:^
         version: link:../../../internal/test-utils
-      hast-util-to-html:
-        specifier: ^8.0.4
-        version: 8.0.4
 
   packages/@expressive-code/plugin-text-markers:
     dependencies:
       '@expressive-code/core':
         specifier: workspace:^0.33.5
         version: link:../core
-      hastscript:
-        specifier: ^7.2.0
-        version: 7.2.0
-      unist-util-visit-parents:
-        specifier: ^5.1.3
-        version: 5.1.3
     devDependencies:
       '@expressive-code/plugin-shiki':
         specifier: workspace:^0.33.5
@@ -337,24 +298,12 @@ importers:
       '@internal/test-utils':
         specifier: workspace:^
         version: link:../../../internal/test-utils
-      hast-util-select:
-        specifier: ^5.0.5
-        version: 5.0.5
-      hast-util-to-html:
-        specifier: ^8.0.4
-        version: 8.0.4
-      hast-util-to-text:
-        specifier: ^3.1.2
-        version: 3.1.2
       parse-numeric-range:
         specifier: ^1.3.0
         version: 1.3.0
 
   packages/astro-expressive-code:
     dependencies:
-      hast-util-to-html:
-        specifier: ^8.0.4
-        version: 8.0.4
       remark-expressive-code:
         specifier: workspace:^0.33.5
         version: link:../remark-expressive-code
@@ -461,9 +410,6 @@ importers:
       expressive-code:
         specifier: workspace:^0.33.5
         version: link:../expressive-code
-      hast-util-to-html:
-        specifier: ^8.0.4
-        version: 8.0.4
       unist-util-visit:
         specifier: ^4.1.2
         version: 4.1.2
@@ -2859,6 +2805,7 @@ packages:
 
   /bcp-47-match@2.0.3:
     resolution: {integrity: sha512-JtTezzbAibu8G0R9op9zb3vcWZd9JF6M0xOYGPn0fNCd7wOpRB1mU2mH9T8gaBGbAAyIIVgB2G7xG0GP98zMAQ==}
+    dev: false
 
   /bcp-47@2.1.0:
     resolution: {integrity: sha512-9IIS3UPrvIa1Ej+lVDdDwO7zLehjqsaByECw0bu2RRGP73jALm6FYbzI5gWbgHLvNdkvfXB5YrSbocZdOS0c0w==}
@@ -2901,6 +2848,7 @@ packages:
 
   /boolbase@1.0.0:
     resolution: {integrity: sha512-JZOSA7Mo9sNGB8+UjSgzdLtokWAky1zbztM3WRLCbZ70/3cTANmQmOdR7y2g+J0e2WXywy1yS468tY+IruqEww==}
+    dev: false
 
   /boxen@7.1.1:
     resolution: {integrity: sha512-2hCgjEmP8YLWQ130n2FerGv7rYpfBmnmp9Uy2Le1vge6X3gZIfSmEzP5QTDElFxcvVcXlEn8Aq6MU/PZygIOog==}
@@ -3247,6 +3195,7 @@ packages:
 
   /css-selector-parser@1.4.1:
     resolution: {integrity: sha512-HYPSb7y/Z7BNDCOrakL4raGO2zltZkbeXyAd6Tg9obzix6QhzxCotdBl6VT0Dv4vZfJGVz3WL/xaEI9Ly3ul0g==}
+    dev: false
 
   /css-selector-parser@3.0.4:
     resolution: {integrity: sha512-pnmS1dbKsz6KA4EW4BznyPL2xxkNDRg62hcD0v8g6DEw2W7hxOln5M953jsp9hmw5Dg57S6o/A8GOn37mbAgcQ==}
@@ -3460,6 +3409,7 @@ packages:
   /direction@2.0.1:
     resolution: {integrity: sha512-9S6m9Sukh1cZNknO1CWAr2QAWsbKLafQiyM5gZ7VgXHeuaoUwffKN4q6NC4A/Mf9iiPlOXQEKW/Mv/mh9/3YFA==}
     hasBin: true
+    dev: false
 
   /djb2a@2.0.0:
     resolution: {integrity: sha512-mSkCTNSJRGjNUADzWx1ubTGxJh2IVY9uoc/WGozUIu0mgBUEvIyBn9uTs9jqFBbJxQthJMF3uDx0cnpdlAUo4Q==}
@@ -4612,7 +4562,7 @@ packages:
       parse5: 7.1.2
       vfile: 5.3.7
       vfile-message: 3.1.4
-    dev: true
+    dev: false
 
   /hast-util-from-html@2.0.1:
     resolution: {integrity: sha512-RXQBLMl9kjKVNkJTIO6bZyb2n+cUH8LFaSSzo82jiLT6Tfc+Pt7VQCS+/h3YwG4jaNE2TA2sdJisGWR+aJrp0g==}
@@ -4649,6 +4599,7 @@ packages:
 
   /hast-util-has-property@2.0.1:
     resolution: {integrity: sha512-X2+RwZIMTMKpXUzlotatPzWj8bspCymtXH3cfG3iQKV+wPF53Vgaqxi/eLqGck0wKq1kS9nvoB1wchbCPEL8sg==}
+    dev: false
 
   /hast-util-has-property@3.0.0:
     resolution: {integrity: sha512-MNilsvEKLFpV604hwfhVStK0usFY/QmM5zX16bo7EjnAEGofr5YyI37kzopBlZJkHD4t887i+q/C8/tr5Q94cA==}
@@ -4661,7 +4612,7 @@ packages:
     dependencies:
       '@types/hast': 2.3.4
       '@types/unist': 2.0.6
-    dev: true
+    dev: false
 
   /hast-util-is-element@3.0.0:
     resolution: {integrity: sha512-Val9mnv2IWpLbNPqc/pUem+a7Ipj2aHacCwgNfTiK0vJKl0LF+4Ba4+v1oPHFpf3bLYmreq0/l3Gud9S5OH42g==}
@@ -4734,6 +4685,7 @@ packages:
       space-separated-tokens: 2.0.2
       unist-util-visit: 4.1.2
       zwitch: 2.0.4
+    dev: false
 
   /hast-util-select@6.0.2:
     resolution: {integrity: sha512-hT/SD/d/Meu+iobvgkffo1QecV8WeKWxwsNMzcTJsKw1cKTQKSR/7ArJeURLNJF9HDjp9nVoORyNNJxrvBye8Q==}
@@ -4879,6 +4831,7 @@ packages:
     resolution: {integrity: sha512-02AQ3vLhuH3FisaMM+i/9sm4OXGSq1UhOOCpTLLQtHdL3tZt7qil69r8M8iDkZYyC0HCFylcYoP+8IO7ddta1A==}
     dependencies:
       '@types/hast': 2.3.4
+    dev: false
 
   /hast-util-to-string@3.0.0:
     resolution: {integrity: sha512-OGkAxX1Ua3cbcW6EJ5pT/tslVb90uViVkcJ4ZZIMW/R33DX/AkcJcRrPebPwJkHYwlDHXz4aIwvAAaAdtrACFA==}
@@ -4893,7 +4846,7 @@ packages:
       '@types/unist': 2.0.6
       hast-util-is-element: 2.1.3
       unist-util-find-after: 4.0.1
-    dev: true
+    dev: false
 
   /hast-util-to-text@4.0.0:
     resolution: {integrity: sha512-EWiE1FSArNBPUo1cKWtzqgnuRQwEeQbQtnFJRYV1hb1BWDgrAlBU0ExptvZMM/KSA82cDpm2sFGf3Dmc5Mza3w==}
@@ -6824,6 +6777,7 @@ packages:
 
   /not@0.1.0:
     resolution: {integrity: sha512-5PDmaAsVfnWUgTUbJ3ERwn7u79Z0dYxN9ErxCpVJJqe2RK0PJ3z+iFUxuqjwtlDDegXvtWoxD/3Fzxox7tFGWA==}
+    dev: false
 
   /npm-run-path@4.0.1:
     resolution: {integrity: sha512-S48WzZW777zhNIrn7gxOlISNAqi9ZC/uQFnRdbeIHhZhCA6UqpkOT8T1G7BvfdgP4Er8gF4sUbaS0i7QvIfCWw==}
@@ -6842,6 +6796,7 @@ packages:
     resolution: {integrity: sha512-lqjrjmaOoAnWfMmBPL+XNnynZh2+swxiX3WUE0s4yEHI6m+AwrK2UZOimIRl3X/4QctVqS8AiZjFqyOGrMXb/w==}
     dependencies:
       boolbase: 1.0.0
+    dev: false
 
   /object-assign@4.1.1:
     resolution: {integrity: sha512-rJgTQnkUnH1sFw8yT6VSU3zD3sWmu6sZhIseY8VX+GRu3P6F7Fu+JNDoXfklElbLJSnc3FUQHVe4cU5hj+BcUg==}
@@ -8639,7 +8594,7 @@ packages:
     dependencies:
       '@types/unist': 2.0.6
       unist-util-is: 5.2.1
-    dev: true
+    dev: false
 
   /unist-util-find-after@5.0.0:
     resolution: {integrity: sha512-amQa0Ep2m6hE2g72AugUItjbuM8X8cGQnFoHk0pGfrFeT9GZhzN5SW8nRsiGKK7Aif4CrACPENkA6P/Lw6fHGQ==}

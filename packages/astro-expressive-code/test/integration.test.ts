@@ -3,8 +3,7 @@ import { existsSync, rmSync, readFileSync, readdirSync } from 'fs'
 import { join } from 'path'
 import { execa } from 'execa'
 import type { AstroUserConfig } from 'astro/config'
-import { getInlineStyles } from 'remark-expressive-code/hast'
-import { hastToText, htmlToHast, selectHastElements } from '@internal/test-utils'
+import { getInlineStyles, toText, fromHtml, selectAll } from 'remark-expressive-code/hast'
 import { buildSampleCodeHtmlRegExp } from '../../remark-expressive-code/test/utils'
 import { getAssetsBaseHref } from '../src/astro-config'
 
@@ -231,14 +230,14 @@ describe('Integration into Astro ^4.0.0', () => {
 	test('Supports custom languages', () => {
 		const html = fixture?.readFile('custom-language/index.html') ?? ''
 		expect(html).toContain('Custom language')
-		const hast = htmlToHast(html)
-		const codeBlocks = selectHastElements('.expressive-code', hast)
+		const hast = fromHtml(html, { fragment: true })
+		const codeBlocks = selectAll('.expressive-code', hast)
 		expect(codeBlocks).toHaveLength(3)
 		const tokensPerCodeBlock = codeBlocks.map((codeBlock) => {
-			const tokens = selectHastElements('.ec-line span[style^="--0"]', codeBlock)
+			const tokens = selectAll('.ec-line span[style^="--0"]', codeBlock)
 			return tokens.map((token) => {
 				return {
-					text: hastToText(token),
+					text: toText(token),
 					color: getInlineStyles(token).get('--0'),
 				}
 			})

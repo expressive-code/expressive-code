@@ -1,9 +1,8 @@
 import { describe, test, expect } from 'vitest'
-import { renderAndOutputHtmlSnapshot, buildThemeFixtures, TestFixture, loadTestThemes } from '@internal/test-utils'
+import { select, toText } from '@expressive-code/core/hast'
 import { pluginShiki } from '@expressive-code/plugin-shiki'
 import { pluginTextMarkers } from '@expressive-code/plugin-text-markers'
-import { select } from 'hast-util-select'
-import { toText } from 'hast-util-to-text'
+import { renderAndOutputHtmlSnapshot, buildThemeFixtures, TestFixture, loadTestThemes } from '@internal/test-utils'
 import { pluginCollapsibleSections, pluginCollapsibleSectionsTexts } from '../src'
 import { Section } from '../src/utils'
 

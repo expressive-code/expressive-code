@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
-import { Parent } from 'hast-util-to-html/lib/types'
-import { select } from 'hast-util-select'
+import type { Parent } from '@expressive-code/core/hast'
+import { select } from '@expressive-code/core/hast'
 import { renderAndOutputHtmlSnapshot, buildThemeFixtures, loadTestThemes } from '@internal/test-utils'
 import { pluginFrames } from '../src'
 

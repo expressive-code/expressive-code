@@ -1,15 +1,13 @@
 import { expect } from 'vitest'
-import { h } from 'hastscript'
-import { Element, Parent } from 'hast-util-to-html/lib/types'
+import { sanitize } from 'hast-util-sanitize'
+import type { Element, Parent } from '../src/hast'
+import { h, toHtml, addClassName } from '../src/hast'
 import { AnnotationBaseOptions, AnnotationRenderOptions, AnnotationRenderPhase, ExpressiveCodeAnnotation } from '../src/common/annotation'
 import { ExpressiveCodeLine } from '../src/common/line'
 import { ExpressiveCodeBlockOptions } from '../src/common/block'
 import { ExpressiveCodeEngine } from '../src/common/engine'
 import { ExpressiveCodePlugin } from '../src/common/plugin'
 import { ExpressiveCodePluginHookName, ExpressiveCodeHook, ExpressiveCodePluginHooks } from '../src/common/plugin-hooks'
-import { addClassName } from '../src/hast'
-import { toHtml } from 'hast-util-to-html'
-import { sanitize } from 'hast-util-sanitize'
 
 const nothings = [undefined, null, NaN]
 const booleans = [true, false]
