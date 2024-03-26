@@ -1,4 +1,4 @@
-import { Element, Parent } from '../hast'
+import { Element, Parents } from '../hast'
 
 export function isNumber(input: number) {
 	return typeof input === 'number' && !isNaN(input)
@@ -24,7 +24,7 @@ export function isHastElement(node: Element) {
 	return isHastNode(node) && node.type === 'element'
 }
 
-export function isHastParent(node: Parent) {
+export function isHastParent(node: Parents) {
 	return isHastNode(node) && (node.type === 'element' || node.type === 'root')
 }
 

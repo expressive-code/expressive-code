@@ -425,7 +425,7 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 								totalHookCalls++
 								// Set edited property on details element
 								const details = renderData.groupAst.children[0] as Element
-								details.properties!.edited = totalHookCalls
+								details.properties.edited = totalHookCalls
 							},
 						},
 					},

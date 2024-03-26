@@ -1,10 +1,10 @@
 import { visit } from 'unist-util-visit'
 import { visitParents } from 'unist-util-visit-parents'
 import { StyleSettingPath, StyleVariant, getColorContrast, getStaticBackgroundColor, onBackground } from '@expressive-code/core'
-import type { Element, Parent } from '@expressive-code/core/hast'
+import type { Element, Parents } from '@expressive-code/core/hast'
 import { getClassNames, toText } from '@expressive-code/core/hast'
 
-export function validateColorContrast({ renderedGroupAst, styleVariants }: { renderedGroupAst: Parent; styleVariants: StyleVariant[] }) {
+export function validateColorContrast({ renderedGroupAst, styleVariants }: { renderedGroupAst: Parents; styleVariants: StyleVariant[] }) {
 	const themesWithInsufficientContrast: string[] = []
 	const expectedMinContrast = 4.5
 	const linesInGroupAst = getLineNodes(renderedGroupAst)
@@ -72,7 +72,17 @@ function getResolvedColors(styleVariant: StyleVariant) {
 	}
 }
 
-function getForegroundColor({ token, ancestors, styleVariant, styleVariantIndex }: { token: Parent; ancestors: Parent[]; styleVariant: StyleVariant; styleVariantIndex: number }) {
+function getForegroundColor({
+	token,
+	ancestors,
+	styleVariant,
+	styleVariantIndex,
+}: {
+	token: Parents
+	ancestors: Parents[]
+	styleVariant: StyleVariant
+	styleVariantIndex: number
+}) {
 	const nodes = [...ancestors, token]
 	for (let i = nodes.length - 1; i >= 0; i--) {
 		const node = nodes[i]
@@ -91,7 +101,7 @@ function getForegroundColor({ token, ancestors, styleVariant, styleVariantIndex 
 	return colors.codeFg
 }
 
-function getBackgroundColor({ token, ancestors, styleVariant }: { token: Parent; ancestors: Parent[]; styleVariant: StyleVariant }) {
+function getBackgroundColor({ token, ancestors, styleVariant }: { token: Parents; ancestors: Parents[]; styleVariant: StyleVariant }) {
 	const colors = getResolvedColors(styleVariant)
 	let combinedBg = colors.codeBg
 	const nodes = [...ancestors, token]
@@ -116,7 +126,7 @@ function getBackgroundColor({ token, ancestors, styleVariant }: { token: Parent;
 	return combinedBg
 }
 
-function getLineNodes(renderedGroupAst: Parent) {
+function getLineNodes(renderedGroupAst: Parents) {
 	const linesInGroupAst: Element[] = []
 	visit(renderedGroupAst, 'element', (node) => {
 		if (node.tagName === 'div' && getClassNames(node).includes('ec-line')) {
@@ -126,7 +136,7 @@ function getLineNodes(renderedGroupAst: Parent) {
 	return linesInGroupAst
 }
 
-function getLineIdx({ token, ancestors, linesInGroupAst }: { token: Parent; ancestors: Parent[]; linesInGroupAst: Element[] }) {
+function getLineIdx({ token, ancestors, linesInGroupAst }: { token: Parents; ancestors: Parents[]; linesInGroupAst: Element[] }) {
 	const nodes = [...ancestors, token]
 	for (let i = 0; i < nodes.length; i++) {
 		const node = nodes[i]

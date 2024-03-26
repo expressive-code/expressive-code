@@ -1,5 +1,5 @@
 import { ExpressiveCodePlugin, PluginTexts } from '@expressive-code/core'
-import type { Parent } from '@expressive-code/core/hast'
+import type { Parents } from '@expressive-code/core/hast'
 import { h } from '@expressive-code/core/hast'
 import { framesStyleSettings, getFramesBaseStyles } from './styles'
 import {
@@ -152,7 +152,7 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 				// to clarify that the code block is a terminal window
 				const screenReaderTitle = !titleText && isTerminal ? [h('span', { className: 'sr-only' }, texts.terminalWindowFallbackTitle)] : []
 
-				const extraElements: Parent[] = []
+				const extraElements: Parents[] = []
 
 				// If enabled, create a button to copy the code to the clipboard
 				if (options.showCopyToClipboardButton) {

@@ -92,7 +92,7 @@ In Expressive Code, all processing of your code blocks and their metadata is per
 <dt>renderedGroupAst</dt>
 <dd>
 <PropertySignature>
-- Type: `Parent`
+- Type: `Parents`
 </PropertySignature>
 </dd>
 <dt>renderedGroupContents</dt>
@@ -827,7 +827,7 @@ You should create a subclass that extends `ExpressiveCodeAnnotation` instead.
 
 ##### `abstract` render()
 
-- <code class="function-signature">**abstract** **render**(options): Parent[]</code>
+- <code class="function-signature">**abstract** **render**(options): Parents[]</code>
 
 Renders the annotation by transforming the provided nodes.
 
@@ -895,7 +895,7 @@ consule.log('Hello world!')
 
 ##### render()
 
-- <code class="function-signature">**render**(options): Parent[]</code>
+- <code class="function-signature">**render**(options): Parents[]</code>
 
 Renders the annotation by transforming the provided nodes.
 
@@ -966,7 +966,7 @@ the entire list.
 <dt>nodesToTransform</dt>
 <dd>
 <PropertySignature>
-- Type: `Parent`[]
+- Type: `Parents`[]
 </PropertySignature>
 </dd>
 </dl>

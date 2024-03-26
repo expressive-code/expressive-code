@@ -1,4 +1,4 @@
-import { Element, Node, Parent, Properties, Root } from 'hast-util-to-html/lib/types'
+import type { Element, ElementContent, Node, Nodes, Parent, Parents, Properties, Root } from 'hast'
 import { fromHtml } from 'hast-util-from-html'
 import { toHtml } from 'hast-util-to-html'
 import { toText } from 'hast-util-to-text'
@@ -8,9 +8,7 @@ import postcss, { Declaration } from 'postcss'
 
 export { fromHtml, toHtml, toText, matches, select, selectAll, h, s }
 
-type ElementContent = Element['children'][0]
-
-export type { Element, ElementContent, Node, Parent, Properties, Root }
+export type { Element, ElementContent, Node, Nodes, Parent, Parents, Properties, Root }
 
 /**
  * Sets a property on the given AST node.

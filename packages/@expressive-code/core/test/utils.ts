@@ -1,6 +1,6 @@
 import { expect } from 'vitest'
 import { sanitize } from 'hast-util-sanitize'
-import type { Element, Parent } from '../src/hast'
+import type { Element, Parents } from '../src/hast'
 import { h, toHtml, addClassName } from '../src/hast'
 import { AnnotationBaseOptions, AnnotationRenderOptions, AnnotationRenderPhase, ExpressiveCodeAnnotation } from '../src/common/annotation'
 import { ExpressiveCodeLine } from '../src/common/line'
@@ -124,8 +124,8 @@ export const defaultBlockOptions = {
 
 export const lineCodeHtml = ['<div class="code">Example code...</div>', '<div class="code">...with two lines!</div>']
 
-export function toSanitizedHtml(ast: Parent) {
-	const html = toHtml(sanitize(ast, { attributes: { '*': ['test', 'edited', ['className', /^code$/]], a: ['href'] } }))
+export function toSanitizedHtml(ast: Parents) {
+	const html = toHtml(sanitize(ast, { attributes: { '*': ['test', 'edited', ['className', /^code$/]], a: ['href'] }, tagNames: null }))
 	return html.replace(/ class=""/g, '')
 }
 

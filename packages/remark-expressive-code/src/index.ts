@@ -11,6 +11,7 @@ import {
 	ExpressiveCodeBlock,
 	ExpressiveCodeThemeInput,
 } from 'expressive-code'
+import type { Element } from 'expressive-code/hast'
 import { toHtml } from 'expressive-code/hast'
 
 export * from 'expressive-code'
@@ -153,8 +154,7 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 		const { renderedGroupAst, styles } = await ec.render(codeBlock)
 
 		// Collect any style and script elements that we need to add to the output
-		type HastElement = Extract<(typeof renderedGroupAst.children)[number], { type: 'element' }>
-		const extraElements: HastElement[] = []
+		const extraElements: Element[] = []
 		const stylesToPrepend: string[] = []
 
 		// Add any styles that we haven't added yet
@@ -179,6 +179,7 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 			extraElements.push({
 				type: 'element',
 				tagName: 'style',
+				properties: {},
 				children: [{ type: 'text', value: [...stylesToPrepend].join('') }],
 			})
 		}

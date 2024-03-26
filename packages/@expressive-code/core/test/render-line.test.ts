@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import type { Parent } from '../src/hast'
+import type { Parents } from '../src/hast'
 import { toHtml, h } from '../src/hast'
 import { ExpressiveCodeLine } from '../src/common/line'
 import { renderLineToAst, splitLineAtAnnotationBoundaries } from '../src/internal/render-line'
@@ -279,7 +279,7 @@ class InvalidRenderAnnotation extends ExpressiveCodeAnnotation {
 		this.renderResult = renderResult
 	}
 	render(_options: AnnotationRenderOptions) {
-		return this.renderResult as Parent[]
+		return this.renderResult as Parents[]
 	}
 }
 

@@ -1,4 +1,4 @@
-import type { Parent } from '../hast'
+import type { Parents } from '../hast'
 import { h } from '../hast'
 import { ExpressiveCodeLine } from '../common/line'
 import { AnnotationRenderPhase, AnnotationRenderPhaseOrder, ExpressiveCodeAnnotation } from '../common/annotation'
@@ -67,7 +67,7 @@ export function renderLineToAst({
 	const { textParts, partIndicesByAnnotation } = splitLineAtAnnotationBoundaries(line)
 
 	// Map the resulting parts to AST nodes
-	const partNodes: Parent[] = textParts.map((textPart) => h(null, [textPart]))
+	const partNodes: Parents[] = textParts.map((textPart) => h(null, [textPart]))
 
 	// Sort all annotations based on their render phase
 	const annotations = [...line.getAnnotations()].sort(renderPhaseSortFn)
@@ -155,7 +155,7 @@ export function renderLineToAst({
 	})
 
 	// Create a line node for all rendered parts
-	let lineNode: Parent = h(`div.${codeLineClass}`)
+	let lineNode: Parents = h(`div.${codeLineClass}`)
 
 	// If we have any gutter elements, wrap a gutter container around the elements
 	// and add it to the line's nodes
@@ -222,7 +222,7 @@ function renderPhaseSortFn(a: { renderPhase?: AnnotationRenderPhase | undefined 
 	return indexA - indexB
 }
 
-function validateAnnotationRenderOutput(nodes: Parent[], expectedLength: number) {
+function validateAnnotationRenderOutput(nodes: Parents[], expectedLength: number) {
 	if (!Array.isArray(nodes) || nodes.length !== expectedLength)
 		throw new Error(`Expected annotation render function to return an array of ${expectedLength} node(s), but got ${JSON.stringify(nodes)}.`)
 	nodes.forEach((node, nodeIndex) => {

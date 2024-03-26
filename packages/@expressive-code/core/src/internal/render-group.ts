@@ -1,4 +1,4 @@
-import type { Element, Parent } from '../hast'
+import type { Element, Parents } from '../hast'
 import { h } from '../hast'
 import { ExpressiveCodeBlock, ExpressiveCodeBlockOptions } from '../common/block'
 import { ExpressiveCodePlugin, ResolverContext } from '../common/plugin'
@@ -121,6 +121,6 @@ export async function renderGroup({
  * Wraps the group AST in an Expressive Code wrapper element with a class,
  * allowing us to scope CSS styles that are added by plugins.
  */
-function addWrapperAroundGroupAst({ groupAst }: { groupAst: Parent }): Parent {
+function addWrapperAroundGroupAst({ groupAst }: { groupAst: Parents }): Parents {
 	return h(`${groupWrapperElement}.${groupWrapperClassName}`, groupAst)
 }

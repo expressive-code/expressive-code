@@ -1,4 +1,4 @@
-import type { Element, Parent } from '../hast'
+import type { Element, Parents } from '../hast'
 import { getClassNames, setProperty, h } from '../hast'
 import { isNumber, newTypeError } from '../internal/type-checks'
 import { ExpressiveCodeLine } from './line'
@@ -9,10 +9,7 @@ export type ExpressiveCodeInlineRange = {
 	columnEnd: number
 }
 
-// Note: We need to re-export this type to enable VS Code's "auto-implement interface" feature
-// in external code using this package.
-export type { Parent }
-export type AnnotationRenderOptions = ResolverContext & { nodesToTransform: Parent[]; line: ExpressiveCodeLine; lineIndex: number }
+export type AnnotationRenderOptions = ResolverContext & { nodesToTransform: Parents[]; line: ExpressiveCodeLine; lineIndex: number }
 
 export type AnnotationRenderPhase = 'earliest' | 'earlier' | 'normal' | 'later' | 'latest'
 
@@ -44,7 +41,7 @@ export abstract class ExpressiveCodeAnnotation {
 	 * For example, you could use the `hastscript` library to wrap the received nodes
 	 * in HTML elements.
 	 */
-	abstract render({ nodesToTransform, line, lineIndex }: AnnotationRenderOptions): Parent[]
+	abstract render({ nodesToTransform, line, lineIndex }: AnnotationRenderOptions): Parents[]
 
 	/**
 	 * An optional range of columns within the line that this annotation applies to.
@@ -178,7 +175,7 @@ export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
 			return modifiedStyles
 		}
 
-		const removeNestedConflictingStyles = (node: Parent) => {
+		const removeNestedConflictingStyles = (node: Parents) => {
 			// Remove conflicting styles from all nested inline style nodes
 			for (let childIdx = node.children?.length - 1; childIdx >= 0; childIdx--) {
 				const child = node.children[childIdx]
