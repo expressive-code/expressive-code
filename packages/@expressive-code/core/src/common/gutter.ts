@@ -1,4 +1,4 @@
-import type { Parents } from '../hast'
+import type { Element } from '../hast'
 import { AnnotationRenderPhase } from './annotation'
 import { ExpressiveCodeLine } from './line'
 import { ExpressiveCodeHookContextBase } from './plugin-hooks'
@@ -21,7 +21,7 @@ export interface GutterElement {
 	 * by the line's code contents, the combined width of all gutter elements must stay constant
 	 * to ensure that the code contents of all lines are aligned.
 	 */
-	renderLine(context: GutterRenderContext): Parents
+	renderLine(context: GutterRenderContext): Element
 	/**
 	 * Some plugins may render lines that are not part of the original code, e.g. to display
 	 * the expected output of a call right inside the code block.
@@ -32,7 +32,7 @@ export interface GutterElement {
 	 * When called, the engine goes through all gutter elements registered by the installed plugins
 	 * and calls their `renderPlaceholder` function to render the placeholder gutter contents.
 	 */
-	renderPlaceholder(): Parents
+	renderPlaceholder(): Element
 	/**
 	 * Determines the phase in which this gutter element should be rendered.
 	 * Rendering is done in phases, from `earliest` to `latest`.

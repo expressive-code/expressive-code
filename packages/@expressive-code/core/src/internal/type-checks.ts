@@ -1,4 +1,4 @@
-import { Element, Parents } from '../hast'
+import { Node } from '../hast'
 
 export function isNumber(input: number) {
 	return typeof input === 'number' && !isNaN(input)
@@ -17,15 +17,11 @@ export function isFunction<Type>(input: Type) {
 }
 
 function isHastNode(node: { type: string }) {
-	return node && node.type && typeof node.type === 'string'
+	return node?.type ? typeof node.type === 'string' : false
 }
 
-export function isHastElement(node: Element) {
+export function isHastElement(node: Node) {
 	return isHastNode(node) && node.type === 'element'
-}
-
-export function isHastParent(node: Parents) {
-	return isHastNode(node) && (node.type === 'element' || node.type === 'root')
 }
 
 export function newTypeError(expectedTypeDescription: string, actualValue: unknown, fieldName?: string) {

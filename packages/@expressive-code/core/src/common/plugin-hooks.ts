@@ -1,4 +1,4 @@
-import type { Element, Parents } from '../hast'
+import type { Element } from '../hast'
 import { PluginStyles } from '../internal/css'
 import { GroupContents, RenderedGroupContents } from '../internal/render-group'
 import { ExpressiveCodeBlock } from './block'
@@ -169,7 +169,7 @@ export interface PostprocessRenderedBlockGroupContext {
 	 * or you could wrap the entire group in a custom element.
 	 */
 	renderData: {
-		groupAst: Parents
+		groupAst: Element
 	}
 }
 

@@ -1,11 +1,11 @@
-import type { Parents } from '../hast'
+import type { Element, Parents } from '../hast'
 import { h } from '../hast'
 import { ExpressiveCodeLine } from '../common/line'
 import { AnnotationRenderPhase, AnnotationRenderPhaseOrder, ExpressiveCodeAnnotation } from '../common/annotation'
 import { codeLineClass } from '../common/style-settings'
 import { ExpressiveCodeHookContextBase, RenderEmptyLineFn } from '../common/plugin-hooks'
 import { GutterElement } from '../common/gutter'
-import { isHastParent } from './type-checks'
+import { isHastElement, newTypeError } from './type-checks'
 
 export function splitLineAtAnnotationBoundaries(line: ExpressiveCodeLine) {
 	const textParts: string[] = []
@@ -145,7 +145,7 @@ export function renderLineToAst({
 	const renderedGutterElements = sortedGutterElements.map(({ pluginName, gutterElement }) => {
 		try {
 			const node = gutterElement.renderLine({ ...restContext, line, lineIndex })
-			if (!isHastParent(node)) throw new Error(`renderLine function did not return a valid HAST parent node: ${JSON.stringify(node)}`)
+			if (!isHastElement(node)) throw new Error(`renderLine function did not return a valid HAST Element node: ${JSON.stringify(node)}`)
 			return node
 		} catch (error) {
 			/* c8 ignore next */
@@ -155,7 +155,7 @@ export function renderLineToAst({
 	})
 
 	// Create a line node for all rendered parts
-	let lineNode: Parents = h(`div.${codeLineClass}`)
+	let lineNode = h(`div.${codeLineClass}`)
 
 	// If we have any gutter elements, wrap a gutter container around the elements
 	// and add it to the line's nodes
@@ -172,7 +172,10 @@ export function renderLineToAst({
 		if (annotation.inlineRange) return
 		const renderOutput = annotation.render({ nodesToTransform: [lineNode], line, lineIndex, ...restContext })
 		validateAnnotationRenderOutput(renderOutput, 1)
-		lineNode = renderOutput[0]
+		lineNode = renderOutput[0] as Element
+		if (!isHastElement(lineNode)) {
+			throw newTypeError('hast Element', lineNode, 'line-level annotation render output')
+		}
 	})
 
 	return lineNode
@@ -187,7 +190,7 @@ export function getRenderEmptyLineFn(context: ExpressiveCodeHookContextBase & { 
 		const renderedGutterElements = sortedGutterElements.map(({ pluginName, gutterElement }) => {
 			try {
 				const node = gutterElement.renderPlaceholder()
-				if (!isHastParent(node)) throw new Error(`renderPlaceholder function did not return a valid HAST parent node: ${JSON.stringify(node)}`)
+				if (!isHastElement(node)) throw new Error(`renderPlaceholder function did not return a valid HAST Element node: ${JSON.stringify(node)}`)
 				return node
 			} catch (error) {
 				/* c8 ignore next */

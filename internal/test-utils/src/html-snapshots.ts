@@ -1,10 +1,10 @@
 import { mkdirSync, writeFileSync } from 'fs'
 import { join, dirname } from 'path'
 import { ExpressiveCodeEngine, ExpressiveCodeEngineConfig, ExpressiveCodePlugin, ExpressiveCodeTheme, StyleVariant } from '@expressive-code/core'
-import type { Parents } from '@expressive-code/core/hast'
+import type { Element } from '@expressive-code/core/hast'
 import { toHtml } from '@expressive-code/core/hast'
 
-export type BlockValidationFn = ({ renderedGroupAst, baseStyles, styleVariants }: { renderedGroupAst: Parents; baseStyles: string; styleVariants: StyleVariant[] }) => void
+export type BlockValidationFn = ({ renderedGroupAst, baseStyles, styleVariants }: { renderedGroupAst: Element; baseStyles: string; styleVariants: StyleVariant[] }) => void
 
 export type TestFixture = {
 	fixtureName: string
