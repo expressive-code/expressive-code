@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { ExpressiveCodeEngineConfig, ExpressiveCodeTheme, ResolvedStyleSettingsByPath } from '@expressive-code/core'
-import type { Parent } from '@expressive-code/core/hast'
+import type { Parents } from '@expressive-code/core/hast'
 import { matches, select, selectAll } from '@expressive-code/core/hast'
 import { renderAndOutputHtmlSnapshot, buildThemeFixtures, parseCss, findDeclsBySelectorAndProperty, loadTestThemes } from '@internal/test-utils'
 import { pluginShiki } from '@expressive-code/plugin-shiki'
@@ -498,7 +498,7 @@ function validateBlockAst({
 	title,
 	srTitlePresent,
 }: {
-	renderedGroupAst: Parent
+	renderedGroupAst: Parents
 	figureSelector: string
 	title?: string | undefined
 	srTitlePresent: boolean
