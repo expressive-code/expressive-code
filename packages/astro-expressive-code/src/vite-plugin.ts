@@ -19,11 +19,13 @@ export function vitePluginAstroExpressiveCode({
 	scripts,
 	ecIntegrationOptions,
 	astroConfig,
+	command,
 }: {
 	styles: [string, string][]
 	scripts: [string, string][]
 	ecIntegrationOptions: AstroExpressiveCodeOptions
 	astroConfig: PartialAstroConfig
+	command: 'dev' | 'build' | 'preview'
 }): NonNullable<ViteUserConfig['plugins']>[number] {
 	// Map virtual module names to their code contents as strings
 	const modules: Record<string, string> = {
@@ -68,5 +70,19 @@ export function vitePluginAstroExpressiveCode({
 			return id in modules ? `\0${id}` : undefined
 		},
 		load: (id) => (id?.[0] === '\0' ? modules[id.slice(1)] : undefined),
+		// Arrow function do not allow `this` keyword, so we need to use a function declaration
+		buildEnd() {
+			if (command === 'build') {
+				for (const file of [...styles, ...scripts]) {
+					const [fileName, source] = file
+					this.emitFile({
+						type: 'asset',
+						// The file name needs to be not absolute nor relative, so e.g. `_astro/ec.o4qcx.css` or `_astro/ec.o4qcx.js`
+						fileName: fileName.slice(1),
+						source,
+					})
+				}
+			}
+		},
 	}
 }
