@@ -1,12 +1,14 @@
 import type { Element, ElementContent, Node, Nodes, Parent, Parents, Properties, Root } from 'hast'
-import { fromHtml } from 'hast-util-from-html'
 import { toHtml } from 'hast-util-to-html'
 import { toText } from 'hast-util-to-text'
 import { matches, select, selectAll } from 'hast-util-select'
+import { visit } from 'unist-util-visit'
+import { visitParents, CONTINUE, EXIT, SKIP } from 'unist-util-visit-parents'
 import { h, s } from 'hastscript'
 import postcss, { Declaration } from 'postcss'
 
-export { fromHtml, toHtml, toText, matches, select, selectAll, h, s }
+export { visit, visitParents, CONTINUE, EXIT, SKIP }
+export { toHtml, toText, matches, select, selectAll, h, s }
 
 export type { Element, ElementContent, Node, Nodes, Parent, Parents, Properties, Root }
 

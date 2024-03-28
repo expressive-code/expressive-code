@@ -14,10 +14,9 @@
   },
   "devDependencies": {
     "@types/node": "^18.15.11",
+    "hast-util-from-html": "^2.0.1",
     "postcss": "^8.4.29",
     "shiki": "^1.1.7",
-    "typescript": "^5.0.4",
-    "unist-util-visit": "^5.0.0",
-    "unist-util-visit-parents": "^6.0.1"
+    "typescript": "^5.0.4"
   }
 }

@@ -35,7 +35,6 @@
   "devDependencies": {
     "@expressive-code/plugin-shiki": "workspace:^0.33.5",
     "@expressive-code/plugin-text-markers": "workspace:^0.33.5",
-    "@internal/test-utils": "workspace:^",
-    "@types/hast": "^2.3.4"
+    "@internal/test-utils": "workspace:^"
   }
 }

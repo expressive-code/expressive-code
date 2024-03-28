@@ -1,6 +1,5 @@
 import type { Plugin, Transformer, VFileWithOutput } from 'unified'
 import type { Root, Parent, Code, HTML } from 'mdast'
-import { visit } from 'unist-util-visit'
 import {
 	BundledShikiTheme,
 	loadShikiTheme,
@@ -12,7 +11,7 @@ import {
 	ExpressiveCodeThemeInput,
 } from 'expressive-code'
 import type { Element } from 'expressive-code/hast'
-import { toHtml } from 'expressive-code/hast'
+import { toHtml, visit } from 'expressive-code/hast'
 
 export * from 'expressive-code'
 
@@ -211,7 +210,7 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 		const nodesToProcess: [Parent, Code][] = []
 
 		visit(tree, 'code', (code, index, parent) => {
-			if (index === null || parent === null) return
+			if (index === null || !parent) return
 			nodesToProcess.push([parent, code])
 		})
 

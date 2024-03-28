@@ -1,8 +1,6 @@
-import { visit } from 'unist-util-visit'
-import { visitParents } from 'unist-util-visit-parents'
 import { StyleSettingPath, StyleVariant, getColorContrast, getStaticBackgroundColor, onBackground } from '@expressive-code/core'
 import type { Element } from '@expressive-code/core/hast'
-import { getClassNames, toText } from '@expressive-code/core/hast'
+import { getClassNames, toText, visit, visitParents } from '@expressive-code/core/hast'
 
 export function validateColorContrast({ renderedGroupAst, styleVariants }: { renderedGroupAst: Element; styleVariants: StyleVariant[] }) {
 	const themesWithInsufficientContrast: string[] = []

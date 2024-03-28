@@ -148,6 +148,9 @@ importers:
       '@types/node':
         specifier: ^18.15.11
         version: 18.15.11
+      hast-util-from-html:
+        specifier: ^2.0.1
+        version: 2.0.1
       postcss:
         specifier: ^8.4.29
         version: 8.4.29
@@ -157,21 +160,12 @@ importers:
       typescript:
         specifier: ^5.0.4
         version: 5.0.4
-      unist-util-visit:
-        specifier: ^5.0.0
-        version: 5.0.0
-      unist-util-visit-parents:
-        specifier: ^6.0.1
-        version: 6.0.1
 
   packages/@expressive-code/core:
     dependencies:
       '@ctrl/tinycolor':
         specifier: ^3.6.0
         version: 3.6.0
-      hast-util-from-html:
-        specifier: ^2.0.1
-        version: 2.0.1
       hast-util-select:
         specifier: ^6.0.2
         version: 6.0.2
@@ -190,6 +184,12 @@ importers:
       postcss-nested:
         specifier: ^6.0.1
         version: 6.0.1(postcss@8.4.21)
+      unist-util-visit:
+        specifier: ^5.0.0
+        version: 5.0.0
+      unist-util-visit-parents:
+        specifier: ^6.0.1
+        version: 6.0.1
     devDependencies:
       '@types/culori':
         specifier: ^2.0.0
@@ -237,9 +237,6 @@ importers:
       '@internal/test-utils':
         specifier: workspace:^
         version: link:../../../internal/test-utils
-      '@types/hast':
-        specifier: ^2.3.4
-        version: 2.3.4
 
   packages/@expressive-code/plugin-frames:
     dependencies:
@@ -413,9 +410,6 @@ importers:
       expressive-code:
         specifier: workspace:^0.33.5
         version: link:../expressive-code
-      unist-util-visit:
-        specifier: ^4.1.2
-        version: 4.1.2
     devDependencies:
       '@internal/test-utils':
         specifier: workspace:^
@@ -1968,12 +1962,6 @@ packages:
     resolution: {integrity: sha512-McWspRw8xx8J9HurkVBfYj0xKoE25tOFlHGdx4MJ5xORQrMGZNqJhVQWaIbm6Oyla5kYOXtDiopzKRJzEOkwJw==}
     dependencies:
       '@types/unist': 2.0.10
-
-  /@types/hast@2.3.4:
-    resolution: {integrity: sha512-wLEm0QvaoawEDoTRwzTXp4b4jpwiJDvR5KMnFnVodm3scufTlBOWRD6N1OBf9TZMhjlNsSfcO5V+7AF4+Vy+9g==}
-    dependencies:
-      '@types/unist': 2.0.6
-    dev: true
 
   /@types/hast@3.0.4:
     resolution: {integrity: sha512-WPs+bbQw5aCj+x6laNGWLH3wviHtoCv/P3+otBhbOhJgG8qtpdAMlTCxLtsTWA7LH1Oh/bFCHsBn0TPS5m30EQ==}
