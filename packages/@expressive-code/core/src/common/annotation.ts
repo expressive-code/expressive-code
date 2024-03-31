@@ -1,6 +1,5 @@
 import type { Element, Parents } from '../hast'
 import { getClassNames, setProperty, h } from '../hast'
-import { isNumber, newTypeError } from '../internal/type-checks'
 import { ExpressiveCodeLine } from './line'
 import { ResolverContext } from './plugin'
 
@@ -24,12 +23,15 @@ export type AnnotationBaseOptions = { inlineRange?: ExpressiveCodeInlineRange | 
  * You can develop your own annotations by extending this class and providing
  * implementations for its abstract methods. See the implementation of the
  * {@link InlineStyleAnnotation} class for an example.
+ *
+ * You can also define your annotations as plain objects, as long as they have
+ * the same properties as this class. This allows you to use annotations in a
+ * more functional way, without the need to extend a class.
  */
 export abstract class ExpressiveCodeAnnotation {
 	constructor({ inlineRange, renderPhase }: AnnotationBaseOptions) {
-		if (inlineRange) validateExpressiveCodeInlineRange(inlineRange)
 		this.inlineRange = inlineRange
-		this.renderPhase = renderPhase ?? 'normal'
+		this.renderPhase = renderPhase
 	}
 
 	/**
@@ -44,10 +46,16 @@ export abstract class ExpressiveCodeAnnotation {
 	abstract render({ nodesToTransform, line, lineIndex }: AnnotationRenderOptions): Parents[]
 
 	/**
+	 * An optional name for the annotation. This can be used for debugging or logging purposes,
+	 * or to allow other plugins to identify the annotation.
+	 */
+	readonly name?: string | undefined
+
+	/**
 	 * An optional range of columns within the line that this annotation applies to.
 	 * If not provided, the annotation will apply to the entire line.
 	 */
-	readonly inlineRange: ExpressiveCodeInlineRange | undefined
+	readonly inlineRange?: ExpressiveCodeInlineRange | undefined
 
 	/**
 	 * Determines the phase in which this annotation should be rendered.
@@ -60,7 +68,7 @@ export abstract class ExpressiveCodeAnnotation {
 	 *
 	 * The default phase is `normal`.
 	 */
-	readonly renderPhase: AnnotationRenderPhase
+	readonly renderPhase?: AnnotationRenderPhase | undefined
 }
 
 export type InlineStyleAnnotationOptions = AnnotationBaseOptions & {
@@ -114,6 +122,7 @@ export type InlineStyleAnnotationOptions = AnnotationBaseOptions & {
  * version of Expressive Code installed on their site.
  */
 export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
+	name: string
 	color: string | undefined
 	italic: boolean
 	bold: boolean
@@ -122,6 +131,7 @@ export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
 
 	constructor({ color, italic = false, bold = false, underline = false, styleVariantIndex, ...baseOptions }: InlineStyleAnnotationOptions) {
 		super(baseOptions)
+		this.name = 'Inline style'
 		this.color = color
 		this.italic = italic
 		this.bold = bold
@@ -206,15 +216,6 @@ export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
 	}
 }
 
-function validateExpressiveCodeInlineRange(inlineRange: ExpressiveCodeInlineRange) {
-	if (!isNumber(inlineRange.columnStart) || !isNumber(inlineRange.columnEnd)) throw newTypeError('ExpressiveCodeInlineRange', inlineRange)
-}
-
-export function validateExpressiveCodeAnnotation(annotation: ExpressiveCodeAnnotation) {
-	try {
-		if (!(annotation instanceof ExpressiveCodeAnnotation)) throw 'Not an ExpressiveCodeAnnotation instance'
-		if (annotation.inlineRange) validateExpressiveCodeInlineRange(annotation.inlineRange)
-	} catch (error) {
-		throw newTypeError('instance of ExpressiveCodeAnnotation', annotation)
-	}
+export function isInlineStyleAnnotation(annotation: unknown): annotation is InlineStyleAnnotation {
+	return annotation instanceof InlineStyleAnnotation || (annotation as ExpressiveCodeAnnotation).name === 'Inline style'
 }
