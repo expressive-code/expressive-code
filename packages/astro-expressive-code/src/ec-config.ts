@@ -101,6 +101,19 @@ export async function loadEcConfigFile(projectRootUrl: URL | string): Promise<As
 		// Add a fallback path starting with "/", which Vite treats as relative to the project root
 		pathsToTry.push(`/ec.config.mjs?t=${Date.now()}`)
 	}
+	/**
+	 * Checks the error received on attempting to import EC config file.
+	 * Bun's choice to throw ResolveMessage for import resolver messages means
+	 * type comparison (error instanceof Error) isn't portable.
+	 * @param error Error object, which could be string, Error, or ResolveMessage.
+	 * @returns object containing message and, if present, error code.
+	 */
+	function coerceError(error: unknown): { message: string; code?: string | undefined } {
+		if (typeof error === 'object' && error !== null && 'message' in error) {
+			return error as { message: string; code?: string | undefined }
+		}
+		return { message: error as string }
+	}
 	for (const path of pathsToTry) {
 		try {
 			const module = (await import(/* @vite-ignore */ path)) as { default: AstroExpressiveCodeOptions }
@@ -110,8 +123,7 @@ export async function loadEcConfigFile(projectRootUrl: URL | string): Promise<As
 			return module.default
 		} catch (error) {
 			/* c8 ignore next */
-			const msg = error instanceof Error ? error.message : (error as string)
-			const code = (error as { code?: string | undefined }).code
+			const { message: msg, code } = coerceError(error)
 			// If the config file was not found, continue with the next path (if any)
 			if (code === 'ERR_MODULE_NOT_FOUND' || code === 'ERR_LOAD_URL') {
 				// Only ignore the error if it's about the config file itself
