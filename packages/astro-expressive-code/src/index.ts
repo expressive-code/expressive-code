@@ -19,7 +19,7 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 		name: 'astro-expressive-code',
 		hooks: {
 			'astro:config:setup': async (args: unknown) => {
-				const { command, config: astroConfig, updateConfig, injectRoute, logger, addWatchFile } = args as ConfigSetupHookArgs
+				const { command, config: astroConfig, updateConfig, logger, addWatchFile } = args as ConfigSetupHookArgs
 
 				// Validate Astro configuration
 				const ownPosition = astroConfig.integrations.findIndex((integration) => integration.name === 'astro-expressive-code')
@@ -62,29 +62,6 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 
 				const { hashedStyles, hashedScripts, ...renderer } = await (customCreateAstroRenderer ?? createAstroRenderer)({ astroConfig, ecConfig: processedEcConfig, logger })
 
-				// In dev mode, inject routes that serve the extracted styles & scripts
-				// (during build, the vite plugin emits them as static assets instead)
-				if (command === 'dev') {
-					hashedStyles.forEach(([hashedRoute]) => {
-						const entrypoint = new URL('../routes/styles.ts', import.meta.url).href
-						injectRoute({
-							pattern: hashedRoute,
-							entrypoint,
-							// @ts-expect-error: Also provide the old property name used in Astro 3
-							entryPoint: entrypoint,
-						})
-					})
-					hashedScripts.forEach(([hashedRoute]) => {
-						const entrypoint = new URL('../routes/scripts.ts', import.meta.url).href
-						injectRoute({
-							pattern: hashedRoute,
-							entrypoint,
-							// @ts-expect-error: Also provide the old property name used in Astro 3
-							entryPoint: entrypoint,
-						})
-					})
-				}
-
 				const remarkExpressiveCodeOptions: RemarkExpressiveCodeOptions = {
 					// Even though we have created a custom renderer, some options are used
 					// by the remark integration itself (e.g. `tabWidth`, `getBlockLocale`),
@@ -97,7 +74,6 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 				updateConfig({
 					vite: {
 						plugins: [
-							// Add the Vite plugin that provides all data for the route handler
 							vitePluginAstroExpressiveCode({
 								styles: hashedStyles,
 								scripts: hashedScripts,

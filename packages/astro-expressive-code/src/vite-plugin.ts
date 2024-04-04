@@ -9,9 +9,6 @@ import { AstroExpressiveCodeOptions } from './ec-config'
  * extracted from its `RemarkExpressiveCodeRenderer`. We extract these contents from the renderer
  * to prevent the remark plugin from repeatedly injecting them into the HTML output of every page
  * while still allowing pages to load them on demand if they contain code blocks.
- *
- * All data is provided as virtual modules under the `virtual:astro-expressive-code/*` namespace,
- * which can be used by injected routes to generate CSS & JS files.
  */
 export function vitePluginAstroExpressiveCode({
 	styles,
@@ -26,11 +23,7 @@ export function vitePluginAstroExpressiveCode({
 	astroConfig: PartialAstroConfig
 	command: 'dev' | 'build' | 'preview'
 }): NonNullable<ViteUserConfig['plugins']>[number] {
-	// Map virtual module names to their code contents as strings
-	const modules: Record<string, string> = {
-		'virtual:astro-expressive-code/scripts': `export const scripts = ${JSON.stringify(scripts)}`,
-		'virtual:astro-expressive-code/styles': `export const styles = ${JSON.stringify(styles)}`,
-	}
+	const modules: Record<string, string> = {}
 
 	// Create virtual config module
 	const configModuleContents: string[] = []
@@ -58,11 +51,25 @@ export function vitePluginAstroExpressiveCode({
 	// Create virtual config preprocessor module
 	modules['virtual:astro-expressive-code/preprocess-config'] = customConfigPreprocessors?.preprocessComponentConfig || `export default ({ ecConfig }) => ecConfig`
 
+	const getVirtualModuleContents = (source: string) => {
+		// In dev mode, serve the extracted styles & scripts as virtual modules
+		if (command === 'dev') {
+			const sourceWithoutQuery = source.split('?')[0]
+			for (const file of [...styles, ...scripts]) {
+				const [fileName, contents] = file
+				if (fileName === sourceWithoutQuery) return contents
+			}
+		}
+		return source in modules ? modules[source] : undefined
+	}
+
 	return {
 		name: 'vite-plugin-astro-expressive-code',
 		async resolveId(source) {
 			// Resolve virtual API module to the current package entrypoint
 			if (source === 'virtual:astro-expressive-code/api') {
+				// TODO: This might not work for Starlight user projects that have no
+				// direct dependency on astro-expressive-code.
 				return await this.resolve('astro-expressive-code')
 			}
 			// Resolve EC config file if present
@@ -71,10 +78,11 @@ export function vitePluginAstroExpressiveCode({
 				if (resolved) return resolved
 			}
 			// Resolve other virtual modules
-			return source in modules ? `\0${source}` : undefined
+			if (getVirtualModuleContents(source)) return `\0${source}`
 		},
-		load: (id) => (id?.[0] === '\0' ? modules[id.slice(1)] : undefined),
+		load: (id) => (id?.[0] === '\0' ? getVirtualModuleContents(id.slice(1)) : undefined),
 		buildEnd() {
+			// In build mode, emit the extracted styles & scripts as static assets
 			if (command === 'build') {
 				for (const file of [...styles, ...scripts]) {
 					const [fileName, source] = file

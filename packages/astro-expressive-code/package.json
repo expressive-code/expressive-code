@@ -23,9 +23,7 @@
       "types": "./dist/hast.d.ts",
       "default": "./dist/hast.js"
     },
-    "./components": "./components/index.ts",
-    "./routes/scripts.ts": "./routes/scripts.ts",
-    "./routes/styles.ts": "./routes/styles.ts"
+    "./components": "./components/index.ts"
   },
   "types": "./dist/index.d.ts",
   "typesVersions": {
@@ -38,7 +36,6 @@
   "files": [
     "dist",
     "components",
-    "routes",
     "virtual.d.ts"
   ],
   "scripts": {
