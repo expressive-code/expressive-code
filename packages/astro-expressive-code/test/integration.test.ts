@@ -282,8 +282,14 @@ describe('Integration into Astro ^4.5.0 with Cloudflare adapter', () => {
 		})
 	}, 20 * 1000)
 
-	test('Build succeeds', () => {
-		expect(fixture).toBeDefined()
+	test('Emits an external stylesheet into the Astro assets dir', () => {
+		const files = fixture?.readDir('_astro') ?? []
+		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.css$/))).toHaveLength(1)
+	})
+
+	test('Emits an external script into the Astro assets dir', () => {
+		const files = fixture?.readDir('_astro') ?? []
+		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.js$/))).toHaveLength(1)
 	})
 })
 

@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro'
 import { scripts } from 'virtual:astro-expressive-code/scripts'
 
-export const prerender = true
+// Note: As this route is only used in dev mode, there is no need to set a prerender flag
 
 export const GET: APIRoute = ({ url }) => {
 	const match = scripts.find(([route]) => url.pathname.endsWith(route))

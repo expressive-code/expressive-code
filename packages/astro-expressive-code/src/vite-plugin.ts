@@ -18,11 +18,13 @@ export function vitePluginAstroExpressiveCode({
 	scripts,
 	ecIntegrationOptions,
 	astroConfig,
+	command,
 }: {
 	styles: [string, string][]
 	scripts: [string, string][]
 	ecIntegrationOptions: AstroExpressiveCodeOptions
 	astroConfig: PartialAstroConfig
+	command: 'dev' | 'build' | 'preview'
 }): NonNullable<ViteUserConfig['plugins']>[number] {
 	// Map virtual module names to their code contents as strings
 	const modules: Record<string, string> = {
@@ -42,7 +44,7 @@ export function vitePluginAstroExpressiveCode({
 	configModuleContents.push(
 		`let ecConfigFileOptions = {}`,
 		`try {`,
-		`	ecConfigFileOptions = (await import(/* @vite-ignore */"virtual:astro-expressive-code/ec-config")).default`,
+		`	ecConfigFileOptions = (await import('virtual:astro-expressive-code/ec-config')).default`,
 		`} catch (e) {`,
 		`	console.error('*** Failed to load Expressive Code config file ${strEcConfigFileUrlHref}. You can ignore this message if you just renamed/removed the file.\\n\\n(Full error message: "' + (e?.message || e) + '")\\n')`,
 		`}`,
@@ -72,5 +74,18 @@ export function vitePluginAstroExpressiveCode({
 			return source in modules ? `\0${source}` : undefined
 		},
 		load: (id) => (id?.[0] === '\0' ? modules[id.slice(1)] : undefined),
+		buildEnd() {
+			if (command === 'build') {
+				for (const file of [...styles, ...scripts]) {
+					const [fileName, source] = file
+					this.emitFile({
+						type: 'asset',
+						// Remove leading slash (e.g. `_astro/ec.o4qcx.css`)
+						fileName: fileName.slice(1),
+						source,
+					})
+				}
+			}
+		},
 	}
 }
