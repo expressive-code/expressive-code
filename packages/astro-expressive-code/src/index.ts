@@ -2,7 +2,7 @@ import type { AstroIntegration } from 'astro'
 import type { RemarkExpressiveCodeOptions } from 'remark-expressive-code'
 import remarkExpressiveCode from 'remark-expressive-code'
 import { ConfigSetupHookArgs, PartialAstroConfig } from './astro-config'
-import { AstroExpressiveCodeOptions, CustomConfigPreprocessors, ConfigPreprocessorFn, getSupportedEcConfigFilePaths, loadEcConfigFile } from './ec-config'
+import { AstroExpressiveCodeOptions, CustomConfigPreprocessors, ConfigPreprocessorFn, getEcConfigFileUrl, loadEcConfigFile } from './ec-config'
 import { createAstroRenderer } from './renderer'
 import { vitePluginAstroExpressiveCode } from './vite-plugin'
 
@@ -32,8 +32,8 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 					)
 				}
 
-				// Watch all supported config file names for changes
-				getSupportedEcConfigFilePaths(astroConfig.root).forEach((filePath) => addWatchFile(filePath))
+				// Watch the EC config file for changes (including creation/deletion)
+				addWatchFile(getEcConfigFileUrl(astroConfig.root))
 
 				// Merge the given options with the ones from a potential EC config file
 				const ecConfigFileOptions = await loadEcConfigFile(astroConfig.root)

@@ -270,6 +270,23 @@ describe('Integration into Astro ^4.0.0', () => {
 	})
 })
 
+describe('Integration into Astro ^4.5.0 with Cloudflare adapter', () => {
+	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
+
+	beforeAll(async () => {
+		fixture = await buildFixture({
+			fixtureDir: 'astro-4.5.0',
+			buildCommand: 'pnpm',
+			buildArgs: ['astro', 'build'],
+			outputDir: 'dist',
+		})
+	}, 20 * 1000)
+
+	test('Build succeeds', () => {
+		expect(fixture).toBeDefined()
+	})
+})
+
 function validateHtml(
 	html: string,
 	options?: {

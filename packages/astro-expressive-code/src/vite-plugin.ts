@@ -1,7 +1,6 @@
-import { fileURLToPath } from 'node:url'
 import type { ViteUserConfig } from 'astro'
 import { stableStringify } from 'remark-expressive-code'
-import { findEcConfigFilePath } from './ec-config'
+import { getEcConfigFileUrl } from './ec-config'
 import { PartialAstroConfig, serializePartialAstroConfig } from './astro-config'
 import { AstroExpressiveCodeOptions } from './ec-config'
 
@@ -39,33 +38,38 @@ export function vitePluginAstroExpressiveCode({
 	const { customConfigPreprocessors, ...otherEcIntegrationOptions } = ecIntegrationOptions
 	configModuleContents.push(`export const ecIntegrationOptions = ${stableStringify(otherEcIntegrationOptions)}`)
 	// - Expressive Code config file options
-	const ecConfigFilePath = findEcConfigFilePath(astroConfig.root)
-	if (ecConfigFilePath) {
-		const strEcConfigFilePath = JSON.stringify(ecConfigFilePath)
-		configModuleContents.push(
-			`let ecConfigFileOptions = {}`,
-			`try {`,
-			`	ecConfigFileOptions = (await import(${strEcConfigFilePath})).default`,
-			`} catch (e) {`,
-			`	console.error('*** Failed to load Expressive Code config file ${strEcConfigFilePath}. You can ignore this message if you just renamed/removed the file.\\n\\n(Full error message: "' + (e?.message || e) + '")\\n')`,
-			`}`,
-			`export { ecConfigFileOptions }`
-		)
-	} else {
-		configModuleContents.push(`export const ecConfigFileOptions = {}`)
-	}
+	const strEcConfigFileUrlHref = JSON.stringify(getEcConfigFileUrl(astroConfig.root).href)
+	configModuleContents.push(
+		`let ecConfigFileOptions = {}`,
+		`try {`,
+		`	ecConfigFileOptions = (await import(/* @vite-ignore */"virtual:astro-expressive-code/ec-config")).default`,
+		`} catch (e) {`,
+		`	console.error('*** Failed to load Expressive Code config file ${strEcConfigFileUrlHref}. You can ignore this message if you just renamed/removed the file.\\n\\n(Full error message: "' + (e?.message || e) + '")\\n')`,
+		`}`,
+		`export { ecConfigFileOptions }`
+	)
 	modules['virtual:astro-expressive-code/config'] = configModuleContents.join('\n')
+
+	// This is a fallback that will only be used when no config file is present
+	modules['virtual:astro-expressive-code/ec-config'] = 'export default {}'
 
 	// Create virtual config preprocessor module
 	modules['virtual:astro-expressive-code/preprocess-config'] = customConfigPreprocessors?.preprocessComponentConfig || `export default ({ ecConfig }) => ecConfig`
 
 	return {
 		name: 'vite-plugin-astro-expressive-code',
-		resolveId: (id) => {
+		async resolveId(source) {
 			// Resolve virtual API module to the current package entrypoint
-			if (id === 'virtual:astro-expressive-code/api') return fileURLToPath(import.meta.url)
+			if (source === 'virtual:astro-expressive-code/api') {
+				return await this.resolve('astro-expressive-code')
+			}
+			// Resolve EC config file if present
+			if (source === 'virtual:astro-expressive-code/ec-config') {
+				const resolved = await this.resolve('./ec.config.mjs')
+				if (resolved) return resolved
+			}
 			// Resolve other virtual modules
-			return id in modules ? `\0${id}` : undefined
+			return source in modules ? `\0${source}` : undefined
 		},
 		load: (id) => (id?.[0] === '\0' ? modules[id.slice(1)] : undefined),
 	}
