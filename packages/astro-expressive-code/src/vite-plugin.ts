@@ -65,11 +65,11 @@ export function vitePluginAstroExpressiveCode({
 
 	return {
 		name: 'vite-plugin-astro-expressive-code',
-		async resolveId(source) {
+		async resolveId(source, importer) {
 			// Resolve virtual API module to the current package entrypoint
 			if (source === 'virtual:astro-expressive-code/api') {
-				// TODO: This might not work for Starlight user projects that have no
-				// direct dependency on astro-expressive-code.
+				const resolved = await this.resolve('astro-expressive-code', importer)
+				if (resolved) return resolved
 				return await this.resolve('astro-expressive-code')
 			}
 			// Resolve EC config file if present
