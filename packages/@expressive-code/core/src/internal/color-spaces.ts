@@ -1,4 +1,5 @@
-import { Rgb, Hsl, Oklch, convertHslToRgb, convertRgbToHsl, convertLchToLab, convertLabToLch, convertOklabToRgb, convertRgbToOklab } from 'culori/fn'
+import type { Rgb, Hsl, Oklch } from 'culori/fn'
+import { convertHslToRgb, convertRgbToHsl, convertLchToLab, convertLabToLch, convertOklabToRgb, convertRgbToOklab } from 'culori/fn'
 import { bisect } from './search-algorithms'
 
 /**
