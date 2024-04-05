@@ -110,18 +110,20 @@ export async function loadEcConfigFile(projectRootUrl: URL | string): Promise<As
 			}
 			return module.default
 		} catch (error) {
-			/* c8 ignore next */
-			const { message: msg, code } = coerceError(error)
+			const { message, code } = coerceError(error)
 			// If the config file was not found, continue with the next path (if any)
 			if (code === 'ERR_MODULE_NOT_FOUND' || code === 'ERR_LOAD_URL') {
-				// Only ignore the error if it's about the config file itself
-				// not being found, not about other imports in the config file
-				if (msg.match(/ec\.config\.mjs.*(imported from|resolved id)/)) continue
+				// Ignore the error only if the config file itself was not found,
+				// not if the config file failed to import another module
+				// - Node: Cannot find module '.../ec.config.mjs' imported from .../astro-expressive-code/dist/index.js
+				// - Bun:  Cannot find module ".../ec.config.mjs" from ".../astro-expressive-code/dist/index.js"
+				// - Vite: .../ec.config.mjs at .../ec.config.mjs (imported from ...)
+				if (message.replace(/(imported )?from .*$/, '').includes('ec.config.mjs')) continue
 			}
 			// If the config file exists, but there was a problem loading it, rethrow the error
 			throw new Error(
 				`Your project includes an Expressive Code config file ("ec.config.mjs")
-				that could not be loaded due to ${code ? `the error ${code}` : 'the following error'}: ${msg}`.replace(/\s+/g, ' '),
+				that could not be loaded due to ${code ? `the error ${code}` : 'the following error'}: ${message}`.replace(/\s+/g, ' '),
 				error instanceof Error ? { cause: error } : undefined
 			)
 		}

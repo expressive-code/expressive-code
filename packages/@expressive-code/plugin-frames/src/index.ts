@@ -13,7 +13,7 @@ import {
 	LanguagesWithFencedFrontmatter,
 } from './utils'
 import copyJsModule from './copy-js-module.min'
-export { FramesStyleSettings } from './styles'
+export type { FramesStyleSettings } from './styles'
 
 export interface PluginFramesOptions {
 	/**

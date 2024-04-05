@@ -8,12 +8,13 @@ import {
 	onBackground,
 } from '@expressive-code/core'
 import rangeParser from 'parse-numeric-range'
-import { MarkerType, MarkerTypeOrder, markerTypeFromString } from './marker-types'
+import type { MarkerType } from './marker-types'
+import { MarkerTypeOrder, markerTypeFromString } from './marker-types'
 import { getTextMarkersBaseStyles, markerBgColorPaths, textMarkersStyleSettings } from './styles'
 import { flattenInlineMarkerRanges, getInlineSearchTermMatches } from './inline-markers'
 import { TextMarkerAnnotation } from './annotations'
 import { toDefinitionsArray } from './utils'
-export { TextMarkersStyleSettings } from './styles'
+export type { TextMarkersStyleSettings } from './styles'
 
 export type MarkerLineOrRange = number | { range: string; label?: string | undefined }
 
