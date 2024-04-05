@@ -1,15 +1,13 @@
 import { expect } from 'vitest'
-import { h } from 'hastscript'
-import { Element, Parent } from 'hast-util-to-html/lib/types'
+import { sanitize } from 'hast-util-sanitize'
+import type { Element, Parents } from '../src/hast'
+import { h, toHtml, addClassName } from '../src/hast'
 import { AnnotationBaseOptions, AnnotationRenderOptions, AnnotationRenderPhase, ExpressiveCodeAnnotation } from '../src/common/annotation'
 import { ExpressiveCodeLine } from '../src/common/line'
 import { ExpressiveCodeBlockOptions } from '../src/common/block'
 import { ExpressiveCodeEngine } from '../src/common/engine'
 import { ExpressiveCodePlugin } from '../src/common/plugin'
 import { ExpressiveCodePluginHookName, ExpressiveCodeHook, ExpressiveCodePluginHooks } from '../src/common/plugin-hooks'
-import { addClassName } from '../src/helpers/ast'
-import { toHtml } from 'hast-util-to-html'
-import { sanitize } from 'hast-util-sanitize'
 
 const nothings = [undefined, null, NaN]
 const booleans = [true, false]
@@ -31,11 +29,13 @@ export function annotateMatchingTextParts({
 	partsToAnnotate,
 	renderPhase,
 	selector,
+	useFunctionalSyntax = false,
 }: {
 	line: ExpressiveCodeLine
 	partsToAnnotate: string[]
 	renderPhase?: AnnotationRenderPhase | undefined
 	selector?: string | undefined
+	useFunctionalSyntax?: boolean | undefined
 }) {
 	// Create annotations for all the given parts
 	partsToAnnotate.forEach((partToAnnotate) => {
@@ -44,16 +44,27 @@ export function annotateMatchingTextParts({
 		if (columnStart === -1) throw new Error(`Failed to add test annotation: The string "${partToAnnotate}" was not found in line text.`)
 		const columnEnd = columnStart + partToAnnotate.length
 		const newAnnotationIndex = line.getAnnotations().length
-		line.addAnnotation(
-			new WrapperAnnotation({
-				selector: `${selector || newAnnotationIndex}`,
+		if (useFunctionalSyntax) {
+			line.addAnnotation({
+				render: ({ nodesToTransform }) => nodesToTransform.map((node) => h(`${selector || newAnnotationIndex}`, [node])),
 				inlineRange: {
 					columnStart,
 					columnEnd,
 				},
 				...(renderPhase ? { renderPhase } : {}),
 			})
-		)
+		} else {
+			line.addAnnotation(
+				new WrapperAnnotation({
+					selector: `${selector || newAnnotationIndex}`,
+					inlineRange: {
+						columnStart,
+						columnEnd,
+					},
+					...(renderPhase ? { renderPhase } : {}),
+				})
+			)
+		}
 	})
 }
 
@@ -82,6 +93,15 @@ export class WrapperAnnotation extends ExpressiveCodeAnnotation {
 	}
 	render({ nodesToTransform }: AnnotationRenderOptions) {
 		return nodesToTransform.map((node) => h(this.selector, [node]))
+	}
+}
+
+export function classNameAnnotation(addClass: string): ExpressiveCodeAnnotation {
+	return {
+		render: ({ nodesToTransform }) => {
+			nodesToTransform.forEach((node) => addClassName(node as Element, addClass))
+			return nodesToTransform
+		},
 	}
 }
 
@@ -126,8 +146,8 @@ export const defaultBlockOptions = {
 
 export const lineCodeHtml = ['<div class="code">Example code...</div>', '<div class="code">...with two lines!</div>']
 
-export function toSanitizedHtml(ast: Parent) {
-	const html = toHtml(sanitize(ast, { attributes: { '*': ['test', 'edited', ['className', /^code$/]], a: ['href'] } }))
+export function toSanitizedHtml(ast: Parents) {
+	const html = toHtml(sanitize(ast, { attributes: { '*': ['test', 'edited', ['className', /^code$/]], a: ['href'] }, tagNames: null }))
 	return html.replace(/ class=""/g, '')
 }
 

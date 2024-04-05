@@ -1,6 +1,3 @@
-import { existsSync } from 'node:fs'
-import { resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import type { RemarkExpressiveCodeOptions } from 'remark-expressive-code'
 import type { PartialAstroConfig } from './astro-config'
 import type { AstroExpressiveCodeRenderer, CreateAstroRendererArgs } from './renderer'
@@ -70,19 +67,10 @@ export type CustomConfigPreprocessors = {
 export type ConfigPreprocessorFn = (args: { ecConfig: unknown; astroConfig: PartialAstroConfig }) => Promise<AstroExpressiveCodeOptions> | AstroExpressiveCodeOptions
 
 /**
- * Returns an array of supported absolute EC config file paths in the Astro project root.
+ * Returns a URL to the optional EC config file in the Astro project root.
  */
-export function getSupportedEcConfigFilePaths(projectRootUrl: URL | string) {
-	const projectRootPath = fileURLToPath(projectRootUrl)
-	return [resolve(projectRootPath, 'ec.config.mjs')]
-}
-
-/**
- * Returns the first existing config file path of {@link getSupportedEcConfigFilePaths}.
- */
-export function findEcConfigFilePath(projectRootUrl: URL | string) {
-	const ecConfigFile = getSupportedEcConfigFilePaths(projectRootUrl).find((fileName) => existsSync(fileName))
-	return ecConfigFile
+export function getEcConfigFileUrl(projectRootUrl: URL | string) {
+	return new URL('./ec.config.mjs', projectRootUrl)
 }
 
 /**

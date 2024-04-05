@@ -3,8 +3,8 @@ import { existsSync, rmSync, readFileSync, readdirSync } from 'fs'
 import { join } from 'path'
 import { execa } from 'execa'
 import type { AstroUserConfig } from 'astro/config'
-import { getInlineStyles } from 'remark-expressive-code'
-import { hastToText, htmlToHast, selectHastElements } from '@internal/test-utils'
+import { getInlineStyles, toText, selectAll } from 'remark-expressive-code/hast'
+import { fromHtml } from '@internal/test-utils'
 import { buildSampleCodeHtmlRegExp } from '../../remark-expressive-code/test/utils'
 import { getAssetsBaseHref } from '../src/astro-config'
 
@@ -231,14 +231,14 @@ describe('Integration into Astro ^4.0.0', () => {
 	test('Supports custom languages', () => {
 		const html = fixture?.readFile('custom-language/index.html') ?? ''
 		expect(html).toContain('Custom language')
-		const hast = htmlToHast(html)
-		const codeBlocks = selectHastElements('.expressive-code', hast)
+		const hast = fromHtml(html, { fragment: true })
+		const codeBlocks = selectAll('.expressive-code', hast)
 		expect(codeBlocks).toHaveLength(3)
 		const tokensPerCodeBlock = codeBlocks.map((codeBlock) => {
-			const tokens = selectHastElements('.ec-line span[style^="--0"]', codeBlock)
+			const tokens = selectAll('.ec-line span[style^="--0"]', codeBlock)
 			return tokens.map((token) => {
 				return {
-					text: hastToText(token),
+					text: toText(token),
 					color: getInlineStyles(token).get('--0'),
 				}
 			})
@@ -258,6 +258,29 @@ describe('Integration into Astro ^4.0.0', () => {
 		expect(customLang, 'Failed to highlight fenced code block using custom language').toEqual(expect.arrayContaining(customLangTokenColors))
 		expect(jsLang, 'Failed to highlight fenced code block using JS language after adding custom language').toEqual(expect.arrayContaining(jsLangTokenColors))
 	})
+
+	test('Emits an external stylesheet into the Astro assets dir', () => {
+		const files = fixture?.readDir('_astro') ?? []
+		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.css$/))).toHaveLength(1)
+	})
+
+	test('Emits an external script into the Astro assets dir', () => {
+		const files = fixture?.readDir('_astro') ?? []
+		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.js$/))).toHaveLength(1)
+	})
+})
+
+describe('Integration into Astro ^4.5.0 with Cloudflare adapter', () => {
+	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
+
+	beforeAll(async () => {
+		fixture = await buildFixture({
+			fixtureDir: 'astro-4.5.0',
+			buildCommand: 'pnpm',
+			buildArgs: ['astro', 'build'],
+			outputDir: 'dist',
+		})
+	}, 20 * 1000)
 
 	test('Emits an external stylesheet into the Astro assets dir', () => {
 		const files = fixture?.readDir('_astro') ?? []

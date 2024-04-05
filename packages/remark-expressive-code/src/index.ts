@@ -1,6 +1,5 @@
 import type { Plugin, Transformer, VFileWithOutput } from 'unified'
 import type { Root, Parent, Code, HTML } from 'mdast'
-import { visit } from 'unist-util-visit'
 import {
 	BundledShikiTheme,
 	loadShikiTheme,
@@ -11,7 +10,8 @@ import {
 	ExpressiveCodeBlock,
 	ExpressiveCodeThemeInput,
 } from 'expressive-code'
-import { toHtml } from 'hast-util-to-html'
+import type { Element } from 'expressive-code/hast'
+import { toHtml, visit } from 'expressive-code/hast'
 
 export * from 'expressive-code'
 
@@ -153,8 +153,7 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 		const { renderedGroupAst, styles } = await ec.render(codeBlock)
 
 		// Collect any style and script elements that we need to add to the output
-		type HastElement = Extract<(typeof renderedGroupAst.children)[number], { type: 'element' }>
-		const extraElements: HastElement[] = []
+		const extraElements: Element[] = []
 		const stylesToPrepend: string[] = []
 
 		// Add any styles that we haven't added yet
@@ -179,6 +178,7 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 			extraElements.push({
 				type: 'element',
 				tagName: 'style',
+				properties: {},
 				children: [{ type: 'text', value: [...stylesToPrepend].join('') }],
 			})
 		}
@@ -210,7 +210,7 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 		const nodesToProcess: [Parent, Code][] = []
 
 		visit(tree, 'code', (code, index, parent) => {
-			if (index === null || parent === null) return
+			if (index === null || !parent) return
 			nodesToProcess.push([parent, code])
 		})
 

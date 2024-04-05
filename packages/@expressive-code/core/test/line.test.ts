@@ -251,6 +251,14 @@ describe('ExpressiveCodeLine', () => {
 							render: value,
 						}) as unknown as ExpressiveCodeAnnotation
 				),
+				// Missing render function
+				{
+					renderPhase: 'earlier',
+				} as unknown as ExpressiveCodeAnnotation,
+				// render is not even a function
+				{
+					render: true,
+				} as unknown as ExpressiveCodeAnnotation,
 			]
 			const invalidOptions: { inlineRange: ExpressiveCodeInlineRange }[] = [
 				...nonNumberValues.map((value) => ({
@@ -312,6 +320,14 @@ describe('ExpressiveCodeLine', () => {
 			state.canEditAnnotations = true
 			line.addAnnotation(new WrapperAnnotation({ selector: 'passed' }))
 			expect(line.getAnnotations()).toMatchObject([{ selector: 'test' }, { selector: 'passed' }])
+		})
+		test('Allows adding plain objects instead of class instances', () => {
+			const line = new ExpressiveCodeLine('This is a test.')
+			line.addAnnotation({
+				render({ nodesToTransform }) {
+					return nodesToTransform
+				},
+			})
 		})
 	})
 

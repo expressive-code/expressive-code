@@ -2,7 +2,7 @@ import type { AstroIntegration } from 'astro'
 import type { RemarkExpressiveCodeOptions } from 'remark-expressive-code'
 import remarkExpressiveCode from 'remark-expressive-code'
 import { ConfigSetupHookArgs, PartialAstroConfig } from './astro-config'
-import { AstroExpressiveCodeOptions, CustomConfigPreprocessors, ConfigPreprocessorFn, getSupportedEcConfigFilePaths, loadEcConfigFile } from './ec-config'
+import { AstroExpressiveCodeOptions, CustomConfigPreprocessors, ConfigPreprocessorFn, getEcConfigFileUrl, loadEcConfigFile } from './ec-config'
 import { createAstroRenderer } from './renderer'
 import { vitePluginAstroExpressiveCode } from './vite-plugin'
 
@@ -19,7 +19,7 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 		name: 'astro-expressive-code',
 		hooks: {
 			'astro:config:setup': async (args: unknown) => {
-				const { command, config: astroConfig, updateConfig, injectRoute, logger, addWatchFile } = args as ConfigSetupHookArgs
+				const { command, config: astroConfig, updateConfig, logger, addWatchFile } = args as ConfigSetupHookArgs
 
 				// Validate Astro configuration
 				const ownPosition = astroConfig.integrations.findIndex((integration) => integration.name === 'astro-expressive-code')
@@ -32,8 +32,8 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 					)
 				}
 
-				// Watch all supported config file names for changes
-				getSupportedEcConfigFilePaths(astroConfig.root).forEach((filePath) => addWatchFile(filePath))
+				// Watch the EC config file for changes (including creation/deletion)
+				addWatchFile(getEcConfigFileUrl(astroConfig.root))
 
 				// Merge the given options with the ones from a potential EC config file
 				const ecConfigFileOptions = await loadEcConfigFile(astroConfig.root)
@@ -62,30 +62,6 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 
 				const { hashedStyles, hashedScripts, ...renderer } = await (customCreateAstroRenderer ?? createAstroRenderer)({ astroConfig, ecConfig: processedEcConfig, logger })
 
-				if (command === 'dev') {
-					// Inject route handlers that provide access to the extracted styles & scripts
-					hashedStyles.forEach(([hashedRoute]) => {
-						const entrypoint = new URL('../routes/styles.ts', import.meta.url).href
-						injectRoute({
-							pattern: hashedRoute,
-							entrypoint,
-							prerender: true,
-							// @ts-expect-error: Also provide the old property name used in Astro 3
-							entryPoint: entrypoint,
-						})
-					})
-					hashedScripts.forEach(([hashedRoute]) => {
-						const entrypoint = new URL('../routes/scripts.ts', import.meta.url).href
-						injectRoute({
-							pattern: hashedRoute,
-							entrypoint,
-							prerender: true,
-							// @ts-expect-error: Also provide the old property name used in Astro 3
-							entryPoint: entrypoint,
-						})
-					})
-				}
-
 				const remarkExpressiveCodeOptions: RemarkExpressiveCodeOptions = {
 					// Even though we have created a custom renderer, some options are used
 					// by the remark integration itself (e.g. `tabWidth`, `getBlockLocale`),
@@ -98,7 +74,6 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 				updateConfig({
 					vite: {
 						plugins: [
-							// Add the Vite plugin that provides all data for the route handler
 							vitePluginAstroExpressiveCode({
 								styles: hashedStyles,
 								scripts: hashedScripts,

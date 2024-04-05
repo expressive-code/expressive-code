@@ -1,14 +1,13 @@
-import { Element } from 'hast-util-to-html/lib/types'
-import { h } from 'hastscript'
+import type { Element } from '../hast'
+import { addClassName, setInlineStyle, h } from '../hast'
 import { ExpressiveCodePlugin } from '../common/plugin'
 import { ExpressiveCodeHookContext, ExpressiveCodeHookContextBase, ExpressiveCodePluginHooks_BeforeRendering, runHooks } from '../common/plugin-hooks'
 import { PluginStyles } from './css'
 import { PluginGutterElement, getRenderEmptyLineFn, renderLineToAst } from './render-line'
-import { isBoolean, isHastElement, isHastParent, newTypeError } from './type-checks'
+import { isBoolean, isHastElement, newTypeError } from './type-checks'
 import { AnnotationRenderPhaseOrder } from '../common/annotation'
 import { ExpressiveCodeBlock } from '../common/block'
 import { GutterElement } from '../common/gutter'
-import { addClassName, setInlineStyle } from '../helpers/ast'
 
 export async function renderBlock({
 	codeBlock,
@@ -130,8 +129,8 @@ export async function renderBlock({
 			renderData: blockRenderData,
 			renderEmptyLine,
 		})
-		if (!isHastParent(blockRenderData.blockAst)) {
-			throw newTypeError('hast Parent', blockRenderData.blockAst, 'blockAst')
+		if (!isHastElement(blockRenderData.blockAst)) {
+			throw newTypeError('hast Element', blockRenderData.blockAst, 'blockAst')
 		}
 	})
 

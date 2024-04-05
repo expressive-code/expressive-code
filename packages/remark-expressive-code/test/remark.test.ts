@@ -6,7 +6,8 @@ import rehypeRaw from 'rehype-raw'
 import toHtml from 'rehype-stringify'
 import draculaRaw from 'shiki/themes/dracula.mjs'
 import { ThemeRegistration } from 'shiki/types.mjs'
-import { hastToText, htmlToHast, selectHastElements } from '@internal/test-utils'
+import { toText, selectAll } from 'expressive-code/hast'
+import { fromHtml } from '@internal/test-utils'
 import remarkExpressiveCode, { ExpressiveCodeTheme, RemarkExpressiveCodeOptions, StyleSettingPath, getCssVarName } from '../src'
 import { buildSampleCodeHtmlRegExp, sampleCodeMarkdown } from './utils'
 
@@ -368,6 +369,6 @@ function createRemarkProcessor(options?: RemarkExpressiveCodeOptions) {
 }
 
 function getCodePlaintextFromHtml(html: string) {
-	const codeLines = selectHastElements('pre > code .ec-line .code', htmlToHast(html))
-	return codeLines.map((block) => hastToText(block, { whitespace: 'pre' })).join('\n')
+	const codeLines = selectAll('pre > code .ec-line .code', fromHtml(html, { fragment: true }))
+	return codeLines.map((block) => toText(block, { whitespace: 'pre' })).join('\n')
 }

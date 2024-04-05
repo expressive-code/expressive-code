@@ -14,15 +14,28 @@
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "exports": {
-    "types": "./dist/index.d.ts",
-    "default": "./dist/index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./hast": {
+      "types": "./dist/hast.d.ts",
+      "default": "./dist/hast.js"
+    }
   },
   "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "hast": [
+        "dist/hast.d.ts"
+      ]
+    }
+  },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsup ./src/index.ts --format esm --dts --sourcemap --clean",
+    "build": "tsup ./src/index.ts ./src/hast.ts --format esm --no-splitting --dts --sourcemap --clean",
     "coverage": "vitest run --coverage",
     "test": "vitest run --reporter verbose",
     "test-short": "vitest run --reporter basic",
@@ -31,17 +44,22 @@
   },
   "dependencies": {
     "@ctrl/tinycolor": "^3.6.0",
-    "hast-util-to-html": "^8.0.4",
-    "hastscript": "^7.2.0",
+    "hast-util-select": "^6.0.2",
+    "hast-util-to-html": "^9.0.0",
+    "hast-util-to-text": "^4.0.0",
+    "hastscript": "^9.0.0",
     "postcss": "^8.4.21",
-    "postcss-nested": "^6.0.1"
+    "postcss-nested": "^6.0.1",
+    "unist-util-visit": "^5.0.0",
+    "unist-util-visit-parents": "^6.0.1"
   },
   "devDependencies": {
     "@types/culori": "^2.0.0",
+    "@types/hast": "^3.0.4",
     "@types/html-escaper": "^3.0.0",
     "culori": "^3.2.0",
     "djb2a": "^2.0.0",
-    "hast-util-sanitize": "^4.1.0",
+    "hast-util-sanitize": "^5.0.1",
     "html-escaper": "^3.0.3",
     "htmlparser2": "^8.0.2",
     "shiki": "^1.1.7",

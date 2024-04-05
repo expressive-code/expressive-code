@@ -1,6 +1,6 @@
-import { AnnotationRenderOptions, ExpressiveCodeAnnotation, InlineStyleAnnotation } from '../common/annotation'
+import { AnnotationRenderOptions, ExpressiveCodeAnnotation, isInlineStyleAnnotation } from '../common/annotation'
 import { ExpressiveCodePlugin } from '../common/plugin'
-import { h } from 'hastscript'
+import { h } from '../hast'
 
 export const corePlugins: ExpressiveCodePlugin[] = [
 	{
@@ -13,7 +13,7 @@ export const corePlugins: ExpressiveCodePlugin[] = [
 						// Remove any unnecessary inline styles inside the indent
 						line.getAnnotations().forEach((annotation) => {
 							const { inlineRange } = annotation
-							if (!inlineRange || !(annotation instanceof InlineStyleAnnotation)) return
+							if (!inlineRange || !isInlineStyleAnnotation(annotation)) return
 							if (inlineRange.columnStart >= 0 && inlineRange?.columnEnd <= indent) {
 								line.deleteAnnotation(annotation)
 							}

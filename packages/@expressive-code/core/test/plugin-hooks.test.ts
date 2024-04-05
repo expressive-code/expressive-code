@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { Element } from 'hast-util-to-html/lib/types'
-import { h } from 'hastscript'
+import { h } from '../src/hast'
 import {
 	WrapperAnnotation,
 	defaultBlockOptions,
@@ -353,16 +352,16 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 			const html = toSanitizedHtml(renderedGroupAst)
 			expect(html).toEqual(
 				[
-					// Start of group wrapper (should be untouchable by plugins)
-					`<${groupWrapperElement}>`,
 					// Wrapper added by hook
 					'<details test="1">',
+					// Start of group wrapper
+					`<${groupWrapperElement}>`,
 					// Regular code block HTML
 					`<pre><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`,
-					// End of wrapper added by hook
-					'</details>',
 					// End of group wrapper
 					`</${groupWrapperElement}>`,
+					// End of wrapper added by hook
+					'</details>',
 				].join('')
 			)
 		})
@@ -413,8 +412,8 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 						hooks: {
 							postprocessRenderedBlockGroup: ({ renderData }) => {
 								totalHookCalls++
-								// Replace group with a version wrapped in root > details
-								renderData.groupAst = h(null, h('details', { test: totalHookCalls }, renderData.groupAst))
+								// Replace group with a version wrapped in <details>
+								renderData.groupAst = h('details', { test: totalHookCalls }, renderData.groupAst)
 							},
 						},
 					},
@@ -424,8 +423,8 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 							postprocessRenderedBlockGroup: ({ renderData }) => {
 								totalHookCalls++
 								// Set edited property on details element
-								const details = renderData.groupAst.children[0] as Element
-								details.properties!.edited = totalHookCalls
+								const details = renderData.groupAst
+								details.properties.edited = totalHookCalls
 							},
 						},
 					},
@@ -435,20 +434,20 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 			const html = toSanitizedHtml(renderedGroupAst)
 			expect(html).toEqual(
 				[
-					// Start of group wrapper (should be untouchable by plugins)
-					`<${groupWrapperElement}>`,
 					// Wrapper added by second hook
 					'<details test="2" edited="3">',
+					// Start of group wrapper
+					`<${groupWrapperElement}>`,
 					// Figure added by first hook
 					'<figure test="1">',
 					// Regular code block HTML
 					`<pre><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`,
 					// End of figure added by first hook
 					'</figure>',
-					// End of wrapper added by second hook
-					'</details>',
 					// End of group wrapper
 					`</${groupWrapperElement}>`,
+					// End of wrapper added by second hook
+					'</details>',
 				].join('')
 			)
 		})

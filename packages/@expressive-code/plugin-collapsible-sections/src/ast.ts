@@ -1,6 +1,6 @@
-import { formatTemplate, setInlineStyle, ExpressiveCodeBlock, RenderEmptyLineFn } from '@expressive-code/core'
-import { type ElementContent } from 'hast'
-import { h, s } from 'hastscript'
+import { formatTemplate, ExpressiveCodeBlock, RenderEmptyLineFn } from '@expressive-code/core'
+import type { ElementContent } from '@expressive-code/core/hast'
+import { setInlineStyle, h, s } from '@expressive-code/core/hast'
 import { Section } from './utils'
 import { collapsibleSectionClass } from './styles'
 

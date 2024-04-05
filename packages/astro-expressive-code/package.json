@@ -19,19 +19,27 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./components": "./components/index.ts",
-    "./routes/scripts.ts": "./routes/scripts.ts",
-    "./routes/styles.ts": "./routes/styles.ts"
+    "./hast": {
+      "types": "./dist/hast.d.ts",
+      "default": "./dist/hast.js"
+    },
+    "./components": "./components/index.ts"
   },
   "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "hast": [
+        "dist/hast.d.ts"
+      ]
+    }
+  },
   "files": [
     "dist",
     "components",
-    "routes",
     "virtual.d.ts"
   ],
   "scripts": {
-    "build": "tsup ./src/index.ts --format esm --dts --sourcemap --clean",
+    "build": "tsup ./src/index.ts ./src/hast.ts --format esm --dts --sourcemap --clean",
     "coverage": "vitest run --coverage",
     "test": "vitest run --reporter verbose",
     "test-short": "vitest run --reporter basic",
@@ -42,7 +50,6 @@
     "astro": "^4.0.0-beta || ^3.3.0"
   },
   "dependencies": {
-    "hast-util-to-html": "^8.0.4",
     "remark-expressive-code": "workspace:^0.33.5"
   },
   "devDependencies": {

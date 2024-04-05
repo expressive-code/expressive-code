@@ -34,7 +34,6 @@
     "shiki": "^1.1.7"
   },
   "devDependencies": {
-    "@internal/test-utils": "workspace:^",
-    "hast-util-to-html": "^8.0.4"
+    "@internal/test-utils": "workspace:^"
   }
 }

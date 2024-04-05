@@ -4,6 +4,7 @@ import {
 	InlineStyleAnnotation,
 	ensureColorContrastOnBackground,
 	getStaticBackgroundColor,
+	isInlineStyleAnnotation,
 	onBackground,
 } from '@expressive-code/core'
 import rangeParser from 'parse-numeric-range'
@@ -215,7 +216,7 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 						}
 						if (fullLineMarker) {
 							if (MarkerTypeOrder.indexOf(annotation.markerType) < MarkerTypeOrder.indexOf(fullLineMarker.markerType)) continue
-							if (AnnotationRenderPhaseOrder.indexOf(annotation.renderPhase) < AnnotationRenderPhaseOrder.indexOf(fullLineMarker.renderPhase)) continue
+							if (AnnotationRenderPhaseOrder.indexOf(annotation.renderPhase || 'normal') < AnnotationRenderPhaseOrder.indexOf(fullLineMarker.renderPhase || 'normal')) continue
 						}
 						fullLineMarker = annotation
 					}
@@ -228,7 +229,7 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 						// Collect inline style annotations that change the text color
 						const textColors = annotations.filter(
 							(annotation) =>
-								annotation instanceof InlineStyleAnnotation &&
+								isInlineStyleAnnotation(annotation) &&
 								annotation.color &&
 								// Only consider annotations that apply to the current style variant
 								(annotation.styleVariantIndex === undefined || annotation.styleVariantIndex === styleVariantIndex)

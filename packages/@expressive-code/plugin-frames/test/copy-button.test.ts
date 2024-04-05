@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
-import { Parent } from 'hast-util-to-html/lib/types'
-import { select } from 'hast-util-select'
+import type { Element } from '@expressive-code/core/hast'
+import { select } from '@expressive-code/core/hast'
 import { renderAndOutputHtmlSnapshot, buildThemeFixtures, loadTestThemes } from '@internal/test-utils'
 import { pluginFrames } from '../src'
 
@@ -73,7 +73,7 @@ describe('Allows removing comments from terminal window frames', async () => {
 	})
 })
 
-function validateBlockAst({ renderedGroupAst, codeToCopy }: { renderedGroupAst: Parent; codeToCopy: string }) {
+function validateBlockAst({ renderedGroupAst, codeToCopy }: { renderedGroupAst: Element; codeToCopy: string }) {
 	// Expect the pre element to be followed by the copy button
 	const copyButton = select('pre + .copy button', renderedGroupAst)
 	expect(copyButton).toBeTruthy()

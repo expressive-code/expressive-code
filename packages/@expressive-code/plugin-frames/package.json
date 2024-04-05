@@ -31,13 +31,10 @@
     "watch": "pnpm build --watch src"
   },
   "dependencies": {
-    "@expressive-code/core": "workspace:^0.33.5",
-    "hastscript": "^7.2.0"
+    "@expressive-code/core": "workspace:^0.33.5"
   },
   "devDependencies": {
     "@expressive-code/plugin-shiki": "workspace:^",
-    "@internal/test-utils": "workspace:^",
-    "hast-util-select": "^5.0.5",
-    "hast-util-to-html": "^8.0.4"
+    "@internal/test-utils": "workspace:^"
   }
 }

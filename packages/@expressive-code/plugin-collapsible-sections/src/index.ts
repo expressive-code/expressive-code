@@ -1,6 +1,6 @@
 import { AttachedPluginData, ExpressiveCodePlugin, PluginTexts, cssVarReplacements } from '@expressive-code/core'
+import { select } from '@expressive-code/core/hast'
 import { Section, parseSections } from './utils'
-import { select } from 'hast-util-select'
 import { sectionizeAst } from './ast'
 import { CollapsibleSectionsStyleSettings, collapsibleSectionsStyleSettings, getCollapsibleSectionsBaseStyles } from './styles'
 

@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest'
-import { toHtml } from 'hast-util-to-html'
+import { toHtml } from '@expressive-code/core/hast'
 import { renderAndOutputHtmlSnapshot, buildThemeFixtures, loadTestThemes, loadBundledShikiTheme } from '@internal/test-utils'
 import { pluginShiki } from '../src'
 

@@ -92,7 +92,7 @@ In Expressive Code, all processing of your code blocks and their metadata is per
 <dt>renderedGroupAst</dt>
 <dd>
 <PropertySignature>
-- Type: `Parent`
+- Type: `Element`
 </PropertySignature>
 </dd>
 <dt>renderedGroupContents</dt>
@@ -816,6 +816,8 @@ An abstract class representing a single annotation attached to a code line.
 You can develop your own annotations by extending this class and providing implementations for its abstract methods. See the implementation of the
 [InlineStyleAnnotation](/reference/core-api/#inlinestyleannotation) class for an example.
 
+You can also define your annotations as plain objects, as long as they have the same properties as this class. This allows you to use annotations in a more functional way, without the need to extend a class.
+
 #### Constructors
 
 :::note
@@ -827,7 +829,7 @@ You should create a subclass that extends `ExpressiveCodeAnnotation` instead.
 
 ##### `abstract` render()
 
-- <code class="function-signature">**abstract** **render**(options): Parent[]</code>
+- <code class="function-signature">**abstract** **render**(options): Parents[]</code>
 
 Renders the annotation by transforming the provided nodes.
 
@@ -895,7 +897,7 @@ consule.log('Hello world!')
 
 ##### render()
 
-- <code class="function-signature">**render**(options): Parent[]</code>
+- <code class="function-signature">**render**(options): Parents[]</code>
 
 Renders the annotation by transforming the provided nodes.
 
@@ -966,7 +968,7 @@ the entire list.
 <dt>nodesToTransform</dt>
 <dd>
 <PropertySignature>
-- Type: `Parent`[]
+- Type: `Parents`[]
 </PropertySignature>
 </dd>
 </dl>

@@ -1,4 +1,4 @@
-import { ExpressiveCodeAnnotation, validateExpressiveCodeAnnotation } from './annotation'
+import type { ExpressiveCodeAnnotation, ExpressiveCodeInlineRange } from './annotation'
 import { ExpressiveCodeBlock } from './block'
 import { getAbsoluteRange } from '../internal/ranges'
 import { isNumber, isString, newTypeError } from '../internal/type-checks'
@@ -113,4 +113,14 @@ export class ExpressiveCodeLine {
 
 		return this.text
 	}
+}
+
+function validateExpressiveCodeInlineRange(inlineRange: ExpressiveCodeInlineRange) {
+	if (!isNumber(inlineRange.columnStart) || !isNumber(inlineRange.columnEnd)) throw newTypeError('ExpressiveCodeAnnotation', inlineRange, 'inlineRange')
+}
+
+export function validateExpressiveCodeAnnotation(annotation: ExpressiveCodeAnnotation) {
+	// eslint-disable-next-line @typescript-eslint/unbound-method
+	if (typeof annotation?.render !== 'function') throw newTypeError('ExpressiveCodeAnnotation', annotation?.render, 'render')
+	if (annotation.inlineRange) validateExpressiveCodeInlineRange(annotation.inlineRange)
 }
