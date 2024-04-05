@@ -352,7 +352,7 @@ function withParsedColor(input: string, transform: (color: TinyColor) => string,
 function toTinyColor(input: string | TinyColor | RgbaColor | Hsl | Oklch) {
 	if (input instanceof TinyColor) {
 		// We use this instead of clone() because clone performs unwanted rounding
-		return new TinyColor(input.toHexShortString())
+		return new TinyColor(input.toRgb())
 	}
 	if (typeof input === 'string') {
 		// Detect CSS lab() color notation as input and convert it to RGBA
