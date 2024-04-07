@@ -474,7 +474,7 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 	}
 
 	/**
-	 * Returns an array of JavaScript modules (pure core without any wrapping `script` tags)
+	 * Returns an array of JavaScript modules (pure code without any wrapping `script` tags)
 	 * that should be added to every page containing code blocks.
 	 *
 	 * The contents are collected from the `jsModules` property of all registered plugins.
