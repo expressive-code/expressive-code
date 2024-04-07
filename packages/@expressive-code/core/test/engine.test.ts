@@ -4,7 +4,7 @@ import githubLightRaw from 'shiki/themes/github-light.mjs'
 import draculaRaw from 'shiki/themes/dracula.mjs'
 import solarizedLightRaw from 'shiki/themes/solarized-light.mjs'
 import type { ThemeRegistration } from 'shiki'
-import { WrapperAnnotation, getHookTestResult, getMultiPluginTestResult, lineCodeHtml, nonArrayValues, nonObjectValues, toSanitizedHtml } from './utils'
+import { WrapperAnnotation, getHookTestResult, getMultiPluginTestResult, lineCodeHtml, nonArrayValues, nonObjectValues, toSanitizedHtml, defaultBlockOptions } from './utils'
 import { ExpressiveCodeEngine, ExpressiveCodeEngineConfig } from '../src/common/engine'
 import { ExpressiveCodeBlock } from '../src/common/block'
 import { StyleVariant } from '../src/common/style-variants'
@@ -102,6 +102,18 @@ describe('ExpressiveCodeEngine', () => {
 				})
 				const html = toSanitizedHtml(renderedBlockAst)
 				expect(html).toEqual(`<pre><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1].replace('two ', '<del>two </del>')}</div></code></pre>`)
+			})
+		})
+		describe('<pre> element has a `data-language` property', () => {
+			test('Language "md"', async () => {
+				const { renderedBlockAst } = await getMultiPluginTestResult({ plugins: [], input: [{ ...defaultBlockOptions }] })
+				const html = toSanitizedHtml(renderedBlockAst, { extraAttributes: ['data*'] })
+				expect(html).toEqual(`<pre data-language="md"><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`)
+			})
+			test('Missing language becomes "plaintext"', async () => {
+				const { renderedBlockAst } = await getMultiPluginTestResult({ plugins: [], input: [{ ...defaultBlockOptions, language: '' }] })
+				const html = toSanitizedHtml(renderedBlockAst, { extraAttributes: ['data*'] })
+				expect(html).toEqual(`<pre data-language="plaintext"><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`)
 			})
 		})
 		describe('Allows plugin hooks to access theme colors', () => {

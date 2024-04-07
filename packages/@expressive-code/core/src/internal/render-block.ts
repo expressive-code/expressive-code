@@ -141,7 +141,8 @@ export async function renderBlock({
 }
 
 function buildCodeBlockAstFromRenderedLines(codeBlock: ExpressiveCodeBlock, renderedLines: Element[]) {
-	const preElement = h('pre', { tabindex: 0 }, h('code', renderedLines))
+	const langAttr = { dataLanguage: codeBlock.language || 'plaintext' }
+	const preElement = h('pre', { ...langAttr, tabindex: 0 }, h('code', renderedLines))
 	if (codeBlock.props.wrap) {
 		const maxLineLength = codeBlock.getLines().reduce((max, line) => Math.max(max, line.text.length), 0)
 		addClassName(preElement, 'wrap')
