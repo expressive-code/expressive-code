@@ -4,35 +4,20 @@ import type { AstroIntegration } from 'astro'
 // we just access this type internally and accept `unknown` args externally to prevent
 // version-specific types from being included in the build output
 export type ConfigSetupHookArgs = Parameters<NonNullable<AstroIntegration['hooks']['astro:config:setup']>>[0]
+export type AstroConfig = ConfigSetupHookArgs['config']
+export type AssetsPrefix = AstroConfig['build']['assetsPrefix']
 
 /**
  * Contains the parts of the Astro config that are used by this integration.
  */
-export type PartialAstroConfig = {
-	base: string
-	build?:
-		| Partial<{
-				assets: string
-				assetsPrefix: AssetsPrefix
-		  }>
-		| undefined
+export type PartialAstroConfig = Pick<AstroConfig, 'base' | 'root' | 'srcDir'> & {
+	build?: Partial<Pick<AstroConfig['build'], 'assets' | 'assetsPrefix'>> | undefined
 	markdown?:
 		| Partial<{
-				shikiConfig: Partial<{
-					langs: ConfigSetupHookArgs['config']['markdown']['shikiConfig']['langs']
-				}>
+				shikiConfig: Partial<Pick<AstroConfig['markdown']['shikiConfig'], 'langs'>>
 		  }>
 		| undefined
-	root: URL | string
-	srcDir: URL
 }
-
-type AssetsPrefix =
-	| string
-	| ({
-			fallback: string
-	  } & Record<string, string>)
-	| undefined
 
 export function serializePartialAstroConfig(config: PartialAstroConfig): string {
 	const partialConfig: PartialAstroConfig = {

@@ -101,3 +101,28 @@ export type ResolverContext = {
 	cssVarName: (styleSetting: StyleSettingPath) => string
 	styleVariants: StyleVariant[]
 }
+
+/**
+ * A utility function that helps you define an Expressive Code plugin.
+ *
+ * Using this function is recommended, but not required. It just passes through the given object,
+ * but it also provides type information for your editor's auto-completion and type checking.
+ *
+ * @example
+ * ```js
+ * // your-plugin.mjs
+ * import { definePlugin } from '@expressive-code/core'
+ *
+ * export function myCustomPlugin() {
+ *   return definePlugin({
+ *     name: 'My custom plugin',
+ *     hooks: {
+ *       // ...
+ *     }
+ *   })
+ * }
+ * ```
+ */
+export function definePlugin(plugin: ExpressiveCodePlugin) {
+	return plugin
+}

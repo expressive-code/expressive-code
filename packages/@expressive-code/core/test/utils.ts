@@ -1,4 +1,5 @@
 import { expect } from 'vitest'
+import type { PropertyDefinition } from 'hast-util-sanitize/lib'
 import { sanitize } from 'hast-util-sanitize'
 import type { Element, Parents } from '../src/hast'
 import { h, toHtml, addClassName } from '../src/hast'
@@ -146,8 +147,8 @@ export const defaultBlockOptions = {
 
 export const lineCodeHtml = ['<div class="code">Example code...</div>', '<div class="code">...with two lines!</div>']
 
-export function toSanitizedHtml(ast: Parents) {
-	const html = toHtml(sanitize(ast, { attributes: { '*': ['test', 'edited', ['className', /^code$/]], a: ['href'] }, tagNames: null }))
+export function toSanitizedHtml(ast: Parents, options?: { extraAttributes?: PropertyDefinition[] | undefined }) {
+	const html = toHtml(sanitize(ast, { attributes: { '*': ['test', 'edited', ['className', /^code$/], ...(options?.extraAttributes ?? [])], a: ['href'] }, tagNames: null }))
 	return html.replace(/ class=""/g, '')
 }
 

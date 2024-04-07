@@ -1,8 +1,8 @@
 // @ts-check
+import { definePlugin } from '@expressive-code/core'
 
-/** @returns {import('@expressive-code/core').ExpressiveCodePlugin} */
 export function pluginByeToHello() {
-	return {
+	return definePlugin({
 		name: 'Bye to Hello',
 		hooks: {
 			// Add an example hook that replaces the first occurrence
@@ -21,5 +21,5 @@ export function pluginByeToHello() {
 				})
 			},
 		},
-	}
+	})
 }

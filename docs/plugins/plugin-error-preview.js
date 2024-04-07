@@ -1,5 +1,5 @@
 // @ts-check
-import { ExpressiveCodeAnnotation } from '@expressive-code/core'
+import { definePlugin, ExpressiveCodeAnnotation } from '@expressive-code/core'
 import { h } from '@expressive-code/core/hast'
 
 class SquigglesAnnotation extends ExpressiveCodeAnnotation {
@@ -20,9 +20,8 @@ class ErrorMessageAnnotation extends ExpressiveCodeAnnotation {
 	}
 }
 
-/** @returns {import('@expressive-code/core').ExpressiveCodePlugin} */
 export function pluginErrorPreview() {
-	return {
+	return definePlugin({
 		name: 'Error Preview',
 		baseStyles: `
 			.error-squiggles {
@@ -94,5 +93,5 @@ export function pluginErrorPreview() {
 				})
 			},
 		},
-	}
+	})
 }
