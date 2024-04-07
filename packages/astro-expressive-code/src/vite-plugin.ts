@@ -51,13 +51,14 @@ export function vitePluginAstroExpressiveCode({
 	// Create virtual config preprocessor module
 	modules['virtual:astro-expressive-code/preprocess-config'] = customConfigPreprocessors?.preprocessComponentConfig || `export default ({ ecConfig }) => ecConfig`
 
+	const noQuery = (source: string) => source.split('?')[0]
+
 	const getVirtualModuleContents = (source: string) => {
 		// In dev mode, serve the extracted styles & scripts as virtual modules
 		if (command === 'dev') {
-			const sourceWithoutQuery = source.split('?')[0]
 			for (const file of [...styles, ...scripts]) {
 				const [fileName, contents] = file
-				if (fileName === sourceWithoutQuery) return contents
+				if (noQuery(fileName) === noQuery(source)) return contents
 			}
 		}
 		return source in modules ? modules[source] : undefined
@@ -81,6 +82,23 @@ export function vitePluginAstroExpressiveCode({
 			if (getVirtualModuleContents(source)) return `\0${source}`
 		},
 		load: (id) => (id?.[0] === '\0' ? getVirtualModuleContents(id.slice(1)) : undefined),
+		// If any file imported by the EC config file changes, restart the server
+		async handleHotUpdate({ modules, server }) {
+			if (!modules || !server) return
+			const isImportedByEcConfig = (module: (typeof modules)[0], depth: number = 0) => {
+				if (!module || !module.importers || depth >= 6) return false
+				for (const importingModule of module.importers) {
+					if (noQuery(module.url).endsWith('/ec.config.mjs')) {
+						return true
+					}
+					if (isImportedByEcConfig(importingModule, depth + 1)) return true
+				}
+				return false
+			}
+			if (modules.some((module) => isImportedByEcConfig(module))) {
+				await server.restart()
+			}
+		},
 		buildEnd() {
 			// In build mode, emit the extracted styles & scripts as static assets
 			if (command === 'build') {
@@ -88,8 +106,8 @@ export function vitePluginAstroExpressiveCode({
 					const [fileName, source] = file
 					this.emitFile({
 						type: 'asset',
-						// Remove leading slash (e.g. `_astro/ec.o4qcx.css`)
-						fileName: fileName.slice(1),
+						// Remove leading slash and any query params
+						fileName: noQuery(fileName.slice(1)),
 						source,
 					})
 				}
