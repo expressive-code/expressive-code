@@ -1,5 +1,32 @@
 # @expressive-code/plugin-shiki
 
+## 0.34.0
+
+### Minor Changes
+
+- b94a91d: - Updates dependencies `hast`, `hastscript` and `hast-util-*` to the latest versions.
+
+  **Potentially breaking change:** Unfortunately, some of the new `hast` types are incompatible with their old versions. If you created custom plugins to manipulate HAST nodes, you may need to update your dependencies as well and probably change some types. For example, if you were using the `Parent` type before, you will probably need to replace it with `Parents` or `Element` in the new version.
+
+  - Adds a new `/hast` entrypoint to `@expressive-code/core`, `expressive-code`, `remark-expressive-code` and `astro-expressive-code` to simplify plugin development.
+
+    This new entrypoint provides direct access to the correct versions of HAST types and commonly used tree traversal, querying and manipulation functions. Instead of having to add your own dependencies on libraries like `hastscript`, `hast-util-select` or `unist-util-visit` to your project and manually keeping them in sync with the versions used by Expressive Code, you can now import the internally used functions and types directly from this new entrypoint.
+
+- b6e7167: **Potentially breaking change:** Since this version, all packages are only distributed in modern ESM format, which greatly reduces bundle size.
+
+  Most projects should not be affected by this change at all, but in case you still need to import Expressive Code packages into a CommonJS project, you can use the widely supported `await import(...)` syntax.
+
+### Patch Changes
+
+- Updated dependencies [af2a10a]
+- Updated dependencies [b94a91d]
+- Updated dependencies [af2a10a]
+- Updated dependencies [9eb8619]
+- Updated dependencies [b6e7167]
+- Updated dependencies [2ef2503]
+- Updated dependencies [b94a91d]
+  - @expressive-code/core@0.34.0
+
 ## 0.33.5
 
 ### Patch Changes
