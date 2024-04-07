@@ -85,6 +85,10 @@ console.log('Greetings from line 5!')
 console.log('I am on line 6')
 ```
 
+:::note
+Changing the starting line number is purely visual and only affects the rendered output. Other plugins like [Text Markers](/key-features/text-markers/) are not aware of the shifted line numbers, so if you want to target specific lines for highlighting purposes, you still need to count the actual lines in the raw source code.
+:::
+
 ## Usage in the `<Code>` component
 
 The collapsible sections plugin adds the following props to the `<Code>` component that allow direct access to its features:
