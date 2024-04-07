@@ -29,12 +29,16 @@ The following example shows how to add the [Collapsible Sections plugin](/plugin
 
 ## Writing your own plugin
 
-To write a new plugin, you need to create a **plugin initialization function** that returns an object matching the interface [`ExpressiveCodePlugin`](/reference/plugin-api/#expressivecodeplugin):
+To write a new plugin, you need to create a **plugin initialization function** that returns an object matching the interface [`ExpressiveCodePlugin`](/reference/plugin-api/#expressivecodeplugin).
+
+The easiest way to do this is by importing the `definePlugin` helper function from the `@expressive-code/core` package, which will provide your editor with the required type information to help define the plugin correctly. This function takes a single argument, an object containing the properties of your plugin:
 
 ```js
 // plugins/my-example-plugin.js
+import { definePlugin } from '@expressive-code/core'
+
 export function pluginExample() {
-  return {
+  return definePlugin({
     // The only required property is `name`
     name: 'Example that does nothing',
     // Add more properties of `ExpressiveCodePlugin` to make your plugin
@@ -42,7 +46,7 @@ export function pluginExample() {
     hooks: {
       // Add hooks to perform actions during the plugin's lifecycle
     },
-  }
+  })
 }
 ```
 
@@ -73,17 +77,19 @@ Please use sensible default values for all options wherever possible, so that us
 
 ```js ins=/[(](options)[)]/ ins={5}
 // plugins/plugin-with-options.js
+import { definePlugin } from '@expressive-code/core'
+
 export function pluginWithOptionsExample(options) {
   // Extract the options from the `options` object,
   // and provide sensible default values
   const { option1 = true, option2 = 'hello' } = options || {}
-  return {
+  return definePlugin({
     name: 'Example with options that does nothing',
     hooks: {
       // Add hooks to perform actions during the plugin's lifecycle
       // (you can use the options anywhere in your plugin)
     },
-  }
+  })
 }
 ```
 
@@ -127,10 +133,6 @@ If you want to publish your own plugin using the `ExpressiveCodeAnnotation` clas
 
 <PackageManagers pkg="@expressive-code/core" peer />
 :::
-
-You also need to install the `hastscript` library that provides a simple way to create HAST nodes:
-
-<PackageManagers pkg="hastscript" />
 
 Now, let's create the plugin:
 
