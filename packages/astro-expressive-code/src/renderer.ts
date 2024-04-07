@@ -87,12 +87,13 @@ export async function createAstroRenderer({ ecConfig, astroConfig, logger }: Cre
 		renderer.themeStyles = ''
 	}
 
-	// Also move any JS modules into external files
+	// Also move any JS modules into a single external file
 	// (this is always enabled because the alternative using `injectScript`
 	// does not allow omitting the scripts on pages without any code blocks)
 	const uniqueJsModules = [...new Set<string>(renderer.jsModules)]
+	const mergedJsCode = uniqueJsModules.join('\n')
 	renderer.jsModules = []
-	hashedScripts.push(...uniqueJsModules.map((moduleCode) => getHashedRouteWithContent(moduleCode, `/${assetsDir}/ec.{hash}.js`)))
+	hashedScripts.push(getHashedRouteWithContent(mergedJsCode, `/${assetsDir}/ec.{hash}.js`))
 
 	return renderer
 }
