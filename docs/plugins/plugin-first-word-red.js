@@ -1,9 +1,8 @@
 // @ts-check
-import { InlineStyleAnnotation } from '@expressive-code/core'
+import { definePlugin, InlineStyleAnnotation } from '@expressive-code/core'
 
-/** @returns {import('@expressive-code/core').ExpressiveCodePlugin} */
 export function pluginFirstWordRed() {
-	return {
+	return definePlugin({
 		name: 'Make first word red',
 		hooks: {
 			postprocessAnalyzedCode: (context) => {
@@ -32,5 +31,5 @@ export function pluginFirstWordRed() {
 				)
 			},
 		},
-	}
+	})
 }
