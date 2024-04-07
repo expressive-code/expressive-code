@@ -7,6 +7,60 @@ This page combines all release notes of the Expressive Code monorepo.
 You can find the source changelogs on GitHub in the subfolders of
 [`packages`](https://github.com/expressive-code/expressive-code/tree/main/packages).
 
+## 0.34.0
+
+- Merges JS modules into a single JS file asset to reduce the number of requests if multiple plugins add JS code.
+
+- Updates dependencies `hast`, `hastscript` and `hast-util-*` to the latest versions.
+
+  **Potentially breaking change:** Unfortunately, some of the new `hast` types are incompatible with their old versions. If you created custom plugins to manipulate HAST nodes, you may need to update your dependencies as well and probably change some types. For example, if you were using the `Parent` type before, you will probably need to replace it with `Parents` or `Element` in the new version.
+
+- Adds a new `/hast` entrypoint to `@expressive-code/core`, `expressive-code`, `remark-expressive-code` and `astro-expressive-code` to simplify plugin development.
+
+  This new entrypoint provides direct access to the correct versions of HAST types and commonly used tree traversal, querying and manipulation functions. Instead of having to add your own dependencies on libraries like `hastscript`, `hast-util-select` or `unist-util-visit` to your project and manually keeping them in sync with the versions used by Expressive Code, you can now import the internally used functions and types directly from this new entrypoint.
+
+- Improves plugin development experience by automatically restarting the dev server if any files imported into `ec.config.mjs` are changed.
+
+  Before this update, only changes to `ec.config.mjs` itself were detected, so plugin development had to be done inside the config file if you wanted to see your changes reflected live in the dev server. Now, you can also develop your plugins in separate files and get the same experience.
+
+  Note: As this feature relies on Vite's module dependency graph, it currently only works if there is at least a single `<Code>` component on the page (which uses imports handled by Vite).
+
+- Ensures that static assets (styles and JS modules) are prerendered when using SSR adapters. Thank you [@alexanderniebuhr](https://github.com/alexanderniebuhr)!
+
+  To achieve this, the previous approach of using `injectRoute` was dropped and the assets are now being handled by the Vite plugin.
+
+- Makes `astro-expressive-code` compatible with SSR adapters.
+
+  To achieve this, the code responsible for loading the optional `ec.config.mjs` file was replaced with a new version that no longer requires any Node.js-specific functionality.
+
+- Makes Expressive Code compatible with Bun. Thank you [@tylergannon](https://github.com/tylergannon) for the fix and @richardguerre for the report!
+
+  This fixes the error `msg.match is not a function` that was thrown when trying to use Expressive Code with Bun.
+
+  Additionally, the `type` modifier was added to some imports and exports to fix further Bun issues with plugins and integrations found during testing.
+
+- **Potentially breaking change:** Since this version, all packages are only distributed in modern ESM format, which greatly reduces bundle size.
+
+  Most projects should not be affected by this change at all, but in case you still need to import Expressive Code packages into a CommonJS project, you can use the widely supported `await import(...)` syntax.
+
+- Adds a `data-language` attribute to the `<pre>` element of rendered code blocks.
+
+  The value is set to code block's syntax highlighting language as specified in the opening code fence or `<Code lang="...">` attribute (e.g. `js` or `md`).
+
+  If a code block has no language specified, it will default to `plaintext`.
+
+  You can use this attribute to apply styles to code blocks based on their language.
+
+- Adds `definePlugin` export to `@expressive-code/core` and all integrations to help define an Expressive Code plugin.
+
+  Using this function is recommended, but not required. It just passes through the given object, but it also provides type information for your editor's auto-completion and type checking.
+
+- Allows annotations to be defined as plain objects without the need to extend a class, as long as they have all properties required by `ExpressiveCodeAnnotation`.
+
+- Fixes types of `PartialAstroConfig` to match `AstroConfig` types.
+
+- Clones internal TinyColor instance with an object input instead of string input for faster parsing performance. Thanks [@bluwy](https://github.com/bluwy)!
+
 ## 0.33.5
 
 - Updates handling of Astro config option `build.assetsPrefix` to support new file extension-based alternatives added in Astro 4.5.0.
