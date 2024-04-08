@@ -7,7 +7,7 @@ import toHtml from 'rehype-stringify'
 import draculaRaw from 'shiki/themes/dracula.mjs'
 import { ThemeRegistration } from 'shiki/types.mjs'
 import { toText, selectAll } from 'expressive-code/hast'
-import { fromHtml } from '@internal/test-utils'
+import { fromHtml, getCoreJsModules } from '@internal/test-utils'
 import remarkExpressiveCode, { ExpressiveCodeTheme, RemarkExpressiveCodeOptions, StyleSettingPath, getCssVarName } from '../src'
 import { buildSampleCodeHtmlRegExp, sampleCodeMarkdown } from './utils'
 
@@ -192,11 +192,12 @@ describe('Usage inside unified/remark', () => {
 		const result = await processor.process(sampleCodeMarkdown)
 		const html = result.value.toString()
 		// Expect all JS modules to be part of the output
-		const actualJsModules = html.match(/<script type="module">(.*?)<\/script>/g)
+		const actualJsModules = [...html.matchAll(/<script type="module">(.*?)<\/script>/g)].map((match) => match[1])
 		expect(actualJsModules).toEqual([
-			'<script type="module">console.log("Test 1")</script>',
+			...getCoreJsModules(),
+			'console.log("Test 1")',
 			// Expect whitespace to be normalized in Test 2
-			'<script type="module">console.log("Test 2")</script>',
+			'console.log("Test 2")',
 		])
 		// Expect JS modules to be nested inside the Expressive Code wrapper
 		const firstGroupWrapperIndex = html.search(/<div class="expressive-code/)
@@ -223,11 +224,12 @@ describe('Usage inside unified/remark', () => {
 		const result = await processor.process(multiBlockMarkdown)
 		const html = result.value.toString()
 		// Expect all JS modules to be part of the output, but only once each
-		const actualJsModules = html.match(/<script type="module">(.*?)<\/script>/g)
+		const actualJsModules = [...html.matchAll(/<script type="module">(.*?)<\/script>/g)].map((match) => match[1])
 		expect(actualJsModules).toEqual([
-			'<script type="module">console.log("Test 1")</script>',
+			...getCoreJsModules(),
+			'console.log("Test 1")',
 			// Expect whitespace to be normalized in Test 2
-			'<script type="module">console.log("Test 2")</script>',
+			'console.log("Test 2")',
 		])
 		// Expect JS modules to be nested inside the Expressive Code wrapper
 		const firstGroupWrapperIndex = html.search(/<div class="expressive-code/)

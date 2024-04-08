@@ -8,7 +8,7 @@ import { WrapperAnnotation, getHookTestResult, getMultiPluginTestResult, lineCod
 import { ExpressiveCodeEngine, ExpressiveCodeEngineConfig } from '../src/common/engine'
 import { ExpressiveCodeBlock } from '../src/common/block'
 import { StyleVariant } from '../src/common/style-variants'
-import { findDeclsBySelectorAndProperty, findDeclsByStyleSetting, parseCss } from '../../../../internal/test-utils'
+import { findDeclsBySelectorAndProperty, findDeclsByStyleSetting, parseCss, getCoreJsModules } from '../../../../internal/test-utils'
 import { ExpressiveCodeTheme } from '../src/common/theme'
 import { groupWrapperClassName } from '../src/internal/css'
 import { codeLineClass } from '../src/common/style-settings'
@@ -507,7 +507,7 @@ describe('ExpressiveCodeEngine', () => {
 					},
 				],
 			})
-			expect(await engine.getJsModules()).toEqual([])
+			expect(await engine.getJsModules()).toEqual(getCoreJsModules())
 		})
 		describe('Returns the JS modules provided by a plugin', () => {
 			test('Supports empty arrays', async () => {
@@ -520,7 +520,7 @@ describe('ExpressiveCodeEngine', () => {
 						},
 					],
 				})
-				expect(await engine.getJsModules()).toEqual([])
+				expect(await engine.getJsModules()).toEqual(getCoreJsModules())
 			})
 			test('Supports string arrays', async () => {
 				const engine = new ExpressiveCodeEngine({
@@ -532,7 +532,7 @@ describe('ExpressiveCodeEngine', () => {
 						},
 					],
 				})
-				expect(await engine.getJsModules()).toEqual(['console.log("Test 1")', 'console.log("Test 2")'])
+				expect(await engine.getJsModules()).toEqual([...getCoreJsModules(), 'console.log("Test 1")', 'console.log("Test 2")'])
 			})
 			test('Supports module resolver functions', async () => {
 				const engine = new ExpressiveCodeEngine({
@@ -544,7 +544,7 @@ describe('ExpressiveCodeEngine', () => {
 						},
 					],
 				})
-				expect(await engine.getJsModules()).toEqual(['console.log("2: github-dark, github-light")'])
+				expect(await engine.getJsModules()).toEqual([...getCoreJsModules(), 'console.log("2: github-dark, github-light")'])
 			})
 		})
 		describe('Deduplicates JS modules', () => {
@@ -558,7 +558,7 @@ describe('ExpressiveCodeEngine', () => {
 						},
 					],
 				})
-				expect(await engine.getJsModules()).toEqual(['export const test = "something"'])
+				expect(await engine.getJsModules()).toEqual([...getCoreJsModules(), 'export const test = "something"'])
 			})
 			test('When they only differ in surrounding whitespace', async () => {
 				const engine = new ExpressiveCodeEngine({
@@ -570,7 +570,7 @@ describe('ExpressiveCodeEngine', () => {
 						},
 					],
 				})
-				expect(await engine.getJsModules()).toEqual(['export const test = "something"'])
+				expect(await engine.getJsModules()).toEqual([...getCoreJsModules(), 'export const test = "something"'])
 			})
 			test('Also checks across plugins', async () => {
 				const engine = new ExpressiveCodeEngine({
@@ -587,7 +587,7 @@ describe('ExpressiveCodeEngine', () => {
 						},
 					],
 				})
-				expect(await engine.getJsModules()).toEqual(['export const test = "something"', 'console.log(test)', 'console.log("Success!")'])
+				expect(await engine.getJsModules()).toEqual([...getCoreJsModules(), 'export const test = "something"', 'console.log(test)', 'console.log("Success!")'])
 			})
 		})
 	})
