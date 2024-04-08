@@ -1,10 +1,11 @@
 import { AnnotationRenderOptions, ExpressiveCodeAnnotation, isInlineStyleAnnotation } from '../common/annotation'
 import { ExpressiveCodePlugin } from '../common/plugin'
 import { h } from '../hast'
+import tabindexJsModule from './tabindex-js-module.min'
 
 export const corePlugins: ExpressiveCodePlugin[] = [
 	{
-		name: 'Indent Wrapper',
+		name: 'Indent wrapper',
 		hooks: {
 			postprocessAnnotations: ({ codeBlock }) => {
 				codeBlock.getLines().forEach((line) => {
@@ -29,6 +30,10 @@ export const corePlugins: ExpressiveCodePlugin[] = [
 				})
 			},
 		},
+	},
+	{
+		name: 'Scrollable block tabindex',
+		jsModules: [tabindexJsModule],
 	},
 ]
 
