@@ -1,5 +1,13 @@
 # @expressive-code/core
 
+## 0.34.1
+
+### Patch Changes
+
+- 1b2279f: Fixes a11y property `tabindex="0"` being set on non-scrollable code blocks.
+
+  Instead of always adding `tabindex="0"` to the `<pre>` element of code blocks, a small JS module is now used to conditionally add the property to scrollable code blocks only. This ensures that scrollable regions can be accessed via keyboard navigation while avoiding audit warnings about `tabindex` being used on non-scrollable elements.
+
 ## 0.34.0
 
 ### Minor Changes
