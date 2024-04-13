@@ -1,0 +1,20 @@
+# Test
+
+export const page = { currentPage: 1 };
+
+<h1>Page {page.currentPage}</h1>
+{/* [!note:"page"] ^ This will also only target the word `page` due to
+    the non-word characters `{` and `.` surrounding it. */}
+
+<h1>Page {page.currentPage}</h1>
+{/* [!note]   ^ Pointing directly at a non-word character
+    between two surrounding words will target
+    these words as well (`page.currentPage`). */}
+
+export const content = 'Astro.props';
+// ^ [!note] You can also target words right at the start of a line
+//   by placing the `^` caret before the marker tag.
+
+a(); {/*
+^ [!note] If you need to target the very first character,
+  you can use multi-line comments. */}
