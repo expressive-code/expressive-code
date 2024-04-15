@@ -42,7 +42,7 @@ export interface ExpressiveCodeBlockOptions {
 	/**
 	 * Optional data about the parent document the code block is located in.
 	 *
-	 * Integrations like `remark-expressive-code` can provide this information based on the
+	 * Integrations like `rehype-expressive-code` can provide this information based on the
 	 * source document being processed. There may be cases where no document is available,
 	 * e.g. when the code block was created dynamically.
 	 */
@@ -56,8 +56,8 @@ export interface ExpressiveCodeBlockOptions {
 				 * A reference to the object representing the parsed source document.
 				 * This reference will stay the same for all code blocks in the same document.
 				 *
-				 * For example, if you are using `remark-expressive-code` to render code blocks
-				 * in a Markdown file, this would be the `mdast` node representing the file's
+				 * For example, if you are using `rehype-expressive-code` to render code blocks
+				 * in a Markdown file, this would be the `hast` node representing the file's
 				 * root node.
 				 */
 				documentRoot?: unknown | undefined
@@ -221,7 +221,7 @@ export class ExpressiveCodeBlock {
 	 * Allows getting the code block's locale (e.g. `en-US` or `de-DE`). It is used by plugins
 	 * to display localized strings depending on the language of the containing page.
 	 *
-	 * Integrations like `remark-expressive-code` support multi-language sites by allowing you
+	 * Integrations like `rehype-expressive-code` support multi-language sites by allowing you
 	 * to provide custom logic to determine a block's locale (e.g. based on its parent document).
 	 *
 	 * If no locale is defined here, `ExpressiveCodeEngine` will render the code block
@@ -235,7 +235,7 @@ export class ExpressiveCodeBlock {
 	 * Provides read-only access to optional data about the parent document
 	 * the code block is located in.
 	 *
-	 * Integrations like `remark-expressive-code` can provide this information based on
+	 * Integrations like `rehype-expressive-code` can provide this information based on
 	 * the source document being processed. There may be cases where no document is available,
 	 * e.g. when the code block was created dynamically.
 	 */

@@ -130,6 +130,10 @@ export async function createRenderer(options: RemarkExpressiveCodeOptions = {}):
 	}
 }
 
+/**
+ * @deprecated Please update your project to use the new package `rehype-expressive-code`,
+ * which includes performance improvements and also works with current popular site generators.
+ */
 const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Root> = (...settings) => {
 	const options: RemarkExpressiveCodeOptions = settings[0] ?? {}
 	const { tabWidth = 2, getBlockLocale, customCreateRenderer, customCreateBlock } = options
@@ -272,4 +276,5 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 	return transformer
 }
 
+// eslint-disable-next-line deprecation/deprecation
 export default remarkExpressiveCode

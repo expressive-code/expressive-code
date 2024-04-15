@@ -4,7 +4,7 @@ title: Installing Expressive Code
 
 import PackageManagers from '@components/PackageManagers.astro'
 
-Expressive Code provides integrations into many different frameworks, including Astro, Starlight, Next.js, and any framework that supports remark plugins.
+Expressive Code provides integrations into many different frameworks, including Astro, Starlight, Next.js, and any framework that supports rehype plugins.
 
 Please select your framework to jump to the respective installation instructions:
 
@@ -34,23 +34,23 @@ Expressive Code is already included in Starlight. You're done! 🎉
 
 ## Next.js
 
-You can add Expressive Code to your Next.js site by installing our framework integration `remark-expressive-code`. Follow these steps:
+You can add Expressive Code to your Next.js site by installing our framework integration `rehype-expressive-code`. Follow these steps:
 
 1. Change into the directory of your Next.js site.
 
-2. Add the integration package `remark-expressive-code` to your site's dependencies:
+2. Add the integration package `rehype-expressive-code` to your site's dependencies:
 
-    <PackageManagers pkg="remark-expressive-code" />
+    <PackageManagers pkg="rehype-expressive-code" />
 
 3. Add the integration to your site's configuration:
 
     ```js ins={3, 5-8, 19-23}
     // next.config.mjs
     import createMDX from '@next/mdx'
-    import remarkExpressiveCode from 'remark-expressive-code'
+    import rehypeExpressiveCode from 'rehype-expressive-code'
 
-    /** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
-    const remarkExpressiveCodeOptions = {
+    /** @type {import('rehype-expressive-code').RehypeExpressiveCodeOptions} */
+    const rehypeExpressiveCodeOptions = {
       // You can add configuration options here
     }
 
@@ -63,12 +63,12 @@ You can add Expressive Code to your Next.js site by installing our framework int
     const withMDX = createMDX({
       extension: /\.mdx?$/,
       options: {
-        remarkPlugins: [
+        remarkPlugins: [],
+        rehypePlugins: [
           // The nested array structure is required to pass options
-          // to a remark plugin
-          [remarkExpressiveCode, remarkExpressiveCodeOptions],
+          // to a rehype plugin
+          [rehypeExpressiveCode, rehypeExpressiveCodeOptions],
         ],
-        rehypePlugins: [],
       },
     })
 

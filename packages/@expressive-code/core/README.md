@@ -10,7 +10,7 @@ The core package of [Expressive Code](https://expressive-code.com/), an engine f
 
 Using this core package directly is **only recommended for advanced use cases**.
 
-Unless you're a plugin or integration author, you should probably use a higher-level package like [`astro-expressive-code`](https://www.npmjs.com/package/astro-expressive-code) or [`remark-expressive-code`](https://www.npmjs.com/package/remark-expressive-code) instead of this one.
+Unless you're a plugin or integration author, you should probably use a higher-level package like [`astro-expressive-code`](https://www.npmjs.com/package/astro-expressive-code) or [`rehype-expressive-code`](https://www.npmjs.com/package/rehype-expressive-code) instead of this one.
 
 ## Installation
 

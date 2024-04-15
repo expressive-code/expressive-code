@@ -15,7 +15,7 @@ Included packages:
 
 Using this package directly is **only recommended for advanced use cases**, e.g. to create integrations of Expressive Code into other tools and frameworks.
 
-If you just want to render code blocks on your website, you should use one of the higher-level packages instead, e.g. [`astro-expressive-code`](https://www.npmjs.com/package/astro-expressive-code) or [`remark-expressive-code`](https://www.npmjs.com/package/remark-expressive-code) for code blocks in markdown / MDX documents.
+If you just want to render code blocks on your website, you should use one of the higher-level packages instead, e.g. [`astro-expressive-code`](https://www.npmjs.com/package/astro-expressive-code) or [`rehype-expressive-code`](https://www.npmjs.com/package/rehype-expressive-code) for code blocks in markdown / MDX documents.
 
 ## Documentation
 

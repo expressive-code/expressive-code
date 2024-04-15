@@ -56,11 +56,12 @@ async function renderFixture({ fixtureName, code, language = 'js', meta = '', th
 
 export async function renderAndOutputHtmlSnapshot({ testName, testBaseDir, fixtures }: { testName: string; testBaseDir: string; fixtures: TestFixture[] }) {
 	const renderResults = await Promise.all(fixtures.map(renderFixture))
+	const documentParts = serializeRenderResultsToDocumentParts({ testName, testBaseDir, renderResults })
 
 	outputHtmlSnapshot({
 		testName,
 		testBaseDir,
-		renderResults,
+		documentParts,
 	})
 
 	renderResults.forEach(({ blockValidationFn, ...rest }) => {
@@ -69,11 +70,44 @@ export async function renderAndOutputHtmlSnapshot({ testName, testBaseDir, fixtu
 	})
 }
 
-function outputHtmlSnapshot({ testName, testBaseDir, renderResults }: { testName: string; testBaseDir: string; renderResults: Awaited<ReturnType<typeof renderFixture>>[] }) {
+export type DocumentParts = {
+	head?: string | undefined
+	body: string
+}
+
+export function outputHtmlSnapshot({ testName, testBaseDir, documentParts }: { testName: string; testBaseDir: string; documentParts: DocumentParts }) {
 	const snapshotBasePath = join(testBaseDir, '__html_snapshots__')
 	const snapshotFileName = `${testName.replace(/[<>:"/\\|?*.]/g, '').toLowerCase()}.html`
 	const snapshotFilePath = join(snapshotBasePath, '__actual__', snapshotFileName)
 
+	// Write the snapshot to an HTML file for easy inspection of failed tests
+	const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>${testName}</title>
+  <style>
+    body { margin: 0; background: #248; color: #fff; font-family: sans-serif }
+    body > header { padding: 0.5rem 1rem; background: hsl(230 40% 20%); border-bottom: 1px solid hsl(230 40% 35%) }
+	body > section { padding: 1.25rem 1rem }
+    h1 { font-size: 1.5rem; padding: 0 }
+    h2 { text-align: center; font-size: 0.8rem; padding: 0; margin: 0 0 1rem 0; opacity: 0.6 }
+  </style>
+  ${documentParts.head || ''}
+</head>
+<body>
+  <header><h1>Test: ${testName}</h1></header>
+  ${documentParts.body}
+</body>
+</html>
+	`
+
+	mkdirSync(dirname(snapshotFilePath), { recursive: true })
+	writeFileSync(snapshotFilePath, html, 'utf8')
+}
+
+function serializeRenderResultsToDocumentParts({ renderResults }: { testName: string; testBaseDir: string; renderResults: Awaited<ReturnType<typeof renderFixture>>[] }) {
 	const baseStyles = new Set<string>()
 	const themeStyles = new Set<string>()
 	const jsModules = new Set<string>()
@@ -97,7 +131,7 @@ function outputHtmlSnapshot({ testName, testBaseDir, renderResults }: { testName
 			const heading = fixtureName || `Theme: ${theme?.name ?? 'Missing "name"'}`
 			return `
 		<section style="color:${foreground};background:${background}">
-			<h2>${heading}</h3>
+			<h2>${heading}</h2>
 			${groupHtml.replace(/<div (.*?)>/, `<div data-theme="${theme?.name ?? index}" $1>`)}
 		</section>
 			`
@@ -110,30 +144,32 @@ function outputHtmlSnapshot({ testName, testBaseDir, renderResults }: { testName
 		`
 	})
 
-	// Write the snapshot to an HTML file for easy inspection of failed tests
-	const html = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>${testName}</title>
-  <style>
-    body { margin: 0; background: #000; color: #fff; font-family: sans-serif }
-    body > header { padding: 0.5rem 1rem; background: hsl(230 40% 20%); border-bottom: 1px solid hsl(230 40% 35%) }
-	body > section { padding: 1.25rem 1rem }
-    h1 { font-size: 1.5rem; padding: 0 }
-    h2 { text-align: center; font-size: 0.8rem; padding: 0; margin: 0 0 1rem 0; opacity: 0.6 }
-  </style>
-  <style>${[...baseStyles].join('')}</style>
-</head>
-<body>
-  <header><h1>Test: ${testName}</h1></header>
-  ${[...jsModules].map((moduleCode) => `<script type="module">${moduleCode}</script>`).join('')}
-  ${[...renderedBlocks].join('\n')}
-</body>
-</html>
-	`
+	return {
+		head: `<style>${[...baseStyles].join('')}</style>`,
+		body: `${[...jsModules].map((moduleCode) => `<script type="module">${moduleCode}</script>`).join('')}
+  ${[...renderedBlocks].join('\n')}`,
+	}
+}
 
-	mkdirSync(dirname(snapshotFilePath), { recursive: true })
-	writeFileSync(snapshotFilePath, html, 'utf8')
+export function showAllThemesInRenderedBlockHtml(html: string) {
+	// Find all theme selectors contained in the HTML
+	const matches = html.matchAll(/\.expressive-code([^{ ]+?) \.ec-line :where\(span\[style\^='--'\]:not\(\[class\]\)\){color:var\(--/g)
+	const selectors = [...matches].map((match) => {
+		const selector = match[1]
+		if (selector.startsWith('[')) return `class="expressive-code" ${selector.slice(1, -1)}`
+		return `class="expressive-code ${selector.replace(/\./g, ' ').trim()}"`
+	})
+	if (!selectors.length) selectors.push('')
+	return selectors
+		.map((selector) => {
+			const foreground = '#fff'
+			const background = '#248'
+			return `
+		<section style="color:${foreground};background:${background}">
+			<h2>${selector.replace(/class="expressive-code" /g, '')}</h2>
+			${html.replace(/<h1>Sample code<\/h1>/g, '').replace(/<div ([^>]*?)class="expressive-code"([^>]*?)>/g, `<div $1${selector}$2>`)}
+		</section>
+			`
+		})
+		.join('\n')
 }

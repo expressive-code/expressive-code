@@ -1,1 +1,1 @@
-export * from 'remark-expressive-code/hast'
+export * from 'rehype-expressive-code/hast'

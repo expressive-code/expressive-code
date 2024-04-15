@@ -93,11 +93,11 @@ if (!ecConfigFile) {
 		title: 'next.config.mjs',
 		code: `
 			import createMDX from '@next/mdx'
-			import remarkExpressiveCode[NAMED_IMPORTS] from 'remark-expressive-code'
+			import rehypeExpressiveCode[NAMED_IMPORTS] from 'rehype-expressive-code'
 			[IMPORTS]
 
-			/** @type {import('remark-expressive-code').RemarkExpressiveCodeOptions} */
-			const remarkExpressiveCodeOptions = {
+			/** @type {import('rehype-expressive-code').RehypeExpressiveCodeOptions} */
+			const rehypeExpressiveCodeOptions = {
 			[SETTINGS]
 			}
 
@@ -110,12 +110,12 @@ if (!ecConfigFile) {
 			const withMDX = createMDX({
 				extension: /\\.mdx?$/,
 				options: {
-				remarkPlugins: [
-					// The nested array structure is required to pass options
-					// to a remark plugin
-					[remarkExpressiveCode, remarkExpressiveCodeOptions],
-				],
-				rehypePlugins: [],
+					remarkPlugins: [],
+					rehypePlugins: [
+						// The nested array structure is required to pass options
+						// to a rehype plugin
+						[rehypeExpressiveCode, rehypeExpressiveCodeOptions],
+					],
 				},
 			})
 
