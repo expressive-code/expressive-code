@@ -1,5 +1,4 @@
 import type { Plugin, Transformer, VFileWithOutput } from 'unified'
-import type { Root, Parent, Code, HTML } from 'mdast'
 import {
 	BundledShikiTheme,
 	loadShikiTheme,
@@ -10,12 +9,13 @@ import {
 	ExpressiveCodeBlock,
 	ExpressiveCodeThemeInput,
 } from 'expressive-code'
-import type { Element } from 'expressive-code/hast'
-import { toHtml, visit } from 'expressive-code/hast'
+import type { Root, Parents, Element } from 'expressive-code/hast'
+import { visit } from 'expressive-code/hast'
+import { CodeBlockInfo, getCodeBlockInfo } from './utils'
 
 export * from 'expressive-code'
 
-export type RemarkExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'themes'> & {
+export type RehypeExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'themes'> & {
 	/**
 	 * The color themes that should be available for your code blocks.
 	 *
@@ -70,19 +70,19 @@ export type RemarkExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'themes'> &
 	 *
 	 * The return value will be cached and used for all code blocks on the site.
 	 */
-	customCreateRenderer?: ((options: RemarkExpressiveCodeOptions) => Promise<RemarkExpressiveCodeRenderer> | RemarkExpressiveCodeRenderer) | undefined
+	customCreateRenderer?: ((options: RehypeExpressiveCodeOptions) => Promise<RehypeExpressiveCodeRenderer> | RehypeExpressiveCodeRenderer) | undefined
 }
 
 export type ThemeObjectOrShikiThemeName = BundledShikiTheme | ExpressiveCodeTheme | ExpressiveCodeThemeInput
 
-export type RemarkExpressiveCodeDocument = {
+export type RehypeExpressiveCodeDocument = {
 	/**
 	 * The full path to the source file containing the code block.
 	 */
 	sourceFilePath?: string | undefined
 }
 
-export type RemarkExpressiveCodeRenderer = {
+export type RehypeExpressiveCodeRenderer = {
 	ec: ExpressiveCode
 	baseStyles: string
 	themeStyles: string
@@ -96,9 +96,9 @@ export type RemarkExpressiveCodeRenderer = {
  * Returns the created `ExpressiveCode` instance together with the base styles and JS modules
  * that should be added to every page.
  */
-export async function createRenderer(options: RemarkExpressiveCodeOptions = {}): Promise<RemarkExpressiveCodeRenderer> {
+export async function createRenderer(options: RehypeExpressiveCodeOptions = {}): Promise<RehypeExpressiveCodeRenderer> {
 	// Transfer deprecated `theme` option to `themes` without triggering the deprecation warning
-	const deprecatedOptions: Omit<RemarkExpressiveCodeOptions, 'theme'> & { theme?: ThemeObjectOrShikiThemeName | ThemeObjectOrShikiThemeName[] | undefined } = options
+	const deprecatedOptions: Omit<RehypeExpressiveCodeOptions, 'theme'> & { theme?: ThemeObjectOrShikiThemeName | ThemeObjectOrShikiThemeName[] | undefined } = options
 	if (deprecatedOptions.theme && !options.themes) {
 		options.themes = Array.isArray(deprecatedOptions.theme) ? deprecatedOptions.theme : [deprecatedOptions.theme]
 		delete deprecatedOptions.theme
@@ -130,27 +130,23 @@ export async function createRenderer(options: RemarkExpressiveCodeOptions = {}):
 	}
 }
 
-/**
- * @deprecated Please update your project to use the new package `rehype-expressive-code`,
- * which includes performance improvements and also works with current popular site generators.
- */
-const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Root> = (...settings) => {
-	const options: RemarkExpressiveCodeOptions = settings[0] ?? {}
+const rehypeExpressiveCode: Plugin<[RehypeExpressiveCodeOptions] | unknown[], Root> = (...settings) => {
+	const options: RehypeExpressiveCodeOptions = settings[0] ?? {}
 	const { tabWidth = 2, getBlockLocale, customCreateRenderer, customCreateBlock } = options
 
-	let asyncRenderer: Promise<RemarkExpressiveCodeRenderer> | RemarkExpressiveCodeRenderer | undefined
+	let asyncRenderer: Promise<RehypeExpressiveCodeRenderer> | RehypeExpressiveCodeRenderer | undefined
 
-	const renderBlockToHtml = async ({
+	const renderBlockToHast = async ({
 		codeBlock,
 		renderer,
 		addedStyles,
 		addedJsModules,
 	}: {
 		codeBlock: ExpressiveCodeBlock
-		renderer: RemarkExpressiveCodeRenderer
+		renderer: RehypeExpressiveCodeRenderer
 		addedStyles: Set<string>
 		addedJsModules: Set<string>
-	}): Promise<string> => {
+	}): Promise<Element> => {
 		const { ec, baseStyles, themeStyles, jsModules } = renderer
 
 		// Try to render the current code block
@@ -204,18 +200,16 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 		// caused by selectors like `* + *` on the parent level
 		renderedGroupAst.children.unshift(...extraElements)
 
-		// Render the group AST to HTML
-		const htmlContent = toHtml(renderedGroupAst)
-
-		return htmlContent
+		return renderedGroupAst
 	}
 
 	const transformer: Transformer<Root, Root> = async (tree, file) => {
-		const nodesToProcess: [Parent, Code][] = []
+		const nodesToProcess: [Parents, CodeBlockInfo][] = []
 
-		visit(tree, 'code', (code, index, parent) => {
+		visit(tree, 'element', (element, index, parent) => {
 			if (index === null || !parent) return
-			nodesToProcess.push([parent, code])
+			const codeBlockInfo = getCodeBlockInfo(element)
+			if (codeBlockInfo) nodesToProcess.push([parent, codeBlockInfo])
 		})
 
 		if (nodesToProcess.length === 0) return
@@ -234,7 +228,7 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 			const [parent, code] = nodesToProcess[groupIndex]
 
 			// Normalize the code coming from the Markdown/MDX document
-			let normalizedCode = code.value
+			let normalizedCode = code.text
 			if (tabWidth > 0) normalizedCode = normalizedCode.replace(/\t/g, ' '.repeat(tabWidth))
 
 			// Build the ExpressiveCodeBlockOptions object that we will pass either
@@ -261,20 +255,13 @@ const remarkExpressiveCode: Plugin<[RemarkExpressiveCodeOptions] | unknown[], Ro
 			// Allow the user to customize the ExpressiveCodeBlock instance
 			const codeBlock = customCreateBlock ? await customCreateBlock({ input, file }) : new ExpressiveCodeBlock(input)
 
-			// Render the code block to HTML
-			const blockHtml = await renderBlockToHtml({ codeBlock, renderer, addedStyles, addedJsModules })
-
-			// Replace current node with a new HTML node that contains the rendered block
-			const html: HTML = {
-				type: 'html',
-				value: blockHtml,
-			}
-			parent.children.splice(parent.children.indexOf(code), 1, html)
+			// Render the code block and use it to replace the found `<pre>` element
+			const renderedBlock = await renderBlockToHast({ codeBlock, renderer, addedStyles, addedJsModules })
+			parent.children.splice(parent.children.indexOf(code.pre), 1, renderedBlock)
 		}
 	}
 
 	return transformer
 }
 
-// eslint-disable-next-line deprecation/deprecation
-export default remarkExpressiveCode
+export default rehypeExpressiveCode

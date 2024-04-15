@@ -1,4 +1,4 @@
-import { RemarkExpressiveCodeRenderer, createRenderer, getStableObjectHash } from 'remark-expressive-code'
+import { RehypeExpressiveCodeRenderer, createRenderer, getStableObjectHash } from 'rehype-expressive-code'
 import { AstroExpressiveCodeOptions } from './ec-config'
 import { PartialAstroConfig, ConfigSetupHookArgs, getAssetsBaseHref } from './astro-config'
 
@@ -8,7 +8,7 @@ export type CreateAstroRendererArgs = {
 	logger?: ConfigSetupHookArgs['logger'] | undefined
 }
 
-export type AstroExpressiveCodeRenderer = RemarkExpressiveCodeRenderer & {
+export type AstroExpressiveCodeRenderer = RehypeExpressiveCodeRenderer & {
 	hashedStyles: [string, string][]
 	hashedScripts: [string, string][]
 }

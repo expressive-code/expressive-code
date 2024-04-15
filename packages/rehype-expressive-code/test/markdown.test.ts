@@ -2,13 +2,12 @@ import { describe, test, expect } from 'vitest'
 import { unified } from 'unified'
 import remarkParse from 'remark-parse'
 import remarkRehype from 'remark-rehype'
-import rehypeRaw from 'rehype-raw'
 import toHtml from 'rehype-stringify'
 import draculaRaw from 'shiki/themes/dracula.mjs'
 import { ThemeRegistration } from 'shiki/types.mjs'
 import { toText, selectAll } from 'expressive-code/hast'
 import { fromHtml, getCoreJsModules, outputHtmlSnapshot, showAllThemesInRenderedBlockHtml } from '@internal/test-utils'
-import remarkExpressiveCode, { ExpressiveCodeTheme, RemarkExpressiveCodeOptions, StyleSettingPath, getCssVarName } from '../src'
+import rehypeExpressiveCode, { ExpressiveCodeTheme, RehypeExpressiveCodeOptions, StyleSettingPath, getCssVarName } from '../src'
 import { buildSampleCodeHtmlRegExp, sampleCodeMarkdown } from './utils'
 
 const dracula = draculaRaw as Required<ThemeRegistration>
@@ -23,9 +22,9 @@ const regexScrollbarThumbColor = /.expressive-code pre::-webkit-scrollbar-thumb{
 const regexScrollbarHoverColor = /.expressive-code pre::-webkit-scrollbar-thumb:hover{(?:[^}]*?;)*background-color:(.*?)[;}]/g
 const regexThemeClassNames = /:root\[data-theme='([\w-]+?)'\] .expressive-code[,{]/g
 
-describe('Usage inside unified/remark', () => {
+describe('Usage inside unified/rehype', () => {
 	test('Uses default settings when created without any options', async () => {
-		const processor = createRemarkProcessor()
+		const processor = createMarkdownProcessor()
 		const result = await processor.process(sampleCodeMarkdown)
 		const html = result.value.toString()
 		const sampleCodeHtmlRegExp = buildSampleCodeHtmlRegExp({
@@ -42,7 +41,7 @@ describe('Usage inside unified/remark', () => {
 		expect(html).toMatch(sampleCodeHtmlRegExp)
 	})
 	test('Provides access to styleOverrides settings contributed by default plugins', () => {
-		createRemarkProcessor({
+		createMarkdownProcessor({
 			styleOverrides: {
 				frames: {
 					editorBackground: 'blue',
@@ -186,7 +185,7 @@ describe('Usage inside unified/remark', () => {
 		})
 	})
 	test('Adds JS modules provided by plugins before the first code block contents', async () => {
-		const processor = createRemarkProcessor({
+		const processor = createMarkdownProcessor({
 			frames: {
 				// Test that disabling the copy button prevents its JS module from being added
 				showCopyToClipboardButton: false,
@@ -218,7 +217,7 @@ describe('Usage inside unified/remark', () => {
 	})
 	test('Does not repeat JS modules on subsequent code blocks', async () => {
 		const multiBlockMarkdown = `${sampleCodeMarkdown}\n\n${sampleCodeMarkdown}`
-		const processor = createRemarkProcessor({
+		const processor = createMarkdownProcessor({
 			frames: {
 				// Test that disabling the copy button prevents its JS module from being added
 				showCopyToClipboardButton: false,
@@ -251,7 +250,7 @@ describe('Usage inside unified/remark', () => {
 	})
 	test('Does not repeat styles on subsequent code blocks', async () => {
 		const multiBlockMarkdown = `${sampleCodeMarkdown}\n\n${sampleCodeMarkdown}`
-		const processor = createRemarkProcessor()
+		const processor = createMarkdownProcessor()
 		const result = await processor.process(multiBlockMarkdown)
 		const html = result.value.toString()
 		// Expect styles to be part of the output, but only once
@@ -266,7 +265,7 @@ describe('Usage inside unified/remark', () => {
 		expect(lastStyleIndex, 'Last style is not located before first code block contents').toBeLessThan(firstCodeBlockContentsIndex)
 	})
 	test('Does not render unexpected newlines', async () => {
-		const processor = createRemarkProcessor()
+		const processor = createMarkdownProcessor()
 		const result = await processor.process(sampleCodeMarkdown)
 		const html = result.value.toString()
 		const sampleCodeHtmlRegExp = buildSampleCodeHtmlRegExp({
@@ -294,7 +293,7 @@ function test() {
 \`\`\``
 
 		test('Replaces tabs with 2 spaces by default', async () => {
-			const processor = createRemarkProcessor()
+			const processor = createMarkdownProcessor()
 			const result = await processor.process(codeWithTabs)
 			const html = result.value.toString()
 			const text = getCodePlaintextFromHtml(html)
@@ -302,7 +301,7 @@ function test() {
 			expect(text).toContain(`\n    console.log('It worked!')\n`)
 		})
 		test('Can be configured to use a different tab width', async () => {
-			const processor = createRemarkProcessor({ tabWidth: 4 })
+			const processor = createMarkdownProcessor({ tabWidth: 4 })
 			const result = await processor.process(codeWithTabs)
 			const html = result.value.toString()
 			const text = getCodePlaintextFromHtml(html)
@@ -310,7 +309,7 @@ function test() {
 			expect(text).toContain(`\n        console.log('It worked!')\n`)
 		})
 		test('Can be skipped by setting tabWidth to 0', async () => {
-			const processor = createRemarkProcessor({ tabWidth: 0 })
+			const processor = createMarkdownProcessor({ tabWidth: 0 })
 			const result = await processor.process(codeWithTabs)
 			const html = result.value.toString()
 			const text = getCodePlaintextFromHtml(html)
@@ -327,7 +326,7 @@ async function runThemeTests({
 }: {
 	testName: string
 	testCases: {
-		themes: RemarkExpressiveCodeOptions['themes']
+		themes: RehypeExpressiveCodeOptions['themes']
 		bgColor?: string[] | undefined
 		textColor?: string[] | undefined
 		thumbColor?: string[] | undefined
@@ -335,11 +334,11 @@ async function runThemeTests({
 		codeSelectionBg?: string[] | undefined
 		themeDataSelectors?: string[] | undefined
 	}[]
-	config?: RemarkExpressiveCodeOptions | undefined
+	config?: RehypeExpressiveCodeOptions | undefined
 }) {
 	await Promise.all(
 		testCases.map(async (testCase, index) => {
-			const processor = createRemarkProcessor({ themes: testCase.themes, ...config })
+			const processor = createMarkdownProcessor({ themes: testCase.themes, ...config })
 			const result = await processor.process(sampleCodeMarkdown)
 			const html = result.value.toString()
 			outputHtmlSnapshot({
@@ -377,14 +376,12 @@ async function runThemeTests({
 	)
 }
 
-function createRemarkProcessor(options?: RemarkExpressiveCodeOptions) {
+function createMarkdownProcessor(options?: RehypeExpressiveCodeOptions) {
 	const processor = unified()
 		.use(remarkParse)
+		.use(remarkRehype)
 		// Add our plugin
-		// eslint-disable-next-line deprecation/deprecation
-		.use(remarkExpressiveCode, options)
-		.use(remarkRehype, { allowDangerousHtml: true })
-		.use(rehypeRaw)
+		.use(rehypeExpressiveCode, options)
 		.use(toHtml)
 		.freeze()
 	return processor

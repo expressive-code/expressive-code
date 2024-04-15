@@ -20,7 +20,7 @@ This is a monorepo that contains all packages related to Expressive Code. Click 
 
 ### High-level integration packages
 
-- [remark-expressive-code](packages/remark-expressive-code/README.md) [![NPM version](https://img.shields.io/npm/v/remark-expressive-code.svg)](https://www.npmjs.com/package/remark-expressive-code) - A remark plugin that processes all code blocks in markdown and MDX files with Expressive Code.
+- [rehype-expressive-code](packages/rehype-expressive-code/README.md) [![NPM version](https://img.shields.io/npm/v/rehype-expressive-code.svg)](https://www.npmjs.com/package/rehype-expressive-code) - A rehype plugin that processes all code blocks in markdown and MDX files with Expressive Code.
 - [astro-expressive-code](packages/astro-expressive-code/README.md) [![NPM version](https://img.shields.io/npm/v/astro-expressive-code.svg)](https://www.npmjs.com/package/astro-expressive-code) - An Astro integration to automatically render code blocks in any markdown / MDX content on your site with Expressive Code. It also provides a `<Code>` component to render dynamic code blocks.
 
 ### Default plugins

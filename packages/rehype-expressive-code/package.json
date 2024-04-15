@@ -1,18 +1,17 @@
 {
-  "name": "astro-expressive-code",
+  "name": "rehype-expressive-code",
   "version": "0.34.2",
-  "description": "Astro integration for Expressive Code, a text marking & annotation engine for presenting source code on the web.",
-  "keywords": [
-    "astro-integration"
-  ],
+  "description": "Rehype plugin for Expressive Code, a text marking & annotation engine for presenting source code on the web.",
+  "keywords": [],
   "author": "Tibor Schiemann",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/expressive-code/expressive-code.git",
-    "directory": "packages/astro-expressive-code"
+    "directory": "packages/rehype-expressive-code"
   },
   "type": "module",
+  "main": "./dist/index.js",
   "module": "./dist/index.js",
   "exports": {
     ".": {
@@ -22,8 +21,7 @@
     "./hast": {
       "types": "./dist/hast.d.ts",
       "default": "./dist/hast.js"
-    },
-    "./components": "./components/index.ts"
+    }
   },
   "types": "./dist/index.d.ts",
   "typesVersions": {
@@ -34,9 +32,7 @@
     }
   },
   "files": [
-    "dist",
-    "components",
-    "virtual.d.ts"
+    "dist"
   ],
   "scripts": {
     "build": "tsup ./src/index.ts ./src/hast.ts --format esm --dts --sourcemap --clean",
@@ -46,15 +42,17 @@
     "test-watch": "vitest --reporter verbose",
     "watch": "pnpm build --watch src"
   },
-  "peerDependencies": {
-    "astro": "^4.0.0-beta || ^3.3.0"
-  },
   "dependencies": {
-    "rehype-expressive-code": "workspace:^0.34.2"
+    "expressive-code": "workspace:^0.34.2"
   },
   "devDependencies": {
     "@internal/test-utils": "workspace:^",
-    "astro": "^4.5.2",
-    "execa": "^7.1.1"
+    "@types/mdast": "^3.0.11",
+    "@types/unist": "^2.0.6",
+    "rehype-stringify": "^9.0.3",
+    "remark-parse": "^10.0.1",
+    "remark-rehype": "^10.1.0",
+    "shiki": "^1.1.7",
+    "unified": "^10.1.2"
   }
 }

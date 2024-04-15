@@ -1,14 +1,12 @@
 # remark-expressive-code [![NPM version](https://img.shields.io/npm/v/remark-expressive-code.svg)](https://www.npmjs.com/package/remark-expressive-code) [![NPM downloads](https://img.shields.io/npm/dm/remark-expressive-code.svg)](https://npmjs.org/package/remark-expressive-code)
 
-This package is a [unified](https://github.com/unifiedjs/unified) ([remark](https://github.com/remarkjs/remark)) plugin to automatically render code blocks in your markdown / MDX documents using [Expressive Code](https://expressive-code.com/).
-
-## Documentation
-
-[Read the Expressive Code docs](https://expressive-code.com/) to learn more about the features provided by Expressive Code and this integration.
+> **Warning**: ⚠ **This package has been deprecated.** ⚠
+>
+> Please update your project to use its successor [rehype-expressive-code](https://www.npmjs.com/package/rehype-expressive-code) instead, which includes performance improvements and also works with the latest versions of MDX in popular site generators like Next.js.
 
 ## When should I use this?
 
-When you're using markdown / MDX and want to improve the design and functionality of all contained code blocks using Expressive Code.
+You should probably be using [rehype-expressive-code](https://www.npmjs.com/package/rehype-expressive-code) instead.
 
 ## Installation
 
