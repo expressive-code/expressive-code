@@ -1,5 +1,11 @@
 # astro-expressive-code
 
+## 0.34.2
+
+### Patch Changes
+
+- remark-expressive-code@0.34.2
+
 ## 0.34.1
 
 ### Patch Changes

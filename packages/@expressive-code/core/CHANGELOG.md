@@ -1,5 +1,11 @@
 # @expressive-code/core
 
+## 0.34.2
+
+### Patch Changes
+
+- cbc16e9: Updates dependencies to the latest versions. Thank you @bluwy!
+
 ## 0.34.1
 
 ### Patch Changes
