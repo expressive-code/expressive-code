@@ -1,0 +1,16 @@
+{
+  "root": true,
+  "extends": "next/core-web-vitals",
+  "overrides": [
+    {
+      "files": ["*.js", "*.mjs"],
+      "parser": "espree",
+      "parserOptions": {
+        "ecmaVersion": 2020
+      }
+    }
+  ],
+  "rules": {
+    "@next/next/no-html-link-for-pages": ["error", "packages/rehype-expressive-code/test/fixtures/nextjs/pages/"]
+  }
+}

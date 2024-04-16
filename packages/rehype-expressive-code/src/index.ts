@@ -1,4 +1,5 @@
-import type { Plugin, Transformer, VFileWithOutput } from 'unified'
+import type { VFileWithOutput } from 'unified'
+import type { VFile } from 'vfile'
 import {
 	BundledShikiTheme,
 	loadShikiTheme,
@@ -11,7 +12,9 @@ import {
 } from 'expressive-code'
 import type { Root, Parents, Element } from 'expressive-code/hast'
 import { visit } from 'expressive-code/hast'
-import { CodeBlockInfo, getCodeBlockInfo } from './utils'
+import { CodeBlockInfo, createInlineAssetElement, getCodeBlockInfo } from './utils'
+
+type AnyVFile = VFile | VFileWithOutput<null>
 
 export * from 'expressive-code'
 
@@ -50,7 +53,7 @@ export type RehypeExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'themes'> &
 	 * If the function returns `undefined`, the default locale provided in the
 	 * Expressive Code configuration is used.
 	 */
-	getBlockLocale?: (({ input, file }: { input: ExpressiveCodeBlockOptions; file: VFileWithOutput<null> }) => string | undefined | Promise<string | undefined>) | undefined
+	getBlockLocale?: (({ input, file }: { input: ExpressiveCodeBlockOptions; file: AnyVFile }) => string | undefined | Promise<string | undefined>) | undefined
 	/**
 	 * This optional function allows you to customize how `ExpressiveCodeBlock`
 	 * instances are created from code blocks found in the Markdown document.
@@ -62,7 +65,7 @@ export type RehypeExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'themes'> &
 	 * The function is expected to return an `ExpressiveCodeBlock` instance
 	 * or a promise resolving to one.
 	 */
-	customCreateBlock?: (({ input, file }: { input: ExpressiveCodeBlockOptions; file: VFileWithOutput<null> }) => ExpressiveCodeBlock | Promise<ExpressiveCodeBlock>) | undefined
+	customCreateBlock?: (({ input, file }: { input: ExpressiveCodeBlockOptions; file: AnyVFile }) => ExpressiveCodeBlock | Promise<ExpressiveCodeBlock>) | undefined
 	/**
 	 * This advanced option allows you to influence the rendering process by creating
 	 * your own `ExpressiveCode` instance or processing the base styles and JS modules
@@ -130,8 +133,7 @@ export async function createRenderer(options: RehypeExpressiveCodeOptions = {}):
 	}
 }
 
-const rehypeExpressiveCode: Plugin<[RehypeExpressiveCodeOptions] | unknown[], Root> = (...settings) => {
-	const options: RehypeExpressiveCodeOptions = settings[0] ?? {}
+function rehypeExpressiveCode(options: RehypeExpressiveCodeOptions = {}) {
 	const { tabWidth = 2, getBlockLocale, customCreateRenderer, customCreateBlock } = options
 
 	let asyncRenderer: Promise<RehypeExpressiveCodeRenderer> | RehypeExpressiveCodeRenderer | undefined
@@ -141,11 +143,13 @@ const rehypeExpressiveCode: Plugin<[RehypeExpressiveCodeOptions] | unknown[], Ro
 		renderer,
 		addedStyles,
 		addedJsModules,
+		useMdxJsx,
 	}: {
 		codeBlock: ExpressiveCodeBlock
 		renderer: RehypeExpressiveCodeRenderer
 		addedStyles: Set<string>
 		addedJsModules: Set<string>
+		useMdxJsx: boolean
 	}): Promise<Element> => {
 		const { ec, baseStyles, themeStyles, jsModules } = renderer
 
@@ -153,7 +157,7 @@ const rehypeExpressiveCode: Plugin<[RehypeExpressiveCodeOptions] | unknown[], Ro
 		const { renderedGroupAst, styles } = await ec.render(codeBlock)
 
 		// Collect any style and script elements that we need to add to the output
-		const extraElements: Element[] = []
+		const extraElements: Element['children'] = []
 		const stylesToPrepend: string[] = []
 
 		// Add any styles that we haven't added yet
@@ -175,24 +179,27 @@ const rehypeExpressiveCode: Plugin<[RehypeExpressiveCodeOptions] | unknown[], Ro
 		}
 		// Combine all styles we collected (if any) into a single style element
 		if (stylesToPrepend.length) {
-			extraElements.push({
-				type: 'element',
-				tagName: 'style',
-				properties: {},
-				children: [{ type: 'text', value: [...stylesToPrepend].join('') }],
-			})
+			extraElements.push(
+				createInlineAssetElement({
+					tagName: 'style',
+					innerHTML: stylesToPrepend.join(''),
+					useMdxJsx,
+				})
+			)
 		}
 
 		// Create script elements for all JS modules we haven't added yet
 		jsModules.forEach((moduleCode) => {
 			if (addedJsModules.has(moduleCode)) return
 			addedJsModules.add(moduleCode)
-			extraElements.push({
-				type: 'element',
-				tagName: 'script',
-				properties: { type: 'module' },
-				children: [{ type: 'text', value: moduleCode }],
-			})
+			extraElements.push(
+				createInlineAssetElement({
+					tagName: 'script',
+					properties: { type: 'module' },
+					innerHTML: moduleCode,
+					useMdxJsx,
+				})
+			)
 		})
 
 		// Prepend any extra elements to the children of the renderedGroupAst wrapper,
@@ -203,7 +210,7 @@ const rehypeExpressiveCode: Plugin<[RehypeExpressiveCodeOptions] | unknown[], Ro
 		return renderedGroupAst
 	}
 
-	const transformer: Transformer<Root, Root> = async (tree, file) => {
+	const transformer = async (tree: Root, file: AnyVFile) => {
 		const nodesToProcess: [Parents, CodeBlockInfo][] = []
 
 		visit(tree, 'element', (element, index, parent) => {
@@ -221,6 +228,13 @@ const rehypeExpressiveCode: Plugin<[RehypeExpressiveCodeOptions] | unknown[], Ro
 		}
 		const renderer = await asyncRenderer
 
+		// Determine how to render style and script elements based on the environment and file type
+		// (Astro allows using regular HTML elements in MDX, while Next.js requires JSX)
+		const isAstro = file.data?.astro !== undefined
+		const isMdx = file.path?.endsWith('.mdx') ?? false
+		const useMdxJsx = !isAstro && isMdx
+
+		// Render all code blocks on the page while keeping track of the assets we already added
 		const addedStyles = new Set<string>()
 		const addedJsModules = new Set<string>()
 
@@ -256,7 +270,7 @@ const rehypeExpressiveCode: Plugin<[RehypeExpressiveCodeOptions] | unknown[], Ro
 			const codeBlock = customCreateBlock ? await customCreateBlock({ input, file }) : new ExpressiveCodeBlock(input)
 
 			// Render the code block and use it to replace the found `<pre>` element
-			const renderedBlock = await renderBlockToHast({ codeBlock, renderer, addedStyles, addedJsModules })
+			const renderedBlock = await renderBlockToHast({ codeBlock, renderer, addedStyles, addedJsModules, useMdxJsx })
 			parent.children.splice(parent.children.indexOf(code.pre), 1, renderedBlock)
 		}
 	}

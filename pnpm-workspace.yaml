@@ -3,4 +3,5 @@ packages:
   - 'packages/*'
   - 'internal/*'
   - 'packages/astro-expressive-code/test/fixtures/*'
+  - 'packages/rehype-expressive-code/test/fixtures/*'
   - 'docs'
