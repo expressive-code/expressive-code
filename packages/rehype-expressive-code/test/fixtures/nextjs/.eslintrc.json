@@ -9,5 +9,8 @@
         "ecmaVersion": 2020
       }
     }
-  ]
+  ],
+  "rules": {
+    "@next/next/no-html-link-for-pages": ["error", "packages/rehype-expressive-code/test/fixtures/nextjs/pages/"]
+  }
 }
