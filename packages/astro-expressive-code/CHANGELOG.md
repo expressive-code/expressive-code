@@ -1,5 +1,12 @@
 # astro-expressive-code
 
+## 0.35.1
+
+### Patch Changes
+
+- Updated dependencies [389c098]
+  - rehype-expressive-code@0.35.1
+
 ## 0.35.0
 
 ### Minor Changes

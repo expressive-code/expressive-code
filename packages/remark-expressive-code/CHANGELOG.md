@@ -1,5 +1,11 @@
 # remark-expressive-code
 
+## 0.35.1
+
+### Patch Changes
+
+- expressive-code@0.35.1
+
 ## 0.35.0
 
 ### Minor Changes
