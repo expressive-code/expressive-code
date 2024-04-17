@@ -1,5 +1,13 @@
 # astro-expressive-code
 
+## 0.35.2
+
+### Patch Changes
+
+- dd54846: Fixes text marker labels including special characters like `\` by properly escaping CSS variable contents. Thank you @stancl!
+- Updated dependencies [dd54846]
+  - rehype-expressive-code@0.35.2
+
 ## 0.35.1
 
 ### Patch Changes
