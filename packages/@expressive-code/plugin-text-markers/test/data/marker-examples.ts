@@ -34,4 +34,4 @@ export function fancyJsHelper() {
 </BaseLayout>
 `.trim()
 
-export const complexDiffTestMeta = `lang="mdx" title="src/pages/posts/first-post.mdx" ins={"A":6} mark={'B':8-10} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/`
+export const complexDiffTestMeta = `lang="mdx" title="src/pages/posts/first-post.mdx" ins={"\\":6} mark={"'":8-10} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/`

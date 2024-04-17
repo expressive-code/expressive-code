@@ -26,7 +26,7 @@ export class TextMarkerAnnotation extends ExpressiveCodeAnnotation {
 				addClassName(node, this.markerType)
 				if (this.label) {
 					addClassName(node, 'tm-label')
-					setInlineStyle(node, '--tmLabel', `'${this.label.replace(/'/g, "\\'")}'`)
+					setInlineStyle(node, '--tmLabel', this.label, 'string')
 				}
 			}
 			return node
