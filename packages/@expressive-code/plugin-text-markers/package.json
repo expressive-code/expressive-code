@@ -1,6 +1,6 @@
 {
   "name": "@expressive-code/plugin-text-markers",
-  "version": "0.35.1",
+  "version": "0.35.2",
   "description": "Text marker plugin for Expressive Code, a text marking & annotation engine for presenting source code on the web.",
   "keywords": [],
   "author": "Tibor Schiemann",
@@ -30,10 +30,10 @@
     "watch": "pnpm build --watch src"
   },
   "dependencies": {
-    "@expressive-code/core": "workspace:^0.35.1"
+    "@expressive-code/core": "workspace:^0.35.2"
   },
   "devDependencies": {
-    "@expressive-code/plugin-shiki": "workspace:^0.35.1",
+    "@expressive-code/plugin-shiki": "workspace:^0.35.2",
     "@internal/test-utils": "workspace:^",
     "parse-numeric-range": "^1.3.0"
   }

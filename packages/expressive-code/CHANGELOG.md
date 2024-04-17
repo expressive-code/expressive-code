@@ -1,5 +1,16 @@
 # expressive-code
 
+## 0.35.2
+
+### Patch Changes
+
+- dd54846: Fixes text marker labels including special characters like `\` by properly escaping CSS variable contents. Thank you @stancl!
+- Updated dependencies [dd54846]
+  - @expressive-code/plugin-text-markers@0.35.2
+  - @expressive-code/core@0.35.2
+  - @expressive-code/plugin-frames@0.35.2
+  - @expressive-code/plugin-shiki@0.35.2
+
 ## 0.35.1
 
 ### Patch Changes
