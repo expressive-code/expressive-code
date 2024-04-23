@@ -7,6 +7,10 @@ This page combines all release notes of the Expressive Code monorepo.
 You can find the source changelogs on GitHub in the subfolders of
 [`packages`](https://github.com/expressive-code/expressive-code/tree/main/packages).
 
+## 0.35.2
+
+- Fixes text marker labels including special characters like `\` by properly escaping CSS variable contents. Thank you [@stancl](https://github.com/stancl)!
+
 ## 0.35.1
 
 - Fixes style and script assets not loading properly when used with MDX in Next.js.
