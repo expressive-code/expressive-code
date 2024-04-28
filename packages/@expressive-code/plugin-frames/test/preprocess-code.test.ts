@@ -9,6 +9,10 @@ describe('Extracts file name comments from the first code lines', () => {
 			{
 				fileName: 'test.config.mjs',
 			},
+			// Should match + in file name
+			{
+				fileName: '+layout.svelte',
+			},
 		])
 	})
 
@@ -23,6 +27,12 @@ describe('Extracts file name comments from the first code lines', () => {
 				fileName: 'test.config.ts',
 				commentSyntax: `// Fichier d'exemple : {fileName}`,
 				language: 'ts',
+			},
+			// Should match + in file name
+			{
+				fileName: '+layout.svelte',
+				commentSyntax: `// Example file: {fileName}`,
+				language: 'svelte',
 			},
 		])
 	})
