@@ -64,7 +64,7 @@ const getFileNameCommentRegExpString = () =>
 		// Optional Windows drive letter
 		`(?:[a-z]:)?`,
 		// Optional sequence of characters allowed in file paths
-		`[\\w./~%[\\]\\\\-]*`,
+		`[\\w./~%[\\]+\\\\-]*`,
 		// Optional dot and supported file extension
 		`(?:\\.(?:${Object.values(LanguageGroups).flat().sort().join('|')}))?`,
 		// End of file name capture
