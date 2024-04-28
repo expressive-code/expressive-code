@@ -505,21 +505,22 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 		})
 	})
 
+	const validateComplexDiffTestMarkers = buildMarkerValidationFn([
+		{ fullLine: true, markerType: 'del', text: `layout: ../../layouts/BaseLayout.astro` },
+		// Expect the diff prefix `+` to have been converted to a line-level ins marker
+		{ fullLine: true, markerType: 'ins', text: `publishDate: '21 September 2022'` },
+		// Expect the labels to be escaped
+		{ fullLine: true, markerType: 'ins', text: `import BaseLayout from '../../layouts/BaseLayout.astro';`, label: '\\\\' },
+		{ fullLine: true, markerType: 'mark', text: `export function fancyJsHelper() {`, label: "\\'" },
+		{ fullLine: true, markerType: 'mark', text: `  return "Try doing that with YAML!";` },
+		{ fullLine: true, markerType: 'mark', text: `}` },
+		{ markerType: 'mark', text: `<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>` },
+		{ markerType: 'mark', text: `</BaseLayout>` },
+	])
+
 	test(
 		`Actual example with Shiki highlighting`,
 		async ({ task: { name: testName } }) => {
-			const validateMarkers = buildMarkerValidationFn([
-				{ fullLine: true, markerType: 'del', text: `layout: ../../layouts/BaseLayout.astro` },
-				// Expect the diff prefix `+` to have been converted to a line-level ins marker
-				{ fullLine: true, markerType: 'ins', text: `publishDate: '21 September 2022'` },
-				{ fullLine: true, markerType: 'ins', text: `import BaseLayout from '../../layouts/BaseLayout.astro';`, label: 'A' },
-				{ fullLine: true, markerType: 'mark', text: `export function fancyJsHelper() {`, label: 'B' },
-				{ fullLine: true, markerType: 'mark', text: `  return "Try doing that with YAML!";` },
-				{ fullLine: true, markerType: 'mark', text: `}` },
-				{ markerType: 'mark', text: `<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>` },
-				{ markerType: 'mark', text: `</BaseLayout>` },
-			])
-
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,
@@ -530,7 +531,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 					plugins: [pluginTextMarkers(), pluginShiki()],
 					blockValidationFn: (actual) => {
 						// Expect that the correct parts were marked
-						validateMarkers(actual)
+						validateComplexDiffTestMarkers(actual)
 						// Expect that MDX syntax highlighting was applied
 						// due to the `lang="mdx"` meta attribute
 						const matchingElements = selectAll(`span[style]`, actual.renderedGroupAst)
@@ -566,18 +567,6 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 	test(
 		`Actual example with Shiki and gutter`,
 		async ({ task: { name: testName } }) => {
-			const validateMarkers = buildMarkerValidationFn([
-				{ fullLine: true, markerType: 'del', text: `layout: ../../layouts/BaseLayout.astro` },
-				// Expect the diff prefix `+` to have been converted to a line-level ins marker
-				{ fullLine: true, markerType: 'ins', text: `publishDate: '21 September 2022'` },
-				{ fullLine: true, markerType: 'ins', text: `import BaseLayout from '../../layouts/BaseLayout.astro';`, label: 'A' },
-				{ fullLine: true, markerType: 'mark', text: `export function fancyJsHelper() {`, label: 'B' },
-				{ fullLine: true, markerType: 'mark', text: `  return "Try doing that with YAML!";` },
-				{ fullLine: true, markerType: 'mark', text: `}` },
-				{ markerType: 'mark', text: `<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>` },
-				{ markerType: 'mark', text: `</BaseLayout>` },
-			])
-
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,
@@ -588,7 +577,7 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 					plugins: [pluginLineNumbers(), pluginTextMarkers(), pluginShiki()],
 					blockValidationFn: (actual) => {
 						// Expect that the correct parts were marked
-						validateMarkers(actual)
+						validateComplexDiffTestMarkers(actual)
 						// Expect that MDX syntax highlighting was applied
 						// due to the `lang="mdx"` meta attribute
 						const matchingElements = selectAll(`span[style]`, actual.renderedGroupAst)

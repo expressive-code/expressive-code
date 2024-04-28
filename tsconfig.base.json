@@ -21,6 +21,7 @@
       "@expressive-code/plugin-text-markers": ["./packages/@expressive-code/plugin-text-markers/src"],
       "astro-expressive-code": ["./packages/astro-expressive-code/src"],
       "expressive-code": ["./packages/expressive-code/src"],
+      "rehype-expressive-code": ["./packages/rehype-expressive-code/src"],
       "remark-expressive-code": ["./packages/remark-expressive-code/src"]
     }
   }

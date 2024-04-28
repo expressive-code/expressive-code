@@ -1,8 +1,8 @@
-import type { RemarkExpressiveCodeOptions } from 'remark-expressive-code'
+import type { RehypeExpressiveCodeOptions } from 'rehype-expressive-code'
 import type { PartialAstroConfig } from './astro-config'
 import type { AstroExpressiveCodeRenderer, CreateAstroRendererArgs } from './renderer'
 
-export type AstroExpressiveCodeOptions = RemarkExpressiveCodeOptions & {
+export type AstroExpressiveCodeOptions = RehypeExpressiveCodeOptions & {
 	/**
 	 * Determines if the styles required to display code blocks should be emitted into a separate
 	 * CSS file rather than being inlined into the rendered HTML of the first code block per page.

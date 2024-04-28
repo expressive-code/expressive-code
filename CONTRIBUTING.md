@@ -105,7 +105,7 @@ pnpm changeset
 
 When asked about the packages to be included in the changeset, please select the packages that you've changed. Regarding the type of change, please select `minor` for new or changed features and `patch` for bug fixes. Major releases will be handled by the maintainers.
 
-If you have made changes that should be visible to users of the high-level integration packages, please also add `expressive-code`, `remark-expressive-code` and `astro-expressive-code` to the changeset. This will ensure that the full description of your changes is included in these public-facing CHANGELOG.md files as well, instead of only appearing as a dependency update.
+If you have made changes that should be visible to users of the high-level integration packages, please also add `expressive-code`, `rehype-expressive-code` and `astro-expressive-code` to the changeset. This will ensure that the full description of your changes is included in these public-facing CHANGELOG.md files as well, instead of only appearing as a dependency update.
 
 ## Documentation
 

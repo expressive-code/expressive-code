@@ -7,6 +7,38 @@ This page combines all release notes of the Expressive Code monorepo.
 You can find the source changelogs on GitHub in the subfolders of
 [`packages`](https://github.com/expressive-code/expressive-code/tree/main/packages).
 
+## 0.35.2
+
+- Fixes text marker labels including special characters like `\` by properly escaping CSS variable contents. Thank you [@stancl](https://github.com/stancl)!
+
+## 0.35.1
+
+- Fixes style and script assets not loading properly when used with MDX in Next.js.
+
+  The MDX processing chain used by current Next.js versions caused unwanted escaping of the Expressive Code inline assets, which resulted in hydration issues and prevented features that depend on JS modules like the copy button from working.
+
+  In these cases, Expressive Code now uses a different approach to inject the inline assets to ensure that no unwanted escaping occurs.
+
+## 0.35.0
+
+- Adds the new package `rehype-expressive-code` as the successor to `remark-expressive-code`, which is now considered deprecated.
+
+  If you're using the Astro integration `astro-expressive-code`, you will be automatically using the new package and don't need to do anything.
+
+  If your project has a dependency on `remark-expressive-code`, you should replace it with `rehype-expressive-code` and pass it as a rehype plugin instead of a remark plugin. See the [installation instructions](https://expressive-code.com/installation/#nextjs) for an example.
+
+  The new package includes performance improvements and also works with the latest versions of MDX in popular site generators.
+
+## 0.34.2
+
+- Updates dependencies to the latest versions. Thank you [@bluwy](https://github.com/bluwy)!
+
+## 0.34.1
+
+- Fixes a11y property `tabindex="0"` being set on non-scrollable code blocks.
+
+  Instead of always adding `tabindex="0"` to the `<pre>` element of code blocks, a small JS module is now used to conditionally add the property to scrollable code blocks only. This ensures that scrollable regions can be accessed via keyboard navigation while avoiding audit warnings about `tabindex` being used on non-scrollable elements.
+
 ## 0.34.0
 
 - Merges JS modules into a single JS file asset to reduce the number of requests if multiple plugins add JS code.

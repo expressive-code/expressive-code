@@ -1,5 +1,21 @@
 # @expressive-code/core
 
+## 0.35.2
+
+### Patch Changes
+
+- dd54846: Fixes text marker labels including special characters like `\` by properly escaping CSS variable contents. Thank you @stancl!
+
+## 0.35.1
+
+## 0.35.0
+
+## 0.34.2
+
+### Patch Changes
+
+- cbc16e9: Updates dependencies to the latest versions. Thank you @bluwy!
+
 ## 0.34.1
 
 ### Patch Changes

@@ -1,12 +1,12 @@
 import type { AstroIntegration } from 'astro'
-import type { RemarkExpressiveCodeOptions } from 'remark-expressive-code'
-import remarkExpressiveCode from 'remark-expressive-code'
+import type { RehypeExpressiveCodeOptions } from 'rehype-expressive-code'
+import rehypeExpressiveCode from 'rehype-expressive-code'
 import { ConfigSetupHookArgs, PartialAstroConfig } from './astro-config'
 import { AstroExpressiveCodeOptions, CustomConfigPreprocessors, ConfigPreprocessorFn, getEcConfigFileUrl, loadEcConfigFile } from './ec-config'
 import { createAstroRenderer } from './renderer'
 import { vitePluginAstroExpressiveCode } from './vite-plugin'
 
-export * from 'remark-expressive-code'
+export * from 'rehype-expressive-code'
 
 export type { AstroExpressiveCodeOptions, PartialAstroConfig, CustomConfigPreprocessors, ConfigPreprocessorFn }
 export * from './renderer'
@@ -55,19 +55,19 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 				// Preprocess the merged config if custom preprocessors were provided
 				const processedEcConfig = (await mergedOptions.customConfigPreprocessors?.preprocessAstroIntegrationConfig({ ecConfig: mergedOptions, astroConfig })) || mergedOptions
 
-				// Prepare config to pass to the remark integration
+				// Prepare config to pass to the rehype integration
 				const { customCreateAstroRenderer } = processedEcConfig
 				delete processedEcConfig.customCreateAstroRenderer
 				delete processedEcConfig.customConfigPreprocessors
 
 				const { hashedStyles, hashedScripts, ...renderer } = await (customCreateAstroRenderer ?? createAstroRenderer)({ astroConfig, ecConfig: processedEcConfig, logger })
 
-				const remarkExpressiveCodeOptions: RemarkExpressiveCodeOptions = {
+				const rehypeExpressiveCodeOptions: RehypeExpressiveCodeOptions = {
 					// Even though we have created a custom renderer, some options are used
-					// by the remark integration itself (e.g. `tabWidth`, `getBlockLocale`),
+					// by the rehype integration itself (e.g. `tabWidth`, `getBlockLocale`),
 					// so we pass all of them through just to be safe
 					...processedEcConfig,
-					// Pass our custom renderer to the remark integration
+					// Pass our custom renderer to the rehype integration
 					customCreateRenderer: () => renderer,
 				}
 
@@ -85,7 +85,7 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 					},
 					markdown: {
 						syntaxHighlight: false,
-						remarkPlugins: [[remarkExpressiveCode, remarkExpressiveCodeOptions]],
+						rehypePlugins: [[rehypeExpressiveCode, rehypeExpressiveCodeOptions]],
 					},
 				})
 			},

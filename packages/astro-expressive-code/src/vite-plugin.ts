@@ -1,13 +1,13 @@
 import type { ViteUserConfig } from 'astro'
-import { stableStringify } from 'remark-expressive-code'
+import { stableStringify } from 'rehype-expressive-code'
 import { getEcConfigFileUrl } from './ec-config'
 import { PartialAstroConfig, serializePartialAstroConfig } from './astro-config'
 import { AstroExpressiveCodeOptions } from './ec-config'
 
 /**
  * This Vite plugin provides access to page-wide styles & scripts that the Astro integration
- * extracted from its `RemarkExpressiveCodeRenderer`. We extract these contents from the renderer
- * to prevent the remark plugin from repeatedly injecting them into the HTML output of every page
+ * extracted from its `RehypeExpressiveCodeRenderer`. We extract these contents from the renderer
+ * to prevent the rehype plugin from repeatedly injecting them into the HTML output of every page
  * while still allowing pages to load them on demand if they contain code blocks.
  */
 export function vitePluginAstroExpressiveCode({

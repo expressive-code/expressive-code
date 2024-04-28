@@ -6,6 +6,7 @@ import { visit } from 'unist-util-visit'
 import { visitParents, CONTINUE, EXIT, SKIP } from 'unist-util-visit-parents'
 import { h, s } from 'hastscript'
 import postcss, { Declaration } from 'postcss'
+import { serializeCssStringValue } from './internal/escaping'
 
 export { visit, visitParents, CONTINUE, EXIT, SKIP }
 export { toHtml, toText, matches, select, selectAll, h, s }
@@ -114,11 +115,15 @@ export function setInlineStyles(node: Element, styles: Map<string, string>) {
  * Sets a single inline style property on the given node.
  *
  * You can set the value to an empty string or `null` to remove the property.
+ *
+ * Use `valueFormat` to specify how the value should be serialized:
+ * - `'raw'`: The value is used as-is. This is the default.
+ * - `'string'`: The value is serialized as a CSS string value, escaping special characters.
  */
-export function setInlineStyle(node: Element, cssProperty: string, value: string | null) {
+export function setInlineStyle(node: Element, cssProperty: string, value: string | null, valueFormat: 'raw' | 'string' = 'raw') {
 	const styles = getInlineStyles(node)
 	if (value !== null) {
-		styles.set(cssProperty, value)
+		styles.set(cssProperty, valueFormat === 'string' ? serializeCssStringValue(value) : value)
 	} else {
 		styles.delete(cssProperty)
 	}

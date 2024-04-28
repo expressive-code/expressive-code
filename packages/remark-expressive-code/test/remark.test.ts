@@ -7,7 +7,7 @@ import toHtml from 'rehype-stringify'
 import draculaRaw from 'shiki/themes/dracula.mjs'
 import { ThemeRegistration } from 'shiki/types.mjs'
 import { toText, selectAll } from 'expressive-code/hast'
-import { fromHtml, getCoreJsModules } from '@internal/test-utils'
+import { fromHtml, getCoreJsModules, outputHtmlSnapshot, showAllThemesInRenderedBlockHtml } from '@internal/test-utils'
 import remarkExpressiveCode, { ExpressiveCodeTheme, RemarkExpressiveCodeOptions, StyleSettingPath, getCssVarName } from '../src'
 import { buildSampleCodeHtmlRegExp, sampleCodeMarkdown } from './utils'
 
@@ -54,16 +54,18 @@ describe('Usage inside unified/remark', () => {
 		const draculaBg = dracula.colors?.['editor.background'].toLowerCase()
 		const draculaFg = dracula.colors?.['editor.foreground'].toLowerCase()
 
-		test('Bundled Shiki theme names', async () => {
+		test('Bundled Shiki theme names', async ({ task: { name: testName } }) => {
 			await runThemeTests({
+				testName,
 				testCases: [
 					{ themes: ['light-plus'], bgColor: ['#ffffff'], textColor: ['#000000'] },
 					{ themes: ['material-theme'], bgColor: ['#263238'], textColor: ['#eeffff'] },
 				],
 			})
 		})
-		test('JSON themes imported from NPM packages', async () => {
+		test('JSON themes imported from NPM packages', async ({ task: { name: testName } }) => {
 			await runThemeTests({
+				testName,
 				testCases: [
 					{
 						themes: [dracula],
@@ -73,8 +75,9 @@ describe('Usage inside unified/remark', () => {
 				],
 			})
 		})
-		test('ExpressiveCodeTheme instances', async () => {
+		test('ExpressiveCodeTheme instances', async ({ task: { name: testName } }) => {
 			await runThemeTests({
+				testName,
 				testCases: [
 					{
 						themes: [new ExpressiveCodeTheme(dracula)],
@@ -84,8 +87,9 @@ describe('Usage inside unified/remark', () => {
 				],
 			})
 		})
-		test('Multiple themes in an array', async () => {
+		test('Multiple themes in an array', async ({ task: { name: testName } }) => {
 			await runThemeTests({
+				testName,
 				testCases: [
 					{
 						// Provide multiple themes by name
@@ -114,8 +118,9 @@ describe('Usage inside unified/remark', () => {
 			})
 		})
 	})
-	test('Adds selectors for alternate themes by default', async () => {
+	test('Adds selectors for alternate themes by default', async ({ task: { name: testName } }) => {
 		await runThemeTests({
+			testName,
 			testCases: [
 				{
 					// Provide multiple themes by name
@@ -125,8 +130,9 @@ describe('Usage inside unified/remark', () => {
 			],
 		})
 	})
-	test('Can use the `customizeTheme` option to change alternate theme data selectors', async () => {
+	test('Can use the `customizeTheme` option to change alternate theme data selectors', async ({ task: { name: testName } }) => {
 		await runThemeTests({
+			testName,
 			testCases: [
 				{
 					// Provide multiple themes by name
@@ -141,16 +147,18 @@ describe('Usage inside unified/remark', () => {
 			},
 		})
 	})
-	test('Allows the theme to customize the scrollbar by default', async () => {
+	test('Allows the theme to customize the scrollbar by default', async ({ task: { name: testName } }) => {
 		await runThemeTests({
+			testName,
 			testCases: [
 				{ themes: ['light-plus'], thumbColor: ['#64646466'], hoverColor: ['#646464b2'] },
 				{ themes: ['material-theme'], thumbColor: ['#eeffff20'], hoverColor: ['#eeffff4b'] },
 			],
 		})
 	})
-	test('Does not customize the scrollbar if `useThemedScrollbars` is false', async () => {
+	test('Does not customize the scrollbar if `useThemedScrollbars` is false', async ({ task: { name: testName } }) => {
 		await runThemeTests({
+			testName,
 			testCases: [
 				{ themes: ['light-plus'], thumbColor: [], hoverColor: [] },
 				{ themes: ['material-theme'], thumbColor: [], hoverColor: [] },
@@ -158,16 +166,18 @@ describe('Usage inside unified/remark', () => {
 			config: { useThemedScrollbars: false },
 		})
 	})
-	test('Does not customize selection colors by default', async () => {
+	test('Does not customize selection colors by default', async ({ task: { name: testName } }) => {
 		await runThemeTests({
+			testName,
 			testCases: [
 				{ themes: ['light-plus'], codeSelectionBg: [] },
 				{ themes: ['material-theme'], codeSelectionBg: [] },
 			],
 		})
 	})
-	test('Allows themes to customize selection colors if `useThemedSelectionColors` is true', async () => {
+	test('Allows themes to customize selection colors if `useThemedSelectionColors` is true', async ({ task: { name: testName } }) => {
 		await runThemeTests({
+			testName,
 			testCases: [
 				{ themes: ['light-plus'], codeSelectionBg: ['#add6ff'] },
 				{ themes: ['material-theme'], codeSelectionBg: ['#80cbc420'] },
@@ -311,9 +321,11 @@ function test() {
 })
 
 async function runThemeTests({
+	testName,
 	testCases,
 	config,
 }: {
+	testName: string
 	testCases: {
 		themes: RemarkExpressiveCodeOptions['themes']
 		bgColor?: string[] | undefined
@@ -326,10 +338,17 @@ async function runThemeTests({
 	config?: RemarkExpressiveCodeOptions | undefined
 }) {
 	await Promise.all(
-		testCases.map(async (testCase) => {
+		testCases.map(async (testCase, index) => {
 			const processor = createRemarkProcessor({ themes: testCase.themes, ...config })
 			const result = await processor.process(sampleCodeMarkdown)
 			const html = result.value.toString()
+			outputHtmlSnapshot({
+				testName: `${testName}${testCases.length > 1 ? ` ${index + 1}` : ''}`,
+				testBaseDir: __dirname,
+				documentParts: {
+					body: showAllThemesInRenderedBlockHtml(html),
+				},
+			})
 
 			// Perform individual tests specified in the test case
 			let performedTests = 0
@@ -362,6 +381,7 @@ function createRemarkProcessor(options?: RemarkExpressiveCodeOptions) {
 	const processor = unified()
 		.use(remarkParse)
 		// Add our plugin
+		// eslint-disable-next-line deprecation/deprecation
 		.use(remarkExpressiveCode, options)
 		.use(remarkRehype, { allowDangerousHtml: true })
 		.use(rehypeRaw)

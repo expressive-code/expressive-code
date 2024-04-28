@@ -328,9 +328,9 @@ The Text Markers plugin allows to highlight lines and inline ranges in code bloc
 
 This plugin is enabled by default. Set this to `false` to disable it.
 
-## Options of `remark-expressive-code`
+## Options of `rehype-expressive-code`
 
-In addition to the options above, the remark integration also supports the following options:
+In addition to the options above, the rehype integration also supports the following options:
 
 ### customCreateBlock
 
@@ -354,7 +354,7 @@ The function is expected to return an `ExpressiveCodeBlock` instance or a promis
 ### customCreateRenderer
 
 <PropertySignature>
-- Type: (options) => Promise\<RemarkExpressiveCodeRenderer\> \| RemarkExpressiveCodeRenderer
+- Type: (options) => Promise\<RehypeExpressiveCodeRenderer\> \| RehypeExpressiveCodeRenderer
 - Default: `undefined`
 </PropertySignature>
 
@@ -364,7 +364,7 @@ The return value will be cached and used for all code blocks in the document.
 
 #### Parameters
 
-- **options**: `RemarkExpressiveCodeOptions`
+- **options**: `RehypeExpressiveCodeOptions`
 
 ### getBlockLocale
 
@@ -401,7 +401,7 @@ If you want to preserve tabs in your code blocks, set this option to 0.
 ### themes
 
 <PropertySignature>
-- Type: [ThemeObjectOrShikiThemeName](/api/remark-expressive-code/type-aliases/themeobjectorshikithemename/)[]
+- Type: [ThemeObjectOrShikiThemeName](/api/rehype-expressive-code/type-aliases/themeobjectorshikithemename/)[]
 - Default: `['github-dark', 'github-light']`
 </PropertySignature>
 
