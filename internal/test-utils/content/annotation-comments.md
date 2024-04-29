@@ -1,6 +1,6 @@
 # Annotation comments
 
-Annotation comments are the recommended way to annotate parts of your code. You can use them to mark important lines, highlight changes, add notes, and more. You can extend this functionality through plugins that provide new annotation tags, styles and custom rendering.
+Annotation comments are the recommended way to annotate parts of your code. You can use them to mark important lines, highlight changes, add notes, and more. You can extend this functionality through plugins that provide new annotation names, styles and custom rendering.
 
 Instead of having to count line numbers, inserting them into a long line after the opening code fence, and updating them each time your code changes, annotation comments are designed to be placed right next to the relevant parts of your code while keeping it readable and functional:
 
@@ -167,13 +167,15 @@ If an annotation you've added to your code does not get processed by Expressive 
 
 ### Opting out of annotation processing
 
-You may want to prevent Expressive Code from processing annotation comments in certain parts of your code. This can be useful if you're writing a guide about using annotation comments themselves, or if the heuristic used by Expressive Code incorrectly recognizes parts of your code as annotations.
+You may want to prevent Expressive Code from processing annotation comments in certain parts of your code. This can be useful if you're writing a guide about using annotation comments themselves, or if the heuristic used by Expressive Code incorrectly recognizes parts of your code as annotation comments.
 
-These cases should be very rare. Unless you're writing a guide about annotation comments, it's highly unlikely that your code contains the sequence `// [!note] ...` in a place where you don't want it to be recognized as an annotation.
+To opt out, insert a new line in your code that only contains the special tag `[!ignore-tags]` in a comment:
 
-#### Solution
-
-If you encounter a false positive, insert a new line before it that only contains the special tag `[!ignore-tags]` in a comment. This will prevent Expressive Code from processing annotation tags in the problematic line. You can optionally add the tag names to ignore, e.g. `[!ignore-tags:note,ins]`, and/or add a target range modifier to ignore multiple lines or matches, e.g. `[!ignore-tags:3]` or `[!ignore-tags:note:5]`.
+- The base syntax `[!ignore-tags]` will ignore all tags on the next line.
+- You can optionally specify the tag names to ignore, e.g. `[!ignore-tags:note,ins]` will ignore the next match of each tag name.
+- You can optionally add a target range modifier:
+  - This will ignore all tags in the given amount of lines, e.g. `[!ignore-tags:3]` will ignore all tags on the next 3 lines.
+  - If tag names were also specified, it will ignore a certain amount of matches, e.g. `[!ignore-tags:note:5]` will ignore the next 5 matches of the `note` tag.
 
 Have a look at the following example, where a sequence that starts a single-line comment is contained inside a string:
 
