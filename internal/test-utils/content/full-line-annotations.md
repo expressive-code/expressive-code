@@ -38,22 +38,24 @@ console.log('Test')
 console.log('Test')
 ```
 
-## Annotating multiple lines below
+## Annotating multiple lines
 
 Sometimes you may want to annotate an entire block of subsequent lines. To do so, add a range modifier to the end of the tag, e.g. `:3` to target the 3 following lines below.
 
 ```jsx
 // [!mark:3]
-console.log('This line will be marked.')
-console.log('This one, too.')
-console.log('And this one.')
+console.log('The marked range starts here, as the line above only contains the annotation tag.')
+console.log('Lines only containing annotations will be removed from the output.')
+console.log('This is the last line of the range.')
+console.log('No longer marked.')
 
 function a() { // [!mark:3]
-  return 'This also works';
+  return 'This range starts on the line above, as the tag is at the end of a non-empty line.';
 }
+console.log('No longer marked.')
 ```
 
-## Annotating a 1-n lines above
+## Annotating lines above
 
 Insert a comment directly below the line(s) you want to annotate, and either ensure that there is only whitespace below (whitespace is not a valid automatic target range, so it will then target the line above), or add a negative range modifier to the end of the tag (e.g. `:-1` for the line directly above, or `:-2` for the two lines directly above).
 
@@ -67,7 +69,7 @@ console.log('Test')
 console.log('Test')
 /*
   [!note]
-  This note also targets the line above, even without the range suffix.
+  This note also targets the line above, even without the `:-1` range suffix.
   This is because there is only whitespace below.
 */
 
@@ -75,19 +77,4 @@ console.log('Test')
 // [!note:-1] Comments can also span multiple lines even when using
 // the language's single-line comment syntax, as long as all
 // continuation lines are also comments.
-```
-
-## Standalone annotations
-
-If you want to create an annotation that does not automatically target the line below, either ensure that there is only whitespace below (whitespace is not a valid automatic target range), or add a `:0` modifier to the end of the tag to indicate that it doesn’t target any lines.
-
-Plugins like `note` will display such standalone annotations exactly where the annotation comment was placed, ensure that there is an empty line above and below the comment.
-
-```html
-<head>
-  <title>{content.title}</title>
-  <!-- [!note:0] This annotation has nothing to do with any of the lines
-  above or below. This style could be used to explain this location,
-  e.g. "Add other head elements here, like styles and meta tags". -->
-</head>
 ```
