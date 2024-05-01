@@ -1,5 +1,11 @@
 # @expressive-code/plugin-shiki
 
+## 0.35.3
+
+### Patch Changes
+
+- @expressive-code/core@0.35.3
+
 ## 0.35.2
 
 ### Patch Changes
@@ -36,14 +42,6 @@
 ## 0.34.0
 
 ### Minor Changes
-
-- b94a91d: Updates dependencies `hast`, `hastscript` and `hast-util-*` to the latest versions.
-
-  **Potentially breaking change:** Unfortunately, some of the new `hast` types are incompatible with their old versions. If you created custom plugins to manipulate HAST nodes, you may need to update your dependencies as well and probably change some types. For example, if you were using the `Parent` type before, you will probably need to replace it with `Parents` or `Element` in the new version.
-
-- b94a91d: Adds a new `/hast` entrypoint to `@expressive-code/core`, `expressive-code`, `remark-expressive-code` and `astro-expressive-code` to simplify plugin development.
-
-  This new entrypoint provides direct access to the correct versions of HAST types and commonly used tree traversal, querying and manipulation functions. Instead of having to add your own dependencies on libraries like `hastscript`, `hast-util-select` or `unist-util-visit` to your project and manually keeping them in sync with the versions used by Expressive Code, you can now import the internally used functions and types directly from this new entrypoint.
 
 - b6e7167: **Potentially breaking change:** Since this version, all packages are only distributed in modern ESM format, which greatly reduces bundle size.
 
@@ -300,7 +298,7 @@
 
 ### Patch Changes
 
-- ef93adf: Improve caching logic to respect theme contents in addition to name
+- ef93adf: Improves caching logic to respect theme contents in addition to name.
 - Updated dependencies [d2277ba]
 - Updated dependencies [d2277ba]
   - @expressive-code/core@0.26.0
@@ -317,7 +315,7 @@
 
 ### Patch Changes
 
-- af3171b: Pass global `styleOverrides` to plugin style resolver functions.
+- af3171b: Passes global `styleOverrides` to plugin style resolver functions.
 
   This allows plugins to access their individual `styleOverrides` extensions even when values were defined at the global config level.
 
@@ -394,7 +392,7 @@
 
 ### Minor Changes
 
-- 4e26180: Add support for ANSI formatted code blocks. Thanks @fflaten!
+- 4e26180: Adds support for ANSI formatted code blocks. Thanks @fflaten!
 
   You can now use the new language `ansi` to render code blocks containing ANSI escape sequences. This allows you to render colorful terminal output.
 
@@ -418,7 +416,7 @@
 
 ### Minor Changes
 
-- Synchronize package versions to prevent future dependency issues
+- Synchronizes package versions to prevent future dependency issues.
 
 ### Patch Changes
 
@@ -485,13 +483,13 @@
 
 ### Patch Changes
 
-- Turn off explanations to improve Shiki performance
+- Turns off explanations to improve Shiki performance.
 
 ## 0.3.0
 
 ### Minor Changes
 
-- 3ffa599: Fix incorrect highlighting of terminal placeholders
+- 3ffa599: Fixes incorrect highlighting of terminal placeholders.
 
 ### Patch Changes
 
@@ -502,13 +500,13 @@
 
 ### Patch Changes
 
-- Make @internal/test-utils a dev dependency as intended
+- Makes `@internal/test-utils` a dev dependency as intended.
 
 ## 0.2.0
 
 ### Minor Changes
 
-- Initial release
+- Initial release.
 
 ### Patch Changes
 

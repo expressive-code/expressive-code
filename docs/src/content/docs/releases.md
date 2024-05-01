@@ -7,6 +7,10 @@ This page combines all release notes of the Expressive Code monorepo.
 You can find the source changelogs on GitHub in the subfolders of
 [`packages`](https://github.com/expressive-code/expressive-code/tree/main/packages).
 
+## 0.35.3
+
+- Fixes file names containing `+` not being recognized in file name comments. Thank you [@amandaguthrie](https://github.com/amandaguthrie)!
+
 ## 0.35.2
 
 - Fixes text marker labels including special characters like `\` by properly escaping CSS variable contents. Thank you [@stancl](https://github.com/stancl)!
@@ -267,11 +271,11 @@ You can find the source changelogs on GitHub in the subfolders of
 
   You can now set this to `false` if you want your site-wide styles to influence the code blocks.
 
-- Set `prerender = true` for injected routes to improve adapter support.
+- Sets `prerender = true` for injected routes to improve adapter support.
 
 ## 0.29.3
 
-- Fix warning in Astro 4 due to renamed "entryPoint" property. Add Astro 4 to allowed peer dependencies.
+- Fixes a warning in Astro 4 due to renamed "entryPoint" property. Adds Astro 4 to allowed peer dependencies.
 
 ## 0.29.2
 
@@ -279,15 +283,15 @@ You can find the source changelogs on GitHub in the subfolders of
 
 ## 0.29.1
 
-- Fix asset URLs when using non-default Astro config options for `base`, `build.assets` or `build.assetsPrefix`.
+- Fixes asset URLs when using non-default Astro config options for `base`, `build.assets` or `build.assetsPrefix`.
 
 ## 0.29.0
 
-- Update default fonts to match Tailwind CSS.
+- Updates default fonts to match Tailwind CSS.
 
   The previous set of default fonts could result in very thin character line widths on iOS devices. This is now fixed by using the same widely tested set of fonts that Tailwind CSS uses.
 
-- Clean up frontmatter after file name comment extraction.
+- Cleans up frontmatter after file name comment extraction.
 
   If a file name comment gets extracted from a code block without a `title` attribute, additional cleanup work is now performed on the surrounding lines:
 
@@ -296,17 +300,17 @@ You can find the source changelogs on GitHub in the subfolders of
 
 ## 0.28.2
 
-- Use `import type` in route handlers to avoid potential `APIRoute` warning.
+- Uses `import type` in route handlers to avoid potential `APIRoute` warning.
 
 ## 0.28.1
 
-- Add missing `files` entry to make `emitExternalStylesheet` option work.
+- Adds missing `files` entry to make `emitExternalStylesheet` option work.
 
   Sadly, this bug didn't occur before actually publishing the package - it worked fine when linking the package locally. Sorry about that!
 
 ## 0.28.0
 
-- Add `emitExternalStylesheet` option.
+- Adds `emitExternalStylesheet` option.
 
   Determines if the styles required to display code blocks should be emitted into a separate CSS file rather than being inlined into the rendered HTML of the first code block per page. The generated URL `_astro/ec.{hash}.css` includes a content hash and can be cached indefinitely by browsers.
 
@@ -318,11 +322,11 @@ You can find the source changelogs on GitHub in the subfolders of
 
 ## 0.27.1
 
-- Fix missing `styleOverrides.collapsibleSections` declaration even after importing `@expressive-code/plugin-collapsible-sections`. Thanks [@fflaten](https://github.com/fflaten)!
+- Fixes missing `styleOverrides.collapsibleSections` declaration even after importing `@expressive-code/plugin-collapsible-sections`. Thanks [@fflaten](https://github.com/fflaten)!
 
 ## 0.27.0
 
-- Add `useDarkModeMediaQuery` config option.
+- Adds `useDarkModeMediaQuery` config option.
 
   This new option determines if CSS code is generated that uses a `prefers-color-scheme` media query to automatically switch between light and dark themes based on the user's system preferences.
 
@@ -342,7 +346,7 @@ You can find the source changelogs on GitHub in the subfolders of
 
   > **Note**: Before writing new custom CSS, please consider if you can achieve your desired result out of the box now. For example, if your `themes` option contains one dark and one light theme, the `useDarkModeMediaQuery` option will generate a `prefers-color-scheme` media query for you by default.
 
-- Add `minSyntaxHighlightingColorContrast` config option.
+- Adds `minSyntaxHighlightingColorContrast` config option.
 
   This new option determines if Expressive Code should process the syntax highlighting colors of all themes to ensure an accessible minimum contrast ratio between foreground and background colors.
 
@@ -370,7 +374,7 @@ You can find the source changelogs on GitHub in the subfolders of
     },
   ```
 
-- Move all plugin styles into nested sub-objects of top-level config option `styleOverrides`.
+- Moves all plugin styles into nested sub-objects of top-level config option `styleOverrides`.
 
   In previous versions, there could be multiple `styleOverrides` scattered through the configuration (one per plugin with configurable style settings). This has been simplified to a single top-level `styleOverrides` object that contains all style overrides.
 
@@ -395,7 +399,7 @@ You can find the source changelogs on GitHub in the subfolders of
     },
   ```
 
-- Rename config option `theme` to `themes`.
+- Renames config option `theme` to `themes`.
 
   Efficient multi-theme support using CSS variables is now a core feature, so the `theme` option was deprecated in favor of the new array `themes`.
 
@@ -411,13 +415,13 @@ You can find the source changelogs on GitHub in the subfolders of
     },
   ```
 
-- Add `cascadeLayer` config option.
+- Adds `cascadeLayer` config option.
 
   This new option allows to specify a CSS cascade layer name that should be used for all generated CSS styles.
 
   If you are using [cascade layers](https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Cascade_layers) on your site to control the order in which CSS rules are applied, set this option to a non-empty string, and Expressive Code will wrap all of its generated CSS styles in a `@layer` rule with the given name.
 
-- Remove engine properties `configClassName` and `themeClassName`.
+- Removes engine properties `configClassName` and `themeClassName`.
 
   The `configClassName` property was previously used to add a config-dependent class name to the CSS selectors used to style code blocks.
 
@@ -429,7 +433,7 @@ You can find the source changelogs on GitHub in the subfolders of
 
 ## 0.26.2
 
-- Fix multiple different inline marker types on the same line. Thanks [@7c78](https://github.com/7c78)!
+- Fixes multiple different inline marker types on the same line. Thanks [@7c78](https://github.com/7c78)!
 
   The logic inside `flattenInlineMarkerRanges` had a flaw that caused various combinations of `mark`, `ins` and `del` inline markers on the same line to fail. This was fixed and more tests were added.
 
@@ -443,13 +447,13 @@ You can find the source changelogs on GitHub in the subfolders of
 
   Color overlays no longer prevent text from being selectable.
 
-- Make code blocks accessible by keyboard
+- Makes code blocks accessible by keyboard.
 
-- Improve caching logic to respect theme contents in addition to name
+- Improves caching logic to respect theme contents in addition to name.
 
 ## 0.25.0
 
-- Improve theme loading by allowing to pass more theme types directly.
+- Improves theme loading by allowing to pass more theme types directly.
 
   The `theme` config option now supports the following value types:
 
@@ -460,19 +464,19 @@ You can find the source changelogs on GitHub in the subfolders of
     - any theme name bundled with Shiki (e.g. `dracula`)
   - any combination of the above in an array
 
-- Add more colors to `ExpressiveCodeTheme.applyHueAndChromaAdjustments`, allow chaining.
+- Adds more colors to `ExpressiveCodeTheme.applyHueAndChromaAdjustments`, allows chaining.
 
   The `applyHueAndChromaAdjustments()` function now also adjusts `titleBar.activeBackground` and `titleBar.border` properly. Also, it returns the `ExpressiveCodeTheme` instance to allow chaining.
 
 ## 0.24.0
 
-- Render frame borders on top of background, add `editorActiveTabHighlightHeight` style setting.
+- Renders frame borders on top of background, adds `editorActiveTabHighlightHeight` style setting.
 
   Previously, borders were rendered around the editor / terminal window, which could lead to unwanted empty margins between the window background and the drop shadow (e.g. in theme `nord`). Now, the border is rendered on top of the background to resolve this issue, making fully transparent borders act like padding instead.
 
   Additionally, the `editorActiveTabHighlightHeight` style setting was introduced, which allows customizing the colorful line that highlights the active editor tab. It defaults to `borderWidth`.
 
-- Migrate i18n functions to string templates with plural support.
+- Migrates i18n functions to string templates with plural support.
 
   Translated texts including dynamic parts (e.g. a line count) previously used a function syntax. This was convenient to use during plugin development, but made it impossible to use the popular JSON file format as a source of translated texts. To make it easier to integrate Expressive Code, this release gets rid of the function syntax and adds a `formatTemplate` function that understands a simple string template syntax including placeholders and plural support.
 
@@ -480,13 +484,13 @@ You can find the source changelogs on GitHub in the subfolders of
 
   You can also use conditional placeholders by separating multiple choices with semicolons and optionally adding a condition before each choice, e.g. `{itemCount;1=item;items}` or `{variableName; 0=zero; >0=positive; negative}`.
 
-- Pass global `styleOverrides` to plugin style resolver functions.
+- Passes global `styleOverrides` to plugin style resolver functions.
 
   This allows plugins to access their individual `styleOverrides` extensions even when values were defined at the global config level.
 
 ## 0.23.0
 
-- Add config option `customizeTheme`.
+- Adds config option `customizeTheme`.
 
   This optional function is called once per theme during engine initialization with the loaded theme as its only argument.
 
@@ -495,13 +499,13 @@ You can find the source changelogs on GitHub in the subfolders of
   - You can change a theme's `name` property to influence its generated CSS class name (e.g. `theme.name = 'dark'` will result in code blocks having the class `ec-theme-dark`).
   - You can create color variations of themes by using `theme.applyHueAndChromaAdjustments()`.
 
-- Add plugin styles to the `styleOverrides` config option.
+- Adds plugin styles to the `styleOverrides` config option.
 
   So far, this object only contained core styles like colors, fonts, paddings and more. Now, plugins also contribute their own style settings to this object.
 
   For example, if the `frames` plugin is installed, you can now override its `shadowColor` by setting `styleOverrides.frames.shadowColor` to a color value.
 
-- Add `applyHueAndChromaAdjustments` function to `ExpressiveCodeTheme`.
+- Adds `applyHueAndChromaAdjustments` function to `ExpressiveCodeTheme`.
 
   You can now apply chromatic adjustments to entire groups of theme colors while keeping their relative lightness and alpha components intact. This can be used to quickly create theme variants that fit the color scheme of any website or brand.
 
@@ -509,23 +513,23 @@ You can find the source changelogs on GitHub in the subfolders of
 
   You can target predefined groups of theme colors (e.g. `backgrounds`, `accents`) and/or use the `custom` property to define your own groups of theme colors to be adjusted.
 
-- Add outer wrapper when rendering multiple themes.
+- Adds outer wrapper when rendering multiple themes.
 
   When the `theme` option is set to an array containing multiple themes, the rendered code block groups are now wrapped inside `<div class="ec-themes-wrapper">...</div>`. This encapsulates all rendered themes in a single element and thereby ensures their consistent positioning on sites that would otherwise add margins between them due to adjacent sibling combinators.
 
-- Add `styleOverrides` to `ExpressiveCodeTheme`.
+- Adds `styleOverrides` to `ExpressiveCodeTheme`.
 
   Themes can now provide their own `styleOverrides`, which take precedence over global `styleOverrides` and the default styles.
 
-- Add support for extracting file names from CSS file comments.
+- Adds support for extracting file names from CSS file comments.
 
 ## 0.22.2
 
-- Hide summary marker on Safari for collapsible section
+- Hides summary marker on Safari for collapsible section.
 
 ## 0.22.1
 
-- Fix shifted collapsible sections when other plugins add or remove lines
+- Fixes shifted collapsible sections when other plugins add or remove lines.
 
 ## 0.22.0
 
@@ -533,7 +537,7 @@ You can find the source changelogs on GitHub in the subfolders of
 
 ## 0.21.0
 
-- Add multi-theme support to the `theme` config option.
+- Adds multi-theme support to the `theme` config option.
 
   You can now pass an array of themes to the `theme` config option of `remark-expressive-code` and `astro-expressive-code`.
 
@@ -545,7 +549,7 @@ You can find the source changelogs on GitHub in the subfolders of
 
 ## 0.20.0
 
-- Add `removeCommentsWhenCopyingTerminalFrames` config option to `plugin-frames`. Thanks [@AkashRajpurohit](https://github.com/AkashRajpurohit)!
+- Adds `removeCommentsWhenCopyingTerminalFrames` config option to `plugin-frames`. Thanks [@AkashRajpurohit](https://github.com/AkashRajpurohit)!
 
   If `true` (which is the default), the "Copy to clipboard" button of terminal window frames will remove comment lines starting with `#` from the copied text.
 
@@ -553,15 +557,15 @@ You can find the source changelogs on GitHub in the subfolders of
 
 ## 0.19.2
 
-- Add support for Astro 3.0.0 incl. prereleases
+- Adds support for Astro 3.0.0 incl. prereleases.
 
 ## 0.19.1
 
-- Add support for CSS variables to option `styleOverrides.terminalTitlebarDotsForeground`. Thanks [@delucis](https://github.com/delucis)!
+- Adds support for CSS variables to option `styleOverrides.terminalTitlebarDotsForeground`. Thanks [@delucis](https://github.com/delucis)!
 
 ## 0.19.0
 
-- Add support for `diff`-like syntax and `lang` meta attribute. Thanks for the idea [@hirasso](https://github.com/hirasso)!
+- Adds support for `diff`-like syntax and `lang` meta attribute. Thanks for the idea [@hirasso](https://github.com/hirasso)!
 
   To mark lines as inserted or deleted, you can now use the widely supported `diff` language as an alternative to adding line numbers to the opening code fence.
 
@@ -569,21 +573,21 @@ You can find the source changelogs on GitHub in the subfolders of
 
 ## 0.18.1
 
-- Fix possible `querySelectorAll is not a function` issue on page content changes
+- Fixes possible `querySelectorAll is not a function` issue on page content changes
 
 ## 0.18.0
 
-- Add support for ANSI formatted code blocks. Thanks [@fflaten](https://github.com/fflaten)!
+- Adds support for ANSI formatted code blocks. Thanks [@fflaten](https://github.com/fflaten)!
 
   You can now use the new language `ansi` to render code blocks containing ANSI escape sequences. This allows you to render colorful terminal output.
 
 ## 0.17.0
 
-- Add support for Windows drive letters and typical path patterns to file name comment detection. Thanks [@fflaten](https://github.com/fflaten)!
+- Adds support for Windows drive letters and typical path patterns to file name comment detection. Thanks [@fflaten](https://github.com/fflaten)!
 
 ## 0.16.0
 
-- Improve file type support when extracting file names from comments. Thanks [@fflaten](https://github.com/fflaten)!
+- Improves file type support when extracting file names from comments. Thanks [@fflaten](https://github.com/fflaten)!
 
   - Adds more file types to the `LanguageGroups` object
   - Exports `LanguageGroups` to allow external modification
@@ -591,11 +595,11 @@ You can find the source changelogs on GitHub in the subfolders of
 
 ## 0.15.0
 
-- Synchronize package versions to prevent future dependency issues
+- Synchronizes package versions to prevent future dependency issues.
 
 ## 0.14.0
 
-- Add support to override frame types per code block. Thanks [@Princesseuh](https://github.com/Princesseuh)!
+- Adds support to override frame types per code block. Thanks [@Princesseuh](https://github.com/Princesseuh)!
 
   By default, the plugin will automatically select the frame type (code editor or terminal) based on the language identifier in your code block's opening fence.
 
@@ -605,100 +609,100 @@ You can find the source changelogs on GitHub in the subfolders of
 
 ## 0.13.0
 
-- Add config options `useThemedScrollbars` and `useThemedSelectionColors`. Thanks [@Princesseuh](https://github.com/Princesseuh)!
+- Adds config options `useThemedScrollbars` and `useThemedSelectionColors`. Thanks [@Princesseuh](https://github.com/Princesseuh)!
 
   Both options default to `true`. Set any of them to `false` to prevent themes from customizing their appearance and render them using the browser's default style.
 
 ## 0.12.2
 
-- Fix non-working copy buttons in dynamically loaded content
+- Fixes non-working copy buttons in dynamically loaded content.
 
 ## 0.12.1
 
-- Make marked text selectable (#15). Thanks [@hirasso](https://github.com/hirasso)!
+- Makes marked text selectable (#15). Thanks [@hirasso](https://github.com/hirasso)!
 
 ## 0.12.0
 
-- Fix copy button on Firefox (still missing `:has()` support)
+- Fixes copy button on Firefox (still missing `:has()` support).
 
 ## 0.11.0
 
-- Add default export for `astro add` support
+- Adds default export for `astro add` support.
 
-- Reduce potential of unexpected changes through site-wide CSS
+- Reduces potential of unexpected changes through site-wide CSS.
 
 ## 0.10.0
 
-- Add RTL support (ensure that code lines are always LTR)
+- Adds RTL support (ensure that code lines are always LTR).
 
 ## 0.9.1
 
-- Improve mobile core and copy button styles
+- Improves mobile core and copy button styles.
 
-- Enable stricter TypeScript checks (exactOptionalPropertyTypes), improve types
+- Enables stricter TypeScript checks (exactOptionalPropertyTypes), improves types.
 
 ## 0.9.0
 
-- Add tabWidth option to normalize tabs to spaces (default: 2)
+- Adds tabWidth option to normalize tabs to spaces (default: 2).
 
 ## 0.8.4
 
-- Fix feedback tooltip on mobile Safari
+- Fixes feedback tooltip on mobile Safari.
 
 ## 0.8.3
 
-- Improve mobile core and copy button styles
+- Improves mobile core and copy button styles.
 
 ## 0.8.2
 
-- Fix CSS inconsistencies due to box-sizing
+- Fixes CSS inconsistencies due to box-sizing.
 
 ## 0.8.1
 
-- Make `astro` peer dependency more tolerant
+- Makes `astro` peer dependency more tolerant.
 
 ## 0.8.0
 
-- Add support for localized texts, add German to frames plugin
+- Adds support for localized texts, adds German to frames plugin.
 
 ## 0.7.0
 
-- First working version of Astro integration
+- Introduces the first working version of the Astro integration package `astro-expressive-code`.
 
-- Add custom renderer support
+- Adds custom renderer support.
 
 ## 0.6.0
 
-- Allow plugins to add JS modules
+- Allows plugins to add JS modules.
 
-- Add copy to clipboard button
+- Adds copy to clipboard button.
 
 ## 0.5.0
 
-- Automatically trim whitespace at the end of lines, and remove empty lines at the beginning & end of code blocks
+- Automatically trims whitespace at the end of lines, and removes empty lines at the beginning & end of code blocks.
 
 ## 0.4.2
 
-- Turn off explanations to improve Shiki performance
+- Turns off explanations to improve Shiki performance.
 
 ## 0.4.1
 
-- Fix issues with color transforms
+- Fixes issues with color transforms.
 
 ## 0.4.0
 
-- Provide access to all expressive-code exports
+- Provides access to all `expressive-code` exports.
 
-- Change base font size unit to rem
+- Changes base font size unit to rem.
 
-- Make tab margins configurable, improve defaults
+- Makes tab margins configurable, improves defaults.
 
-- Fix incorrect highlighting of terminal placeholders
+- Fixes incorrect highlighting of terminal placeholders.
 
 ## 0.3.0
 
-- Synchronize package versions
+- Synchronizes package versions.
 
 ## 0.2.0
 
-- Initial release
+- Initial release.

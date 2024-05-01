@@ -1,5 +1,11 @@
 # @expressive-code/plugin-text-markers
 
+## 0.35.3
+
+### Patch Changes
+
+- @expressive-code/core@0.35.3
+
 ## 0.35.2
 
 ### Patch Changes
@@ -294,7 +300,7 @@
     },
   ```
 
-- f19746b: Move all plugin styles into nested sub-objects of top-level config option `styleOverrides`.
+- f19746b: Moves all plugin styles into nested sub-objects of top-level config option `styleOverrides`.
 
   In previous versions, there could be multiple `styleOverrides` scattered through the configuration (one per plugin with configurable style settings). This has been simplified to a single top-level `styleOverrides` object that contains all style overrides.
 
@@ -334,7 +340,7 @@
 
 ### Patch Changes
 
-- f2e6b81: Fix multiple different inline marker types on the same line. Thanks @7c78!
+- f2e6b81: Fixes multiple different inline marker types on the same line. Thanks @7c78!
 
   The logic inside `flattenInlineMarkerRanges` had a flaw that caused various combinations of `mark`, `ins` and `del` inline markers on the same line to fail. This was fixed and more tests were added.
 
@@ -372,7 +378,7 @@
 
 ### Patch Changes
 
-- af3171b: Pass global `styleOverrides` to plugin style resolver functions.
+- af3171b: Passes global `styleOverrides` to plugin style resolver functions.
 
   This allows plugins to access their individual `styleOverrides` extensions even when values were defined at the global config level.
 
@@ -437,7 +443,7 @@
 
 ### Minor Changes
 
-- f95d3f1: Add support for `diff`-like syntax and `lang` meta attribute. Thanks for the idea @hirasso!
+- f95d3f1: Adds support for `diff`-like syntax and `lang` meta attribute. Thanks for the idea @hirasso!
 
   To mark lines as inserted or deleted, you can now use the widely supported `diff` language as an alternative to adding line numbers to the opening code fence.
 
@@ -475,7 +481,7 @@
 
 ### Minor Changes
 
-- Synchronize package versions to prevent future dependency issues
+- Synchronizes package versions to prevent future dependency issues.
 
 ### Patch Changes
 
@@ -493,7 +499,7 @@
 
 ### Patch Changes
 
-- Make marked text selectable (#15). Thanks @hirasso!
+- Makes marked text selectable (#15). Thanks @hirasso!
 
 ## 0.2.9
 
@@ -513,7 +519,7 @@
 
 ### Patch Changes
 
-- Enable stricter TypeScript checks (exactOptionalPropertyTypes), improve types
+- Enables stricter TypeScript checks (exactOptionalPropertyTypes), improves types.
 - Updated dependencies
   - @expressive-code/core@0.8.1
 
@@ -563,7 +569,7 @@
 
 ### Minor Changes
 
-- Initial release
+- Initial release.
 
 ### Patch Changes
 

@@ -1,5 +1,12 @@
 # @expressive-code/plugin-frames
 
+## 0.35.3
+
+### Patch Changes
+
+- c892206: Fixes file names containing `+` not being recognized in file name comments. Thank you @amandaguthrie!
+  - @expressive-code/core@0.35.3
+
 ## 0.35.2
 
 ### Patch Changes
@@ -37,23 +44,9 @@
 
 ### Minor Changes
 
-- b94a91d: Updates dependencies `hast`, `hastscript` and `hast-util-*` to the latest versions.
-
-  **Potentially breaking change:** Unfortunately, some of the new `hast` types are incompatible with their old versions. If you created custom plugins to manipulate HAST nodes, you may need to update your dependencies as well and probably change some types. For example, if you were using the `Parent` type before, you will probably need to replace it with `Parents` or `Element` in the new version.
-
-- b94a91d: Adds a new `/hast` entrypoint to `@expressive-code/core`, `expressive-code`, `remark-expressive-code` and `astro-expressive-code` to simplify plugin development.
-
-  This new entrypoint provides direct access to the correct versions of HAST types and commonly used tree traversal, querying and manipulation functions. Instead of having to add your own dependencies on libraries like `hastscript`, `hast-util-select` or `unist-util-visit` to your project and manually keeping them in sync with the versions used by Expressive Code, you can now import the internally used functions and types directly from this new entrypoint.
-
 - b6e7167: **Potentially breaking change:** Since this version, all packages are only distributed in modern ESM format, which greatly reduces bundle size.
 
   Most projects should not be affected by this change at all, but in case you still need to import Expressive Code packages into a CommonJS project, you can use the widely supported `await import(...)` syntax.
-
-- 2ef2503: Makes Expressive Code compatible with Bun. Thank you @tylergannon for the fix and @richardguerre for the report!
-
-  This fixes the error `msg.match is not a function` that was thrown when trying to use Expressive Code with Bun.
-
-  Additionally, the `type` modifier was added to some imports and exports to fix further Bun issues with plugins and integrations found during testing.
 
 ### Patch Changes
 
@@ -209,7 +202,7 @@
 
 ### Minor Changes
 
-- e020b64: Clean up frontmatter after file name comment extraction.
+- e020b64: Cleans up frontmatter after file name comment extraction.
 
   If a file name comment gets extracted from a code block without a `title` attribute, additional cleanup work is now performed on the surrounding lines:
 
@@ -249,21 +242,7 @@
 
 ### Minor Changes
 
-- f19746b: Rendering multiple themes no longer generates duplicate CSS and HTML output.
-
-  In previous versions, a full set of CSS styles was generated for each individual theme, and each code block was rendered multiple times to include the HTML for each theme.
-
-  In this version, the CSS output has been changed to a single static set of base styles that uses CSS variables to allow efficient switching between themes.
-
-  Also, the HTML output for code blocks is now generated only once, and theme-dependent styles are applied using CSS variables.
-
-  These changes significantly reduce page size when using multiple themes, especially on pages with many code blocks.
-
-  If you have added CSS code to your site that relies on the old output (e.g. by selectively hiding or showing theme-specific code blocks based on their class name), you will need to update it to work with the new output.
-
-  > **Note**: Before writing new custom CSS, please consider if you can achieve your desired result out of the box now. For example, if your `themes` option contains one dark and one light theme, the `useDarkModeMediaQuery` option will generate a `prefers-color-scheme` media query for you by default.
-
-- f19746b: Move all plugin styles into nested sub-objects of top-level config option `styleOverrides`.
+- f19746b: Moves all plugin styles into nested sub-objects of top-level config option `styleOverrides`.
 
   In previous versions, there could be multiple `styleOverrides` scattered through the configuration (one per plugin with configurable style settings). This has been simplified to a single top-level `styleOverrides` object that contains all style overrides.
 
@@ -338,17 +317,13 @@
 
 ### Minor Changes
 
-- af3171b: Render frame borders on top of background, add `editorActiveTabHighlightHeight` style setting.
+- af3171b: Renders frame borders on top of background, adds `editorActiveTabHighlightHeight` style setting.
 
   Previously, borders were rendered around the editor / terminal window, which could lead to unwanted empty margins between the window background and the drop shadow (e.g. in theme `nord`). Now, the border is rendered on top of the background to resolve this issue, making fully transparent borders act like padding instead.
 
   Additionally, the `editorActiveTabHighlightHeight` style setting was introduced, which allows customizing the colorful line that highlights the active editor tab. It defaults to `borderWidth`.
 
 ### Patch Changes
-
-- af3171b: Pass global `styleOverrides` to plugin style resolver functions.
-
-  This allows plugins to access their individual `styleOverrides` extensions even when values were defined at the global config level.
 
 - Updated dependencies [af3171b]
 - Updated dependencies [2c375b1]
@@ -358,7 +333,7 @@
 
 ### Minor Changes
 
-- bfed62a: Add support for extracting file names from CSS file comments.
+- bfed62a: Adds support for extracting file names from CSS file comments.
 
 ### Patch Changes
 
@@ -397,7 +372,7 @@
 
 ### Minor Changes
 
-- 7c5c3c7: Add `removeCommentsWhenCopyingTerminalFrames` config option to `plugin-frames`. Thanks @AkashRajpurohit!
+- 7c5c3c7: Adds `removeCommentsWhenCopyingTerminalFrames` config option to `plugin-frames`. Thanks @AkashRajpurohit!
 
   If `true` (which is the default), the "Copy to clipboard" button of terminal window frames will remove comment lines starting with `#` from the copied text.
 
@@ -417,7 +392,7 @@
 
 ### Patch Changes
 
-- 6da5008: Add support for CSS variables to option `styleOverrides.terminalTitlebarDotsForeground`. Thanks @delucis!
+- 6da5008: Adds support for CSS variables to option `styleOverrides.terminalTitlebarDotsForeground`. Thanks @delucis!
   - @expressive-code/core@0.19.1
 
 ## 0.19.0
@@ -430,14 +405,14 @@
 
 ### Patch Changes
 
-- ccc727e: Fix possible `querySelectorAll is not a function` issue on page content changes
+- ccc727e: Fixes possible `querySelectorAll is not a function` issue on page content changes
   - @expressive-code/core@0.18.1
 
 ## 0.18.0
 
 ### Minor Changes
 
-- 4e26180: Add support for ANSI formatted code blocks. Thanks @fflaten!
+- 4e26180: Adds support for ANSI formatted code blocks. Thanks @fflaten!
 
   You can now use the new language `ansi` to render code blocks containing ANSI escape sequences. This allows you to render colorful terminal output.
 
@@ -449,7 +424,7 @@
 
 ### Minor Changes
 
-- aba43e2: Add support for Windows drive letters and typical path patterns to file name comment detection. Thanks @fflaten!
+- aba43e2: Adds support for Windows drive letters and typical path patterns to file name comment detection. Thanks @fflaten!
 
 ### Patch Changes
 
@@ -459,7 +434,7 @@
 
 ### Minor Changes
 
-- 07012f7: Improve file type support when extracting file names from comments. Thanks @fflaten!
+- 07012f7: Improves file type support when extracting file names from comments. Thanks @fflaten!
 
   - Adds more file types to the `LanguageGroups` object
   - Exports `LanguageGroups` to allow external modification
@@ -473,7 +448,7 @@
 
 ### Minor Changes
 
-- Synchronize package versions to prevent future dependency issues
+- Synchronizes package versions to prevent future dependency issues.
 
 ### Patch Changes
 
@@ -484,7 +459,7 @@
 
 ### Minor Changes
 
-- aa8f09d: Add support to override frame types per code block. Thanks @Princesseuh!
+- aa8f09d: Adds support to override frame types per code block. Thanks @Princesseuh!
 
   By default, the plugin will automatically select the frame type (code editor or terminal) based on the language identifier in your code block's opening fence.
 
@@ -503,13 +478,13 @@
 
 ### Patch Changes
 
-- 66de505: Fix non-working copy buttons in dynamically loaded content
+- 66de505: Fixes non-working copy buttons in dynamically loaded content.
 
 ## 0.10.0
 
 ### Minor Changes
 
-- e010774: Fix copy button on Firefox (still missing `:has()` support)
+- e010774: Fixes copy button on Firefox (still missing `:has()` support).
 
 ## 0.9.1
 
@@ -522,7 +497,7 @@
 
 ### Minor Changes
 
-- 5da8685: Add RTL support (ensure that code lines are always LTR)
+- 5da8685: Adds RTL support (ensure that code lines are always LTR).
 
 ### Patch Changes
 
@@ -533,7 +508,7 @@
 
 ### Patch Changes
 
-- Enable stricter TypeScript checks (exactOptionalPropertyTypes), improve types
+- Enables stricter TypeScript checks (exactOptionalPropertyTypes), improves types.
 - Updated dependencies
   - @expressive-code/core@0.8.1
 
@@ -541,13 +516,13 @@
 
 ### Patch Changes
 
-- Fix feedback tooltip on mobile Safari
+- Fixes feedback tooltip on mobile Safari.
 
 ## 0.8.0
 
 ### Minor Changes
 
-- Improve mobile core and copy button styles
+- Improves mobile core and copy button styles.
 
 ### Patch Changes
 
@@ -558,7 +533,7 @@
 
 ### Minor Changes
 
-- Fix CSS inconsistencies due to box-sizing
+- Fixes CSS inconsistencies due to box-sizing.
 
 ### Patch Changes
 
@@ -569,7 +544,7 @@
 
 ### Minor Changes
 
-- f8ed803: Add support for localized texts, add German to frames plugin
+- f8ed803: Adds support for localized texts, adds German to frames plugin.
 
 ### Patch Changes
 
@@ -580,7 +555,7 @@
 
 ### Minor Changes
 
-- af207b0: Add copy to clipboard button
+- af207b0: Adds copy to clipboard button.
 
 ### Patch Changes
 
@@ -598,7 +573,7 @@
 
 ### Minor Changes
 
-- 6cdc248: Make tab margins configurable, improve defaults
+- 6cdc248: Makes tab margins configurable, improves defaults.
 
 ### Patch Changes
 
@@ -609,15 +584,10 @@
 
 ### Minor Changes
 
-- Improve tab style settings (add `editorActiveTabBorder`, actually use `editorTabBarBorderBottom`)
+- Improves tab style settings (adds `editorActiveTabBorder`, actually uses `editorTabBarBorderBottom`).
 
 ## 0.2.0
 
 ### Minor Changes
 
-- Initial release
-
-### Patch Changes
-
-- Updated dependencies
-  - @expressive-code/core@0.2.0
+- Initial release.

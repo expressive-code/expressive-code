@@ -1,5 +1,11 @@
 # remark-expressive-code
 
+## 0.35.3
+
+### Patch Changes
+
+- expressive-code@0.35.3
+
 ## 0.35.2
 
 ### Patch Changes
@@ -310,11 +316,11 @@
 
 ### Minor Changes
 
-- 85dbab8: Update default fonts to match Tailwind CSS.
+- 85dbab8: Updates default fonts to match Tailwind CSS.
 
   The previous set of default fonts could result in very thin character line widths on iOS devices. This is now fixed by using the same widely tested set of fonts that Tailwind CSS uses.
 
-- e020b64: Clean up frontmatter after file name comment extraction.
+- e020b64: Cleans up frontmatter after file name comment extraction.
 
   If a file name comment gets extracted from a code block without a `title` attribute, additional cleanup work is now performed on the surrounding lines:
 
@@ -355,7 +361,7 @@
 
 ### Minor Changes
 
-- f19746b: Add `useDarkModeMediaQuery` config option.
+- f19746b: Adds `useDarkModeMediaQuery` config option.
 
   This new option determines if CSS code is generated that uses a `prefers-color-scheme` media query to automatically switch between light and dark themes based on the user's system preferences.
 
@@ -375,7 +381,7 @@
 
   > **Note**: Before writing new custom CSS, please consider if you can achieve your desired result out of the box now. For example, if your `themes` option contains one dark and one light theme, the `useDarkModeMediaQuery` option will generate a `prefers-color-scheme` media query for you by default.
 
-- f19746b: Add `minSyntaxHighlightingColorContrast` config option.
+- f19746b: Adds `minSyntaxHighlightingColorContrast` config option.
 
   This new option determines if Expressive Code should process the syntax highlighting colors of all themes to ensure an accessible minimum contrast ratio between foreground and background colors.
 
@@ -403,7 +409,7 @@
     },
   ```
 
-- f19746b: Move all plugin styles into nested sub-objects of top-level config option `styleOverrides`.
+- f19746b: Moves all plugin styles into nested sub-objects of top-level config option `styleOverrides`.
 
   In previous versions, there could be multiple `styleOverrides` scattered through the configuration (one per plugin with configurable style settings). This has been simplified to a single top-level `styleOverrides` object that contains all style overrides.
 
@@ -428,7 +434,7 @@
     },
   ```
 
-- f19746b: Rename config option `theme` to `themes`.
+- f19746b: Renames config option `theme` to `themes`.
 
   Efficient multi-theme support using CSS variables is now a core feature, so the `theme` option was deprecated in favor of the new array `themes`.
 
@@ -444,7 +450,7 @@
     },
   ```
 
-- f19746b: Add `cascadeLayer` config option.
+- f19746b: Adds `cascadeLayer` config option.
 
   This new option allows to specify a CSS cascade layer name that should be used for all generated CSS styles.
 
@@ -465,7 +471,7 @@
 
 ### Patch Changes
 
-- f2e6b81: Fix multiple different inline marker types on the same line. Thanks @7c78!
+- f2e6b81: Fixes multiple different inline marker types on the same line. Thanks @7c78!
 
   The logic inside `flattenInlineMarkerRanges` had a flaw that caused various combinations of `mark`, `ins` and `del` inline markers on the same line to fail. This was fixed and more tests were added.
 
@@ -495,7 +501,7 @@
 
 ### Minor Changes
 
-- 126563e: Improve theme loading by allowing to pass more theme types directly.
+- 126563e: Improves theme loading by allowing to pass more theme types directly.
 
   The `theme` config option now supports the following value types:
 
@@ -506,7 +512,7 @@
     - any theme name bundled with Shiki (e.g. `dracula`)
   - any combination of the above in an array
 
-- 126563e: Add more colors to `ExpressiveCodeTheme.applyHueAndChromaAdjustments`, allow chaining.
+- 126563e: Adds more colors to `ExpressiveCodeTheme.applyHueAndChromaAdjustments`, allows chaining.
 
   The `applyHueAndChromaAdjustments()` function now also adjusts `titleBar.activeBackground` and `titleBar.border` properly. Also, it returns the `ExpressiveCodeTheme` instance to allow chaining.
 
@@ -518,7 +524,7 @@
 
 ### Minor Changes
 
-- af3171b: Render frame borders on top of background, add `editorActiveTabHighlightHeight` style setting.
+- af3171b: Renders frame borders on top of background, adds `editorActiveTabHighlightHeight` style setting.
 
   Previously, borders were rendered around the editor / terminal window, which could lead to unwanted empty margins between the window background and the drop shadow (e.g. in theme `nord`). Now, the border is rendered on top of the background to resolve this issue, making fully transparent borders act like padding instead.
 
@@ -526,7 +532,7 @@
 
 ### Patch Changes
 
-- af3171b: Pass global `styleOverrides` to plugin style resolver functions.
+- af3171b: Passes global `styleOverrides` to plugin style resolver functions.
 
   This allows plugins to access their individual `styleOverrides` extensions even when values were defined at the global config level.
 
@@ -538,7 +544,7 @@
 
 ### Minor Changes
 
-- bfed62a: Add config option `customizeTheme`.
+- bfed62a: Adds config option `customizeTheme`.
 
   This optional function is called once per theme during engine initialization with the loaded theme as its only argument.
 
@@ -547,13 +553,13 @@
   - You can change a theme's `name` property to influence its generated CSS class name (e.g. `theme.name = 'dark'` will result in code blocks having the class `ec-theme-dark`).
   - You can create color variations of themes by using `theme.applyHueAndChromaAdjustments()`.
 
-- bfed62a: Add plugin styles to the `styleOverrides` config option.
+- bfed62a: Adds plugin styles to the `styleOverrides` config option.
 
   So far, this object only contained core styles like colors, fonts, paddings and more. Now, plugins also contribute their own style settings to this object.
 
   For example, if the `frames` plugin is installed, you can now override its `shadowColor` by setting `styleOverrides.frames.shadowColor` to a color value.
 
-- bfed62a: Add `applyHueAndChromaAdjustments` function to `ExpressiveCodeTheme`.
+- bfed62a: Adds `applyHueAndChromaAdjustments` function to `ExpressiveCodeTheme`.
 
   You can now apply chromatic adjustments to entire groups of theme colors while keeping their relative lightness and alpha components intact. This can be used to quickly create theme variants that fit the color scheme of any website or brand.
 
@@ -561,11 +567,11 @@
 
   You can target predefined groups of theme colors (e.g. `backgrounds`, `accents`) and/or use the `custom` property to define your own groups of theme colors to be adjusted.
 
-- bfed62a: Add outer wrapper when rendering multiple themes.
+- bfed62a: Adds outer wrapper when rendering multiple themes.
 
   When the `theme` option is set to an array containing multiple themes, the rendered code block groups are now wrapped inside `<div class="ec-themes-wrapper">...</div>`. This encapsulates all rendered themes in a single element and thereby ensures their consistent positioning on sites that would otherwise add margins between them due to adjacent sibling combinators.
 
-- bfed62a: Add `styleOverrides` to `ExpressiveCodeTheme`.
+- bfed62a: Adds `styleOverrides` to `ExpressiveCodeTheme`.
 
   Themes can now provide their own `styleOverrides`, which take precedence over global `styleOverrides` and the default styles.
 
@@ -595,7 +601,7 @@
 
 ### Minor Changes
 
-- becc145: Add multi-theme support to the `theme` config option.
+- becc145: Adds multi-theme support to the `theme` config option.
 
   You can now pass an array of themes to the `theme` config option of `remark-expressive-code` and `astro-expressive-code`.
 
@@ -613,7 +619,7 @@
 
 ### Minor Changes
 
-- 7c5c3c7: Add `removeCommentsWhenCopyingTerminalFrames` config option to `plugin-frames`. Thanks @AkashRajpurohit!
+- 7c5c3c7: Adds `removeCommentsWhenCopyingTerminalFrames` config option to `plugin-frames`. Thanks @AkashRajpurohit!
 
   If `true` (which is the default), the "Copy to clipboard" button of terminal window frames will remove comment lines starting with `#` from the copied text.
 
@@ -640,7 +646,7 @@
 
 ### Minor Changes
 
-- f95d3f1: Add support for `diff`-like syntax and `lang` meta attribute. Thanks for the idea @hirasso!
+- f95d3f1: Adds support for `diff`-like syntax and `lang` meta attribute. Thanks for the idea @hirasso!
 
   To mark lines as inserted or deleted, you can now use the widely supported `diff` language as an alternative to adding line numbers to the opening code fence.
 
@@ -661,7 +667,7 @@
 
 ### Minor Changes
 
-- 4e26180: Add support for ANSI formatted code blocks. Thanks @fflaten!
+- 4e26180: Adds support for ANSI formatted code blocks. Thanks @fflaten!
 
   You can now use the new language `ansi` to render code blocks containing ANSI escape sequences. This allows you to render colorful terminal output.
 
@@ -680,7 +686,7 @@
 
 ### Minor Changes
 
-- 07012f7: Improve file type support when extracting file names from comments. Thanks @fflaten!
+- 07012f7: Improves file type support when extracting file names from comments. Thanks @fflaten!
 
   - Adds more file types to the `LanguageGroups` object
   - Exports `LanguageGroups` to allow external modification
@@ -695,7 +701,7 @@
 
 ### Minor Changes
 
-- Synchronize package versions to prevent future dependency issues
+- Synchronizes package versions to prevent future dependency issues.
 
 ### Patch Changes
 
@@ -706,7 +712,7 @@
 
 ### Minor Changes
 
-- aa8f09d: Add support to override frame types per code block. Thanks @Princesseuh!
+- aa8f09d: Adds support to override frame types per code block. Thanks @Princesseuh!
 
   By default, the plugin will automatically select the frame type (code editor or terminal) based on the language identifier in your code block's opening fence.
 
@@ -723,7 +729,7 @@
 
 ### Minor Changes
 
-- f98937c: Add config options `useThemedScrollbars` and `useThemedSelectionColors`. Thanks @Princesseuh!
+- f98937c: Adds config options `useThemedScrollbars` and `useThemedSelectionColors`. Thanks @Princesseuh!
 
   Both options default to `true`. Set any of them to `false` to prevent themes from customizing their appearance and render them using the browser's default style.
 
@@ -736,7 +742,7 @@
 
 ### Patch Changes
 
-- 66de505: Fix non-working copy buttons in dynamically loaded content
+- 66de505: Fixes non-working copy buttons in dynamically loaded content.
 - Updated dependencies [66de505]
   - expressive-code@0.12.2
 
@@ -744,7 +750,7 @@
 
 ### Patch Changes
 
-- Make marked text selectable (#15). Thanks @hirasso!
+- Makes marked text selectable (#15). Thanks @hirasso!
 - Updated dependencies
   - expressive-code@0.12.1
 
@@ -752,7 +758,7 @@
 
 ### Minor Changes
 
-- e010774: Fix copy button on Firefox (still missing `:has()` support)
+- e010774: Fixes copy button on Firefox (still missing `:has()` support).
 
 ### Patch Changes
 
@@ -769,7 +775,7 @@
 
 ### Minor Changes
 
-- 5da8685: Add RTL support (ensure that code lines are always LTR)
+- 5da8685: Adds RTL support (ensure that code lines are always LTR).
 
 ### Patch Changes
 
@@ -780,7 +786,7 @@
 
 ### Patch Changes
 
-- Enable stricter TypeScript checks (exactOptionalPropertyTypes), improve types
+- Enables stricter TypeScript checks (exactOptionalPropertyTypes), improves types.
 - Updated dependencies
   - expressive-code@0.9.1
 
@@ -788,7 +794,7 @@
 
 ### Minor Changes
 
-- Add tabWidth option to normalize tabs to spaces (default: 2)
+- Adds tabWidth option to normalize tabs to spaces (default: 2).
 
 ### Patch Changes
 
@@ -823,7 +829,7 @@
 
 ### Minor Changes
 
-- f8ed803: Add support for localized texts, add German to frames plugin
+- f8ed803: Adds support for localized texts, adds German to frames plugin.
 
 ### Patch Changes
 
@@ -833,7 +839,7 @@
 
 ### Minor Changes
 
-- Add custom renderer support
+- Adds custom renderer support.
 
 ### Patch Changes
 
@@ -843,7 +849,7 @@
 
 ### Minor Changes
 
-- af207b0: Allow plugins to add JS modules
+- af207b0: Allows plugins to add JS modules.
 
 ### Patch Changes
 
@@ -860,7 +866,7 @@
 
 ### Patch Changes
 
-- Turn off explanations to improve Shiki performance
+- Turns off explanations to improve Shiki performance.
 - Updated dependencies
   - expressive-code@0.4.2
 
@@ -868,7 +874,7 @@
 
 ### Patch Changes
 
-- Fix issues with color transforms
+- Fixes issues with color transforms.
 - Updated dependencies
   - expressive-code@0.4.1
 
@@ -876,7 +882,7 @@
 
 ### Minor Changes
 
-- b6833ef: Provide access to all expressive-code exports
+- b6833ef: Provides access to all `expressive-code` exports.
 
 ### Patch Changes
 
@@ -886,7 +892,7 @@
 
 ### Minor Changes
 
-- Synchronize package versions
+- Synchronizes package versions.
 
 ### Patch Changes
 
@@ -896,13 +902,13 @@
 
 ### Patch Changes
 
-- Fix plugin options type
+- Fixes plugin options type.
 
 ## 0.2.0
 
 ### Minor Changes
 
-- Initial release
+- Initial release.
 
 ### Patch Changes
 
