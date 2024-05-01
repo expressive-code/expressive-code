@@ -1,5 +1,12 @@
 # @expressive-code/plugin-frames
 
+## 0.35.3
+
+### Patch Changes
+
+- c892206: - Fixes file names containing `+` not being recognized in file name comments. Thank you @amandaguthrie!
+  - @expressive-code/core@0.35.3
+
 ## 0.35.2
 
 ### Patch Changes
