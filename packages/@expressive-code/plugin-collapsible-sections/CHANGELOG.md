@@ -232,7 +232,7 @@
 
 ### Patch Changes
 
-- cf01e1e: Fix missing `styleOverrides.collapsibleSections` declaration even after importing `@expressive-code/plugin-collapsible-sections`. Thanks @fflaten!
+- cf01e1e: Fixes missing `styleOverrides.collapsibleSections` declaration even after importing `@expressive-code/plugin-collapsible-sections`. Thanks @fflaten!
   - @expressive-code/core@0.27.1
 
 ## 0.27.0
@@ -253,7 +253,7 @@
 
   > **Note**: Before writing new custom CSS, please consider if you can achieve your desired result out of the box now. For example, if your `themes` option contains one dark and one light theme, the `useDarkModeMediaQuery` option will generate a `prefers-color-scheme` media query for you by default.
 
-- f19746b: Move all plugin styles into nested sub-objects of top-level config option `styleOverrides`.
+- f19746b: Moves all plugin styles into nested sub-objects of top-level config option `styleOverrides`.
 
   In previous versions, there could be multiple `styleOverrides` scattered through the configuration (one per plugin with configurable style settings). This has been simplified to a single top-level `styleOverrides` object that contains all style overrides.
 
@@ -321,7 +321,7 @@
 
 ### Minor Changes
 
-- 2c375b1: Migrate i18n functions to string templates with plural support.
+- 2c375b1: Migrates i18n functions to string templates with plural support.
 
   Translated texts including dynamic parts (e.g. a line count) previously used a function syntax. This was convenient to use during plugin development, but made it impossible to use the popular JSON file format as a source of translated texts. To make it easier to integrate Expressive Code, this release gets rid of the function syntax and adds a `formatTemplate` function that understands a simple string template syntax including placeholders and plural support.
 
@@ -331,7 +331,7 @@
 
 ### Patch Changes
 
-- af3171b: Pass global `styleOverrides` to plugin style resolver functions.
+- af3171b: Passes global `styleOverrides` to plugin style resolver functions.
 
   This allows plugins to access their individual `styleOverrides` extensions even when values were defined at the global config level.
 
@@ -353,14 +353,14 @@
 
 ### Patch Changes
 
-- 1916338: Hide summary marker on Safari for collapsible section
+- 1916338: Hides summary marker on Safari for collapsible section.
   - @expressive-code/core@0.22.2
 
 ## 0.22.1
 
 ### Patch Changes
 
-- 401b61a: Fix shifted collapsible sections when other plugins add or remove lines
+- 401b61a: Fixes shifted collapsible sections when other plugins add or remove lines.
   - @expressive-code/core@0.22.1
 
 ## 0.22.0

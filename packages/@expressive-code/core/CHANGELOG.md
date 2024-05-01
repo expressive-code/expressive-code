@@ -212,7 +212,7 @@
 
 ### Minor Changes
 
-- 85dbab8: Update default fonts to match Tailwind CSS.
+- 85dbab8: Updates default fonts to match Tailwind CSS.
 
   The previous set of default fonts could result in very thin character line widths on iOS devices. This is now fixed by using the same widely tested set of fonts that Tailwind CSS uses.
 
@@ -228,7 +228,7 @@
 
 ### Minor Changes
 
-- f19746b: Remove engine properties `configClassName` and `themeClassName`.
+- f19746b: Removes engine properties `configClassName` and `themeClassName`.
 
   The `configClassName` property was previously used to add a config-dependent class name to the CSS selectors used to style code blocks.
 
@@ -238,7 +238,7 @@
 
   As code blocks are now styled using CSS variables instead of generating multiple blocks for all themes and attaching class names to them, this property is no longer needed.
 
-- f19746b: Add `useDarkModeMediaQuery` config option.
+- f19746b: Adds `useDarkModeMediaQuery` config option.
 
   This new option determines if CSS code is generated that uses a `prefers-color-scheme` media query to automatically switch between light and dark themes based on the user's system preferences.
 
@@ -258,13 +258,13 @@
 
   > **Note**: Before writing new custom CSS, please consider if you can achieve your desired result out of the box now. For example, if your `themes` option contains one dark and one light theme, the `useDarkModeMediaQuery` option will generate a `prefers-color-scheme` media query for you by default.
 
-- f19746b: Add `minSyntaxHighlightingColorContrast` config option.
+- f19746b: Adds `minSyntaxHighlightingColorContrast` config option.
 
   This new option determines if Expressive Code should process the syntax highlighting colors of all themes to ensure an accessible minimum contrast ratio between foreground and background colors.
 
   Defaults to `5.5`, which ensures a contrast ratio of at least 5.5:1. You can change the desired contrast ratio by providing another value, or turn the feature off by setting this option to `0`.
 
-- f19746b: Move all plugin styles into nested sub-objects of top-level config option `styleOverrides`.
+- f19746b: Moves all plugin styles into nested sub-objects of top-level config option `styleOverrides`.
 
   In previous versions, there could be multiple `styleOverrides` scattered through the configuration (one per plugin with configurable style settings). This has been simplified to a single top-level `styleOverrides` object that contains all style overrides.
 
@@ -289,7 +289,7 @@
     },
   ```
 
-- f19746b: Rename config option `theme` to `themes`.
+- f19746b: Renames config option `theme` to `themes`.
 
   Efficient multi-theme support using CSS variables is now a core feature, so the `theme` option was deprecated in favor of the new array `themes`.
 
@@ -305,7 +305,7 @@
     },
   ```
 
-- f19746b: Add `cascadeLayer` config option.
+- f19746b: Adds `cascadeLayer` config option.
 
   This new option allows to specify a CSS cascade layer name that should be used for all generated CSS styles.
 
@@ -325,13 +325,13 @@
 
 ### Patch Changes
 
-- d2277ba: Make code blocks accessible by keyboard
+- d2277ba: Makes code blocks accessible by keyboard.
 
 ## 0.25.0
 
 ### Minor Changes
 
-- 126563e: Improve theme loading by allowing to pass more theme types directly.
+- 126563e: Improves theme loading by allowing to pass more theme types directly.
 
   The `theme` config option now supports the following value types:
 
@@ -342,7 +342,7 @@
     - any theme name bundled with Shiki (e.g. `dracula`)
   - any combination of the above in an array
 
-- 126563e: Add more colors to `ExpressiveCodeTheme.applyHueAndChromaAdjustments`, allow chaining.
+- 126563e: Adds more colors to `ExpressiveCodeTheme.applyHueAndChromaAdjustments`, allows chaining.
 
   The `applyHueAndChromaAdjustments()` function now also adjusts `titleBar.activeBackground` and `titleBar.border` properly. Also, it returns the `ExpressiveCodeTheme` instance to allow chaining.
 
@@ -350,7 +350,7 @@
 
 ### Minor Changes
 
-- 2c375b1: Migrate i18n functions to string templates with plural support.
+- 2c375b1: Migrates i18n functions to string templates with plural support.
 
   Translated texts including dynamic parts (e.g. a line count) previously used a function syntax. This was convenient to use during plugin development, but made it impossible to use the popular JSON file format as a source of translated texts. To make it easier to integrate Expressive Code, this release gets rid of the function syntax and adds a `formatTemplate` function that understands a simple string template syntax including placeholders and plural support.
 
@@ -360,7 +360,7 @@
 
 ### Patch Changes
 
-- af3171b: Pass global `styleOverrides` to plugin style resolver functions.
+- af3171b: Passes global `styleOverrides` to plugin style resolver functions.
 
   This allows plugins to access their individual `styleOverrides` extensions even when values were defined at the global config level.
 
@@ -368,7 +368,7 @@
 
 ### Minor Changes
 
-- bfed62a: Add config option `customizeTheme`.
+- bfed62a: Adds config option `customizeTheme`.
 
   This optional function is called once per theme during engine initialization with the loaded theme as its only argument.
 
@@ -377,13 +377,13 @@
   - You can change a theme's `name` property to influence its generated CSS class name (e.g. `theme.name = 'dark'` will result in code blocks having the class `ec-theme-dark`).
   - You can create color variations of themes by using `theme.applyHueAndChromaAdjustments()`.
 
-- bfed62a: Add plugin styles to the `styleOverrides` config option.
+- bfed62a: Adds plugin styles to the `styleOverrides` config option.
 
   So far, this object only contained core styles like colors, fonts, paddings and more. Now, plugins also contribute their own style settings to this object.
 
   For example, if the `frames` plugin is installed, you can now override its `shadowColor` by setting `styleOverrides.frames.shadowColor` to a color value.
 
-- bfed62a: Add `applyHueAndChromaAdjustments` function to `ExpressiveCodeTheme`.
+- bfed62a: Adds `applyHueAndChromaAdjustments` function to `ExpressiveCodeTheme`.
 
   You can now apply chromatic adjustments to entire groups of theme colors while keeping their relative lightness and alpha components intact. This can be used to quickly create theme variants that fit the color scheme of any website or brand.
 
@@ -391,7 +391,7 @@
 
   You can target predefined groups of theme colors (e.g. `backgrounds`, `accents`) and/or use the `custom` property to define your own groups of theme colors to be adjusted.
 
-- bfed62a: Add `styleOverrides` to `ExpressiveCodeTheme`.
+- bfed62a: Adds `styleOverrides` to `ExpressiveCodeTheme`.
 
   Themes can now provide their own `styleOverrides`, which take precedence over global `styleOverrides` and the default styles.
 
@@ -405,7 +405,7 @@
 
 ### Minor Changes
 
-- becc145: Add multi-theme support to the `theme` config option.
+- becc145: Adds multi-theme support to the `theme` config option.
 
   You can now pass an array of themes to the `theme` config option of `remark-expressive-code` and `astro-expressive-code`.
 
@@ -435,13 +435,13 @@
 
 ### Minor Changes
 
-- Synchronize package versions to prevent future dependency issues
+- Synchronizes package versions to prevent future dependency issues.
 
 ## 0.11.0
 
 ### Minor Changes
 
-- f98937c: Add config options `useThemedScrollbars` and `useThemedSelectionColors`. Thanks @Princesseuh!
+- f98937c: Adds config options `useThemedScrollbars` and `useThemedSelectionColors`. Thanks @Princesseuh!
 
   Both options default to `true`. Set any of them to `false` to prevent themes from customizing their appearance and render them using the browser's default style.
 
@@ -449,70 +449,70 @@
 
 ### Minor Changes
 
-- 276d221: Reduce potential of unexpected changes through site-wide CSS
+- 276d221: Reduces potential of unexpected changes through site-wide CSS.
 
 ## 0.9.0
 
 ### Minor Changes
 
-- 5da8685: Add RTL support (ensure that code lines are always LTR)
+- 5da8685: Adds RTL support (ensure that code lines are always LTR).
 
 ## 0.8.1
 
 ### Patch Changes
 
-- Enable stricter TypeScript checks (exactOptionalPropertyTypes), improve types
+- Enables stricter TypeScript checks (exactOptionalPropertyTypes), improves types.
 
 ## 0.8.0
 
 ### Minor Changes
 
-- Improve mobile core and copy button styles
+- Improves mobile core and copy button styles.
 
 ## 0.7.0
 
 ### Minor Changes
 
-- Fix CSS inconsistencies due to box-sizing
+- Fixes CSS inconsistencies due to box-sizing.
 
 ## 0.6.0
 
 ### Minor Changes
 
-- f8ed803: Add support for localized texts, add German to frames plugin
+- f8ed803: Adds support for localized texts, adds German to frames plugin.
 
 ## 0.5.0
 
 ### Minor Changes
 
-- af207b0: Allow plugins to add JS modules
+- af207b0: Allows plugins to add JS modules.
 
 ## 0.4.0
 
 ### Minor Changes
 
-- Automatically trim whitespace at the end of lines, and remove empty lines at the beginning & end of code blocks
+- Automatically trims whitespace at the end of lines, and removes empty lines at the beginning & end of code blocks.
 
 ## 0.3.1
 
 ### Patch Changes
 
-- Fix issues with color transforms
+- Fixes issues with color transforms.
 
 ## 0.3.0
 
 ### Minor Changes
 
-- 6d316f6: Change base font size unit to rem
+- 6d316f6: Changes base font size unit to rem.
 
 ## 0.2.1
 
 ### Patch Changes
 
-- Remove any padding from pre element
+- Removes any padding from pre element.
 
 ## 0.2.0
 
 ### Minor Changes
 
-- Initial release
+- Initial release.

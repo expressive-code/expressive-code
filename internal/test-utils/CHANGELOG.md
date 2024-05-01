@@ -183,7 +183,7 @@
 
 ### Patch Changes
 
-- Enable stricter TypeScript checks (exactOptionalPropertyTypes), improve types
+- Enables stricter TypeScript checks (exactOptionalPropertyTypes), improves types.
 - Updated dependencies
   - @expressive-code/core@0.8.1
 
@@ -212,7 +212,7 @@
 
 ### Minor Changes
 
-- af207b0: Allow plugins to add JS modules
+- af207b0: Allows plugins to add JS modules
 
 ### Patch Changes
 

@@ -338,11 +338,11 @@
 
 ### Minor Changes
 
-- 85dbab8: Update default fonts to match Tailwind CSS.
+- 85dbab8: Updates default fonts to match Tailwind CSS.
 
   The previous set of default fonts could result in very thin character line widths on iOS devices. This is now fixed by using the same widely tested set of fonts that Tailwind CSS uses.
 
-- e020b64: Clean up frontmatter after file name comment extraction.
+- e020b64: Cleans up frontmatter after file name comment extraction.
 
   If a file name comment gets extracted from a code block without a `title` attribute, additional cleanup work is now performed on the surrounding lines:
 
@@ -398,7 +398,7 @@
 
 ### Minor Changes
 
-- f19746b: Add `useDarkModeMediaQuery` config option.
+- f19746b: Adds `useDarkModeMediaQuery` config option.
 
   This new option determines if CSS code is generated that uses a `prefers-color-scheme` media query to automatically switch between light and dark themes based on the user's system preferences.
 
@@ -418,7 +418,7 @@
 
   > **Note**: Before writing new custom CSS, please consider if you can achieve your desired result out of the box now. For example, if your `themes` option contains one dark and one light theme, the `useDarkModeMediaQuery` option will generate a `prefers-color-scheme` media query for you by default.
 
-- f19746b: Add `minSyntaxHighlightingColorContrast` config option.
+- f19746b: Adds `minSyntaxHighlightingColorContrast` config option.
 
   This new option determines if Expressive Code should process the syntax highlighting colors of all themes to ensure an accessible minimum contrast ratio between foreground and background colors.
 
@@ -446,7 +446,7 @@
     },
   ```
 
-- f19746b: Move all plugin styles into nested sub-objects of top-level config option `styleOverrides`.
+- f19746b: Moves all plugin styles into nested sub-objects of top-level config option `styleOverrides`.
 
   In previous versions, there could be multiple `styleOverrides` scattered through the configuration (one per plugin with configurable style settings). This has been simplified to a single top-level `styleOverrides` object that contains all style overrides.
 
@@ -471,7 +471,7 @@
     },
   ```
 
-- f19746b: Rename config option `theme` to `themes`.
+- f19746b: Renames config option `theme` to `themes`.
 
   Efficient multi-theme support using CSS variables is now a core feature, so the `theme` option was deprecated in favor of the new array `themes`.
 
@@ -487,7 +487,7 @@
     },
   ```
 
-- f19746b: Add `cascadeLayer` config option.
+- f19746b: Adds `cascadeLayer` config option.
 
   This new option allows to specify a CSS cascade layer name that should be used for all generated CSS styles.
 
@@ -512,7 +512,7 @@
 
 ### Patch Changes
 
-- f2e6b81: Fix multiple different inline marker types on the same line. Thanks @7c78!
+- f2e6b81: Fixes multiple different inline marker types on the same line. Thanks @7c78!
 
   The logic inside `flattenInlineMarkerRanges` had a flaw that caused various combinations of `mark`, `ins` and `del` inline markers on the same line to fail. This was fixed and more tests were added.
 
@@ -565,7 +565,7 @@
 
 ### Minor Changes
 
-- af3171b: Render frame borders on top of background, add `editorActiveTabHighlightHeight` style setting.
+- af3171b: Renders frame borders on top of background, adds `editorActiveTabHighlightHeight` style setting.
 
   Previously, borders were rendered around the editor / terminal window, which could lead to unwanted empty margins between the window background and the drop shadow (e.g. in theme `nord`). Now, the border is rendered on top of the background to resolve this issue, making fully transparent borders act like padding instead.
 
@@ -573,7 +573,7 @@
 
 ### Patch Changes
 
-- af3171b: Pass global `styleOverrides` to plugin style resolver functions.
+- af3171b: Passes global `styleOverrides` to plugin style resolver functions.
 
   This allows plugins to access their individual `styleOverrides` extensions even when values were defined at the global config level.
 
@@ -640,7 +640,7 @@
 
 ### Minor Changes
 
-- 7c5c3c7: Add `removeCommentsWhenCopyingTerminalFrames` config option to `plugin-frames`. Thanks @AkashRajpurohit!
+- 7c5c3c7: Adds `removeCommentsWhenCopyingTerminalFrames` config option to `plugin-frames`. Thanks @AkashRajpurohit!
 
   If `true` (which is the default), the "Copy to clipboard" button of terminal window frames will remove comment lines starting with `#` from the copied text.
 
@@ -677,7 +677,7 @@
 
 ### Minor Changes
 
-- f95d3f1: Add support for `diff`-like syntax and `lang` meta attribute. Thanks for the idea @hirasso!
+- f95d3f1: Adds support for `diff`-like syntax and `lang` meta attribute. Thanks for the idea @hirasso!
 
   To mark lines as inserted or deleted, you can now use the widely supported `diff` language as an alternative to adding line numbers to the opening code fence.
 
@@ -705,7 +705,7 @@
 
 ### Minor Changes
 
-- 4e26180: Add support for ANSI formatted code blocks. Thanks @fflaten!
+- 4e26180: Adds support for ANSI formatted code blocks. Thanks @fflaten!
 
   You can now use the new language `ansi` to render code blocks containing ANSI escape sequences. This allows you to render colorful terminal output.
 
@@ -731,7 +731,7 @@
 
 ### Minor Changes
 
-- 07012f7: Improve file type support when extracting file names from comments. Thanks @fflaten!
+- 07012f7: Improves file type support when extracting file names from comments. Thanks @fflaten!
 
   - Adds more file types to the `LanguageGroups` object
   - Exports `LanguageGroups` to allow external modification
@@ -749,7 +749,7 @@
 
 ### Minor Changes
 
-- Synchronize package versions to prevent future dependency issues
+- Synchronizes package versions to prevent future dependency issues.
 
 ### Patch Changes
 
@@ -763,7 +763,7 @@
 
 ### Minor Changes
 
-- aa8f09d: Add support to override frame types per code block. Thanks @Princesseuh!
+- aa8f09d: Adds support to override frame types per code block. Thanks @Princesseuh!
 
   By default, the plugin will automatically select the frame type (code editor or terminal) based on the language identifier in your code block's opening fence.
 
@@ -780,7 +780,7 @@
 
 ### Minor Changes
 
-- f98937c: Add config options `useThemedScrollbars` and `useThemedSelectionColors`. Thanks @Princesseuh!
+- f98937c: Adds config options `useThemedScrollbars` and `useThemedSelectionColors`. Thanks @Princesseuh!
 
   Both options default to `true`. Set any of them to `false` to prevent themes from customizing their appearance and render them using the browser's default style.
 
@@ -796,7 +796,7 @@
 
 ### Patch Changes
 
-- 66de505: Fix non-working copy buttons in dynamically loaded content
+- 66de505: Fixes non-working copy buttons in dynamically loaded content.
 - Updated dependencies [66de505]
   - @expressive-code/plugin-frames@0.10.1
 
@@ -804,7 +804,7 @@
 
 ### Patch Changes
 
-- Make marked text selectable (#15). Thanks @hirasso!
+- Makes marked text selectable (#15). Thanks @hirasso!
 - Updated dependencies
   - @expressive-code/plugin-text-markers@0.2.10
 
@@ -819,7 +819,7 @@
 
 ### Minor Changes
 
-- 276d221: Reduce potential of unexpected changes through site-wide CSS
+- 276d221: Reduces potential of unexpected changes through site-wide CSS.
 
 ### Patch Changes
 
@@ -833,7 +833,7 @@
 
 ### Minor Changes
 
-- 5da8685: Add RTL support (ensure that code lines are always LTR)
+- 5da8685: Adds RTL support (ensure that code lines are always LTR).
 
 ### Patch Changes
 
@@ -847,7 +847,7 @@
 
 ### Patch Changes
 
-- Enable stricter TypeScript checks (exactOptionalPropertyTypes), improve types
+- Enables stricter TypeScript checks (exactOptionalPropertyTypes), improves types.
 - Updated dependencies
   - @expressive-code/plugin-text-markers@0.2.7
   - @expressive-code/plugin-frames@0.8.2
@@ -860,7 +860,7 @@
 
 ### Patch Changes
 
-- Fix feedback tooltip on mobile Safari
+- Fixes feedback tooltip on mobile Safari.
 - Updated dependencies
   - @expressive-code/plugin-frames@0.8.1
 
@@ -913,7 +913,7 @@
 
 ### Minor Changes
 
-- Automatically trim whitespace at the end of lines, and remove empty lines at the beginning & end of code blocks
+- Automatically trims whitespace at the end of lines, and removes empty lines at the beginning & end of code blocks.
 
 ### Patch Changes
 
@@ -927,7 +927,7 @@
 
 ### Patch Changes
 
-- Turn off explanations to improve Shiki performance
+- Turns off explanations to improve Shiki performance.
 - Updated dependencies
   - @expressive-code/plugin-shiki@0.3.1
 
@@ -935,7 +935,7 @@
 
 ### Patch Changes
 
-- Fix issues with color transforms
+- Fixes issues with color transforms.
 - Updated dependencies
   - @expressive-code/core@0.3.1
 
@@ -964,7 +964,7 @@
 
 ### Minor Changes
 
-- Initial release
+- Initial release.
 
 ### Patch Changes
 
