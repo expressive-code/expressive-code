@@ -4,7 +4,7 @@
 
 ### Patch Changes
 
-- c892206: - Fixes file names containing `+` not being recognized in file name comments. Thank you @amandaguthrie!
+- c892206: Fixes file names containing `+` not being recognized in file name comments. Thank you @amandaguthrie!
   - @expressive-code/core@0.35.3
 
 ## 0.35.2
