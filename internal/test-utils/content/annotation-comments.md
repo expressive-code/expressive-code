@@ -326,12 +326,14 @@ When processing your code, Expressive Code will:
 - Go through your code line by line, looking for strings that match the annotation comment syntax. If a match is found, it will:
   - Extract the annotation name, optional search query, and optional target range modifier from the annotation tag
   - Ensure that the annotation name is registered by any of the installed plugins. If not, it will skip the tag and continue searching
+  - Ensure that the current annotation tag has not been ignored by an ´ignore-tags` directive. If it has, it will skip the tag and continue searching
   - **Handle the current annotation tag if it's inside a single-line comment:** Try to find the beginning sequence of a single-line comment directly before the annotation tag, with no non-whitespace character before and after the beginning sequence. If found, it will:
     - Mark the location of the beginning sequence as beginning of the comment
-    - TODO: Support chaining of single-line comments on the same line
-    - Mark the end of the line as the current end of the comment (this may change later)
-    - Add any text after the annotation tag until the end of the line to the annotation's **content**
-    - If there was only whitespace before the beginning of the comment (= the comment was on its own line), try to expand the comment end location and annotation content to all subsequent lines until a line is found that either doesn't start with the same single-line comment beginning sequence (only preceded by optional whitespace characters), that starts with another valid annotation tag, or that has `---` as its only text content.
+    - Support chaining of single-line comments on the same line
+      - After the current annotation tag, look for a repetition of the same comment beginning sequence + annotation tag syntax. If found, this is a case of chaining, so mark the location of the next beginning sequence as the end of the current comment.
+      - If no chaining is found, mark the end of the line as the current end of the comment (this may change later)
+    - Add any text after the annotation tag until the current end of the comment to the annotation's **content**
+    - If there was only whitespace before the beginning of the comment (= the comment was on its own line), and no chaining was detected (= end of comment matches end of line), try to expand the comment end location and annotation content to all subsequent lines until a line is found that either doesn't start with the same single-line comment beginning sequence (only preceded by optional whitespace characters), that starts with another valid annotation tag, or that has `---` as its only text content.
     - End processing the current annotation tag and continue searching for the next one
   - **Handle the current annotation tag if it's inside a multi-line comment:** No single-line comment was found, so now try to find a matching pair of beginning and ending sequence of a supported multi-line comment syntax around the match:
     - Walk backwards, passing each character into an array of parser functions that are each responsible for one supported comment syntax. If a parser function returns a definite result, which can either be a match or a failure, stop calling this parser.
