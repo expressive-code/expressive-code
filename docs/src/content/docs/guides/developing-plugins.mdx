@@ -55,7 +55,8 @@ Then, add the plugin to your Expressive Code configuration just like any other p
 <ConfigVariants
   imports={`
     // Import the plugin's initialization function
-    import { pluginExample } from './plugins/my-example-plugin'
+    // (adding the file extension is recommended for best compatibility)
+    import { pluginExample } from './plugins/my-example-plugin.js'
   `}
   settings={`
     plugins: [
@@ -98,7 +99,8 @@ When adding the plugin to your Expressive Code configuration, pass the desired o
 <ConfigVariants
   imports={`
     // Import the plugin's initialization function
-    import { pluginWithOptionsExample } from './plugins/plugin-with-options'
+    // (adding the file extension is recommended for best compatibility)
+    import { pluginWithOptionsExample } from './plugins/plugin-with-options.js'
   `}
   settings={`
     plugins: [
@@ -145,7 +147,8 @@ After saving your new plugin, you need to add it to your Expressive Code configu
 <ConfigVariants
   imports={`
     // Import the plugin's initialization function
-    import { pluginErrorPreview } from './plugins/plugin-error-preview'
+    // (adding the file extension is recommended for best compatibility)
+    import { pluginErrorPreview } from './plugins/plugin-error-preview.js'
   `}
   settings={`
     plugins: [
