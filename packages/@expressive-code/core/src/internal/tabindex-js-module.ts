@@ -49,7 +49,6 @@ function initCodeBlocks(container: ParentNode | Document, resizeObserver: Resize
 	container.querySelectorAll?.('.expressive-code pre > code').forEach((code) => {
 		const pre = code.parentElement
 		if (!pre) return
-		onIdle(() => updateTabIndex(pre))
 		resizeObserver.observe(pre)
 	})
 }
