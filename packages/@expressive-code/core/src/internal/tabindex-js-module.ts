@@ -26,7 +26,7 @@ const cancelIdle = window.cancelIdleCallback || clearTimeout
  * Creates a debounced resize observer that calls `elementResizedFn`
  * on observed elements when the main thread is idle.
  */
-function lazyResizeObserver(elementResizedFn: (el: Element) => void) {
+function debouncedResizeObserver(elementResizedFn: (el: Element) => void) {
 	const elementsToUpdate = new Set<Element>()
 	let updateTimeout: ReturnType<typeof setTimeout> | undefined
 	let taskId: number | undefined
@@ -58,7 +58,7 @@ function initCodeBlocks(container: ParentNode | Document, resizeObserver: Resize
 }
 
 // Register a debounced resize observer that updates the `tabindex` attribute
-const resizeObserver = lazyResizeObserver(updateTabIndex)
+const resizeObserver = debouncedResizeObserver(updateTabIndex)
 
 // Initialize all code blocks that exist right now
 initCodeBlocks(document, resizeObserver)
