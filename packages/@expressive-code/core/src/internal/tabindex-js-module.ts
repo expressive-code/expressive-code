@@ -28,15 +28,19 @@ const cancelIdle = window.cancelIdleCallback || clearTimeout
  */
 function lazyResizeObserver(elementResizedFn: (el: Element) => void) {
 	const elementsToUpdate = new Set<Element>()
-	let taskID: number | undefined
+	let updateTimeout: ReturnType<typeof setTimeout> | undefined
+	let taskId: number | undefined
 	const resizeObserver = new ResizeObserver((entries) => {
 		entries.forEach((entry) => elementsToUpdate.add(entry.target))
-		if (taskID) cancelIdle(taskID)
-		taskID = onIdle(() => {
-			taskID = undefined
-			elementsToUpdate.forEach((el) => elementResizedFn(el))
-			elementsToUpdate.clear()
-		})
+		if (updateTimeout) clearTimeout(updateTimeout)
+		if (taskId) cancelIdle(taskId)
+		updateTimeout = setTimeout(() => {
+			if (taskId) cancelIdle(taskId)
+			taskId = onIdle(() => {
+				elementsToUpdate.forEach((el) => elementResizedFn(el))
+				elementsToUpdate.clear()
+			})
+		}, 250)
 	})
 	return resizeObserver
 }
