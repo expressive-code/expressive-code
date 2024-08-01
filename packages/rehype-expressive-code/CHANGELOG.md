@@ -1,5 +1,13 @@
 # rehype-expressive-code
 
+## 0.35.4
+
+### Patch Changes
+
+- 876d24c: Improves performance of client script managing `tabindex` on code samples. Thanks @delucis!
+- Updated dependencies [876d24c]
+  - expressive-code@0.35.4
+
 ## 0.35.3
 
 ### Patch Changes

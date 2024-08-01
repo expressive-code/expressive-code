@@ -1,5 +1,11 @@
 # @expressive-code/core
 
+## 0.35.4
+
+### Patch Changes
+
+- 876d24c: Improves performance of client script managing `tabindex` on code samples. Thanks @delucis!
+
 ## 0.35.3
 
 ## 0.35.2
