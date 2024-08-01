@@ -14,19 +14,32 @@ function updateTabIndex(el: Element) {
 }
 
 /**
+ * `requestIdleCallback` which falls back to `setTimeout` in older browsers.
+ */
+const onIdle = window.requestIdleCallback || ((cb) => setTimeout(cb, 1))
+/**
+ * `cancelIdleCallback` which falls back to `clearTimeout` in older browsers.
+ */
+const cancelIdle = window.cancelIdleCallback || clearTimeout
+
+/**
  * Creates a debounced resize observer that calls `elementResizedFn`
- * on observed elements shortly after they have been resized.
+ * on observed elements when the main thread is idle.
  */
 function debouncedResizeObserver(elementResizedFn: (el: Element) => void) {
 	const elementsToUpdate = new Set<Element>()
 	let updateTimeout: ReturnType<typeof setTimeout> | undefined
+	let taskId: number | undefined
 	const resizeObserver = new ResizeObserver((entries) => {
 		entries.forEach((entry) => elementsToUpdate.add(entry.target))
 		if (updateTimeout) clearTimeout(updateTimeout)
+		if (taskId) cancelIdle(taskId)
 		updateTimeout = setTimeout(() => {
-			updateTimeout = undefined
-			elementsToUpdate.forEach((el) => elementResizedFn(el))
-			elementsToUpdate.clear()
+			if (taskId) cancelIdle(taskId)
+			taskId = onIdle(() => {
+				elementsToUpdate.forEach((el) => elementResizedFn(el))
+				elementsToUpdate.clear()
+			})
 		}, 250)
 	})
 	return resizeObserver
@@ -40,7 +53,6 @@ function initCodeBlocks(container: ParentNode | Document, resizeObserver: Resize
 	container.querySelectorAll?.('.expressive-code pre > code').forEach((code) => {
 		const pre = code.parentElement
 		if (!pre) return
-		updateTabIndex(pre)
 		resizeObserver.observe(pre)
 	})
 }
