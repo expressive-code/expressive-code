@@ -1,5 +1,13 @@
 # astro-expressive-code
 
+## 0.35.6
+
+### Patch Changes
+
+- ffab5a5: Hides the copy code button in case JavaScript is disabled. Thank you @imkunet!
+- Updated dependencies [ffab5a5]
+  - rehype-expressive-code@0.35.6
+
 ## 0.35.5
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # remark-expressive-code
 
+## 0.35.6
+
+### Patch Changes
+
+- Updated dependencies [ffab5a5]
+  - expressive-code@0.35.6
+
 ## 0.35.5
 
 ### Patch Changes
