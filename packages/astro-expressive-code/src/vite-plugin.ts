@@ -64,44 +64,49 @@ export function vitePluginAstroExpressiveCode({
 		return source in modules ? modules[source] : undefined
 	}
 
-	return {
-		name: 'vite-plugin-astro-expressive-code',
-		async resolveId(source, importer) {
-			// Resolve virtual API module to the current package entrypoint
-			if (source === 'virtual:astro-expressive-code/api') {
-				const resolved = await this.resolve('astro-expressive-code', importer)
-				if (resolved) return resolved
-				return await this.resolve('astro-expressive-code')
-			}
-			// Resolve EC config file if present
-			if (source === 'virtual:astro-expressive-code/ec-config') {
-				const resolved = await this.resolve('./ec.config.mjs')
-				if (resolved) return resolved
-			}
-			// Resolve other virtual modules
-			if (getVirtualModuleContents(source)) return `\0${source}`
-		},
-		load: (id) => (id?.[0] === '\0' ? getVirtualModuleContents(id.slice(1)) : undefined),
-		// If any file imported by the EC config file changes, restart the server
-		async handleHotUpdate({ modules, server }) {
-			if (!modules || !server) return
-			const isImportedByEcConfig = (module: (typeof modules)[0], depth: number = 0) => {
-				if (!module || !module.importers || depth >= 6) return false
-				for (const importingModule of module.importers) {
-					if (noQuery(module.url).endsWith('/ec.config.mjs')) {
-						return true
-					}
-					if (isImportedByEcConfig(importingModule, depth + 1)) return true
+	return [
+		{
+			name: 'vite-plugin-astro-expressive-code',
+			async resolveId(source, importer) {
+				// Resolve virtual API module to the current package entrypoint
+				if (source === 'virtual:astro-expressive-code/api') {
+					const resolved = await this.resolve('astro-expressive-code', importer)
+					if (resolved) return resolved
+					return await this.resolve('astro-expressive-code')
 				}
-				return false
-			}
-			if (modules.some((module) => isImportedByEcConfig(module))) {
-				await server.restart()
-			}
+				// Resolve EC config file if present
+				if (source === 'virtual:astro-expressive-code/ec-config') {
+					const resolved = await this.resolve('./ec.config.mjs')
+					if (resolved) return resolved
+				}
+				// Resolve other virtual modules
+				if (getVirtualModuleContents(source)) return `\0${source}`
+			},
+			load: (id) => (id?.[0] === '\0' ? getVirtualModuleContents(id.slice(1)) : undefined),
+			// If any file imported by the EC config file changes, restart the server
+			async handleHotUpdate({ modules, server }) {
+				if (!modules || !server) return
+				const isImportedByEcConfig = (module: (typeof modules)[0], depth: number = 0) => {
+					if (!module || !module.importers || depth >= 6) return false
+					for (const importingModule of module.importers) {
+						if (noQuery(module.url).endsWith('/ec.config.mjs')) {
+							return true
+						}
+						if (isImportedByEcConfig(importingModule, depth + 1)) return true
+					}
+					return false
+				}
+				if (modules.some((module) => isImportedByEcConfig(module))) {
+					await server.restart()
+				}
+			},
 		},
-		buildEnd() {
-			// In build mode, emit the extracted styles & scripts as static assets
-			if (command === 'build') {
+		// Add a second plugin that only runs in build mode (to avoid Vite warnings about emitFile)
+		// which emits the extracted styles & scripts as static assets
+		{
+			name: 'vite-plugin-astro-expressive-code-build',
+			apply: 'build',
+			buildEnd() {
 				for (const file of [...styles, ...scripts]) {
 					const [fileName, source] = file
 					this.emitFile({
@@ -111,7 +116,7 @@ export function vitePluginAstroExpressiveCode({
 						source,
 					})
 				}
-			}
+			},
 		},
-	}
+	]
 }
