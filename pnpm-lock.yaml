@@ -216,14 +216,14 @@ importers:
   packages/@expressive-code/plugin-collapsible-sections:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.35.4
+        specifier: workspace:^0.35.5
         version: link:../core
     devDependencies:
       '@expressive-code/plugin-shiki':
-        specifier: workspace:^0.35.4
+        specifier: workspace:^0.35.5
         version: link:../plugin-shiki
       '@expressive-code/plugin-text-markers':
-        specifier: workspace:^0.35.4
+        specifier: workspace:^0.35.5
         version: link:../plugin-text-markers
       '@internal/test-utils':
         specifier: workspace:^
@@ -232,7 +232,7 @@ importers:
   packages/@expressive-code/plugin-frames:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.35.4
+        specifier: workspace:^0.35.5
         version: link:../core
     devDependencies:
       '@expressive-code/plugin-shiki':
@@ -245,20 +245,20 @@ importers:
   packages/@expressive-code/plugin-line-numbers:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.35.4
+        specifier: workspace:^0.35.5
         version: link:../core
     devDependencies:
       '@expressive-code/plugin-collapsible-sections':
-        specifier: workspace:^0.35.4
+        specifier: workspace:^0.35.5
         version: link:../plugin-collapsible-sections
       '@expressive-code/plugin-frames':
-        specifier: workspace:^0.35.4
+        specifier: workspace:^0.35.5
         version: link:../plugin-frames
       '@expressive-code/plugin-shiki':
-        specifier: workspace:^0.35.4
+        specifier: workspace:^0.35.5
         version: link:../plugin-shiki
       '@expressive-code/plugin-text-markers':
-        specifier: workspace:^0.35.4
+        specifier: workspace:^0.35.5
         version: link:../plugin-text-markers
       '@internal/test-utils':
         specifier: workspace:^
@@ -267,7 +267,7 @@ importers:
   packages/@expressive-code/plugin-shiki:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.35.4
+        specifier: workspace:^0.35.5
         version: link:../core
       shiki:
         specifier: ^1.1.7
@@ -280,11 +280,11 @@ importers:
   packages/@expressive-code/plugin-text-markers:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.35.4
+        specifier: workspace:^0.35.5
         version: link:../core
     devDependencies:
       '@expressive-code/plugin-shiki':
-        specifier: workspace:^0.35.4
+        specifier: workspace:^0.35.5
         version: link:../plugin-shiki
       '@internal/test-utils':
         specifier: workspace:^
@@ -296,7 +296,7 @@ importers:
   packages/astro-expressive-code:
     dependencies:
       rehype-expressive-code:
-        specifier: workspace:^0.35.4
+        specifier: workspace:^0.35.5
         version: link:../rehype-expressive-code
     devDependencies:
       '@internal/test-utils':
@@ -405,22 +405,22 @@ importers:
   packages/expressive-code:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.35.4
+        specifier: workspace:^0.35.5
         version: link:../@expressive-code/core
       '@expressive-code/plugin-frames':
-        specifier: workspace:^0.35.4
+        specifier: workspace:^0.35.5
         version: link:../@expressive-code/plugin-frames
       '@expressive-code/plugin-shiki':
-        specifier: workspace:^0.35.4
+        specifier: workspace:^0.35.5
         version: link:../@expressive-code/plugin-shiki
       '@expressive-code/plugin-text-markers':
-        specifier: workspace:^0.35.4
+        specifier: workspace:^0.35.5
         version: link:../@expressive-code/plugin-text-markers
 
   packages/rehype-expressive-code:
     dependencies:
       expressive-code:
-        specifier: workspace:^0.35.4
+        specifier: workspace:^0.35.5
         version: link:../expressive-code
     devDependencies:
       '@internal/test-utils':
@@ -512,7 +512,7 @@ importers:
   packages/remark-expressive-code:
     dependencies:
       expressive-code:
-        specifier: workspace:^0.35.4
+        specifier: workspace:^0.35.5
         version: link:../expressive-code
     devDependencies:
       '@internal/test-utils':
@@ -3958,12 +3958,12 @@ packages:
     resolution: {integrity: sha512-NuHqBY1PB/D8xU6s/thBgOAiAP7HOYDQ32+BFZILJ8ivkUkAHQnWfn6WhL79Owj1qmUnoN/YPhktdIoucipkAQ==}
     dev: false
 
-  /acorn-import-assertions@1.9.0(acorn@8.11.2):
+  /acorn-import-assertions@1.9.0(acorn@8.12.1):
     resolution: {integrity: sha512-cmMwop9x+8KFhxvKrKfPYmN6/pKTYYHBqLa0DfvVZcKMJWNyWLnaqND7dx/qn66R7ewM1UX5XMaDVP5wlVTaVA==}
     peerDependencies:
       acorn: ^8
     dependencies:
-      acorn: 8.11.2
+      acorn: 8.12.1
     dev: false
 
   /acorn-jsx@5.3.2(acorn@8.11.2):
@@ -11626,7 +11626,7 @@ packages:
     hasBin: true
     dependencies:
       '@jridgewell/source-map': 0.3.6
-      acorn: 8.11.2
+      acorn: 8.12.1
       commander: 2.20.3
       source-map-support: 0.5.21
     dev: false
@@ -12648,12 +12648,12 @@ packages:
       '@webassemblyjs/ast': 1.12.1
       '@webassemblyjs/wasm-edit': 1.12.1
       '@webassemblyjs/wasm-parser': 1.12.1
-      acorn: 8.11.2
-      acorn-import-assertions: 1.9.0(acorn@8.11.2)
-      browserslist: 4.21.10
+      acorn: 8.12.1
+      acorn-import-assertions: 1.9.0(acorn@8.12.1)
+      browserslist: 4.23.3
       chrome-trace-event: 1.0.3
       enhanced-resolve: 5.16.0
-      es-module-lexer: 1.4.1
+      es-module-lexer: 1.5.4
       eslint-scope: 5.1.1
       events: 3.3.0
       glob-to-regexp: 0.4.1
