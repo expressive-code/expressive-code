@@ -1,5 +1,11 @@
 # @expressive-code/plugin-line-numbers
 
+## 0.35.6
+
+### Patch Changes
+
+- @expressive-code/core@0.35.6
+
 ## 0.35.5
 
 ### Patch Changes

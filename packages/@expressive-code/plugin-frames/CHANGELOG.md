@@ -1,5 +1,12 @@
 # @expressive-code/plugin-frames
 
+## 0.35.6
+
+### Patch Changes
+
+- ffab5a5: Hides the copy code button in case JavaScript is disabled. Thank you @imkunet!
+  - @expressive-code/core@0.35.6
+
 ## 0.35.5
 
 ### Patch Changes
