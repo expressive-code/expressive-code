@@ -7,6 +7,10 @@ This page combines all release notes of the Expressive Code monorepo.
 You can find the source changelogs on GitHub in the subfolders of
 [`packages`](https://github.com/expressive-code/expressive-code/tree/main/packages).
 
+## 0.35.4
+
+- Improves performance of client script managing `tabindex` on code samples. Thanks [@delucis](https://github.com/delucis)!
+
 ## 0.35.3
 
 - Fixes file names containing `+` not being recognized in file name comments. Thank you [@amandaguthrie](https://github.com/amandaguthrie)!
