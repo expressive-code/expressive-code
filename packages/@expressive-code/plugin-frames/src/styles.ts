@@ -404,6 +404,11 @@ export function getFramesBaseStyles({ cssVar }: ResolverContext, options: Plugin
 		inset-block-start: calc(${cssVar('borderWidth')} + var(--button-spacing));
 		inset-inline-end: calc(${cssVar('borderWidth')} + ${cssVar('uiPaddingInline')} / 2);
 
+		/* hide copy button when there is no JavaScript */
+		@media (scripting: none) {
+		  display: none;
+		}
+
 		/* RTL support: Code is always LTR, so the inline copy button
 		   must match this to avoid overlapping the start of lines */
 		direction: ltr;
@@ -451,7 +456,7 @@ export function getFramesBaseStyles({ cssVar }: ResolverContext, options: Plugin
 				border: ${cssVar('borderWidth')} solid ${cssVar('frames.inlineButtonBorder')};
 				opacity: ${cssVar('frames.inlineButtonBorderOpacity')};
 			}
-			
+
 			&::after {
 				content: '';
 				position: absolute;
