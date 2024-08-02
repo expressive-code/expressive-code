@@ -1,5 +1,15 @@
 # astro-expressive-code
 
+## 0.35.5
+
+### Patch Changes
+
+- 7f9b29e: Fixes a Vite warning about `emitFile()` usage. Thank you @evadecker and @alexanderniebuhr!
+
+  To avoid this warning from being incorrectly triggered, the Vite plugin internally used by `astro-expressive-code` has now been split into two separate plugins, making sure that `emitFile` is only seen by Vite during build.
+
+  - rehype-expressive-code@0.35.5
+
 ## 0.35.4
 
 ### Patch Changes
