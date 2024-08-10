@@ -11,15 +11,20 @@ const { page } = Astro.props;
 const { page } = Astro.props; // [!note:page] It also works on the same line.
 
 const { page } = Astro.props;
-// [!note:Astro.props] This will annotate the word `page` above
-// because there is only an empty line below the comments.
-// ---
-// This is a regular comment now
-// [!ins:page] Add this to receive the new `page` prop.
+// [!note:page] You can even reverse the default search direction
+// and annotate code above an annotation comment by making sure
+// it touches the code above while having a line of whitespace below.
 
 const { page } = Astro.props;
-// [!note:"page":-1] This will also target the word `page` above because of
-// the negative range specifier.
+// [!note:Astro.props] This even works in a sequence of multiple
+// annotation comments, as they are ignored when searching for targets.
+// [!ins:page] Due to this rule, this annotation is still considered
+// to be directly touching the code above and will target it.
+
+const { page } = Astro.props;
+// [!note:"page":-1] In situations where using whitespace to indicate
+// an upwards target direction is not possible or desired, you can
+// use a negative range specifier like this instead.
 const { page } = Astro.props;
 // [!ins:"props":-3]
 // This will target up to 3 instances of the word "props" before the comment.
