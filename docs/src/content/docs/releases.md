@@ -7,6 +7,16 @@ This page combines all release notes of the Expressive Code monorepo.
 You can find the source changelogs on GitHub in the subfolders of
 [`packages`](https://github.com/expressive-code/expressive-code/tree/main/packages).
 
+## 0.35.6
+
+- Hides the copy code button in case JavaScript is disabled. Thank you [@imkunet](https://github.com/imkunet)!
+
+## 0.35.5
+
+- Fixes a Vite warning about `emitFile()` usage. Thank you [@evadecker](https://github.com/evadecker) and @alexanderniebuhr!
+
+  To avoid this warning from being incorrectly triggered, the Vite plugin internally used by `astro-expressive-code` has now been split into two separate plugins, making sure that `emitFile` is only seen by Vite during build.
+
 ## 0.35.4
 
 - Improves performance of client script managing `tabindex` on code samples. Thanks [@delucis](https://github.com/delucis)!
