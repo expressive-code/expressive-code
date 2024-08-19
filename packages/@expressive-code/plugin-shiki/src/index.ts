@@ -21,12 +21,13 @@ export interface PluginShikiOptions {
 	 */
 	includeExplanation?: boolean | undefined
 	/**
-	 * List of functions that manipulate Shiki tokens before generating Expressive Code annotations.
+	 * List of Shiki transformers
 	 *
-	 * This matches the API of Shiki's `tokens` hook. Note that Shiki's other transformer hooks are not supported.
-	 * Transformers that modify the underlying text are not supported. That should be done in other Expressive Code plugin hooks.
+	 * Currently, only the `preprocess` and `tokens` hooks are supported, and only if they do not modify the underlying text.
+	 * If you want to use the `preprocess` or `tokens` hooks of a transformer that has other hooks, you'll need to create a wrapper around it that hides the other hooks.
+	 * See the [Shiki documentation](https://shiki.style/guide/transformers) for more information.
 	 */
-	tokensTransformers?: ShikiTransformer['tokens'][] | undefined
+	transformers?: ShikiTransformer[] | undefined
 }
 
 /**
@@ -52,8 +53,23 @@ enum FontStyle {
 	Underline = 4,
 }
 
+const unsupportedShikiHooks: (keyof ShikiTransformer)[] = ['code', 'line', 'postprocess', 'pre', 'root', 'span']
+
 export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlugin {
 	const { langs } = options
+
+	// check transformers for unsupported hooks
+	if (options.transformers) {
+		for (const transformer of options.transformers) {
+			const unsupportedHook = unsupportedShikiHooks.find((hook) => transformer[hook] != null)
+			if (unsupportedHook) {
+				throw new ExpressiveCodeShikiTransformerError(
+					`Shiki transformer "${transformer.name}" uses unsupported hook "${unsupportedHook}"\nIf you need to use this transformers other supported hooks, create a wrapper that exposes only the supported hooks.`
+				)
+			}
+		}
+	}
+
 	return {
 		name: 'Shiki',
 		hooks: {
@@ -106,31 +122,45 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 							theme: loadedThemeName,
 							includeExplanation: options.includeExplanation ?? false,
 						}
+
+						const transformerContext: ShikiTransformerContextSource = {
+							source: code,
+							options: codeToTokensOptions,
+							meta: {
+								...(Object.fromEntries(codeBlock.metaOptions.list().map((option) => [option.key, option.value])) as Record<string, string | boolean | RegExp>),
+								__raw: codeBlock.meta,
+							},
+							codeToHast: () => {
+								throw new ExpressiveCodeShikiTransformerError('`codeToHast` is not supported in tokens transformers')
+							},
+							codeToTokens: () => {
+								throw new ExpressiveCodeShikiTransformerError('`codeToTokens` is not supported in tokens transformers')
+							},
+						}
+
+						// run preprocess transformers
+						if (options.transformers?.length) {
+							for (const transformer of options.transformers) {
+								const transformedCode = transformer.preprocess?.call(transformerContext, code, codeToTokensOptions)
+								if (typeof transformedCode === 'string' && transformedCode !== code) {
+									throw new ExpressiveCodeShikiTransformerError(
+										`Preprocess transformers that modify code are not supported.\nTransformer "${transformer.name}" attempted to change the code`
+									)
+								}
+							}
+						}
+
 						tokenLines = highlighter.codeToTokensBase(
 							code,
 							// @ts-expect-error: We took care that the language and theme are loaded
 							codeToTokensOptions
 						)
 
-						if (options.tokensTransformers?.length) {
-							const meta = {
-								...(Object.fromEntries(codeBlock.metaOptions.list().map((option) => [option.key, option.value])) as Record<string, string | boolean | RegExp>),
-								__raw: codeBlock.meta,
-							}
-							const transformerContext: ShikiTransformerContextSource = {
-								source: code,
-								options: codeToTokensOptions,
-								meta: meta,
-								codeToHast: () => {
-									throw new ExpressiveCodeShikiTransformerError('`codeToHast` is not supported in tokens transformers')
-								},
-								codeToTokens: () => {
-									throw new ExpressiveCodeShikiTransformerError('`codeToTokens` is not supported in tokens transformers')
-								},
-							}
-							for (const transformer of options.tokensTransformers) {
+						// run tokens transformers
+						if (options.transformers?.length) {
+							for (const transformer of options.transformers) {
 								// transformers can either mutate the tokens, or return new tokens
-								const transformedTokenLines = transformer?.call(transformerContext, tokenLines)
+								const transformedTokenLines = transformer.tokens?.call(transformerContext, tokenLines)
 								if (transformedTokenLines) {
 									tokenLines = transformedTokenLines
 								}
@@ -146,7 +176,7 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 
 					// if transformers are present, make sure they haven't tried to change the underlying text
 					// only do this for the first style variant, since the content should be the same for all style variants
-					if (styleVariantIndex === 0 && options.tokensTransformers) {
+					if (styleVariantIndex === 0 && options.transformers) {
 						const numLines = codeBlock.getLines().length
 						if (numLines !== tokenLines.length) {
 							throw new ExpressiveCodeShikiTransformerError(
