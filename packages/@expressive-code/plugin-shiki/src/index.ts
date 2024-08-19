@@ -1,6 +1,6 @@
 import { ExpressiveCodeLine, ExpressiveCodePlugin, ExpressiveCodeTheme, InlineStyleAnnotation } from '@expressive-code/core'
 import { type LanguageInput, ensureLanguageIsLoaded, ensureThemeIsLoaded, getCachedHighlighter } from './highlighter'
-import { ThemedToken, bundledThemes } from 'shiki'
+import { ThemedToken, bundledThemes, ShikiTransformer, ShikiTransformerContextSource } from 'shiki'
 
 export interface PluginShikiOptions {
 	/**
@@ -13,6 +13,20 @@ export interface PluginShikiOptions {
 	 * See the [Shiki documentation](https://shiki.style/guide/load-lang) for more information.
 	 */
 	langs?: LanguageInput[] | undefined
+	/**
+	 * Whether to include explanations on Shiki tokens.
+	 *
+	 * Including explanations hurts performance, but might be required by tokens transformers.
+	 * Refer to the documentation of transformer(s) you are using.
+	 */
+	includeExplanation?: boolean | undefined
+	/**
+	 * List of functions that manipulate Shiki tokens before generating Expressive Code annotations.
+	 *
+	 * This matches the API of Shiki's `tokens` hook. Note that Shiki's other transformer hooks are not supported.
+	 * Transformers that modify the underlying text are not supported. That should be done in other Expressive Code plugin hooks.
+	 */
+	tokensTransformers?: ShikiTransformer['tokens'][] | undefined
 }
 
 /**
@@ -84,22 +98,70 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 					// Load theme if necessary
 					const loadedThemeName = await ensureThemeIsLoaded(highlighter, theme)
 
-					// Run highlighter (without explanations to improve performance)
+					// Run highlighter (by default, without explanations to improve performance)
 					let tokenLines: ThemedToken[][]
 					try {
-						tokenLines = highlighter.codeToTokensBase(code, {
-							// @ts-expect-error: We took care that the language is loaded
+						const codeToTokensOptions = {
 							lang: loadedLanguageName,
-							// @ts-expect-error: We took care that the theme is loaded
 							theme: loadedThemeName,
-							includeExplanation: false,
-						})
+							includeExplanation: options.includeExplanation ?? false,
+						}
+						tokenLines = highlighter.codeToTokensBase(
+							code,
+							// @ts-expect-error: We took care that the language and theme are loaded
+							codeToTokensOptions
+						)
+
+						if (options.tokensTransformers?.length) {
+							const meta = {
+								...(Object.fromEntries(codeBlock.metaOptions.list().map((option) => [option.key, option.value])) as Record<string, string | boolean | RegExp>),
+								__raw: codeBlock.meta,
+							}
+							const transformerContext: ShikiTransformerContextSource = {
+								source: code,
+								options: codeToTokensOptions,
+								meta: meta,
+								codeToHast: () => {
+									throw new ExpressiveCodeShikiTransformerError('`codeToHast` is not supported in tokens transformers')
+								},
+								codeToTokens: () => {
+									throw new ExpressiveCodeShikiTransformerError('`codeToTokens` is not supported in tokens transformers')
+								},
+							}
+							for (const transformer of options.tokensTransformers) {
+								// transformers can either mutate the tokens, or return new tokens
+								const transformedTokenLines = transformer?.call(transformerContext, tokenLines)
+								if (transformedTokenLines) {
+									tokenLines = transformedTokenLines
+								}
+							}
+						}
 					} catch (err) {
 						/* c8 ignore next */
 						const error = err instanceof Error ? err : new Error(String(err))
 						throw new Error(`Shiki failed to highlight code block with language "${codeBlock.language}" and theme "${theme.name}".\nReceived error message: "${error.message}"`, {
 							cause: error,
 						})
+					}
+
+					// if transformers are present, make sure they haven't tried to change the underlying text
+					// only do this for the first style variant, since the content should be the same for all style variants
+					if (styleVariantIndex === 0 && options.tokensTransformers) {
+						const numLines = codeBlock.getLines().length
+						if (numLines !== tokenLines.length) {
+							throw new ExpressiveCodeShikiTransformerError(
+								`Tokens transformers that modify text are not supported.\nNumber of lines changed from ${numLines} to ${tokenLines.length}`
+							)
+						}
+						for (let i = 0; i < numLines; i++) {
+							const originalText = codeBlock.getLine(i)?.text
+							const newText = tokenLines[i].map((token) => token.content).join('')
+							if (originalText !== newText) {
+								throw new ExpressiveCodeShikiTransformerError(
+									`Tokens transformers that modify text are not supported.\nLine ${i + 1} changed from:\n${originalText}\nto:\n${newText}`
+								)
+							}
+						}
 					}
 
 					tokenLines.forEach((line, lineIndex) => {
@@ -182,4 +244,11 @@ function getRemovedRanges(original: string, edited: string): [start: number, end
 	if (orgIdx < original.length) ranges.push([orgIdx, original.length])
 
 	return ranges
+}
+
+export class ExpressiveCodeShikiTransformerError extends Error {
+	constructor(message: string) {
+		super(message)
+		this.name = 'ExpressiveCodeShikiTransformerError'
+	}
 }
