@@ -5,7 +5,7 @@
 'rehype-expressive-code': minor
 ---
 
-Adds the experimental `transformers` option to the Shiki plugin.
+Adds the experimental `transformers` option to the Shiki plugin. Thank you @MichaelMakesGames!
 
 This option allows you to specify a list of Shiki transformers to be called during syntax highlighting.
 
