@@ -138,6 +138,31 @@ See the [Shiki documentation](https://shiki.style/guide/load-lang) for more info
 When using this option, Expressive Code automatically ensures that all bundled default languages are still available. You don't need to add Shiki's `bundledLanguages` manually to this array.
 :::
 
+#### transformers
+
+<PropertySignature>
+- Type: ShikiTransformer[]
+</PropertySignature>
+
+An optional list of Shiki transformers that should be called during syntax highlighting.
+
+This option allows you to add transformers that modify the tokens produced by Shiki to improve syntax highlighting, e.g. by applying bracket matching or changing the color of certain tokens.
+
+:::caution[Experimental option with very limited support]
+This option currently only supports transformers that meet all of the following criteria:
+
+- They do not contain any hooks except `preprocess` and `tokens`.
+- They do not attempt to modify the text contents of a code block.
+
+As a result, **most popular transformers will not work**, including `@shikijs/transformers` and `@shikijs/twoslash`, and attempting to add them will throw an error. This is expected behavior to inform you about the current limitations, and not a bug in any of the involved projects. Please do not report such errors to other authors, as they will be unable to help.
+
+The current limitations exist because Expressive Code's architecture is not yet compatible with Shiki's transformers API, which has been introduced long after the release of Expressive Code. We will improve the supported transformer features in future releases to close the gap.
+:::
+
+:::tip
+If you have a transformer that does useful work in its `preprocess` and `tokens` hooks without modifying any text contents, but it gets rejected by Expressive Code due to other hooks being present, you can create a custom transformer that wraps the original transformer and only exposes the supported hooks.
+:::
+
 ### Using another syntax highlighter
 
 If you want to use another syntax highlighter, you can set `shiki: false` in the [configuration](#configuration) to prevent the default highlighter from being loaded. You can then write a plugin for the new syntax highlighter and add it to the `plugins` array.
