@@ -38,7 +38,8 @@
   },
   "devDependencies": {
     "@expressive-code/core": "workspace:^",
-    "@types/mdast": "^4.0.3"
+    "@types/mdast": "^4.0.3",
+    "shiki": "^1.14.1"
   },
   "peerDependencies": {
     "@expressive-code/core": "workspace:^"
