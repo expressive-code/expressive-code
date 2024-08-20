@@ -1,6 +1,8 @@
 import { ExpressiveCodeLine, ExpressiveCodePlugin, ExpressiveCodeTheme, InlineStyleAnnotation } from '@expressive-code/core'
 import { type LanguageInput, ensureLanguageIsLoaded, ensureThemeIsLoaded, getCachedHighlighter } from './highlighter'
-import { ThemedToken, bundledThemes } from 'shiki'
+import { runPreprocessHook, runTokensHook, validateTransformers } from './transformers'
+import type { ThemedToken, ShikiTransformer } from 'shiki'
+import { bundledThemes } from 'shiki'
 
 export interface PluginShikiOptions {
 	/**
@@ -13,6 +15,18 @@ export interface PluginShikiOptions {
 	 * See the [Shiki documentation](https://shiki.style/guide/load-lang) for more information.
 	 */
 	langs?: LanguageInput[] | undefined
+	/**
+	 * An optional list of Shiki transformers.
+	 *
+	 * **Warning:** This option is experimental and only supports a very limited subset of
+	 * transformer features. Currently, only the `preprocess` and `tokens` hooks are supported,
+	 * and only if they do not modify the code block's text.
+	 *
+	 * Trying to use unsupported features will throw an error. For more information, see:
+	 *
+	 * https://expressive-code.com/key-features/syntax-highlighting/#transformers
+	 */
+	transformers?: ShikiTransformer[] | undefined
 }
 
 /**
@@ -40,6 +54,10 @@ enum FontStyle {
 
 export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlugin {
 	const { langs } = options
+
+	// Validate all configured transformers
+	validateTransformers(options)
+
 	return {
 		name: 'Shiki',
 		hooks: {
@@ -84,20 +102,30 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 					// Load theme if necessary
 					const loadedThemeName = await ensureThemeIsLoaded(highlighter, theme)
 
-					// Run highlighter (without explanations to improve performance)
+					// Run highlighter (by default, without explanations to improve performance)
 					let tokenLines: ThemedToken[][]
 					try {
-						tokenLines = highlighter.codeToTokensBase(code, {
-							// @ts-expect-error: We took care that the language is loaded
+						const codeToTokensOptions = {
 							lang: loadedLanguageName,
-							// @ts-expect-error: We took care that the theme is loaded
 							theme: loadedThemeName,
 							includeExplanation: false,
-						})
+						}
+
+						// Run preprocess hook of all configured transformers
+						runPreprocessHook({ options, code, codeBlock, codeToTokensOptions })
+
+						tokenLines = highlighter.codeToTokensBase(
+							code,
+							// @ts-expect-error: We took care that the language and theme are loaded
+							codeToTokensOptions
+						)
+
+						// Run tokens hook of all configured transformers
+						tokenLines = runTokensHook({ options, code, codeBlock, codeToTokensOptions, tokenLines })
 					} catch (err) {
 						/* c8 ignore next */
 						const error = err instanceof Error ? err : new Error(String(err))
-						throw new Error(`Shiki failed to highlight code block with language "${codeBlock.language}" and theme "${theme.name}".\nReceived error message: "${error.message}"`, {
+						throw new Error(`Failed to highlight code block with language "${codeBlock.language}" and theme "${theme.name}".\nReceived error message: "${error.message}"`, {
 							cause: error,
 						})
 					}
