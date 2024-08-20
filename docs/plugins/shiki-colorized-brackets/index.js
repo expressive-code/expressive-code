@@ -277,6 +277,12 @@ function isSingleTheme(shikiOptions) {
 }
 
 function getColor(themes, themeName, level) {
+	if (themeName !== null) {
+		themeName = themeName
+			.toLowerCase()
+			.replace(/-[a-z0-9]{5}$/, '')
+			.replace(/ /g, '-')
+	}
 	const colors = themeName == null ? defaultBracketsTheme : themes[themeName] ?? builtInThemes[themeName] ?? defaultBracketsTheme
 
 	const isUnexpected = level === -1
