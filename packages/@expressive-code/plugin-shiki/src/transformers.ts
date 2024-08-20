@@ -37,7 +37,7 @@ export function runPreprocessHook(args: BaseHookArgs) {
 
 export function runTokensHook(args: BaseHookArgs & { tokenLines: ThemedToken[][] }) {
 	const { options, code, codeBlock, codeToTokensOptions } = args
-	const originalTokenLinesLength = args.tokenLines.length
+	const originalTokenLinesText = getTokenLinesText(args.tokenLines)
 	options.transformers?.forEach((transformer) => {
 		if (!transformer.tokens) return
 		const transformerContext = getTransformerContext({ transformer, code, codeBlock, codeToTokensOptions })
@@ -47,26 +47,28 @@ export function runTokensHook(args: BaseHookArgs & { tokenLines: ThemedToken[][]
 		if (transformedTokenLines) {
 			args.tokenLines = transformedTokenLines
 		}
-		// Ensure that the number of token lines has not changed
-		if (originalTokenLinesLength !== args.tokenLines.length) {
+		// Ensure that the transformer didn't change the text contents of the tokens
+		const newTokenLinesText = getTokenLinesText(args.tokenLines)
+		if (originalTokenLinesText.length !== args.tokenLines.length) {
 			throw new ExpressiveCodeShikiTransformerError(
 				transformer,
-				`Transformers that modify code in the "tokens" hook are not supported yet. The number of lines changed from ${originalTokenLinesLength} to ${args.tokenLines.length}.`
+				`Transformers that modify code in the "tokens" hook are not supported yet. The number of lines changed from ${originalTokenLinesText.length} to ${args.tokenLines.length}.`
 			)
 		}
-		// Ensure that the text contents of each line have not changed
-		for (let i = 0; i < args.tokenLines.length; i++) {
-			const originalText = codeBlock.getLine(i)?.text
-			const newText = args.tokenLines[i].map((token) => token.content).join('')
-			if (originalText !== newText) {
+		for (let i = 0; i < newTokenLinesText.length; i++) {
+			if (originalTokenLinesText[i] !== newTokenLinesText[i]) {
 				throw new ExpressiveCodeShikiTransformerError(
 					transformer,
-					`Transformers that modify code in the "tokens" hook are not supported yet. Line ${i + 1} changed from "${originalText}" to "${newText}".`
+					`Transformers that modify code in the "tokens" hook are not supported yet. Line ${i + 1} changed from "${originalTokenLinesText[i]}" to "${newTokenLinesText[i]}".`
 				)
 			}
 		}
 	})
 	return args.tokenLines
+}
+
+function getTokenLinesText(tokenLines: ThemedToken[][]) {
+	return tokenLines.map((line) => line.map((token) => token.content).join(''))
 }
 
 export function getTransformerContext(contextBase: {
