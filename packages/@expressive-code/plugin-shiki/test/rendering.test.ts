@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'vitest'
-import { toHtml } from '@expressive-code/core/hast'
+import { getInlineStyles, selectAll, toHtml, toText } from '@expressive-code/core/hast'
 import { renderAndOutputHtmlSnapshot, buildThemeFixtures, loadTestThemes, loadBundledShikiTheme } from '@internal/test-utils'
 import type { CodeToTokensOptions, ShikiTransformer, ShikiTransformerContextSource, ThemedToken } from 'shiki'
 import { pluginShiki } from '../src'
@@ -413,80 +413,58 @@ describe('Language handling', async () => {
 	)
 })
 
-describe('Shiki tranformers', async () => {
-	const themes = [await loadBundledShikiTheme('dracula')]
+describe('Supports a limited subset of Shiki transformers', async () => {
+	const themes = [await loadBundledShikiTheme('dracula'), await loadBundledShikiTheme('github-dark')]
 
-	test(
-		'Supports transformers that mutate tokens',
-		async ({ task: { name: testName } }) => {
-			const mutatingRedImportTransformer: ShikiTransformer = {
-				tokens(tokens: ThemedToken[][]) {
-					for (const line of tokens) {
-						for (const token of line) {
-							if (token.content === 'import') {
-								token.color = 'red'
+	describe('Supports the "tokens" hook', () => {
+		test(
+			'Allows mutating the tokens in place',
+			async ({ task: { name: testName } }) => {
+				const mutatingRedImportTransformer: ShikiTransformer = {
+					tokens(tokens: ThemedToken[][]) {
+						for (const line of tokens) {
+							for (const token of line) {
+								if (token.content === 'import') {
+									token.color = 'red'
+								}
 							}
 						}
-					}
-				},
-			}
-			await renderAndOutputHtmlSnapshot({
-				testName,
-				testBaseDir: __dirname,
-				fixtures: buildThemeFixtures(themes, {
-					code: jsTestCode,
-					language: 'js',
-					meta: '',
-					plugins: [pluginShiki({ transformers: [mutatingRedImportTransformer] })],
-					blockValidationFn: ({ renderedGroupAst }) => {
-						const html = toHtml(renderedGroupAst)
-						expect(html).toContain('<span style="--0:red">import</span>')
 					},
-				}),
-			})
-		},
-		{ timeout: 5 * 1000 }
-	)
+				}
+				await renderAndOutputHtmlSnapshot({
+					testName,
+					testBaseDir: __dirname,
+					fixtures: buildThemeFixtures(themes, {
+						code: jsTestCode,
+						language: 'js',
+						meta: '',
+						plugins: [pluginShiki({ transformers: [mutatingRedImportTransformer] })],
+						blockValidationFn: ({ renderedGroupAst }) => {
+							const tokens = selectAll('span[style]', renderedGroupAst)
+							const importTokens = tokens.filter((element) => toText(element) === 'import')
+							expect(importTokens).toHaveLength(1)
+							const inlineStyles = getInlineStyles(importTokens[0])
+							expect(inlineStyles).toMatchObject(
+								new Map([
+									['--0', 'red'],
+									['--1', 'red'],
+								])
+							)
+						},
+					}),
+				})
+			},
+			{ timeout: 5 * 1000 }
+		)
 
-	test(
-		'Supports transformers that return new tokens',
-		async ({ task: { name: testName } }) => {
-			const stableRedImportTransformer: ShikiTransformer = {
-				tokens(tokens: ThemedToken[][]) {
-					return tokens.map((line) => line.map((token) => (token.content === 'import' ? { ...token, color: 'red' } : token)))
-				},
-			}
-			await renderAndOutputHtmlSnapshot({
-				testName,
-				testBaseDir: __dirname,
-				fixtures: buildThemeFixtures(themes, {
-					code: jsTestCode,
-					language: 'js',
-					meta: '',
-					plugins: [pluginShiki({ transformers: [stableRedImportTransformer] })],
-					blockValidationFn: ({ renderedGroupAst }) => {
-						const html = toHtml(renderedGroupAst)
-						expect(html).toContain('<span style="--0:red">import</span>')
+		test(
+			'Allows returning a new array of tokens',
+			async ({ task: { name: testName } }) => {
+				const stableRedImportTransformer: ShikiTransformer = {
+					tokens(tokens: ThemedToken[][]) {
+						return tokens.map((line) => line.map((token) => (token.content === 'import' ? { ...token, color: 'red' } : token)))
 					},
-				}),
-			})
-		},
-		{ timeout: 5 * 1000 }
-	)
-
-	test(
-		'Throws an error if a transformer changes the text of a line',
-		async ({ task: { name: testName } }) => {
-			const uppercaseTransformer: ShikiTransformer = {
-				tokens(tokens: ThemedToken[][]) {
-					for (const line of tokens) {
-						for (const token of line) {
-							token.content = token.content.toUpperCase()
-						}
-					}
-				},
-			}
-			await expect(async () => {
+				}
 				await renderAndOutputHtmlSnapshot({
 					testName,
 					testBaseDir: __dirname,
@@ -494,23 +472,39 @@ describe('Shiki tranformers', async () => {
 						code: jsTestCode,
 						language: 'js',
 						meta: '',
-						plugins: [pluginShiki({ transformers: [uppercaseTransformer] })],
+						plugins: [pluginShiki({ transformers: [stableRedImportTransformer] })],
+						blockValidationFn: ({ renderedGroupAst }) => {
+							const tokens = selectAll('span[style]', renderedGroupAst)
+							const importTokens = tokens.filter((element) => toText(element) === 'import')
+							expect(importTokens).toHaveLength(1)
+							const inlineStyles = getInlineStyles(importTokens[0])
+							expect(inlineStyles).toMatchObject(
+								new Map([
+									['--0', 'red'],
+									['--1', 'red'],
+								])
+							)
+						},
 					}),
 				})
-			}).rejects.toThrow()
-		},
-		{ timeout: 5 * 1000 }
-	)
+			},
+			{ timeout: 5 * 1000 }
+		)
 
-	test(
-		'Throws an error if a transformer changes the number of lines',
-		async ({ task: { name: testName } }) => {
-			const insertLineTransformer: ShikiTransformer = {
-				tokens(tokens: ThemedToken[][]) {
-					tokens.unshift([{ content: '// inserted line', offset: 0 }])
-				},
-			}
-			await expect(async () => {
+		test(
+			'Provides a context object (this) to the hook',
+			async ({ task: { name: testName } }) => {
+				const langTransformer: ShikiTransformer = {
+					tokens(this: ShikiTransformerContextSource, tokens: ThemedToken[][]) {
+						for (const line of tokens) {
+							line.forEach(() => {
+								if (this.options.lang === 'js') {
+									// Do nothing, just testing that this doesn't error
+								}
+							})
+						}
+					},
+				}
 				await renderAndOutputHtmlSnapshot({
 					testName,
 					testBaseDir: __dirname,
@@ -518,113 +512,28 @@ describe('Shiki tranformers', async () => {
 						code: jsTestCode,
 						language: 'js',
 						meta: '',
-						plugins: [pluginShiki({ transformers: [insertLineTransformer] })],
+						plugins: [pluginShiki({ transformers: [langTransformer] })],
 					}),
 				})
-			}).rejects.toThrow()
-		},
-		{ timeout: 5 * 1000 }
-	)
+			},
+			{ timeout: 5 * 1000 }
+		)
 
-	test(
-		'Supports transformers that use the transformer context (this)',
-		async ({ task: { name: testName } }) => {
-			const langTransformer: ShikiTransformer = {
-				tokens(this: ShikiTransformerContextSource, tokens: ThemedToken[][]) {
-					for (const line of tokens) {
-						line.forEach(() => {
-							if (this.options.lang === 'js') {
-								// do nothing, just testing that this doesn't error
-							}
-						})
-					}
-				},
-			}
-			await renderAndOutputHtmlSnapshot({
-				testName,
-				testBaseDir: __dirname,
-				fixtures: buildThemeFixtures(themes, {
-					code: jsTestCode,
-					language: 'js',
-					meta: '',
-					plugins: [pluginShiki({ transformers: [langTransformer] })],
-				}),
-			})
-		},
-		{ timeout: 5 * 1000 }
-	)
-
-	test(
-		'Supports transformers that use token explanations',
-		async ({ task: { name: testName } }) => {
-			const scopesTransformer: ShikiTransformer = {
-				tokens(tokens: ThemedToken[][]) {
-					for (const line of tokens) {
-						for (const token of line) {
-							if (token.explanation == null) {
-								throw Error('Expected explanation')
+		test(
+			'Provides token explanations if "includeExplanation" is true',
+			async ({ task: { name: testName } }) => {
+				const scopesTransformer: ShikiTransformer = {
+					tokens(tokens: ThemedToken[][]) {
+						for (const line of tokens) {
+							for (const token of line) {
+								if (token.explanation == null) {
+									throw Error('Expected explanation')
+								}
 							}
 						}
-					}
-				},
-			}
-			// just test that this doesn't throw
-			await renderAndOutputHtmlSnapshot({
-				testName,
-				testBaseDir: __dirname,
-				fixtures: buildThemeFixtures(themes, {
-					code: jsTestCode,
-					language: 'js',
-					meta: '',
-					plugins: [pluginShiki({ includeExplanation: true, transformers: [scopesTransformer] })],
-				}),
-			})
-		},
-		{ timeout: 5 * 1000 }
-	)
-
-	test(
-		'Supports preprocess transformers that change the options',
-		async ({ task: { name: testName } }) => {
-			const scopesTransformer: ShikiTransformer = {
-				preprocess(code, options) {
-					;(options as CodeToTokensOptions).includeExplanation = true
-				},
-				tokens(tokens: ThemedToken[][]) {
-					for (const line of tokens) {
-						for (const token of line) {
-							if (token.explanation == null) {
-								throw Error('Expected explanation')
-							}
-						}
-					}
-				},
-			}
-			// just test that this doesn't throw
-			await renderAndOutputHtmlSnapshot({
-				testName,
-				testBaseDir: __dirname,
-				fixtures: buildThemeFixtures(themes, {
-					code: jsTestCode,
-					language: 'js',
-					meta: '',
-					plugins: [pluginShiki({ transformers: [scopesTransformer] })],
-				}),
-			})
-		},
-		{ timeout: 5 * 1000 }
-	)
-
-	test(
-		'Throws error if preprocess transformer changes code',
-		async ({ task: { name: testName } }) => {
-			const uppercaseTransformer: ShikiTransformer = {
-				preprocess(code) {
-					return code.toUpperCase()
-				},
-			}
-			// just test that this doesn't throw
-			await expect(async () => {
+					},
+				}
+				// Just test that this doesn't throw
 				await renderAndOutputHtmlSnapshot({
 					testName,
 					testBaseDir: __dirname,
@@ -632,23 +541,150 @@ describe('Shiki tranformers', async () => {
 						code: jsTestCode,
 						language: 'js',
 						meta: '',
-						plugins: [pluginShiki({ transformers: [uppercaseTransformer] })],
+						plugins: [pluginShiki({ includeExplanation: true, transformers: [scopesTransformer] })],
 					}),
 				})
-			}).rejects.toThrow()
-		},
-		{ timeout: 5 * 1000 }
-	)
+			},
+			{ timeout: 5 * 1000 }
+		)
+
+		test(
+			'Throws an error if the text of a line is changed',
+			async ({ task: { name: testName } }) => {
+				const uppercaseTransformer: ShikiTransformer = {
+					tokens(tokens: ThemedToken[][]) {
+						for (const line of tokens) {
+							for (const token of line) {
+								token.content = token.content.toUpperCase()
+							}
+						}
+					},
+				}
+
+				await expect(async () => {
+					await renderAndOutputHtmlSnapshot({
+						testName,
+						testBaseDir: __dirname,
+						fixtures: buildThemeFixtures(themes, {
+							code: jsTestCode,
+							language: 'js',
+							meta: '',
+							plugins: [pluginShiki({ transformers: [uppercaseTransformer] })],
+							engineOptions: {
+								logger: {
+									error: () => undefined,
+								},
+							},
+						}),
+					})
+				}).rejects.toThrow()
+			},
+			{ timeout: 5 * 1000 }
+		)
+
+		test(
+			'Throws an error if the number of lines is changed',
+			async ({ task: { name: testName } }) => {
+				const insertLineTransformer: ShikiTransformer = {
+					tokens(tokens: ThemedToken[][]) {
+						tokens.unshift([{ content: '// inserted line', offset: 0 }])
+					},
+				}
+				await expect(async () => {
+					await renderAndOutputHtmlSnapshot({
+						testName,
+						testBaseDir: __dirname,
+						fixtures: buildThemeFixtures(themes, {
+							code: jsTestCode,
+							language: 'js',
+							meta: '',
+							plugins: [pluginShiki({ transformers: [insertLineTransformer] })],
+							engineOptions: {
+								logger: {
+									error: () => undefined,
+								},
+							},
+						}),
+					})
+				}).rejects.toThrow()
+			},
+			{ timeout: 5 * 1000 }
+		)
+	})
+
+	describe('Supports the "preprocess" hook', () => {
+		test(
+			'Allows changing the "includeExplanation" option',
+			async ({ task: { name: testName } }) => {
+				const scopesTransformer: ShikiTransformer = {
+					preprocess(code, options) {
+						;(options as CodeToTokensOptions).includeExplanation = true
+					},
+					tokens(tokens: ThemedToken[][]) {
+						for (const line of tokens) {
+							for (const token of line) {
+								if (token.explanation == null) {
+									throw Error('Expected explanation')
+								}
+							}
+						}
+					},
+				}
+				// Just test that this doesn't throw
+				await renderAndOutputHtmlSnapshot({
+					testName,
+					testBaseDir: __dirname,
+					fixtures: buildThemeFixtures(themes, {
+						code: jsTestCode,
+						language: 'js',
+						meta: '',
+						plugins: [pluginShiki({ transformers: [scopesTransformer] })],
+					}),
+				})
+			},
+			{ timeout: 5 * 1000 }
+		)
+
+		test(
+			'Throws an error if the code is changed',
+			async ({ task: { name: testName } }) => {
+				const uppercaseTransformer: ShikiTransformer = {
+					preprocess(code) {
+						return code.toUpperCase()
+					},
+				}
+				// Just test that this doesn't throw
+				await expect(async () => {
+					await renderAndOutputHtmlSnapshot({
+						testName,
+						testBaseDir: __dirname,
+						fixtures: buildThemeFixtures(themes, {
+							code: jsTestCode,
+							language: 'js',
+							meta: '',
+							plugins: [pluginShiki({ transformers: [uppercaseTransformer] })],
+							engineOptions: {
+								logger: {
+									error: () => undefined,
+								},
+							},
+						}),
+					})
+				}).rejects.toThrow()
+			},
+			{ timeout: 5 * 1000 }
+		)
+	})
 
 	test(
-		'Throws error if unsupported tranformer hook is used',
+		'Throws an error if transformers include unsupported hooks',
 		async ({ task: { name: testName } }) => {
 			const spanTransformer: ShikiTransformer = {
 				span() {
-					// do nothing, just the existence of this hook should cause an error
+					// Do nothing, just the existence of this hook should cause an error
 				},
 			}
-			// just test that this doesn't throw
+			// Just test that this doesn't throw
 			await expect(async () => {
 				await renderAndOutputHtmlSnapshot({
 					testName,
