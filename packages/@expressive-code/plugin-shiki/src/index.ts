@@ -16,14 +16,6 @@ export interface PluginShikiOptions {
 	 */
 	langs?: LanguageInput[] | undefined
 	/**
-	 * Whether to include explanation information on Shiki tokens.
-	 *
-	 * Enabling this option will increase the time required to highlight code blocks,
-	 * but might be required by certain transformers or plugins. Do not enable this
-	 * unless you're specifically asked to do so by a transformer or plugin.
-	 */
-	includeExplanation?: boolean | undefined
-	/**
 	 * An optional list of Shiki transformers.
 	 *
 	 * **Warning:** This option is experimental and only supports a very limited subset of
@@ -116,7 +108,7 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 						const codeToTokensOptions = {
 							lang: loadedLanguageName,
 							theme: loadedThemeName,
-							includeExplanation: options.includeExplanation ?? false,
+							includeExplanation: false,
 						}
 
 						// Run preprocess hook of all configured transformers

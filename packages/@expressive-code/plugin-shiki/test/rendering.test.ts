@@ -520,35 +520,6 @@ describe('Supports a limited subset of Shiki transformers', async () => {
 		)
 
 		test(
-			'Provides token explanations if "includeExplanation" is true',
-			async ({ task: { name: testName } }) => {
-				const scopesTransformer: ShikiTransformer = {
-					tokens(tokens: ThemedToken[][]) {
-						for (const line of tokens) {
-							for (const token of line) {
-								if (token.explanation == null) {
-									throw Error('Expected explanation')
-								}
-							}
-						}
-					},
-				}
-				// Just test that this doesn't throw
-				await renderAndOutputHtmlSnapshot({
-					testName,
-					testBaseDir: __dirname,
-					fixtures: buildThemeFixtures(themes, {
-						code: jsTestCode,
-						language: 'js',
-						meta: '',
-						plugins: [pluginShiki({ includeExplanation: true, transformers: [scopesTransformer] })],
-					}),
-				})
-			},
-			{ timeout: 5 * 1000 }
-		)
-
-		test(
 			'Throws an error if the text of a line is changed',
 			async ({ task: { name: testName } }) => {
 				const uppercaseTransformer: ShikiTransformer = {
