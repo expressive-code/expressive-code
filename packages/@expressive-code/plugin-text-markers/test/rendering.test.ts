@@ -1,4 +1,4 @@
-import { describe, test, expect } from 'vitest'
+import { describe, test, expect, afterEach } from 'vitest'
 import { AnnotationRenderPhase, ExpressiveCodePlugin, GutterRenderContext, InlineStyleAnnotation } from '@expressive-code/core'
 import { getClassNames, getInlineStyles, h, select, selectAll, setInlineStyle, toText } from '@expressive-code/core/hast'
 import { pluginShiki } from '@expressive-code/plugin-shiki'
@@ -9,7 +9,7 @@ import { actualDiff, indentedJsCodeWithDiffMarkers, jsCodeWithDiffMarkers } from
 import { complexDiffTestMeta, complexDiffTestCode, inlineMarkerTestCode, lineMarkerTestCode } from './data/marker-examples'
 
 describe('Renders text markers', async () => {
-	const themes = await loadTestThemes()
+	let themes = await loadTestThemes()
 
 	describe('Line-level markers', () => {
 		test(`Marks the expected lines`, async ({ task: { name: testName } }) => {
@@ -611,6 +611,12 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 	)
 
 	describe('Ensures accessible color contrast', () => {
+		afterEach(async () => {
+			// Reload themes after each test as the contrast tests
+			// mutate the theme objects in place
+			themes = await loadTestThemes()
+		})
+
 		test(
 			'Contrast with default settings',
 			async ({ task: { name: testName } }) => {
