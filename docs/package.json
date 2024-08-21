@@ -15,10 +15,10 @@
     "release-notes": "tsm --require=../scripts/lib/filter-warnings.cjs ./scripts/release-notes.ts"
   },
   "dependencies": {
-    "@astrojs/starlight": "^0.25.3",
+    "@astrojs/starlight": "^0.26.1",
     "@expressive-code/plugin-collapsible-sections": "workspace:^",
     "@expressive-code/plugin-line-numbers": "workspace:^",
-    "astro": "^4.13.1",
+    "astro": "^4.14.3",
     "astro-expressive-code": "workspace:^",
     "astro-og-canvas": "^0.4.2",
     "expressive-code": "workspace:^",
