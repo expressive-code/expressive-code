@@ -100,7 +100,7 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 					const theme = styleVariants[styleVariantIndex].theme
 
 					// Load theme if necessary
-					const loadedThemeName = await ensureThemeIsLoaded(highlighter, theme)
+					const loadedThemeName = await ensureThemeIsLoaded(highlighter, theme, styleVariants)
 
 					// Run highlighter (by default, without explanations to improve performance)
 					let tokenLines: ThemedToken[][]

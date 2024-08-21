@@ -53,7 +53,7 @@
     "rehype-stringify": "^9.0.3",
     "remark-parse": "^10.0.1",
     "remark-rehype": "^10.1.0",
-    "shiki": "^1.1.7",
+    "shiki": "^1.14.1",
     "unified": "^10.1.2",
     "vfile": "^6.0.1"
   }

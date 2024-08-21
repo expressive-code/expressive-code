@@ -60,7 +60,7 @@
     "culori": "^4.0.1",
     "djb2a": "^2.0.0",
     "hast-util-sanitize": "^5.0.1",
-    "shiki": "^1.1.7",
+    "shiki": "^1.14.1",
     "strip-json-comments": "^5.0.1"
   }
 }
