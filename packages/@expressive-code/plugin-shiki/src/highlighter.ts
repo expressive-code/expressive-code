@@ -1,6 +1,7 @@
-import { Highlighter, ThemeRegistration, getHighlighter, isSpecialLang, bundledLanguages } from 'shiki'
+import { Highlighter, ThemeRegistration, bundledLanguages, createHighlighter, isSpecialLang } from 'shiki'
 import type { LanguageInput as ShikiLanguageInput, LanguageRegistration as ShikiLanguageRegistration, MaybeGetter, MaybeArray, BundledLanguage } from 'shiki'
 import { ExpressiveCodeTheme, getStableObjectHash } from '@expressive-code/core'
+import type { StyleVariant } from '@expressive-code/core'
 
 // Unfortunately, the types exported by `vscode-textmate` that are used by Shiki
 // don't match the actual grammar requirements & parsing logic in some aspects.
@@ -15,7 +16,9 @@ export type LanguageInput = MaybeGetter<MaybeArray<LanguageRegistration>>
 
 const highlighterPromiseByConfig = new Map<string, Promise<Highlighter>>()
 const promisesByHighlighter = new WeakMap<Highlighter, Map<string, Promise<unknown>>>()
-const themeCacheKeys = new WeakMap<ExpressiveCodeTheme, string>()
+// We store theme cache keys by style variant arrays because style variant arrays are unique per engine,
+// and we can be confident that the same theme object used by the same engine has the same contents
+const themeCacheKeysByStyleVariants = new WeakMap<StyleVariant[], WeakMap<ExpressiveCodeTheme, string>>()
 
 /**
  * Gets a cached Shiki highlighter instance for the given configuration.
@@ -31,7 +34,7 @@ export async function getCachedHighlighter(config: { langs?: LanguageInput[] | u
 		// For now, always preload all the languages because we had some strange race conditions
 		// with lazy-loading that we couldn't solve yet. This is what the old version did as well.
 		langs.push(...(Object.keys(bundledLanguages) as BundledLanguage[]))
-		highlighterPromise = getHighlighter({
+		highlighterPromise = createHighlighter({
 			themes: [],
 			langs,
 		})
@@ -40,9 +43,14 @@ export async function getCachedHighlighter(config: { langs?: LanguageInput[] | u
 	return highlighterPromise
 }
 
-export async function ensureThemeIsLoaded(highlighter: Highlighter, theme: ExpressiveCodeTheme) {
+export async function ensureThemeIsLoaded(highlighter: Highlighter, theme: ExpressiveCodeTheme, styleVariants: StyleVariant[]) {
 	// Unfortunately, Shiki caches themes by name, so we need to ensure that the theme name changes
 	// whenever the theme contents change by appending a content hash
+	let themeCacheKeys = themeCacheKeysByStyleVariants.get(styleVariants)
+	if (!themeCacheKeys) {
+		themeCacheKeys = new WeakMap<ExpressiveCodeTheme, string>()
+		themeCacheKeysByStyleVariants.set(styleVariants, themeCacheKeys)
+	}
 	const existingCacheKey = themeCacheKeys.get(theme)
 	const cacheKey = existingCacheKey ?? `${theme.name}-${getStableObjectHash({ bg: theme.bg, fg: theme.fg, settings: theme.settings })}`
 	if (!existingCacheKey) themeCacheKeys.set(theme, cacheKey)
