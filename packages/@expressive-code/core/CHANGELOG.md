@@ -1,5 +1,11 @@
 # @expressive-code/core
 
+## 0.36.0
+
+### Minor Changes
+
+- ca54f6e: Updates Shiki dependency to the latest version.
+
 ## 0.35.6
 
 ## 0.35.5

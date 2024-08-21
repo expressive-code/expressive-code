@@ -1,6 +1,6 @@
 {
   "name": "remark-expressive-code",
-  "version": "0.35.6",
+  "version": "0.36.0",
   "description": "Remark plugin for Expressive Code, a text marking & annotation engine for presenting source code on the web.",
   "keywords": [],
   "author": "Tibor Schiemann",
@@ -43,7 +43,7 @@
     "watch": "pnpm build --watch src"
   },
   "dependencies": {
-    "expressive-code": "workspace:^0.35.6"
+    "expressive-code": "workspace:^0.36.0"
   },
   "devDependencies": {
     "@internal/test-utils": "workspace:^",
