@@ -1,5 +1,17 @@
 # remark-expressive-code
 
+## 0.36.0
+
+### Minor Changes
+
+- ca54f6e: Updates Shiki dependency to the latest version.
+
+### Patch Changes
+
+- Updated dependencies [bff1106]
+- Updated dependencies [ca54f6e]
+  - expressive-code@0.36.0
+
 ## 0.35.6
 
 ### Patch Changes
