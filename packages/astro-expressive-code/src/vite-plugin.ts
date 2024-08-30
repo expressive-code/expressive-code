@@ -1,4 +1,4 @@
-import type { ViteUserConfig } from 'astro'
+import type { HookParameters, ViteUserConfig } from 'astro'
 import { stableStringify } from 'rehype-expressive-code'
 import { getEcConfigFileUrl } from './ec-config'
 import { PartialAstroConfig, serializePartialAstroConfig } from './astro-config'
@@ -21,7 +21,7 @@ export function vitePluginAstroExpressiveCode({
 	scripts: [string, string][]
 	ecIntegrationOptions: AstroExpressiveCodeOptions
 	astroConfig: PartialAstroConfig
-	command: 'dev' | 'build' | 'preview'
+	command: HookParameters<'astro:config:setup'>['command']
 }): NonNullable<ViteUserConfig['plugins']>[number] {
 	const modules: Record<string, string> = {}
 
