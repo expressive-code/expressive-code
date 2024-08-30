@@ -1,5 +1,12 @@
 # astro-expressive-code
 
+## 0.36.1
+
+### Patch Changes
+
+- 370a236: Fixes type incompatibility with Astro v4.15. Thank you @delucis!
+  - rehype-expressive-code@0.36.1
+
 ## 0.36.0
 
 ### Minor Changes
