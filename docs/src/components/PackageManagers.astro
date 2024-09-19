@@ -22,7 +22,7 @@ const tabContents = [
 	},
 	{
 		label: 'pnpm',
-		code: buildCode(prefix, pkg ? (exec ? `pnpm ${pkg} ${exec}` : `pnpm i ${peer ? '--save-peer ' : ''}${pkg}`) : `pnpm i`),
+		code: buildCode(prefix, pkg ? (exec ? `pnpm ${pkg} ${exec}` : `pnpm add ${peer ? '--save-peer ' : ''}${pkg}`) : `pnpm i`),
 	},
 	{
 		label: 'yarn',

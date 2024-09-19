@@ -6,15 +6,15 @@ import { pluginFrames } from '../src'
 
 const exampleTerminalCode = `
 # Install dev dependencies
-pnpm i --save-dev expressive-code some-other-package yet-another-package
+pnpm add --save-dev expressive-code some-other-package yet-another-package
 
 # And a regular one
-pnpm i one-more-package
+pnpm add one-more-package
 `.trim()
 
 const exampleTerminalCodeWithoutComments = `
-pnpm i --save-dev expressive-code some-other-package yet-another-package
-pnpm i one-more-package
+pnpm add --save-dev expressive-code some-other-package yet-another-package
+pnpm add one-more-package
 `.trim()
 
 describe('Allows removing comments from terminal window frames', async () => {
