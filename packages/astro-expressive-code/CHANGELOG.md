@@ -1,5 +1,15 @@
 # astro-expressive-code
 
+## 0.37.0
+
+### Minor Changes
+
+- f07fc81: Updates peer dependency range to support Astro 5.
+
+### Patch Changes
+
+- rehype-expressive-code@0.37.0
+
 ## 0.36.1
 
 ### Patch Changes
