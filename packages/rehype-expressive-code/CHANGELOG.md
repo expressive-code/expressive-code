@@ -1,5 +1,11 @@
 # rehype-expressive-code
 
+## 0.37.0
+
+### Patch Changes
+
+- expressive-code@0.37.0
+
 ## 0.36.1
 
 ### Patch Changes
