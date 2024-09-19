@@ -293,6 +293,95 @@ describe('Integration into Astro ^4.5.0 with Cloudflare adapter', () => {
 	})
 })
 
+describe('Integration into Astro ^5.0.0', () => {
+	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
+
+	beforeAll(async () => {
+		fixture = await buildFixture({
+			fixtureDir: 'astro-5.0.0',
+			buildCommand: 'pnpm',
+			buildArgs: ['astro', 'build'],
+			outputDir: 'dist',
+		})
+	}, 20 * 1000)
+
+	test('Renders code blocks in Markdown files', () => {
+		const html = fixture?.readFile('index.html') ?? ''
+		validateHtml(html)
+	})
+
+	test('Renders code blocks in MDX files', () => {
+		const html = fixture?.readFile('mdx-page/index.html') ?? ''
+		validateHtml(html)
+	})
+
+	test('Renders <Code> components in MDX files', () => {
+		const html = fixture?.readFile('mdx-code-component/index.html') ?? ''
+		validateHtml(html)
+		expect(html).toContain('Code component in MDX files')
+	})
+
+	test('When rendering multiple <Code> components on a page, only adds styles & scripts to the first one', () => {
+		const html = fixture?.readFile('mdx-many-code-components/index.html') ?? ''
+		validateHtml(html, {
+			expectedHtmlRegExp: multiCodeComponentHtmlRegExp,
+			expectedCodeBlockCount: 3,
+		})
+		expect(html).toContain('Many code components in an MDX file')
+		const stylesAndScriptsPerBlock = [...html.matchAll(/<div class="expressive-code(| .*?)">(.*?)<figure/g)].map((match) => match[2])
+		expect(stylesAndScriptsPerBlock).toHaveLength(3)
+		expect(stylesAndScriptsPerBlock[0]).toContain('/_astro/ec.')
+		expect(stylesAndScriptsPerBlock.slice(-2)).toEqual(['', ''])
+	})
+
+	test('Renders <Code> components in Astro files', () => {
+		const html = fixture?.readFile('astro-code-component/index.html') ?? ''
+		validateHtml(html)
+		expect(html).toContain('Code component in Astro files')
+	})
+
+	test('Supports custom languages', () => {
+		const html = fixture?.readFile('custom-language/index.html') ?? ''
+		expect(html).toContain('Custom language')
+		const hast = fromHtml(html, { fragment: true })
+		const codeBlocks = selectAll('.expressive-code', hast)
+		expect(codeBlocks).toHaveLength(3)
+		const tokensPerCodeBlock = codeBlocks.map((codeBlock) => {
+			const tokens = selectAll('.ec-line span[style^="--0"]', codeBlock)
+			return tokens.map((token) => {
+				return {
+					text: toText(token),
+					color: getInlineStyles(token).get('--0'),
+				}
+			})
+		})
+		const [mdWithNestedLangs, customLang, jsLang] = tokensPerCodeBlock
+		const customLangTokenColors = [
+			{ text: 'test', color: '#F699D9' },
+			{ text: 'my', color: '#AEE9F5' },
+			{ text: '"lang"', color: '#A3B5C3' },
+		]
+		const jsLangTokenColors = [
+			{ text: 'import', color: '#EBEA8B' },
+			{ text: 'something', color: '#AEE9F5' },
+		]
+		expect(mdWithNestedLangs, 'Failed to highlight custom language nested in markdown code block').toEqual(expect.arrayContaining(customLangTokenColors))
+		expect(mdWithNestedLangs, 'Failed to highlight JS language nested in markdown code block after adding custom language').toEqual(expect.arrayContaining(jsLangTokenColors))
+		expect(customLang, 'Failed to highlight fenced code block using custom language').toEqual(expect.arrayContaining(customLangTokenColors))
+		expect(jsLang, 'Failed to highlight fenced code block using JS language after adding custom language').toEqual(expect.arrayContaining(jsLangTokenColors))
+	})
+
+	test('Emits an external stylesheet into the Astro assets dir', () => {
+		const files = fixture?.readDir('_astro') ?? []
+		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.css$/))).toHaveLength(1)
+	})
+
+	test('Emits an external script into the Astro assets dir', () => {
+		const files = fixture?.readDir('_astro') ?? []
+		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.js$/))).toHaveLength(1)
+	})
+})
+
 function validateHtml(
 	html: string,
 	options?: {
