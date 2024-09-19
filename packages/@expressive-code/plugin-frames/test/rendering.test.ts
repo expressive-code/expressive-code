@@ -12,7 +12,7 @@ btn.addEventListener('click', () => console.log('Hello World!'))
 `.trim()
 
 const exampleTerminalCode = `
-pnpm i --save-dev expressive-code some-other-package yet-another-package 
+pnpm add --save-dev expressive-code some-other-package yet-another-package 
 `.trim()
 
 describe('Renders frames around the code', async () => {
