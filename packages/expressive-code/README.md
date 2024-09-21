@@ -30,6 +30,7 @@ npm install expressive-code
 ## Usage example
 
 ```js
+// File: generate-html.js
 import { ExpressiveCode } from 'expressive-code'
 import { toHtml } from 'expressive-code/hast'
 import fs from 'fs'
@@ -83,7 +84,8 @@ const htmlDocument = `
 // Output HTML to the console
 console.log(htmlDocument)
 
-// Open the file in the browser
+// Run `node generate-html.js` to generate the HTML file
+// and open it in the browser
 fs.writeFileSync('index.html', htmlDocument)
 
 ```
