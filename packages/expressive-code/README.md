@@ -30,8 +30,9 @@ npm install expressive-code
 ## Usage example
 
 ```js
-import { ExpressiveCode, ExpressiveCodeConfig } from 'expressive-code'
+import { ExpressiveCode } from 'expressive-code'
 import { toHtml } from 'expressive-code/hast'
+import fs from 'fs'
 
 const ec = new ExpressiveCode()
 
@@ -43,9 +44,9 @@ const jsModules = await ec.getJsModules()
 
 // Render some example code to AST
 const { renderedGroupAst, styles: blockStyles } = await ec.render({
-    code: 'console.log("Hello world!")',
-    language: 'js',
-    meta: '',
+  code: 'console.log("Hello world!")',
+  language: 'js',
+  meta: '',
 })
 
 // Convert the rendered AST to HTML
@@ -81,4 +82,8 @@ const htmlDocument = `
 `
 // Output HTML to the console
 console.log(htmlDocument)
+
+// Open the file in the browser
+fs.writeFileSync('index.html', htmlDocument)
+
 ```
