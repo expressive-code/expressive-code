@@ -30,7 +30,7 @@ npm install expressive-code
 ## Usage example
 
 ```js
-// File: generate-html.js
+// File: generate-html.mjs
 import { ExpressiveCode } from 'expressive-code'
 import { toHtml } from 'expressive-code/hast'
 import fs from 'fs'
