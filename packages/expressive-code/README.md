@@ -84,7 +84,7 @@ const htmlDocument = `
 // Output HTML to the console
 console.log(htmlDocument)
 
-// Run `node generate-html.js` to generate the HTML file
+// Run `node generate-html.mjs` to generate the HTML file
 // and open it in the browser
 fs.writeFileSync('index.html', htmlDocument)
 
