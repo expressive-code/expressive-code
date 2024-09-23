@@ -30,17 +30,21 @@ npm install expressive-code
 ## Usage example
 
 ```js
-import { ExpressiveCode, ExpressiveCodeConfig } from 'expressive-code'
+// File: generate-html.mjs
+import { ExpressiveCode } from 'expressive-code'
 import { toHtml } from 'expressive-code/hast'
+import fs from 'fs'
 
 const ec = new ExpressiveCode()
 
 // Get base styles that should be included on the page
 // (they are independent of the rendered code blocks)
 const baseStyles = await ec.getBaseStyles()
+const themeStyles = await ec.getThemeStyles()
+const jsModules = await ec.getJsModules()
 
 // Render some example code to AST
-const { renderedGroupAst, styles } = await ec.render({
+const { renderedGroupAst, styles: blockStyles } = await ec.render({
   code: 'console.log("Hello world!")',
   language: 'js',
   meta: '',
@@ -50,13 +54,37 @@ const { renderedGroupAst, styles } = await ec.render({
 let htmlContent = toHtml(renderedGroupAst)
 
 // Collect styles and add them before the HTML content
-const stylesToPrepend: string[] = []
+const stylesToPrepend = []
 stylesToPrepend.push(baseStyles)
-stylesToPrepend.push(...styles)
-if (stylesToPrepend.length) {
-  htmlContent = `<style>${[...stylesToPrepend].join('')}</style>${htmlContent}`
-}
+stylesToPrepend.push(themeStyles)
+stylesToPrepend.push(...blockStyles)
 
+const styleContent = `<style> ${[...stylesToPrepend].join('')} </style>`
+const jsContent = `<script type="module"> ${[...jsModules].join('')} </script>`
+
+const htmlDocument = `
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+
+    ${styleContent}
+
+    ${jsContent}
+</head>
+<body>
+    ${htmlContent}
+</body>
+</html>
+`
 // Output HTML to the console
-console.log(htmlContent)
+console.log(htmlDocument)
+
+// Run `node generate-html.mjs` to generate the HTML file
+// and open it in the browser
+fs.writeFileSync('index.html', htmlDocument)
+
 ```
