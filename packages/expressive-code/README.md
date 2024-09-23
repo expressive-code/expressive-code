@@ -64,7 +64,7 @@ const jsContent = `<script type="module"> ${[...jsModules].join('')} </script>`
 
 const htmlDocument = `
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
