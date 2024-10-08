@@ -169,6 +169,9 @@ importers:
       '@ctrl/tinycolor':
         specifier: ^4.0.4
         version: 4.0.4
+      annotation-comments:
+        specifier: ^0.2.1
+        version: 0.2.1
       hast-util-select:
         specifier: ^6.0.2
         version: 6.0.2
@@ -4145,6 +4148,11 @@ packages:
       fast-json-stable-stringify: 2.1.0
       json-schema-traverse: 0.4.1
       uri-js: 4.4.1
+
+  /annotation-comments@0.2.1:
+    resolution: {integrity: sha512-7UFMp1Sj13+6gBY/3ExRRatirTofYzBGIrYan2VnDmh4ampVGHQrrB49EiXSUzCd3o3sZT8/gFhgaG/hermlEA==}
+    engines: {node: ^14.15.0 || >=16.0.0, pnpm: '>=8.0.0'}
+    dev: false
 
   /ansi-align@3.0.1:
     resolution: {integrity: sha512-IOfwwBF5iczOjp/WeY4YxyjqAFMQoZufdQWDd19SEExbVLNXqvpzSJ/M7Za4/sCPmQ0+GRquoA7bGcINcxew6w==}

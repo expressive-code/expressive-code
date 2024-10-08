@@ -1,3 +1,4 @@
+import { AnnotationCommentHandler } from './annotation-comments'
 import { ExpressiveCodePluginHooks } from './plugin-hooks'
 import { PluginStyleSettings } from './plugin-style-settings'
 import { StyleSettingPath } from './style-settings'
@@ -53,6 +54,18 @@ export interface ExpressiveCodePlugin {
 	 * into inline `<script type="module">` elements.
 	 */
 	jsModules?: string[] | JsModulesResolverFn | undefined
+	/**
+	 * An array of annotation comment handlers provided by the plugin.
+	 *
+	 * To add support for annotation comments, add one or more annotation comment handlers
+	 * to this array. These handlers map annotation tag names to settings that define how
+	 * the annotations should be processed and rendered.
+	 *
+	 * Annotation comment handlers can be used to enrich the presentation of code blocks
+	 * with additional information, such as highlights, notes, expected output, warnings,
+	 * error messages, or links to external resources.
+	 */
+	annotationCommentHandlers?: AnnotationCommentHandler[] | undefined
 	/**
 	 * A set of functions that should be called by the engine at specific points in the
 	 * rendering process. See {@link ExpressiveCodePluginHooks} for a list of available hooks.
