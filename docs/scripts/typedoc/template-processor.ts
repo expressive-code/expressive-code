@@ -15,6 +15,7 @@ type IncludeDirective = {
 				path: string
 				// Possible edits
 				replaceWith?: string | undefined
+				replaceContents?: string | undefined
 				replaceHeading?: string | undefined
 				append?: string | undefined
 		  }[]
@@ -80,6 +81,16 @@ export function processTemplate({ apiDocsPath, templateFilePath, outputFilePath 
 					// Remove the section
 					lines.splice(heading.lineIdx, sectionEndLineIdx - heading.lineIdx + 1)
 				}
+				// Update the headings
+				headings = collectHeadings(lines)
+				return
+			}
+			if (edit.replaceContents !== undefined) {
+				// Find the end line index of the section without any subheadings
+				const nextSectionHeading = headings[headingIdx + 1]
+				const sectionEndLineIdx = (nextSectionHeading?.lineIdx ?? lines.length) - 1
+				// Replace the section contents
+				lines.splice(heading.lineIdx + 1, sectionEndLineIdx - heading.lineIdx, ...splitLines(edit.replaceContents))
 				// Update the headings
 				headings = collectHeadings(lines)
 				return
