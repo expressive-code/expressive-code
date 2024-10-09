@@ -1,5 +1,6 @@
 import type { Root, Parents, Element } from '../hast'
 import { h } from '../hast'
+import { autolinkRegExp } from '../internal/autolink'
 
 export enum MdType {
 	Text,
@@ -15,6 +16,8 @@ export enum MdType {
 	AutolinkUrl,
 }
 
+export type MdToken = { type: MdType; text: string; modified?: boolean | undefined }
+
 const syntaxTokens: { symbol: string; type: MdType }[] = [
 	{ symbol: '\\', type: MdType.Escape },
 	{ symbol: '***', type: MdType.BoldItalic },
@@ -27,83 +30,9 @@ const syntaxTokens: { symbol: string; type: MdType }[] = [
 	{ symbol: ')', type: MdType.LinkUrlEnd },
 ]
 
-export type MdToken = { type: MdType; text: string }
-
-/*
-You can nest syntaxes, e.g. **bold URLs like https://example.com** or ***bold & italic `inline code`***
-*/
-
-const parensAnyStyle = `()<>{}\\[\\]`
-const nonParensAnyStyle = `[^\\s${parensAnyStyle}]`
-const nonParensOrPunctuation = `[^\\s${parensAnyStyle}\`!;:'\\".,?«»“”‘’]`
-const nonRoundParens = `[^\\s()]`
-const balancedRoundParens = `\\([^\\s]+?\\)`
-const balancedRoundParensNested = `\\(${nonRoundParens}*?\\(${nonRoundParens}+\\)${nonRoundParens}*?\\)`
-
-export const urlRegExp = new RegExp(
-	[
-		`\\b`,
-		// Capture #1: URL scheme, colon, and slashes
-		`(https?:\\/{1,3})`,
-		// Capture #2: Entire matched URL
-		`(`,
-		// Domain name or IP address
-		`(?:[\\w.\\-]+)`,
-		// Allow a slash, but not a @ here to avoid matching "foo.na" in "foo.na@example.com"
-		`\\b`,
-		`\\/?`,
-		`(?!@)`,
-		// Optional path and query string
-		// Any sequence of:
-		`(?:${nonParensAnyStyle}+|${balancedRoundParensNested}|${balancedRoundParens})*`,
-		// Optionally ending with any of:
-		`(?:${balancedRoundParensNested}|${balancedRoundParens}|${nonParensOrPunctuation})?`,
-		// End of capture #2
-		`)`,
-	].join(''),
-	'ig'
-)
-
-export function tokenizeMd(markdown: string): MdToken[] {
-	const tokens: MdToken[] = []
-	let currentText = ''
-
-	const getSyntaxToken = (i: number): MdToken | undefined => {
-		for (const { symbol, type } of syntaxTokens) {
-			if (markdown.startsWith(symbol, i)) {
-				return { type, text: symbol }
-			}
-		}
-	}
-
-	const addTextToken = () => {
-		if (currentText) {
-			tokens.push({ type: MdType.Text, text: currentText })
-			currentText = ''
-		}
-	}
-
-	let i = 0
-	while (i < markdown.length) {
-		const token = getSyntaxToken(i)
-		if (token) {
-			addTextToken()
-			tokens.push(token)
-			i += token.text.length
-			continue
-		}
-		currentText += markdown[i]
-		i += 1
-	}
-
-	addTextToken()
-
-	return tokens
-}
-
-function toTokens(type: MdType | undefined): MdToken[] {
+function injectTokens(type: MdType | undefined): MdToken[] {
 	const token = type && syntaxTokens.find((token) => token.type === type)
-	if (token) return [{ type, text: token.symbol }]
+	if (token) return [{ type, text: token.symbol, modified: true }]
 	return []
 }
 
@@ -147,117 +76,187 @@ const formatHandlers = new Map<
 	],
 ])
 
-export function mdTokensToHast(tokens: MdToken[], allowAutolink = true): Root {
+function findClosingIdx(tokens: MdToken[], openingIdx: number, closingTypes: MdType[], allowEscapes = true): number {
+	let escaped = false
+	for (let i = openingIdx + 1; i < tokens.length; i++) {
+		if (escaped) {
+			escaped = false
+			continue
+		}
+		const token = tokens[i]
+		if (!escaped && token.type === MdType.Escape && allowEscapes) {
+			escaped = true
+			continue
+		}
+		if (closingTypes.includes(token.type)) return i
+	}
+	return -1
+}
+
+function getTextContent(tokens: MdToken[], startIdx: number, endIdx: number): string {
+	return tokens
+		.slice(startIdx, endIdx)
+		.map((token) => token.text)
+		.join('')
+}
+
+function tokenizeMd(markdown: string): MdToken[] {
+	const tokens: MdToken[] = []
+	let currentText = ''
+
+	function getSyntaxToken(i: number): MdToken | undefined {
+		for (const { symbol, type } of syntaxTokens) {
+			if (markdown.startsWith(symbol, i)) {
+				return { type, text: symbol }
+			}
+		}
+	}
+
+	function addTextToken() {
+		if (!currentText) return
+		tokens.push({ type: MdType.Text, text: currentText })
+		currentText = ''
+	}
+
+	let i = 0
+	while (i < markdown.length) {
+		const token = getSyntaxToken(i)
+		if (token) {
+			addTextToken()
+			tokens.push(token)
+			i += token.text.length
+			continue
+		}
+		currentText += markdown[i]
+		i += 1
+	}
+
+	addTextToken()
+
+	return tokens
+}
+
+function mdTokensToHast(tokens: MdToken[], allowAutolink = true): Root {
 	const root = h(null)
 	const p: Parents = root
 	let plaintext = ''
+	let unmatchedEscapes: number[] = []
+	let escaped = false
+	let i = 0
 
-	function findClosingIdx(openingIdx: number, closingTypes: MdType[], allowEscapes = true): number {
-		let escaped = false
-		for (let i = openingIdx + 1; i < tokens.length; i++) {
-			if (escaped) {
-				escaped = false
-				continue
-			}
-			const token = tokens[i]
-			if (!escaped && token.type === MdType.Escape && allowEscapes) {
-				escaped = true
-				continue
-			}
-			if (closingTypes.includes(token.type)) return i
-		}
-		return -1
+	function addText(value: string) {
+		if (value.length) p.children.push({ type: 'text', value: value })
 	}
 
-	function getTextContent(startIdx: number, endIdx: number): string {
-		return tokens
-			.slice(startIdx, endIdx)
-			.map((token) => token.text)
-			.join('')
+	function finishPlaintext() {
+		if (!plaintext) return
+		handleAutolinks()
+		addText(plaintext)
+		plaintext = ''
+		unmatchedEscapes = []
 	}
 
-	function addChild(value: string | Element) {
-		if (typeof value === 'string') {
-			if (value.length) p.children.push({ type: 'text', value: value })
-			return
-		}
+	function addChild(value: Element) {
 		finishPlaintext()
 		p.children.push(value)
 	}
 
-	function finishPlaintext() {
-		if (plaintext) {
-			// Perform automatic link detection on plain text contents
-			if (allowAutolink && plaintext.includes('http')) {
-				const autolinkMatches = [...plaintext.matchAll(urlRegExp)]
-				let lastIndex = 0
-				autolinkMatches.forEach((match) => {
-					addChild(plaintext.slice(lastIndex, match.index))
-					p.children.push(h('a', { href: match[0] }, match[0]))
-					lastIndex = match.index + match[0].length
-				})
-				plaintext = plaintext.slice(lastIndex)
-			}
-			addChild(plaintext)
-			plaintext = ''
+	function handleFormatting() {
+		const formatHandler = formatHandlers.get(tokens[i].type)
+		if (!formatHandler) return
+		// The start of an italic sequence may not be followed by a space
+		if (tokens[i].type === MdType.Italic && !tokens[i].modified && tokens[i + 1]?.text.startsWith(' ')) return
+		const { closings, createNode, addContents, addAfter } = formatHandler
+		const closingIdx = findClosingIdx(tokens, i, closings)
+		if (closingIdx === -1) return
+		// The end of an italic sequence may not have 3+ spaces before it
+		if (tokens[closingIdx].type === MdType.Italic && tokens[closingIdx - 1]?.text.endsWith('   ')) return
+		const children = [...tokens.slice(i + 1, closingIdx), ...injectTokens(addContents?.get(tokens[closingIdx].type))]
+		addChild(createNode(mdTokensToHast(children)))
+		tokens.splice(closingIdx + 1, 0, ...injectTokens(addAfter?.get(tokens[closingIdx].type)))
+		i = closingIdx
+		return true
+	}
+
+	function handleCode() {
+		if (![MdType.Code, MdType.DoubleCode].includes(tokens[i].type)) return
+		const closingIdx = findClosingIdx(tokens, i, [tokens[i].type], false)
+		if (closingIdx === -1) return
+		let code = getTextContent(tokens, i + 1, closingIdx)
+		if (code.startsWith(' `')) code = code.slice(1)
+		if (code.endsWith('` ')) code = code.slice(0, -1)
+		addChild(h('code', code))
+		i = closingIdx
+		return true
+	}
+
+	function handleMdLink() {
+		if (tokens[i].type !== MdType.LinkTextStart) return
+		const linkUrlStartIdx = findClosingIdx(tokens, i, [MdType.LinkUrlStart])
+		const linkUrlEndIdx = linkUrlStartIdx > -1 ? findClosingIdx(tokens, linkUrlStartIdx, [MdType.LinkUrlEnd]) : -1
+		if (linkUrlEndIdx > -1) {
+			const linkText = mdTokensToHast(tokens.slice(i + 1, linkUrlStartIdx), false)
+			const linkUrl = getTextContent(tokens, linkUrlStartIdx + 1, linkUrlEndIdx)
+			addChild(h('a', { href: linkUrl }, linkText))
+			i = linkUrlEndIdx
+			return true
 		}
 	}
 
-	let escaped = false
-	for (let i = 0; i < tokens.length; i++) {
-		const token = tokens[i]
-		if (!escaped) {
-			const formatHandler = formatHandlers.get(token.type)
-			if (formatHandler) {
-				const { closings, createNode, addContents, addAfter } = formatHandler
-				const closingIdx = findClosingIdx(i, closings)
-				if (closingIdx > -1) {
-					const children = [...tokens.slice(i + 1, closingIdx), ...toTokens(addContents?.get(tokens[closingIdx].type))]
-					addChild(createNode(mdTokensToHast(children)))
-					tokens.splice(closingIdx + 1, 0, ...toTokens(addAfter?.get(tokens[closingIdx].type)))
-					i = closingIdx
-					continue
+	function handleAutolinks() {
+		// Perform automatic link detection on plain text contents
+		if (allowAutolink && plaintext.includes('http')) {
+			const autolinkMatches = [...plaintext.matchAll(autolinkRegExp)]
+			if (!autolinkMatches.length) return
+			let lastIndex = 0
+			autolinkMatches.forEach((match) => {
+				// Allow escaping of autolinks
+				if (unmatchedEscapes.includes(match.index - 1)) {
+					addText(plaintext.slice(lastIndex, match.index - 1))
+					lastIndex = match.index
+					return
 				}
-			} else if (token.type === MdType.Code || token.type === MdType.DoubleCode) {
-				const closingIdx = findClosingIdx(i, [token.type], false)
-				if (closingIdx > -1) {
-					let code = getTextContent(i + 1, closingIdx)
-					if (code.startsWith(' `')) code = code.slice(1)
-					if (code.endsWith('` ')) code = code.slice(0, -1)
-					addChild(h('code', code))
-					i = closingIdx
-					continue
-				}
-			} else if (token.type === MdType.LinkTextStart) {
-				const linkUrlStartIdx = findClosingIdx(i, [MdType.LinkUrlStart])
-				const linkUrlEndIdx = linkUrlStartIdx > -1 ? findClosingIdx(linkUrlStartIdx, [MdType.LinkUrlEnd]) : -1
-				if (linkUrlEndIdx > -1) {
-					const linkText = mdTokensToHast(tokens.slice(i + 1, linkUrlStartIdx), false)
-					const linkUrl = getTextContent(linkUrlStartIdx + 1, linkUrlEndIdx)
-					addChild(h('a', { href: linkUrl }, linkText))
-					i = linkUrlEndIdx
-					continue
-				}
-			} else if (token.type === MdType.Escape) {
-				escaped = true
-				continue
-			}
+				addText(plaintext.slice(lastIndex, match.index))
+				p.children.push(h('a', { href: match[0] }, match[0]))
+				lastIndex = match.index + match[0].length
+			})
+			plaintext = plaintext.slice(lastIndex)
+			unmatchedEscapes = unmatchedEscapes.filter((idx) => idx >= lastIndex).map((idx) => idx - lastIndex)
+		}
+	}
+
+	function handleEscape() {
+		if (!escaped && tokens[i].type === MdType.Escape) {
+			escaped = true
+			return true
 		}
 		if (escaped) {
 			// If we found an escape token before, but the current token did not need escaping,
 			// add the escape token as plaintext
-			if (token.type === MdType.Text) plaintext += '\\'
+			if (tokens[i].type === MdType.Text) {
+				unmatchedEscapes.push(plaintext.length)
+				plaintext += '\\'
+			}
 			escaped = false
 		}
+	}
 
-		plaintext += token.text
+	for (; i < tokens.length; i++) {
+		if (!escaped) {
+			if (handleFormatting()) continue
+			if (handleCode()) continue
+			if (handleMdLink()) continue
+		}
+		if (handleEscape()) continue
+
+		plaintext += tokens[i].text
 	}
 	finishPlaintext()
 
 	return root
 }
 
-export function mdToHast(markdown: string): Root {
+export function markdownToHast(markdown: string): Root {
 	const tokens = tokenizeMd(markdown)
 
 	return mdTokensToHast(tokens)

@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'vitest'
-import { mdToHast } from '../src/helpers/markdown'
+import { markdownToHast } from '../src/helpers/markdown'
 import { toHtml } from 'hast-util-to-html'
 
-describe.only('Markdown parsing', () => {
+describe('Markdown parsing', () => {
 	describe('Inline formatting', () => {
 		describe('Supported formats', () => {
 			test('*italic*', ({ task }) => {
@@ -114,21 +114,42 @@ describe.only('Markdown parsing', () => {
 		test('Plain URLs like https://example.com are automatically converted to links', ({ task }) => {
 			md(task.name, 'Plain URLs like <a href="https://example.com">https://example.com</a> are automatically converted to links')
 		})
-		test('Open http://localhost:2931/path(x3)(23)/search?q=%40expressive-code in your browser', ({ task }) => {
+		test('They can be **formatted like https://example.com**, too', ({ task }) => {
+			md(task.name, 'They can be <b>formatted like <a href="https://example.com">https://example.com</a></b>, too')
+		})
+		test('Complex URLs like http://localhost:2931/path(x3)(23)/s?q=%40expressive-code#welcome also work', ({ task }) => {
 			md(
 				task.name,
 				[
-					'Open ',
-					'<a href="http://localhost:2931/path(x3)(23)/search?q=%40expressive-code">',
-					'http://localhost:2931/path(x3)(23)/search?q=%40expressive-code',
+					'Complex URLs like ',
+					'<a href="http://localhost:2931/path(x3)(23)/s?q=%40expressive-code#welcome">',
+					'http://localhost:2931/path(x3)(23)/s?q=%40expressive-code#welcome',
 					'</a>',
-					' in your browser',
+					' also work',
 				].join('')
 			)
 		})
 	})
 
+	describe('Escaping', () => {
+		test('Single \\ backlashes \\not followed\\ by special characters are kept', ({ task }) => {
+			md(task.name, 'Single \\ backlashes \\not followed\\ by special characters are kept')
+		})
+		test('Backslashes can escape \\*formatting syntax* and \\`code`', ({ task }) => {
+			md(task.name, 'Backslashes can escape *formatting syntax* and `code`')
+		})
+		test('Escape URLs like \\https://example.com to prevent autolinking', ({ task }) => {
+			md(task.name, 'Escape URLs like https://example.com to prevent autolinking')
+		})
+		test('When escaping backslashes, \\\\*formatting* and \\\\`code` work again', ({ task }) => {
+			md(task.name, 'When escaping backslashes, \\<em>formatting</em> and \\<code>code</code> work again')
+		})
+		test('Allow escaped backslashes \\\\https://example.com before autolinks', ({ task }) => {
+			md(task.name, 'Allow escaped backslashes \\<a href="https://example.com">https://example.com</a> before autolinks')
+		})
+	})
+
 	function md(input: string, expected: string) {
-		expect(toHtml(mdToHast(input))).toEqual(expected)
+		expect(toHtml(markdownToHast(input))).toEqual(expected)
 	}
 })
