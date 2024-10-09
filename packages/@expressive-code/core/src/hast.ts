@@ -7,6 +7,8 @@ import { visitParents, CONTINUE, EXIT, SKIP } from 'unist-util-visit-parents'
 import { h, s } from 'hastscript'
 import postcss, { Declaration } from 'postcss'
 import { serializeCssStringValue } from './internal/escaping'
+import { tokenizeMarkdown } from './internal/markdown-tokenizer'
+import { markdownTokensToHast } from './internal/markdown-parser'
 
 export { visit, visitParents, CONTINUE, EXIT, SKIP }
 export { toHtml, toText, matches, select, selectAll, h, s }
@@ -128,4 +130,36 @@ export function setInlineStyle(node: Element, cssProperty: string, value: string
 		styles.delete(cssProperty)
 	}
 	setInlineStyles(node, styles)
+}
+
+export type FromMarkdownOptions = {
+	/**
+	 * Whether paragraphs are allowed in the HAST output.
+	 *
+	 * If `true`, the returned HAST will contain one `<p>` element per paragraph found in
+	 * the given Markdown input. Paragraphs are created by empty lines between blocks of text.
+	 *
+	 * If `false` or undefined, the returned HAST will only contain inline text contents,
+	 * with any amount of line breaks found in the Markdown collapsed into single spaces.
+	 *
+	 * @default false
+	 */
+	paragraphs?: boolean | undefined
+}
+
+export function fromMarkdown(markdown: string, options: FromMarkdownOptions = {}): Root {
+	const { paragraphs = false } = options
+
+	// Normalize line breaks and remove leading/trailing whitespace
+	markdown = markdown.replaceAll(/[^\S\r\n]*\r?\n[^\S\r\n]*/g, '\n')
+
+	// Create the parts to process based on the paragraphs option
+	const parts = paragraphs ? markdown.split(/\n{2,}/) : [markdown]
+	const content = parts.map((part) => {
+		const tokens = tokenizeMarkdown(part.replaceAll(/\n+/g, ' '))
+		const root = markdownTokensToHast(tokens)
+		return paragraphs ? h('p', root) : root.children
+	})
+
+	return h(null, content)
 }

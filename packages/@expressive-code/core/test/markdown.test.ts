@@ -1,6 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { markdownToHast } from '../src/helpers/markdown'
-import { toHtml } from 'hast-util-to-html'
+import { fromMarkdown, toHtml } from '../src/hast'
 
 describe('Markdown parsing', () => {
 	describe('Inline formatting', () => {
@@ -135,8 +134,11 @@ describe('Markdown parsing', () => {
 		test('Single \\ backlashes \\not followed\\ by special characters are kept', ({ task }) => {
 			md(task.name, 'Single \\ backlashes \\not followed\\ by special characters are kept')
 		})
-		test('Backslashes can escape \\*formatting syntax* and \\`code`', ({ task }) => {
-			md(task.name, 'Backslashes can escape *formatting syntax* and `code`')
+		test('Backslashes can escape opening \\*formatting syntax* and \\`code`', ({ task }) => {
+			md(task.name, 'Backslashes can escape opening *formatting syntax* and `code`')
+		})
+		test('Backslashes can escape closing *formatting syntax\\*, but not `code\\`', ({ task }) => {
+			md(task.name, 'Backslashes can escape closing *formatting syntax*, but not <code>code\\</code>')
 		})
 		test('Escape URLs like \\https://example.com to prevent autolinking', ({ task }) => {
 			md(task.name, 'Escape URLs like https://example.com to prevent autolinking')
@@ -149,7 +151,33 @@ describe('Markdown parsing', () => {
 		})
 	})
 
+	describe('Paragraphs', () => {
+		test("By default,[\\n][\\n]no p's[\\n]  [\\n][\\n]are created,   [\\n]   but newlines + surrounding whitespace collapsed", ({ task }) => {
+			md(task.name, "By default, no p's are created, but newlines + surrounding whitespace collapsed")
+		})
+		test('With `paragraphs: true`,[\\n][\\n]p elements are created', ({ task }) => {
+			mdp(task.name, '<p>With <code>paragraphs: true</code>,</p><p>p elements are created</p>')
+		})
+		test('Whitespace around   [\\n] [\\t] [\\n]       newlines `   is   ` collapsed', ({ task }) => {
+			mdp(task.name, '<p>Whitespace around</p><p>newlines <code>   is   </code> collapsed</p>')
+		})
+		test('**Formatting *continues[\\n]after* single newlines,[\\n][\\n]but stops at paragraph breaks**', ({ task }) => {
+			mdp(task.name, '<p>**Formatting <em>continues after</em> single newlines,</p><p>but stops at paragraph breaks**</p>')
+		})
+	})
+
+	function t(input: string) {
+		return input
+			.replace(/\[\\n\]/g, '\n')
+			.replace(/\[\\r\]/g, '\r')
+			.replace(/\[\\t\]/g, '\t')
+	}
+
 	function md(input: string, expected: string) {
-		expect(toHtml(markdownToHast(input))).toEqual(expected)
+		expect(toHtml(fromMarkdown(t(input)))).toEqual(expected)
+	}
+
+	function mdp(input: string, expected: string) {
+		expect(toHtml(fromMarkdown(t(input), { paragraphs: true }))).toEqual(expected)
 	}
 })
