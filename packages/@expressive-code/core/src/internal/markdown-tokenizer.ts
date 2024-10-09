@@ -25,7 +25,11 @@ const syntaxByType = new Map<MdType, string>([
 	[MdType.LinkUrlEnd, ')'],
 ])
 
-export function tokenizeMarkdown(markdown: string): MdToken[] {
+/**
+ * A tokenizer that supports partial Markdown syntax for inline formatting
+ * (bold, italic, code, and links).
+ */
+export function tokenizeInlineMarkdown(markdown: string): MdToken[] {
 	const tokens: MdToken[] = []
 	let text = ''
 

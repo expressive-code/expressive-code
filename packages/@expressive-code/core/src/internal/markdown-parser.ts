@@ -22,7 +22,10 @@ const formatHandlers = new Map<MdType, ReturnType<typeof defineFormat>>([
 	],
 ])
 
-export function markdownTokensToHast(tokens: MdToken[], allowAutolink = true): Root {
+/**
+ * A parser that converts inline Markdown tokens to a HAST tree.
+ */
+export function inlineMarkdownTokensToHast(tokens: MdToken[], allowAutolink = true): Root {
 	const root = h(null)
 	const p: Parents = root
 	let text = ''
@@ -58,7 +61,7 @@ export function markdownTokensToHast(tokens: MdToken[], allowAutolink = true): R
 		// The end of an italic sequence may not have 3+ spaces before it
 		if (tokens[closingIdx].type === MdType.Italic && tokens[closingIdx - 1]?.text.endsWith('   ')) return
 		const children = [...tokens.slice(i + 1, closingIdx), ...createTokens(addContents?.get(tokens[closingIdx].type))]
-		addChild(createNode(markdownTokensToHast(children)))
+		addChild(createNode(inlineMarkdownTokensToHast(children)))
 		tokens.splice(closingIdx + 1, 0, ...createTokens(addAfter?.get(tokens[closingIdx].type)))
 		i = closingIdx
 		return true
@@ -81,7 +84,7 @@ export function markdownTokensToHast(tokens: MdToken[], allowAutolink = true): R
 		const linkUrlStartIdx = findClosingIdx(tokens, i, [MdType.LinkUrlStart])
 		const linkUrlEndIdx = linkUrlStartIdx > -1 ? findClosingIdx(tokens, linkUrlStartIdx, [MdType.LinkUrlEnd]) : -1
 		if (linkUrlEndIdx > -1) {
-			const linkText = markdownTokensToHast(tokens.slice(i + 1, linkUrlStartIdx), false)
+			const linkText = inlineMarkdownTokensToHast(tokens.slice(i + 1, linkUrlStartIdx), false)
 			const linkUrl = getTextContent(tokens, linkUrlStartIdx + 1, linkUrlEndIdx)
 			addChild(h('a', { href: linkUrl }, linkText))
 			i = linkUrlEndIdx

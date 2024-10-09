@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
-import { fromMarkdown, toHtml } from '../src/hast'
+import type { FromMarkdownOptions } from '../src/hast'
+import { fromInlineMarkdown, toHtml } from '../src/hast'
 
 describe('Markdown parsing', () => {
 	describe('Inline formatting', () => {
@@ -113,6 +114,9 @@ describe('Markdown parsing', () => {
 		test('Plain URLs like https://example.com are automatically converted to links', ({ task }) => {
 			md(task.name, 'Plain URLs like <a href="https://example.com">https://example.com</a> are automatically converted to links')
 		})
+		test('When `autolink: false` is set, no autolinking occurs: https://example.com', ({ task }) => {
+			md(task.name, 'When <code>autolink: false</code> is set, no autolinking occurs: https://example.com', { autolink: false })
+		})
 		test('They can be **formatted like https://example.com**, too', ({ task }) => {
 			md(task.name, 'They can be <b>formatted like <a href="https://example.com">https://example.com</a></b>, too')
 		})
@@ -156,28 +160,21 @@ describe('Markdown parsing', () => {
 			md(task.name, "By default, no p's are created, but newlines + surrounding whitespace collapsed")
 		})
 		test('With `paragraphs: true`,[\\n][\\n]p elements are created', ({ task }) => {
-			mdp(task.name, '<p>With <code>paragraphs: true</code>,</p><p>p elements are created</p>')
+			md(task.name, '<p>With <code>paragraphs: true</code>,</p><p>p elements are created</p>', { paragraphs: true })
 		})
 		test('Whitespace around   [\\n] [\\t] [\\n]       newlines `   is   ` collapsed', ({ task }) => {
-			mdp(task.name, '<p>Whitespace around</p><p>newlines <code>   is   </code> collapsed</p>')
+			md(task.name, '<p>Whitespace around</p><p>newlines <code>   is   </code> collapsed</p>', { paragraphs: true })
 		})
 		test('**Formatting *continues[\\n]after* single newlines,[\\n][\\n]but stops at paragraph breaks**', ({ task }) => {
-			mdp(task.name, '<p>**Formatting <em>continues after</em> single newlines,</p><p>but stops at paragraph breaks**</p>')
+			md(task.name, '<p>**Formatting <em>continues after</em> single newlines,</p><p>but stops at paragraph breaks**</p>', { paragraphs: true })
 		})
 	})
 
-	function t(input: string) {
-		return input
+	function md(input: string, expected: string, options?: FromMarkdownOptions) {
+		input = input
 			.replace(/\[\\n\]/g, '\n')
 			.replace(/\[\\r\]/g, '\r')
 			.replace(/\[\\t\]/g, '\t')
-	}
-
-	function md(input: string, expected: string) {
-		expect(toHtml(fromMarkdown(t(input)))).toEqual(expected)
-	}
-
-	function mdp(input: string, expected: string) {
-		expect(toHtml(fromMarkdown(t(input), { paragraphs: true }))).toEqual(expected)
+		expect(toHtml(fromInlineMarkdown(input, options))).toEqual(expected)
 	}
 })

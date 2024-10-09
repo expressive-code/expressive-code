@@ -91,7 +91,7 @@ export type ContentOptions = {
 	 *   - Single line breaks are collapsed to a single space.
 	 *   - When `output` is set to a `betweenLines` option, empty lines start a new paragraph.
 	 */
-	renderAs: 'markdown' | 'plaintext'
+	renderAs: 'inline-markdown' | 'plaintext'
 }
 
 export type CopyBehavior = {

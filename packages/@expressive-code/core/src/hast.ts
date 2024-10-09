@@ -7,8 +7,8 @@ import { visitParents, CONTINUE, EXIT, SKIP } from 'unist-util-visit-parents'
 import { h, s } from 'hastscript'
 import postcss, { Declaration } from 'postcss'
 import { serializeCssStringValue } from './internal/escaping'
-import { tokenizeMarkdown } from './internal/markdown-tokenizer'
-import { markdownTokensToHast } from './internal/markdown-parser'
+import { tokenizeInlineMarkdown } from './internal/markdown-tokenizer'
+import { inlineMarkdownTokensToHast } from './internal/markdown-parser'
 
 export { visit, visitParents, CONTINUE, EXIT, SKIP }
 export { toHtml, toText, matches, select, selectAll, h, s }
@@ -134,6 +134,11 @@ export function setInlineStyle(node: Element, cssProperty: string, value: string
 
 export type FromMarkdownOptions = {
 	/**
+	 * Whether to automatically convert plain URLs using the protocols `http://` and `https://`
+	 * to links in the HAST output.
+	 */
+	autolink?: boolean | undefined
+	/**
 	 * Whether paragraphs are allowed in the HAST output.
 	 *
 	 * If `true`, the returned HAST will contain one `<p>` element per paragraph found in
@@ -147,8 +152,20 @@ export type FromMarkdownOptions = {
 	paragraphs?: boolean | undefined
 }
 
-export function fromMarkdown(markdown: string, options: FromMarkdownOptions = {}): Root {
-	const { paragraphs = false } = options
+/**
+ * Processes a limited subset of Markdown syntax in the given string into a HAST tree.
+ *
+ * The supported Markdown syntax includes inline formatting (bold, italic, and inline code),
+ * as well as links `[text](url)`. Special characters can be escaped with a backslash `\`.
+ *
+ * Plain URLs using the protocols `http://` and `https://` are converted to links unless the
+ * `autolink` option is set to `false`.
+ *
+ * Line breaks are collapsed into single spaces, and if the `paragraphs` option is set to `true`,
+ * paragraphs can be created by inserting empty lines between blocks of text.
+ */
+export function fromInlineMarkdown(markdown: string, options: FromMarkdownOptions = {}): Root {
+	const { paragraphs = false, autolink = true } = options
 
 	// Normalize line breaks and remove leading/trailing whitespace
 	markdown = markdown.replaceAll(/[^\S\r\n]*\r?\n[^\S\r\n]*/g, '\n')
@@ -156,8 +173,8 @@ export function fromMarkdown(markdown: string, options: FromMarkdownOptions = {}
 	// Create the parts to process based on the paragraphs option
 	const parts = paragraphs ? markdown.split(/\n{2,}/) : [markdown]
 	const content = parts.map((part) => {
-		const tokens = tokenizeMarkdown(part.replaceAll(/\n+/g, ' '))
-		const root = markdownTokensToHast(tokens)
+		const tokens = tokenizeInlineMarkdown(part.replaceAll(/\n+/g, ' '))
+		const root = inlineMarkdownTokensToHast(tokens, autolink)
 		return paragraphs ? h('p', root) : root.children
 	})
 
