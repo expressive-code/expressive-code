@@ -86,7 +86,7 @@ export async function generateTypeDoc(sourceFiles: PartialConfig) {
 			if (!parts) return
 			parts.forEach((part) => {
 				if (part.kind === 'text' && part.text) {
-					part.text = normalizeLineEndings(part.text).replace(/(?<!\n)\n(?!\n|$)/g, ' ')
+					part.text = normalizeLineEndings(part.text).replace(/(?<!\n)\n[ \t]*(?!\n|[ \t]*-|$)/g, ' ')
 				}
 				if (part.kind === 'code' && part.text) {
 					part.text = normalizeLineEndings(part.text)

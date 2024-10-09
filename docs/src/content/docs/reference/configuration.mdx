@@ -76,7 +76,9 @@ If you are using [cascade layers](https://developer.mozilla.org/en-US/docs/Learn
 
 This optional function is called once per theme during engine initialization with the loaded theme as its only argument.
 
-It allows customizing the loaded theme and can be used for various purposes: - You can change a theme's `name` property to influence the CSS needed to select it   (e.g., when using the default settings for `themeCssRoot` and `themeCssSelector`,   setting `theme.name = 'dark'` will allow theme selection using `<html data-theme="dark">`). - You can create color variations of themes by using `theme.applyHueAndChromaAdjustments()`.
+It allows customizing the loaded theme and can be used for various purposes:
+- You can change a theme's `name` property to influence the CSS needed to select it (e.g., when using the default settings for `themeCssRoot` and `themeCssSelector`, setting `theme.name = 'dark'` will allow theme selection using `<html data-theme="dark">`).
+- You can create color variations of themes by using `theme.applyHueAndChromaAdjustments()`.
 
 You can optionally return an `ExpressiveCodeTheme` instance from this function to replace the theme provided in the configuration. This allows you to create a copy of the theme and modify it without affecting the original instance.
 

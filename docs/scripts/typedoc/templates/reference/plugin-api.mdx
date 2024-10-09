@@ -76,20 +76,14 @@ headingLevel: 3
 editSections:
 - path: ""
   append: |
-    A function that you can assign to the [`baseStyles`](#basestyles) property of an
-    [`ExpressiveCodePlugin`](#expressivecodeplugin).
+    A function that you can assign to the [`baseStyles`](#basestyles) property of an [`ExpressiveCodePlugin`](#expressivecodeplugin).
 
-    The engine will call it when going through all registered plugins and collecting
-    their base styles.
+    The engine will call it when going through all registered plugins and collecting their base styles.
 
     :::tip
-    You can use this to include CSS variables generated from any style settings,
-    including your own [`PluginStyleSettings`](#pluginstylesettings), into your
-    plugin's base styles.
+    You can use this to include CSS variables generated from any style settings, including your own [`PluginStyleSettings`](#pluginstylesettings), into your plugin's base styles.
     
-    The function will be called with a `context` argument of type
-    [`ResolverContext`](#resolvercontext) that provides helpful functions like
-    `cssVar` to access any generated CSS variable by its style setting path.
+    The function will be called with a `context` argument of type [`ResolverContext`](#resolvercontext) that provides helpful functions like `cssVar` to access any generated CSS variable by its style setting path.
     :::
 ````
 
@@ -99,11 +93,9 @@ headingLevel: 3
 editSections:
 - path: ""
   append: |
-    A function that you can assign to the [`jsModules`](#jsmodules) property of an
-    [`ExpressiveCodePlugin`](#expressivecodeplugin).
+    A function that you can assign to the [`jsModules`](#jsmodules) property of an [`ExpressiveCodePlugin`](#expressivecodeplugin).
 
-    The engine will call it when going through all registered plugins and collecting
-    their JS modules.
+    The engine will call it when going through all registered plugins and collecting their JS modules.
 ````
 
 ````yml include

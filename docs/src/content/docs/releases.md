@@ -7,6 +7,10 @@ This page combines all release notes of the Expressive Code monorepo.
 You can find the source changelogs on GitHub in the subfolders of
 [`packages`](https://github.com/expressive-code/expressive-code/tree/main/packages).
 
+## 0.37.0
+
+- Updates peer dependency range to support Astro 5.
+
 ## 0.36.1
 
 - Fixes type incompatibility with Astro v4.15. Thank you [@delucis](https://github.com/delucis)!
