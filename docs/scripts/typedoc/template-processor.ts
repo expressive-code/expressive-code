@@ -17,6 +17,7 @@ type IncludeDirective = {
 				replaceWith?: string | undefined
 				replaceContents?: string | undefined
 				replaceHeading?: string | undefined
+				prepend?: string | undefined
 				append?: string | undefined
 		  }[]
 		| undefined
@@ -70,6 +71,10 @@ export function processTemplate({ apiDocsPath, templateFilePath, outputFilePath 
 						.map((h) => `"${h.textPath}"`)
 						.join(', ')}?`
 				)
+			const finishEdit = () => {
+				// Update the headings
+				headings = collectHeadings(lines)
+			}
 			if (edit.replaceWith !== undefined) {
 				// Find the end line index of the section
 				const nextSectionHeading = headings.slice(headingIdx + 1).find((h) => h.level <= heading.level)
@@ -81,9 +86,7 @@ export function processTemplate({ apiDocsPath, templateFilePath, outputFilePath 
 					// Remove the section
 					lines.splice(heading.lineIdx, sectionEndLineIdx - heading.lineIdx + 1)
 				}
-				// Update the headings
-				headings = collectHeadings(lines)
-				return
+				return finishEdit()
 			}
 			if (edit.replaceContents !== undefined) {
 				// Find the end line index of the section without any subheadings
@@ -91,9 +94,7 @@ export function processTemplate({ apiDocsPath, templateFilePath, outputFilePath 
 				const sectionEndLineIdx = (nextSectionHeading?.lineIdx ?? lines.length) - 1
 				// Replace the section contents
 				lines.splice(heading.lineIdx + 1, sectionEndLineIdx - heading.lineIdx, ...splitLines(edit.replaceContents))
-				// Update the headings
-				headings = collectHeadings(lines)
-				return
+				return finishEdit()
 			}
 			if (edit.replaceHeading !== undefined) {
 				if (edit.replaceHeading) {
@@ -103,9 +104,12 @@ export function processTemplate({ apiDocsPath, templateFilePath, outputFilePath 
 					// Remove the heading (and the line after it if it's empty)
 					lines.splice(heading.lineIdx, lines[heading.lineIdx + 1]?.trim() === '' ? 2 : 1)
 				}
-				// Update the headings
-				headings = collectHeadings(lines)
-				return
+				return finishEdit()
+			}
+			if (edit.prepend) {
+				// Insert the new lines after the heading
+				lines.splice(heading.lineIdx + 2, 0, ...splitLines(edit.prepend))
+				return finishEdit()
 			}
 			if (edit.append) {
 				// Find the line index of the next heading
@@ -113,9 +117,7 @@ export function processTemplate({ apiDocsPath, templateFilePath, outputFilePath 
 				const nextHeadingLineIdx = nextHeading?.lineIdx ?? lines.length
 				// Insert the new lines before the next heading
 				lines.splice(nextHeadingLineIdx, 0, ...splitLines(edit.append))
-				// Update the headings
-				headings = collectHeadings(lines)
-				return
+				return finishEdit()
 			}
 			throw new Error(`Unsupported edit section directive: ${JSON.stringify(edit)}`)
 		})

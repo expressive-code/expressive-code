@@ -64,6 +64,10 @@ export interface ExpressiveCodePlugin {
 	 * Annotation comment handlers can be used to enrich the presentation of code blocks
 	 * with additional information, such as highlights, notes, expected output, warnings,
 	 * error messages, or links to external resources.
+	 *
+	 * Annotation comments are processed between the `preprocessCode` and `performSyntaxAnalysis`
+	 * plugin hook phases, allowing them to work on code that is unlikely to change afterwards,
+	 * while still being able to remove their contents before syntax highlighting.
 	 */
 	annotationCommentHandlers?: AnnotationCommentHandler[] | undefined
 	/**

@@ -11,8 +11,63 @@ replacements:
 ````
 
 ````yml include
-name: "PluginStyleSettings"
+name: "AnnotationCommentHandler"
 headingLevel: 2
+editSections:
+- path: ""
+  append: |
+    An object that you can add to the [`annotationCommentHandlers`](#annotationcommenthandlers) array property of an [`ExpressiveCodePlugin`](#expressivecodeplugin).
+
+    A handler maps annotation tag names to settings that define how annotations using these tag names should be processed and rendered.
+
+    Annotation comment handlers can be used to enrich the presentation of code blocks with additional information, such as highlights, notes, expected output, warnings, error messages, or links to external resources.
+- path: "Object properties"
+  prepend: |
+    An annotation comment handler consists of a required `tagNames` property, as well as optional properties that define the actions to take when processing matching annotations:
+- path: "Object properties"
+  replaceHeading: "Handler properties"
+````
+
+### Handler action types
+
+````yml include
+name: "AddClasses"
+headingLevel: 4
+editSections:
+- path: ""
+  replaceContents: ""
+- path: "Object properties"
+  replaceHeading: ""
+````
+
+````yml include
+name: "ContentOptions"
+headingLevel: 4
+editSections:
+- path: ""
+  replaceContents: ""
+- path: "Object properties"
+  replaceHeading: ""
+````
+
+````yml include
+name: "CopyBehavior"
+headingLevel: 4
+editSections:
+- path: ""
+  replaceContents: ""
+- path: "Object properties"
+  replaceHeading: ""
+````
+
+````yml include
+name: "WrapWith"
+headingLevel: 4
+editSections:
+- path: ""
+  replaceContents: ""
+- path: "Object properties"
+  replaceHeading: ""
 ````
 
 ````yml include
@@ -68,62 +123,12 @@ editSections:
     ```
 ````
 
+````yml include
+name: "PluginStyleSettings"
+headingLevel: 2
+````
+
 ## Referenced types
-
-````yml include
-name: "AnnotationCommentHandler"
-headingLevel: 3
-editSections:
-- path: ""
-  append: |
-    An object that you can add to the [`annotationCommentHandlers`](#annotationcommenthandlers) array property of an [`ExpressiveCodePlugin`](#expressivecodeplugin).
-
-    A handler maps annotation tag names to settings that define how annotations using these tag names should be processed and rendered.
-
-    Annotation comment handlers can be used to enrich the presentation of code blocks with additional information, such as highlights, notes, expected output, warnings, error messages, or links to external resources.
-````
-
-#### Handler setting types
-
-````yml include
-name: "AddClasses"
-headingLevel: 5
-editSections:
-- path: ""
-  replaceContents: ""
-- path: "Object properties"
-  replaceHeading: ""
-````
-
-````yml include
-name: "ContentOptions"
-headingLevel: 5
-editSections:
-- path: ""
-  replaceContents: ""
-- path: "Object properties"
-  replaceHeading: ""
-````
-
-````yml include
-name: "CopyBehavior"
-headingLevel: 5
-editSections:
-- path: ""
-  replaceContents: ""
-- path: "Object properties"
-  replaceHeading: ""
-````
-
-````yml include
-name: "WrapWith"
-headingLevel: 5
-editSections:
-- path: ""
-  replaceContents: ""
-- path: "Object properties"
-  replaceHeading: ""
-````
 
 ````yml include
 name: "BaseStylesResolverFn"

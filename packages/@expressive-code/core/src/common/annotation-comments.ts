@@ -18,8 +18,6 @@ export type AnnotationCommentHandler = {
 	overrideExisting?: boolean | undefined
 	/**
 	 * Defines how to render any contents following the annotation tag.
-	 *
-	 * If this is not set, annotation contents are removed from the code and not rendered.
 	 */
 	contents?: (ContentOptions & WrapWith & CopyBehavior) | undefined
 	/**
@@ -44,7 +42,14 @@ export type AnnotationCommentHandler = {
 	 * using one of the tag names registered by this handler is encountered.
 	 */
 	codeBlock: AddClasses | undefined
-	custom: (context: AnnotationCommentHandlerContext) => void
+	/**
+	 * Allows providing a custom handler function that is called when an annotation comment
+	 * using one of the tag names registered by this handler is encountered.
+	 *
+	 * The handler will run after all other actions have been performed, and it can be used
+	 * to perform additional custom actions on the code block or annotation comment.
+	 */
+	custom?: ((context: AnnotationCommentHandlerContext) => void) | undefined
 }
 
 export type AnnotationCommentHandlerContext = {
@@ -95,13 +100,38 @@ export type ContentOptions = {
 }
 
 export type CopyBehavior = {
+	/**
+	 * Whether to remove the parts targeted by the current {@link AnnotationCommentHandler} action
+	 * from the code that can be copied to the clipboard.
+	 *
+	 * Defaults to `false` for `fullLineTargets` and `inlineTargets`, and `true` for `contents`.
+	 * This keeps any targeted lines or search term matches in the code, but strips the entire
+	 * annotation comment (tag, contents & comment syntax) from the copied text.
+	 *
+	 * An annotation that allows marking parts of the code as deleted could set this to `true`
+	 * for `fullLineTargets` and `inlineTargets` to allow copying a version of the code where
+	 * all marked parts have been removed.
+	 *
+	 * A custom note annotation could set `contents: { stripFromCode: false }` to prevent removing
+	 * contents after the annotation tag from the copied code. The code will then still contain
+	 * the comment syntax and the annotation contents, and only the tag will be removed.
+	 */
 	stripFromCode?: boolean | undefined
 }
 
 export type WrapWith = {
+	/**
+	 * Wraps the rendered contents in a HAST element created using the given CSS selector.
+	 *
+	 * See the [hastscript docs](https://github.com/syntax-tree/hastscript/blob/main/readme.md#hselector-properties-children)
+	 * for usage examples and supported selectors.
+	 */
 	wrapWith?: string | undefined
 }
 
 export type AddClasses = {
+	/**
+	 * An array of CSS class names that should be added to the elements targeted by the action.
+	 */
 	addClasses?: string[] | undefined
 }
