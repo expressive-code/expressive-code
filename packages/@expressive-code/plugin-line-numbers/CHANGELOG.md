@@ -1,5 +1,12 @@
 # @expressive-code/plugin-line-numbers
 
+## 0.37.1
+
+### Patch Changes
+
+- afcf11e: Adds `aria-hidden="true"` to line numbers to prevent them from being read out loud and interrupting the flow of the code. Thank you @Yesterday17!
+  - @expressive-code/core@0.37.1
+
 ## 0.37.0
 
 ### Patch Changes
