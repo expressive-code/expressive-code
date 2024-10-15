@@ -41,7 +41,7 @@ export function pluginLineNumbers(): ExpressiveCodePlugin {
 					addGutterElement({
 						renderPhase: 'earlier',
 						renderLine: ({ codeBlock, lineIndex }) => {
-							return h('div.ln', `${lineIndex + (codeBlock.props.startLineNumber ?? 1)}`)
+							return h('div.ln', { 'aria-hidden': 'true' }, `${lineIndex + (codeBlock.props.startLineNumber ?? 1)}`)
 						},
 						renderPlaceholder: () => h('div.ln'),
 					})
