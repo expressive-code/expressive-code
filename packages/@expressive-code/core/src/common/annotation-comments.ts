@@ -1,5 +1,7 @@
 import type { AnnotationComment } from 'annotation-comments'
+import type { ExpressiveCodeAnnotation, ExpressiveCodeInlineRange } from './annotation'
 import type { ExpressiveCodeBlock } from './block'
+import type { ExpressiveCodeLine } from './line'
 
 export type AnnotationCommentHandler = {
 	/**
@@ -49,13 +51,20 @@ export type AnnotationCommentHandler = {
 	 * The handler will run after all other actions have been performed, and it can be used
 	 * to perform additional custom actions on the code block or annotation comment.
 	 */
-	custom?: ((context: AnnotationCommentHandlerContext) => void) | undefined
+	custom?: ((context: AnnotationCommentHandlerContext) => void | Promise<void>) | undefined
 }
 
 export type AnnotationCommentHandlerContext = {
 	codeBlock: ExpressiveCodeBlock
 	annotationComment: AnnotationComment
 }
+
+export type AnnotationCommentInlineTargetContext = AnnotationCommentHandlerContext & {
+	line: ExpressiveCodeLine
+	inlineRange: ExpressiveCodeInlineRange
+}
+
+export type WrapWithAnnotationFn = (context: AnnotationCommentInlineTargetContext) => ExpressiveCodeAnnotation | Promise<ExpressiveCodeAnnotation>
 
 export type ContentOptions = {
 	/**
@@ -121,12 +130,17 @@ export type CopyBehavior = {
 
 export type WrapWith = {
 	/**
-	 * Wraps the rendered contents in a HAST element created using the given CSS selector.
+	 * Wraps the rendered contents in a HAST element or `ExpressiveCodeAnnotation`.
 	 *
-	 * See the [hastscript docs](https://github.com/syntax-tree/hastscript/blob/main/readme.md#hselector-properties-children)
-	 * for usage examples and supported selectors.
+	 * If set to a string, it will be treated as a hastscript-compatible CSS selector and passed to
+	 * hastscript's `h()` function to create the wrapping element. See the
+	 * [hastscript docs](https://github.com/syntax-tree/hastscript/blob/main/readme.md#hselector-properties-children)
+	 * for more information.
+	 *
+	 * If set to a function, it will be called for each content or inline target to wrap,
+	 * and is expected to return an `ExpressiveCodeAnnotation` that takes care of rendering it.
 	 */
-	wrapWith?: string | undefined
+	wrapWith?: string | WrapWithAnnotationFn | undefined
 }
 
 export type AddClasses = {

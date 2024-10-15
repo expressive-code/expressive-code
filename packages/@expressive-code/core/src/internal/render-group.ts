@@ -1,12 +1,12 @@
 import type { Element } from '../hast'
+import type { ExpressiveCodePlugin, ResolverContext } from '../common/plugin'
+import type { ResolvedExpressiveCodeEngineConfig } from '../common/engine'
 import { h } from '../hast'
 import { ExpressiveCodeBlock, ExpressiveCodeBlockOptions } from '../common/block'
-import { ExpressiveCodePlugin, ResolverContext } from '../common/plugin'
-import { ResolvedExpressiveCodeEngineConfig } from '../common/engine'
-import { runHooks } from '../common/plugin-hooks'
 import { groupWrapperClassName, groupWrapperElement, PluginStyles, processPluginStyles } from './css'
 import { renderBlock } from './render-block'
 import { isHastElement, newTypeError } from './type-checks'
+import { runHooks } from './run-hooks'
 
 export type RenderInput = ExpressiveCodeBlockOptions | ExpressiveCodeBlock | (ExpressiveCodeBlockOptions | ExpressiveCodeBlock)[]
 
