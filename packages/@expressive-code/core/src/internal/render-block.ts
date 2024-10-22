@@ -9,6 +9,7 @@ import { PluginGutterElement, getRenderEmptyLineFn, renderLineToAst } from './re
 import { isBoolean, isHastElement, newTypeError } from './type-checks'
 import { AnnotationRenderPhaseOrder } from '../common/annotation'
 import { runHooks } from './run-hooks'
+import { handleAnnotationComments } from './handle-annotation-comments'
 
 export async function renderBlock({
 	codeBlock,
@@ -74,36 +75,8 @@ export async function renderBlock({
 	state.canEditCode = true
 	await runBeforeRenderingHooks('preprocessCode')
 
-	/*
-		TODO: Process annotation comments in the code
-
-		Needed inputs for the runner:
-		- plugins (which includes their annotationCommentHandlers)
-		- config (for the logger)
-
-		Needed inputs for the annotation comment handler actions (including the `custom` function):
-		- codeBlock
-
-		Expected outputs:
-		- Additional annotations that were created on the codeBlock:
-			- These are based on the defined actions:
-				- addClasses for line-level targets and the entire code block
-				- wrapWith for inline targets and rendered annotation contents
-		- Updated code of the codeBlock:
-			- Annotation comments without contents are fully removed from the code
-			- Annotation comments WITH contents are handled based on the `stripFromCode` setting:
-				- If `stripFromCode` is true, the entire annotation comment is removed from the code
-				- If `stripFromCode` is false, only the tag is actually removed from the code,
-				  but the rest of the annotation comment is marked with an annotation that removes
-				  it during rendering (renders to an empty root element)
-
-		Future extension ideas:
-		- For diffs, it might be useful to actually syntax highlight two versions of the code:
-			- A "before" version without the "inserted" parts & with the "deleted" ones
-			- An "after" version without the "deleted" parts & with the "inserted" ones
-		- Basically, any plugin should be able to create multiple versions of the code
-			in a hook and merge the results later on
-	*/
+	// Parse annotation comments in the code and run registered handlers
+	await handleAnnotationComments({ codeBlock, plugins, config })
 
 	// Run hooks for processing & finalizing the code
 	await runBeforeRenderingHooks('performSyntaxAnalysis')

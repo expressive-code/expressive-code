@@ -31,10 +31,12 @@ export function setProperty(node: Element, propertyName: string, value: string |
 }
 
 /**
- * Retrieves an array of class names from the given AST node.
+ * Retrieves an array of class names from the given input, which can either be a string
+ * containing space-separated class names, an array containing class names, or an AST node
+ * that may have a `className` property set.
  */
-export function getClassNames(node: Element): string[] {
-	const stringOrArr = node.properties?.className
+export function getClassNames(classesOrNode: string | string[] | Element): string[] {
+	const stringOrArr = Array.isArray(classesOrNode) || typeof classesOrNode === 'string' ? classesOrNode : classesOrNode.properties?.className
 	if (!stringOrArr || stringOrArr === true) return []
 	if (Array.isArray(stringOrArr)) return stringOrArr.map((className) => className.toString())
 	return stringOrArr.toString().split(' ')
@@ -46,9 +48,20 @@ export function getClassNames(node: Element): string[] {
  * If the class name already exists on the node, it will not be added again.
  */
 export function addClassName(node: Element, className: string) {
-	const classNames = getClassNames(node)
-	if (classNames.indexOf(className) === -1) classNames.push(className)
-	setProperty(node, 'className', classNames)
+	addClassNames(node, className)
+}
+
+/**
+ * Adds class names to the given AST node.
+ *
+ * If any class name already exists on the node, it will not be added again.
+ */
+export function addClassNames(node: Element, classNames: string | string[]) {
+	const combinedClassNames = getClassNames(node)
+	getClassNames(classNames).forEach((className) => {
+		if (combinedClassNames.indexOf(className) === -1) combinedClassNames.push(className)
+	})
+	setProperty(node, 'className', combinedClassNames)
 }
 
 /**

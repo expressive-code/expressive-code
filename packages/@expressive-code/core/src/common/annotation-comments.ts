@@ -1,7 +1,9 @@
 import type { AnnotationComment } from 'annotation-comments'
-import type { ExpressiveCodeAnnotation, ExpressiveCodeInlineRange } from './annotation'
+import type { AnnotationBaseOptions, AnnotationRenderOptions, ExpressiveCodeInlineRange } from './annotation'
 import type { ExpressiveCodeBlock } from './block'
 import type { ExpressiveCodeLine } from './line'
+import { ExpressiveCodeAnnotation } from './annotation'
+import { addClassNames, getClassNames, h } from '../hast'
 
 export type AnnotationCommentHandler = {
 	/**
@@ -108,6 +110,13 @@ export type ContentOptions = {
 	renderAs: 'inline-markdown' | 'plaintext'
 }
 
+export type AddClasses = {
+	/**
+	 * CSS class name(s) that should be added to the elements targeted by the action.
+	 */
+	addClasses?: string | string[] | undefined
+}
+
 export type CopyBehavior = {
 	/**
 	 * Whether to remove the parts targeted by the current {@link AnnotationCommentHandler} action
@@ -143,9 +152,36 @@ export type WrapWith = {
 	wrapWith?: string | WrapWithAnnotationFn | undefined
 }
 
-export type AddClasses = {
-	/**
-	 * An array of CSS class names that should be added to the elements targeted by the action.
-	 */
-	addClasses?: string[] | undefined
+export class AddClassesAnnotation extends ExpressiveCodeAnnotation {
+	name: string
+	classes: string[]
+
+	constructor({ classes, ...baseOptions }: { classes: string | string[] } & AnnotationBaseOptions) {
+		super(baseOptions)
+		this.name = 'Add classes'
+		this.classes = getClassNames(classes)
+	}
+
+	render({ nodesToTransform }: AnnotationRenderOptions) {
+		return nodesToTransform.map((node) => {
+			if (node.type !== 'element') node = h('span', node)
+			addClassNames(node, this.classes)
+			return node
+		})
+	}
+}
+
+export class WrapWithAnnotation extends ExpressiveCodeAnnotation {
+	name: string
+	selector: string
+
+	constructor({ selector, ...baseOptions }: { selector: string } & AnnotationBaseOptions) {
+		super(baseOptions)
+		this.name = 'Wrap with'
+		this.selector = selector
+	}
+
+	render({ nodesToTransform }: AnnotationRenderOptions) {
+		return nodesToTransform.map((node) => h(this.selector, node))
+	}
 }

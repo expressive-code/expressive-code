@@ -123,7 +123,7 @@ Defines how to render any contents following the annotation tag.
 <dt>custom</dt>
 <dd>
 <PropertySignature>
-- Type: (`context`) => `void`
+- Type: (`context`) => `void` \| `Promise`\<`void`\>
 </PropertySignature>
 </dd>
 <dt>fullLineTargets</dt>
@@ -162,9 +162,9 @@ Whether to allow overriding existing tag names with this handler.
 <dt>addClasses</dt>
 <dd>
 <PropertySignature>
-- Type: `string`[]
+- Type: `string` \| `string`[]
 </PropertySignature>
-An array of CSS class names that should be added to the elements targeted by the action.
+CSS class name(s) that should be added to the elements targeted by the action.
 </dd>
 </dl>
 
@@ -232,11 +232,13 @@ A custom note annotation could set `contents: { stripFromCode: false }` to preve
 <dt>wrapWith</dt>
 <dd>
 <PropertySignature>
-- Type: `string`
+- Type: `string` \| `WrapWithAnnotationFn`
 </PropertySignature>
-Wraps the rendered contents in a HAST element created using the given CSS selector.
+Wraps the rendered contents in a HAST element or `ExpressiveCodeAnnotation`.
 
-See the [hastscript docs](https://github.com/syntax-tree/hastscript/blob/main/readme.md#hselector-properties-children) for usage examples and supported selectors.
+If set to a string, it will be treated as a hastscript-compatible CSS selector and passed to hastscript's `h()` function to create the wrapping element. See the [hastscript docs](https://github.com/syntax-tree/hastscript/blob/main/readme.md#hselector-properties-children) for more information.
+
+If set to a function, it will be called for each content or inline target to wrap, and is expected to return an `ExpressiveCodeAnnotation` that takes care of rendering it.
 </dd>
 </dl>
 
