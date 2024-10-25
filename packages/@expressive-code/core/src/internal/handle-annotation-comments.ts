@@ -34,36 +34,64 @@ export type RunCommentHandlersContext = {
 
 export async function handleAnnotationComments(context: RunCommentHandlersContext) {
 	const { codeBlock, plugins, config } = context
+	const uniqueErrors = new Set<string>()
+
 	// Parse annotation comments in the code
 	const codeLines = codeBlock.code.split('\n')
 	const { annotationComments, errorMessages } = parseAnnotationComments({ codeLines })
-	// Inform the user about any parsing errors
-	if (errorMessages.length > 0) {
-		config.logger.warn(`Failed to parse annotation comments in code block "${codeBlock.code}":\n${errorMessages.map((msg) => `- ${msg}`).join('\n')}`)
-	}
-	// Prepare annotation comment handlers
-	const handlerByTagName = new Map<string, AnnotationCommentHandler>()
-	for (const plugin of plugins) {
-		for (const handler of plugin.annotationCommentHandlers ?? []) {
-			for (const tagName of handler.tagNames) {
-				if (!handler.overrideExisting && handlerByTagName.has(tagName)) {
-					config.logger.warn(
-						`Plugin "${plugin.name}" tried to register an annotation comment handler for tag name "${tagName}" that is already registered by another plugin. Use the \`overrideExisting\` option to replace the existing handler.`
-					)
-					continue
-				}
-				handlerByTagName.set(tagName, handler)
-			}
-		}
-	}
+	errorMessages.forEach((msg) => uniqueErrors.add(`Parsing error: ${msg}`))
+
 	// Run annotation comment handlers
 	for (const annotationComment of annotationComments) {
-		const handler = handlerByTagName.get(annotationComment.tag.name)
-		if (!handler) {
-			config.logger.warn(`No annotation comment handler found for tag name "${annotationComment.tag.name}"`)
-			continue
-		}
-		
+		const handler = getHandlerByTagName(annotationComment.tag.name, plugins, uniqueErrors)
+		if (!handler) continue
+		const { contents, inlineTargets, fullLineTargets, codeBlock, custom } = handler
+		// TODO: Perform actual work
 	}
+
+	// Log any errors we encountered
+	if (uniqueErrors.size > 0) {
+		config.logger.warn(
+			`Encountered code block annotation comment issues in ${
+				codeBlock.parentDocument?.sourceFilePath ? `document "${codeBlock.parentDocument?.sourceFilePath}"` : 'markdown/MDX document'
+			}:\n${Array.from(uniqueErrors)
+				.map((msg) => `- ${msg}`)
+				.join('\n')}`
+		)
+	}
+
 	await Promise.resolve()
+}
+
+const cachedHandlers = new WeakMap<readonly ExpressiveCodePlugin[], Map<string, AnnotationCommentHandler | null>>()
+
+function getHandlerByTagName(tagName: string, plugins: RunCommentHandlersContext['plugins'], uniqueErrors: Set<string>) {
+	// Try to return a known cached handler first
+	let handlers = cachedHandlers.get(plugins)
+	if (!handlers) {
+		handlers = new Map<string, AnnotationCommentHandler>()
+		cachedHandlers.set(plugins, handlers)
+	}
+	let handler = handlers.get(tagName)
+	if (handler === undefined) {
+		// No cached handler was found, so try to find one now
+		for (const plugin of plugins) {
+			for (const pluginHandler of plugin.annotationCommentHandlers ?? []) {
+				for (const handlerTagName of pluginHandler.tagNames) {
+					if (handlerTagName !== tagName) continue
+					if (handler && !pluginHandler.overrideExisting) {
+						uniqueErrors.add(
+							`Plugin "${plugin.name}" tried to register a handler for tag name "${tagName}" that is already registered by another plugin. Use the \`overrideExisting\` option to replace the existing handler.`
+						)
+						continue
+					}
+					handler = pluginHandler
+				}
+			}
+		}
+		// Store undefined handlers as null to avoid repeated lookups
+		handlers.set(tagName, handler ?? null)
+	}
+	if (!handler) uniqueErrors.add(`No handler found for tag name "${tagName}"`)
+	return handler ?? undefined
 }

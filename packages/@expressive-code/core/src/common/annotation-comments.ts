@@ -45,7 +45,7 @@ export type AnnotationCommentHandler = {
 	 * Allows defining actions to perform on the parent code block when an annotation comment
 	 * using one of the tag names registered by this handler is encountered.
 	 */
-	codeBlock: AddClasses | undefined
+	codeBlock?: AddClasses | undefined
 	/**
 	 * Allows providing a custom handler function that is called when an annotation comment
 	 * using one of the tag names registered by this handler is encountered.
