@@ -99,6 +99,10 @@ export default defineConfig({
 							label: 'Line Numbers',
 							link: '/plugins/line-numbers/',
 						},
+						{
+							label: 'Community Plugins',
+							link: '/plugins/community-plugins/',
+						},
 					],
 				},
 				{
