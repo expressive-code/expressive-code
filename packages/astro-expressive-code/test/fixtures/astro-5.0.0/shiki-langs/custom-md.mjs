@@ -77,7 +77,7 @@ export default {
 			name: 'markup.bold.markdown',
 			patterns: [
 				{
-					applyEndPatternLast: 1,
+					applyEndPatternLast: true,
 					begin: '(?=<[^>]*?>)',
 					end: '(?<=>)',
 					patterns: [
@@ -2611,7 +2611,7 @@ export default {
 			name: 'markup.italic.markdown',
 			patterns: [
 				{
-					applyEndPatternLast: 1,
+					applyEndPatternLast: true,
 					begin: '(?=<[^>]*?>)',
 					end: '(?<=>)',
 					patterns: [
@@ -3008,7 +3008,7 @@ export default {
 				2: {
 					patterns: [
 						{
-							applyEndPatternLast: 1,
+							applyEndPatternLast: true,
 							begin: '(?=<[^>]*?>)',
 							end: '(?<=>)',
 							patterns: [
