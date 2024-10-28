@@ -59,22 +59,20 @@ describe.skipIf(skipAstro3Tests)('Integration into Astro 3.3.0', () => {
 
 	test('Renders code blocks in Markdown files', () => {
 		const html = fixture?.readFile('index.html') ?? ''
-		validateHtml(html)
+		validateHtml(html, fixture)
 	})
 
 	test('Renders code blocks in MDX files', () => {
 		const html = fixture?.readFile('mdx-page/index.html') ?? ''
-		validateHtml(html)
+		validateHtml(html, fixture)
 	})
 
 	test('Emits an external stylesheet into the Astro assets dir', () => {
-		const files = fixture?.readDir('_astro') ?? []
-		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.css$/))).toHaveLength(1)
+		expectExternalAssetsToBeEmitted(fixture, 'css')
 	})
 
 	test('Emits an external script into the Astro assets dir', () => {
-		const files = fixture?.readDir('_astro') ?? []
-		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.js$/))).toHaveLength(1)
+		expectExternalAssetsToBeEmitted(fixture, 'js')
 	})
 })
 
@@ -92,12 +90,12 @@ describe.skipIf(skipAstro3Tests)('Integration into Astro ^3.5.0 with `emitExtern
 
 	test('Renders code blocks in Markdown files', () => {
 		const html = fixture?.readFile('index.html') ?? ''
-		validateHtml(html, { emitExternalStylesheet: false })
+		validateHtml(html, fixture, { emitExternalStylesheet: false })
 	})
 
 	test('Renders code blocks in MDX files', () => {
 		const html = fixture?.readFile('mdx-page/index.html') ?? ''
-		validateHtml(html, { emitExternalStylesheet: false })
+		validateHtml(html, fixture, { emitExternalStylesheet: false })
 	})
 
 	test('Emits no external stylesheet due to `emitExternalStylesheet: false`', () => {
@@ -106,8 +104,7 @@ describe.skipIf(skipAstro3Tests)('Integration into Astro ^3.5.0 with `emitExtern
 	})
 
 	test('Emits an external script into the Astro assets dir', () => {
-		const files = fixture?.readDir('_astro') ?? []
-		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.js$/))).toHaveLength(1)
+		expectExternalAssetsToBeEmitted(fixture, 'js')
 	})
 })
 
@@ -128,23 +125,23 @@ describe.skipIf(skipAstro3Tests)('Integration into Astro ^3.5.0 using custom `ba
 
 	test('Renders code blocks in Markdown files', () => {
 		const html = fixture?.readFile('index.html') ?? ''
-		validateHtml(html, { astroConfig })
+		validateHtml(html, fixture, { astroConfig })
 	})
 
 	test('Renders code blocks in MDX files', () => {
 		const html = fixture?.readFile('mdx-page/index.html') ?? ''
-		validateHtml(html, { astroConfig })
+		validateHtml(html, fixture, { astroConfig })
 	})
 
 	test('Renders <Code> components in MDX files', () => {
 		const html = fixture?.readFile('mdx-code-component/index.html') ?? ''
-		validateHtml(html, { astroConfig })
+		validateHtml(html, fixture, { astroConfig })
 		expect(html).toContain('Code component in MDX files')
 	})
 
 	test('When rendering multiple <Code> components on a page, only adds styles & scripts to the first one', () => {
 		const html = fixture?.readFile('mdx-many-code-components/index.html') ?? ''
-		validateHtml(html, {
+		validateHtml(html, fixture, {
 			astroConfig,
 			expectedHtmlRegExp: multiCodeComponentHtmlRegExp,
 			expectedCodeBlockCount: 3,
@@ -158,13 +155,13 @@ describe.skipIf(skipAstro3Tests)('Integration into Astro ^3.5.0 using custom `ba
 
 	test('Renders <Code> components in Astro files', () => {
 		const html = fixture?.readFile('astro-code-component/index.html') ?? ''
-		validateHtml(html, { astroConfig })
+		validateHtml(html, fixture, { astroConfig })
 		expect(html).toContain('Code component in Astro files')
 	})
 
 	test('Emits an external stylesheet into the Astro assets dir', () => {
+		expectExternalAssetsToBeEmitted(fixture, 'css', astroConfig.build.assets)
 		const files = fixture?.readDir(astroConfig.build.assets) ?? []
-		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.css$/))).toHaveLength(1)
 		expect(
 			files.filter((fileName) => fileName.match(/^logo\./)),
 			'Expected Astro to use the same directory for image assets'
@@ -172,8 +169,8 @@ describe.skipIf(skipAstro3Tests)('Integration into Astro ^3.5.0 using custom `ba
 	})
 
 	test('Emits an external script into the Astro assets dir', () => {
+		expectExternalAssetsToBeEmitted(fixture, 'js', astroConfig.build.assets)
 		const files = fixture?.readDir(astroConfig.build.assets) ?? []
-		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.js$/))).toHaveLength(1)
 		expect(
 			files.filter((fileName) => fileName.match(/^logo\./)),
 			'Expected Astro to use the same directory for image assets'
@@ -195,23 +192,23 @@ describe('Integration into Astro ^4.0.0', () => {
 
 	test('Renders code blocks in Markdown files', () => {
 		const html = fixture?.readFile('index.html') ?? ''
-		validateHtml(html)
+		validateHtml(html, fixture)
 	})
 
 	test('Renders code blocks in MDX files', () => {
 		const html = fixture?.readFile('mdx-page/index.html') ?? ''
-		validateHtml(html)
+		validateHtml(html, fixture)
 	})
 
 	test('Renders <Code> components in MDX files', () => {
 		const html = fixture?.readFile('mdx-code-component/index.html') ?? ''
-		validateHtml(html)
+		validateHtml(html, fixture)
 		expect(html).toContain('Code component in MDX files')
 	})
 
 	test('When rendering multiple <Code> components on a page, only adds styles & scripts to the first one', () => {
 		const html = fixture?.readFile('mdx-many-code-components/index.html') ?? ''
-		validateHtml(html, {
+		validateHtml(html, fixture, {
 			expectedHtmlRegExp: multiCodeComponentHtmlRegExp,
 			expectedCodeBlockCount: 3,
 		})
@@ -224,7 +221,7 @@ describe('Integration into Astro ^4.0.0', () => {
 
 	test('Renders <Code> components in Astro files', () => {
 		const html = fixture?.readFile('astro-code-component/index.html') ?? ''
-		validateHtml(html)
+		validateHtml(html, fixture)
 		expect(html).toContain('Code component in Astro files')
 	})
 
@@ -260,13 +257,11 @@ describe('Integration into Astro ^4.0.0', () => {
 	})
 
 	test('Emits an external stylesheet into the Astro assets dir', () => {
-		const files = fixture?.readDir('_astro') ?? []
-		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.css$/))).toHaveLength(1)
+		expectExternalAssetsToBeEmitted(fixture, 'css')
 	})
 
 	test('Emits an external script into the Astro assets dir', () => {
-		const files = fixture?.readDir('_astro') ?? []
-		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.js$/))).toHaveLength(1)
+		expectExternalAssetsToBeEmitted(fixture, 'js')
 	})
 })
 
@@ -307,23 +302,31 @@ describe('Integration into Astro ^5.0.0', () => {
 
 	test('Renders code blocks in Markdown files', () => {
 		const html = fixture?.readFile('index.html') ?? ''
-		validateHtml(html)
+		validateHtml(html, fixture)
 	})
 
 	test('Renders code blocks in MDX files', () => {
 		const html = fixture?.readFile('mdx-page/index.html') ?? ''
-		validateHtml(html)
+		validateHtml(html, fixture)
+		const hast = fromHtml(html, { fragment: true })
+		// Expect the inline ins marker to be applied
+		const inlineInsContents = selectAll('ins', hast).map((token) => toText(token))
+		expect(inlineInsContents).toEqual(['<Header />'])
 	})
 
 	test('Renders <Code> components in MDX files', () => {
 		const html = fixture?.readFile('mdx-code-component/index.html') ?? ''
-		validateHtml(html)
+		validateHtml(html, fixture)
 		expect(html).toContain('Code component in MDX files')
+		const hast = fromHtml(html, { fragment: true })
+		// Expect the inline ins marker to be applied
+		const inlineInsContents = selectAll('ins', hast).map((token) => toText(token))
+		expect(inlineInsContents).toEqual(['<Header />'])
 	})
 
 	test('When rendering multiple <Code> components on a page, only adds styles & scripts to the first one', () => {
 		const html = fixture?.readFile('mdx-many-code-components/index.html') ?? ''
-		validateHtml(html, {
+		validateHtml(html, fixture, {
 			expectedHtmlRegExp: multiCodeComponentHtmlRegExp,
 			expectedCodeBlockCount: 3,
 		})
@@ -336,7 +339,7 @@ describe('Integration into Astro ^5.0.0', () => {
 
 	test('Renders <Code> components in Astro files', () => {
 		const html = fixture?.readFile('astro-code-component/index.html') ?? ''
-		validateHtml(html)
+		validateHtml(html, fixture)
 		expect(html).toContain('Code component in Astro files')
 	})
 
@@ -372,18 +375,31 @@ describe('Integration into Astro ^5.0.0', () => {
 	})
 
 	test('Emits an external stylesheet into the Astro assets dir', () => {
-		const files = fixture?.readDir('_astro') ?? []
-		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.css$/))).toHaveLength(1)
+		expectExternalAssetsToBeEmitted(fixture, 'css')
 	})
 
 	test('Emits an external script into the Astro assets dir', () => {
-		const files = fixture?.readDir('_astro') ?? []
-		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.js$/))).toHaveLength(1)
+		expectExternalAssetsToBeEmitted(fixture, 'js')
+	})
+
+	test('Config options from `ec.config.mjs` are merged with integration options', () => {
+		const matchingAssets = enumerateAssets(fixture, 'css')
+		const cssContents = fixture?.readFile(`_astro/${matchingAssets[0]}`) ?? ''
+		expect(cssContents, 'Expected themes array to be fully replaced by the one in ec.config.mjs').to.not.contain('github')
+		expect(
+			cssContents.match(/--ec-tm-inlMarkerBrdWd:(.*?);/)?.[1],
+			'Expected styleOverrides value for textMarkers.inlineMarkerBorderWidth to be overwritten by ec.config.mjs'
+		).toEqual('3px')
+		expect(
+			cssContents.match(/--ec-tm-lineMarkerAccentWd:(.*?);/)?.[1],
+			'Expected styleOverrides value for textMarkers.lineMarkerAccentWidth value to be retained in merged config'
+		).toEqual('0.3rem')
 	})
 })
 
 function validateHtml(
 	html: string,
+	fixture: Awaited<ReturnType<typeof buildFixture>> | undefined,
 	options?: {
 		emitExternalStylesheet?: boolean | undefined
 		astroConfig?: AstroUserConfig | undefined
@@ -404,9 +420,10 @@ function validateHtml(
 	const styles = matches?.groups?.['styles']
 	if (emitExternalStylesheet) {
 		const styleBaseHref = `${getAssetsBaseHref('.css', astroConfig?.build?.assetsPrefix, astroConfig?.base)}/${assetsDir}/`.replace(/\/+/g, '/')
-		expect(styles, `Expected a stylesheet link href beginning with "${styleBaseHref}", but got "${styles}"`).toMatch(
-			new RegExp(`<link rel="stylesheet" href="${styleBaseHref}ec\\..*?\\.css"\\s*/?>`)
-		)
+		const externalStyles = enumerateAssets(fixture, 'css', assetsDir)
+		const expectedStylesheetHref = `${styleBaseHref}${externalStyles[0]}`
+		const actualStylesheetHrefs = [...(styles?.matchAll(new RegExp(`<link rel="stylesheet" href="(.*?)"\\s*/?>`, 'g')) ?? [])]?.map((match) => match[1])
+		expect(actualStylesheetHrefs, `Expected a single valid external stylesheet link`).toEqual([expectedStylesheetHref])
 	} else {
 		expect(styles).toContain('<style>')
 	}
@@ -414,9 +431,10 @@ function validateHtml(
 	// Expect the `scripts` capture group to contain an external script module
 	const scripts = matches?.groups?.['scripts']
 	const scriptBaseHref = `${getAssetsBaseHref('.js', astroConfig?.build?.assetsPrefix, astroConfig?.base)}/${assetsDir}/`.replace(/\/+/g, '/')
-	expect(scripts, `Expected a script module src beginning with "${scriptBaseHref}", but got "${scripts}"`).toMatch(
-		new RegExp(`<script type="module" src="${scriptBaseHref}ec\\..*?\\.js"\\s*/?>`)
-	)
+	const externalScripts = enumerateAssets(fixture, 'js', assetsDir)
+	const expectedScriptSrc = `${scriptBaseHref}${externalScripts[0]}`
+	const actualScriptSrcs = [...(scripts?.matchAll(new RegExp(`<script type="module" src="(.*?)"\\s*/?>`, 'g')) ?? [])]?.map((match) => match[1])
+	expect(actualScriptSrcs, `Expected a single valid script module link`).toEqual([expectedScriptSrc])
 
 	// Collect all code blocks
 	const codeBlockClassNames = [...html.matchAll(/<div class="(expressive-code(?:| .*?))">/g)].map((match) => match[1])
@@ -450,4 +468,18 @@ async function buildFixture({ fixtureDir, buildCommand, buildArgs, outputDir }: 
 		readFile: (filePath: string) => readFileSync(join(outputDirPath, filePath), 'utf-8'),
 		readDir: (subPath: string) => readdirSync(join(outputDirPath, subPath), 'utf-8'),
 	}
+}
+
+function enumerateAssets(fixture: Awaited<ReturnType<typeof buildFixture>> | undefined, assetType: 'js' | 'css', assetDir = '_astro') {
+	if (!fixture) throw new Error('Expected fixture to be defined')
+	const assets = fixture?.readDir(assetDir) ?? []
+	const assetPattern = assetType === 'js' ? 'ec\\..*?\\.js' : 'ec\\..*?\\.css'
+	const fileNameRegExp = new RegExp(`^${assetPattern}$`)
+	return assets.filter((fileName) => fileName.match(fileNameRegExp))
+}
+
+function expectExternalAssetsToBeEmitted(fixture: Awaited<ReturnType<typeof buildFixture>> | undefined, assetType: 'js' | 'css', assetDir = '_astro') {
+	if (!fixture) throw new Error('Expected fixture to be defined')
+	const matchingAssets = enumerateAssets(fixture, assetType, assetDir)
+	expect(matchingAssets, `Expected assetDir "${assetDir}" to contain exactly 1 asset of type "${assetType}"`).toHaveLength(1)
 }

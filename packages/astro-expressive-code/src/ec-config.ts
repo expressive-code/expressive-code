@@ -130,3 +130,48 @@ export async function loadEcConfigFile(projectRootUrl: URL | string): Promise<As
 	}
 	return {}
 }
+
+/**
+ * Merges the given Astro Expressive Code configuration objects into a single new result object.
+ *
+ * Option values from earlier objects in the argument list are overwritten by new values
+ * found in later objects, including `undefined` values.
+ *
+ * For the following object options, a deep merge is performed instead of a simple override:
+ * - `defaultProps`
+ * - `frames`
+ * - `shiki`
+ * - `styleOverrides`
+ *
+ * The following array options are concatenated instead of being replaced:
+ * - `shiki.langs`
+ */
+export function mergeEcConfigOptions(...configs: AstroExpressiveCodeOptions[]) {
+	const merged: AstroExpressiveCodeOptions = {}
+	configs.forEach((config) => merge(merged, config, ['defaultProps', 'frames', 'shiki', 'styleOverrides']))
+	return merged
+
+	function isObject(value: unknown): value is Record<string, unknown> {
+		return value !== null && typeof value === 'object' && !Array.isArray(value)
+	}
+
+	function merge(target: Record<string, unknown>, source: Record<string, unknown>, limitDeepMergeTo?: string[], path = '') {
+		for (const key in source) {
+			const srcProp = source[key]
+			const tgtProp = target[key]
+			// Deep merge selected sub-objects
+			if (isObject(tgtProp) && isObject(srcProp) && (!limitDeepMergeTo || limitDeepMergeTo.includes(key))) {
+				merge(tgtProp, srcProp, undefined, path ? path + '.' + key : key)
+				continue
+			}
+			// Concatenate selected arrays
+			if (Array.isArray(tgtProp) && Array.isArray(srcProp)) {
+				if (path === 'shiki' && key === 'langs') {
+					tgtProp.push(...(srcProp as unknown[]))
+					continue
+				}
+			}
+			target[key] = srcProp
+		}
+	}
+}

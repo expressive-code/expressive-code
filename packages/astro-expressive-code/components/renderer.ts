@@ -9,7 +9,7 @@ export async function getRenderer() {
 
 async function createRenderer() {
 	const { astroConfig, ecConfigFileOptions, ecIntegrationOptions = {} } = await import('virtual:astro-expressive-code/config')
-	const { createAstroRenderer } = await import('virtual:astro-expressive-code/api')
+	const { createAstroRenderer, mergeEcConfigOptions } = await import('virtual:astro-expressive-code/api')
 
 	const strIntegrationOptions = JSON.stringify(ecIntegrationOptions)
 	if (strIntegrationOptions.includes('"[Function]"') || strIntegrationOptions.includes("'[Circular]'")) {
@@ -21,7 +21,7 @@ async function createRenderer() {
 		)
 	}
 
-	let mergedEcConfig = { ...ecConfigFileOptions, ...ecIntegrationOptions }
+	let mergedEcConfig = mergeEcConfigOptions(ecIntegrationOptions, ecConfigFileOptions)
 	try {
 		const { default: preprocessEcConfig } = await import('virtual:astro-expressive-code/preprocess-config')
 		mergedEcConfig = (await preprocessEcConfig({ ecConfig: mergedEcConfig, astroConfig })) || mergedEcConfig
