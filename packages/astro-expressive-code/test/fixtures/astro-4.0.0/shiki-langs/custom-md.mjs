@@ -1,7 +1,10 @@
+// @ts-check
 // Source: https://raw.githubusercontent.com/shikijs/textmate-grammars-themes/main/packages/tm-grammars/grammars/markdown.json
-export default {
+/** @type {NonNullable<import('astro-expressive-code').PluginShikiOptions['langs']>[number]} */
+const lang = {
 	displayName: 'Markdown',
 	name: 'markdown',
+	aliases: ['md'],
 	patterns: [
 		{
 			include: '#frontMatter',
@@ -12,7 +15,7 @@ export default {
 	],
 	repository: {
 		ampersand: {
-			comment: 'Markdown will convert this for us. We match it so that the HTML grammar will not mark it up as invalid.',
+			// comment: 'Markdown will convert this for us. We match it so that the HTML grammar will not mark it up as invalid.',
 			match: '&(?!([a-zA-Z0-9]+|#[0-9]+|#x[0-9a-fA-F]+);)',
 			name: 'meta.other.valid-ampersand.markdown',
 		},
@@ -77,7 +80,7 @@ export default {
 			name: 'markup.bold.markdown',
 			patterns: [
 				{
-					applyEndPatternLast: 1,
+					applyEndPatternLast: true,
 					begin: '(?=<[^>]*?>)',
 					end: '(?<=>)',
 					patterns: [
@@ -134,7 +137,7 @@ export default {
 			],
 		},
 		bracket: {
-			comment: 'Markdown will convert this for us. We match it so that the HTML grammar will not mark it up as invalid.',
+			// comment: 'Markdown will convert this for us. We match it so that the HTML grammar will not mark it up as invalid.',
 			match: '<(?![a-zA-Z/?\\$!])',
 			name: 'meta.other.valid-bracket.markdown',
 		},
@@ -2611,7 +2614,7 @@ export default {
 			name: 'markup.italic.markdown',
 			patterns: [
 				{
-					applyEndPatternLast: 1,
+					applyEndPatternLast: true,
 					begin: '(?=<[^>]*?>)',
 					end: '(?<=>)',
 					patterns: [
@@ -2931,7 +2934,7 @@ export default {
 							name: 'punctuation.definition.list.begin.markdown',
 						},
 					},
-					comment: 'Currently does not support un-indented second lines.',
+					// comment: 'Currently does not support un-indented second lines.',
 					name: 'markup.list.unnumbered.markdown',
 					patterns: [
 						{
@@ -3008,7 +3011,7 @@ export default {
 				2: {
 					patterns: [
 						{
-							applyEndPatternLast: 1,
+							applyEndPatternLast: true,
 							begin: '(?=<[^>]*?>)',
 							end: '(?<=>)',
 							patterns: [
@@ -3107,3 +3110,5 @@ export default {
 	},
 	scopeName: 'text.html.markdown',
 }
+
+export default lang

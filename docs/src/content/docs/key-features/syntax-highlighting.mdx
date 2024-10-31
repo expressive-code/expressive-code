@@ -124,6 +124,7 @@ You can pass the following options to the plugin:
 
 <PropertySignature>
 - Type: LanguageInput[]
+- Default: []
 </PropertySignature>
 
 A list of additional languages that should be available for syntax highlighting.
@@ -134,14 +135,36 @@ You can pass any of the language input types supported by Shiki, e.g.:
 
 See the [Shiki documentation](https://shiki.style/guide/load-lang) for more information.
 
-:::note
-When using this option, Expressive Code automatically ensures that all bundled default languages are still available. You don't need to add Shiki's `bundledLanguages` manually to this array.
+:::caution
+When using this option, Expressive Code automatically ensures that all bundled default languages are still available. You should not add Shiki's `bundledLanguages` manually to this array, as this would load many unused languages and slow down both the dev server and build times.
 :::
+
+#### injectLangsIntoNestedCodeBlocks
+
+<PropertySignature>
+- Type: boolean
+- Default: false
+</PropertySignature>
+
+By default, the additional languages defined in `langs` are only available in top-level code blocks contained directly in their parent Markdown or MDX document.
+
+Setting this option to `true` also enables syntax highlighting when a fenced code block using one of your additional `langs` is nested inside an outer `markdown`, `md` or `mdx` code block. Example:
+
+`````md
+````md
+This top-level Markdown code block contains a nested `my-custom-lang` code block:
+```my-custom-lang
+This nested code block will only be highlighted using `my-custom-lang`
+if `injectLangsIntoNestedCodeBlocks` is enabled.
+```
+````
+`````
 
 #### transformers
 
 <PropertySignature>
 - Type: ShikiTransformer[]
+- Default: []
 </PropertySignature>
 
 An optional list of Shiki transformers that should be called during syntax highlighting.

@@ -1,3 +1,4 @@
+// @ts-check
 import { defineEcConfig } from 'astro-expressive-code'
 import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
 import { createRequire } from 'node:module'
@@ -11,6 +12,7 @@ export default defineEcConfig({
 	plugins: [pluginCollapsibleSections()],
 	shiki: {
 		langs: [testLanguage],
+		injectLangsIntoNestedCodeBlocks: true,
 	},
 	styleOverrides: {
 		textMarkers: {

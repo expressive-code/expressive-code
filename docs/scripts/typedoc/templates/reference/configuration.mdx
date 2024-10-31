@@ -10,7 +10,18 @@ Expressive Code comes with default settings that should work out of the box for 
 
 There are two ways to configure Expressive Code:
 - You can pass your options to the initialization function of the integration you are using
-- In Astro or Starlight projects, you can also create a file named `ec.config.mjs` in your project's root directory and export your configuration object from there instead
+- In Astro or Starlight projects, you can also create a file named `ec.config.mjs` in your project's root directory and export your configuration object from there
+
+If both methods are used, both config sources are merged on a per-option basis, with the options from the `ec.config.mjs` file taking precedence.
+
+For the following object options, a deep merge of all nested properties is performed, allowing you to perform granular overrides:
+- [`defaultProps`](#defaultprops)
+- [`frames`](#frames)
+- [`shiki`](#shiki)
+- [`styleOverrides`](#styleoverrides)
+
+Also, the following array options are concatenated instead of being replaced:
+- [`shiki.langs`](/key-features/syntax-highlighting/#langs)
 
 ### Passing options directly
 

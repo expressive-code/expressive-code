@@ -159,19 +159,21 @@ export function mergeEcConfigOptions(...configs: AstroExpressiveCodeOptions[]) {
 		for (const key in source) {
 			const srcProp = source[key]
 			const tgtProp = target[key]
-			// Deep merge selected sub-objects
-			if (isObject(tgtProp) && isObject(srcProp) && (!limitDeepMergeTo || limitDeepMergeTo.includes(key))) {
-				merge(tgtProp, srcProp, undefined, path ? path + '.' + key : key)
-				continue
-			}
-			// Concatenate selected arrays
-			if (Array.isArray(tgtProp) && Array.isArray(srcProp)) {
-				if (path === 'shiki' && key === 'langs') {
-					tgtProp.push(...(srcProp as unknown[]))
-					continue
+			if (isObject(srcProp)) {
+				if (isObject(tgtProp) && (!limitDeepMergeTo || limitDeepMergeTo.includes(key))) {
+					merge(tgtProp, srcProp, undefined, path ? path + '.' + key : key)
+				} else {
+					target[key] = { ...srcProp }
 				}
+			} else if (Array.isArray(srcProp)) {
+				if (Array.isArray(tgtProp) && path === 'shiki' && key === 'langs') {
+					target[key] = [...(tgtProp as unknown[]), ...(srcProp as unknown[])]
+				} else {
+					target[key] = [...(srcProp as unknown[])]
+				}
+			} else {
+				target[key] = srcProp
 			}
-			target[key] = srcProp
 		}
 	}
 }
