@@ -225,35 +225,23 @@ describe('Integration into Astro ^4.0.0', () => {
 		expect(html).toContain('Code component in Astro files')
 	})
 
-	test('Supports custom languages', () => {
-		const html = fixture?.readFile('custom-language/index.html') ?? ''
-		expect(html).toContain('Custom language')
-		const hast = fromHtml(html, { fragment: true })
-		const codeBlocks = selectAll('.expressive-code', hast)
-		expect(codeBlocks).toHaveLength(3)
-		const tokensPerCodeBlock = codeBlocks.map((codeBlock) => {
-			const tokens = selectAll('.ec-line span[style^="--0"]', codeBlock)
-			return tokens.map((token) => {
-				return {
-					text: toText(token),
-					color: getInlineStyles(token).get('--0'),
-				}
-			})
+	describe('Supports custom languages', () => {
+		test('Highlights custom language nested in markdown code block', () => {
+			const { mdWithNestedLangs, customLangTokenColors } = getCustomLanguageTokenColors(fixture)
+			expect(mdWithNestedLangs).toEqual(expect.arrayContaining(customLangTokenColors))
 		})
-		const [mdWithNestedLangs, customLang, jsLang] = tokensPerCodeBlock
-		const customLangTokenColors = [
-			{ text: 'test', color: '#F699D9' },
-			{ text: 'my', color: '#AEE9F5' },
-			{ text: '"lang"', color: '#A3B5C3' },
-		]
-		const jsLangTokenColors = [
-			{ text: 'import', color: '#EBEA8B' },
-			{ text: 'something', color: '#AEE9F5' },
-		]
-		expect(mdWithNestedLangs, 'Failed to highlight custom language nested in markdown code block').toEqual(expect.arrayContaining(customLangTokenColors))
-		expect(mdWithNestedLangs, 'Failed to highlight JS language nested in markdown code block after adding custom language').toEqual(expect.arrayContaining(jsLangTokenColors))
-		expect(customLang, 'Failed to highlight fenced code block using custom language').toEqual(expect.arrayContaining(customLangTokenColors))
-		expect(jsLang, 'Failed to highlight fenced code block using JS language after adding custom language').toEqual(expect.arrayContaining(jsLangTokenColors))
+		test('Highlights JS language nested in markdown code block after adding custom language', () => {
+			const { mdWithNestedLangs, jsLangTokenColors } = getCustomLanguageTokenColors(fixture)
+			expect(mdWithNestedLangs).toEqual(expect.arrayContaining(jsLangTokenColors))
+		})
+		test('Highlights fenced code block using custom language', () => {
+			const { customLang, customLangTokenColors } = getCustomLanguageTokenColors(fixture)
+			expect(customLang).toEqual(expect.arrayContaining(customLangTokenColors))
+		})
+		test('Highlights fenced code block using JS language after adding custom language', () => {
+			const { jsLang, jsLangTokenColors } = getCustomLanguageTokenColors(fixture)
+			expect(jsLang).toEqual(expect.arrayContaining(jsLangTokenColors))
+		})
 	})
 
 	test('Emits an external stylesheet into the Astro assets dir', () => {
@@ -343,35 +331,23 @@ describe('Integration into Astro ^5.0.0', () => {
 		expect(html).toContain('Code component in Astro files')
 	})
 
-	test('Supports custom languages', () => {
-		const html = fixture?.readFile('custom-language/index.html') ?? ''
-		expect(html).toContain('Custom language')
-		const hast = fromHtml(html, { fragment: true })
-		const codeBlocks = selectAll('.expressive-code', hast)
-		expect(codeBlocks).toHaveLength(3)
-		const tokensPerCodeBlock = codeBlocks.map((codeBlock) => {
-			const tokens = selectAll('.ec-line span[style^="--0"]', codeBlock)
-			return tokens.map((token) => {
-				return {
-					text: toText(token),
-					color: getInlineStyles(token).get('--0'),
-				}
-			})
+	describe('Supports custom languages', () => {
+		test('Highlights custom language nested in markdown code block', () => {
+			const { mdWithNestedLangs, customLangTokenColors } = getCustomLanguageTokenColors(fixture)
+			expect(mdWithNestedLangs).toEqual(expect.arrayContaining(customLangTokenColors))
 		})
-		const [mdWithNestedLangs, customLang, jsLang] = tokensPerCodeBlock
-		const customLangTokenColors = [
-			{ text: 'test', color: '#F699D9' },
-			{ text: 'my', color: '#AEE9F5' },
-			{ text: '"lang"', color: '#A3B5C3' },
-		]
-		const jsLangTokenColors = [
-			{ text: 'import', color: '#EBEA8B' },
-			{ text: 'something', color: '#AEE9F5' },
-		]
-		expect(mdWithNestedLangs, 'Failed to highlight custom language nested in markdown code block').toEqual(expect.arrayContaining(customLangTokenColors))
-		expect(mdWithNestedLangs, 'Failed to highlight JS language nested in markdown code block after adding custom language').toEqual(expect.arrayContaining(jsLangTokenColors))
-		expect(customLang, 'Failed to highlight fenced code block using custom language').toEqual(expect.arrayContaining(customLangTokenColors))
-		expect(jsLang, 'Failed to highlight fenced code block using JS language after adding custom language').toEqual(expect.arrayContaining(jsLangTokenColors))
+		test('Highlights JS language nested in markdown code block after adding custom language', () => {
+			const { mdWithNestedLangs, jsLangTokenColors } = getCustomLanguageTokenColors(fixture)
+			expect(mdWithNestedLangs).toEqual(expect.arrayContaining(jsLangTokenColors))
+		})
+		test('Highlights fenced code block using custom language', () => {
+			const { customLang, customLangTokenColors } = getCustomLanguageTokenColors(fixture)
+			expect(customLang).toEqual(expect.arrayContaining(customLangTokenColors))
+		})
+		test('Highlights fenced code block using JS language after adding custom language', () => {
+			const { jsLang, jsLangTokenColors } = getCustomLanguageTokenColors(fixture)
+			expect(jsLang).toEqual(expect.arrayContaining(jsLangTokenColors))
+		})
 	})
 
 	test('Emits an external stylesheet into the Astro assets dir', () => {
@@ -482,4 +458,31 @@ function expectExternalAssetsToBeEmitted(fixture: Awaited<ReturnType<typeof buil
 	if (!fixture) throw new Error('Expected fixture to be defined')
 	const matchingAssets = enumerateAssets(fixture, assetType, assetDir)
 	expect(matchingAssets, `Expected assetDir "${assetDir}" to contain exactly 1 asset of type "${assetType}"`).toHaveLength(1)
+}
+
+function getCustomLanguageTokenColors(fixture: Awaited<ReturnType<typeof buildFixture>> | undefined) {
+	const html = fixture?.readFile('custom-language/index.html') ?? ''
+	const hast = fromHtml(html, { fragment: true })
+	const codeBlocks = selectAll('.expressive-code', hast)
+	expect(codeBlocks).toHaveLength(3)
+	const tokensPerCodeBlock = codeBlocks.map((codeBlock) => {
+		const tokens = selectAll('.ec-line span[style^="--0"]', codeBlock)
+		return tokens.map((token) => {
+			return {
+				text: toText(token),
+				color: getInlineStyles(token).get('--0'),
+			}
+		})
+	})
+	const [mdWithNestedLangs, customLang, jsLang] = tokensPerCodeBlock
+	const customLangTokenColors = [
+		{ text: 'test', color: '#F699D9' },
+		{ text: 'my', color: '#AEE9F5' },
+		{ text: '"lang"', color: '#A3B5C3' },
+	]
+	const jsLangTokenColors = [
+		{ text: 'import', color: '#EBEA8B' },
+		{ text: 'something', color: '#AEE9F5' },
+	]
+	return { mdWithNestedLangs, customLang, jsLang, customLangTokenColors, jsLangTokenColors }
 }

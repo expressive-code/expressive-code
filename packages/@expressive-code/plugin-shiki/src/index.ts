@@ -1,5 +1,5 @@
 import { ExpressiveCodeLine, ExpressiveCodePlugin, ExpressiveCodeTheme, InlineStyleAnnotation } from '@expressive-code/core'
-import { type LanguageInput, ensureLanguageIsLoaded, ensureThemeIsLoaded, getCachedHighlighter } from './highlighter'
+import { type LanguageInput, ensureLanguagesAreLoaded, ensureThemeIsLoaded, getCachedHighlighter, runHighlighterTask } from './highlighter'
 import { runPreprocessHook, runTokensHook, validateTransformers } from './transformers'
 import type { ThemedToken, ShikiTransformer } from 'shiki'
 import { bundledThemes } from 'shiki'
@@ -15,6 +15,26 @@ export interface PluginShikiOptions {
 	 * See the [Shiki documentation](https://shiki.style/guide/load-lang) for more information.
 	 */
 	langs?: LanguageInput[] | undefined
+	/**
+	 * By default, the additional languages defined in `langs` are only available in
+	 * top-level code blocks contained directly in their parent Markdown or MDX document.
+	 *
+	 * Setting this option to `true` also enables syntax highlighting when a fenced code block
+	 * using one of your additional `langs` is nested inside an outer `markdown`, `md` or `mdx`
+	 * code block. Example:
+	 *
+	 * `````md
+	 * ````md
+	 * This top-level Markdown code block contains a nested `my-custom-lang` code block:
+	 *
+	 * ```my-custom-lang
+	 * This nested code block will only be highlighted using `my-custom-lang`
+	 * if `injectLangsIntoNestedCodeBlocks` is enabled.
+	 * ```
+	 * ````
+	 * `````
+	 */
+	injectLangsIntoNestedCodeBlocks?: boolean | undefined
 	/**
 	 * An optional list of Shiki transformers.
 	 *
@@ -53,7 +73,7 @@ enum FontStyle {
 }
 
 export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlugin {
-	const { langs } = options
+	const { langs, injectLangsIntoNestedCodeBlocks } = options
 
 	// Validate all configured transformers
 	validateTransformers(options)
@@ -76,7 +96,7 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 
 				let highlighter
 				try {
-					highlighter = await getCachedHighlighter({ langs })
+					highlighter = await getCachedHighlighter({ langs, injectLangsIntoNestedCodeBlocks })
 				} catch (err) {
 					/* c8 ignore next */
 					const error = err instanceof Error ? err : new Error(String(err))
@@ -85,14 +105,14 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 					})
 				}
 
-				// Load language if necessary
-				const loadedLanguageName = await ensureLanguageIsLoaded(highlighter, codeBlock.language)
-				// If the requested language wasn't available, log a warning
+				// Try to load the language if necessary, and log a warning if it's is unknown
+				const languageLoadErrors = await ensureLanguagesAreLoaded(highlighter, [codeBlock.language])
+				const loadedLanguageName = languageLoadErrors.length ? 'txt' : codeBlock.language
 				if (loadedLanguageName !== codeBlock.language) {
 					logger.warn(
-						`Found unknown code block language "${codeBlock.language}" in ${
+						`Error while loading code block language "${codeBlock.language}" in ${
 							codeBlock.parentDocument?.sourceFilePath ? `document "${codeBlock.parentDocument?.sourceFilePath}"` : 'markdown/MDX document'
-						}. Using "${loadedLanguageName}" instead. You can add custom languages using the "langs" config option.`
+						}. Using "${loadedLanguageName}" instead. You can add custom languages using the "langs" config option. Error details: ${languageLoadErrors.join(', ')}`
 					)
 				}
 
@@ -103,7 +123,7 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 					const loadedThemeName = await ensureThemeIsLoaded(highlighter, theme, styleVariants)
 
 					// Run highlighter (by default, without explanations to improve performance)
-					let tokenLines: ThemedToken[][]
+					let tokenLines: ThemedToken[][] = []
 					try {
 						const codeToTokensOptions = {
 							lang: loadedLanguageName,
@@ -114,11 +134,14 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 						// Run preprocess hook of all configured transformers
 						runPreprocessHook({ options, code, codeBlock, codeToTokensOptions })
 
-						tokenLines = highlighter.codeToTokensBase(
-							code,
-							// @ts-expect-error: We took care that the language and theme are loaded
-							codeToTokensOptions
-						)
+						const codeToTokensBase = highlighter.codeToTokensBase
+						await runHighlighterTask(() => {
+							tokenLines = codeToTokensBase(
+								code,
+								// @ts-expect-error: We took care that the language and theme are loaded
+								codeToTokensOptions
+							)
+						})
 
 						// Run tokens hook of all configured transformers
 						tokenLines = runTokensHook({ options, code, codeBlock, codeToTokensOptions, tokenLines })
