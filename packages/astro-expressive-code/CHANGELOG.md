@@ -1,5 +1,30 @@
 # astro-expressive-code
 
+## 0.38.0
+
+### Minor Changes
+
+- 944dda0: Updates Shiki to the latest version (1.22.2).
+- b6638f9: Adds config merging functionality to `astro-expressive-code`, which allows using `ec.config.mjs` together with other configuration sources like the Astro / Starlight config or Starlight themes.
+
+  Options defined in `ec.config.mjs` have the highest priority and will override any corresponding values coming from other configuration sources.
+
+  For the following object options, a deep merge is performed instead of a simple override:
+
+  - `defaultProps`
+  - `frames`
+  - `shiki`
+  - `styleOverrides`
+
+  The following array options are concatenated instead of being replaced:
+
+  - `shiki.langs`
+
+### Patch Changes
+
+- Updated dependencies [944dda0]
+  - rehype-expressive-code@0.38.0
+
 ## 0.37.1
 
 ### Patch Changes
