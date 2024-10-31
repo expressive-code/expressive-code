@@ -1,5 +1,37 @@
 # @expressive-code/plugin-shiki
 
+## 0.38.0
+
+### Minor Changes
+
+- 944dda0: Updates Shiki to the latest version (1.22.2).
+- 944dda0: Adds new config option `shiki.injectLangsIntoNestedCodeBlocks`.
+
+  By default, the additional languages defined in the `shiki.langs` option are only available in top-level code blocks contained directly in their parent Markdown or MDX document.
+
+  Setting the new `shiki.injectLangsIntoNestedCodeBlocks` option to `true` also enables syntax highlighting when a fenced code block using one of your additional `langs` is nested inside an outer `markdown`, `md` or `mdx` code block. Example:
+
+  `````md
+  ````md
+  This top-level Markdown code block contains a nested `my-custom-lang` code block:
+
+  ```my-custom-lang
+  This nested code block will only be highlighted using `my-custom-lang`
+  if `injectLangsIntoNestedCodeBlocks` is enabled.
+  ```
+  ````
+  `````
+
+- 944dda0: Allows overriding bundled languages using the `shiki.langs` option. Thank you @Robot-Inventor!
+
+  The Shiki language loading logic has been improved to allow passing custom versions of bundled languages without the risk of them being overwritten by the bundled version later.
+
+- 944dda0: Adds on-demand Shiki language loading to speed up dev server startup and build times while simultaneously decreasing memory usage. Thank you, @fweth!
+
+### Patch Changes
+
+- @expressive-code/core@0.38.0
+
 ## 0.37.1
 
 ### Patch Changes

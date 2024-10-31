@@ -1,5 +1,15 @@
 # rehype-expressive-code
 
+## 0.38.0
+
+### Minor Changes
+
+- 944dda0: Updates Shiki to the latest version (1.22.2).
+
+### Patch Changes
+
+- expressive-code@0.38.0
+
 ## 0.37.1
 
 ### Patch Changes
