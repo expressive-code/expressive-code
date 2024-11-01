@@ -1,6 +1,6 @@
 {
   "name": "rehype-expressive-code",
-  "version": "0.37.1",
+  "version": "0.38.0",
   "description": "Rehype plugin for Expressive Code, a text marking & annotation engine for presenting source code on the web.",
   "keywords": [],
   "author": "Tibor Schiemann",
@@ -43,7 +43,7 @@
     "watch": "pnpm build --watch src"
   },
   "dependencies": {
-    "expressive-code": "workspace:^0.37.1"
+    "expressive-code": "workspace:^0.38.0"
   },
   "devDependencies": {
     "@internal/test-utils": "workspace:^",
@@ -53,7 +53,7 @@
     "rehype-stringify": "^9.0.3",
     "remark-parse": "^10.0.1",
     "remark-rehype": "^10.1.0",
-    "shiki": "^1.14.1",
+    "shiki": "^1.22.2",
     "unified": "^10.1.2",
     "vfile": "^6.0.1"
   }

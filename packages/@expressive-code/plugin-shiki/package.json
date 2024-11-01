@@ -1,6 +1,6 @@
 {
   "name": "@expressive-code/plugin-shiki",
-  "version": "0.37.1",
+  "version": "0.38.0",
   "description": "Shiki syntax highlighting plugin for Expressive Code, a text marking & annotation engine for presenting source code on the web.",
   "keywords": [],
   "author": "Tibor Schiemann",
@@ -30,8 +30,8 @@
     "watch": "pnpm build --watch src"
   },
   "dependencies": {
-    "@expressive-code/core": "workspace:^0.37.1",
-    "shiki": "^1.14.1"
+    "@expressive-code/core": "workspace:^0.38.0",
+    "shiki": "^1.22.2"
   },
   "devDependencies": {
     "@internal/test-utils": "workspace:^"

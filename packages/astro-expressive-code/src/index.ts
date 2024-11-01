@@ -2,7 +2,7 @@ import type { AstroIntegration } from 'astro'
 import type { RehypeExpressiveCodeOptions } from 'rehype-expressive-code'
 import rehypeExpressiveCode from 'rehype-expressive-code'
 import { ConfigSetupHookArgs, PartialAstroConfig } from './astro-config'
-import { AstroExpressiveCodeOptions, CustomConfigPreprocessors, ConfigPreprocessorFn, getEcConfigFileUrl, loadEcConfigFile } from './ec-config'
+import { AstroExpressiveCodeOptions, CustomConfigPreprocessors, ConfigPreprocessorFn, getEcConfigFileUrl, loadEcConfigFile, mergeEcConfigOptions } from './ec-config'
 import { createAstroRenderer } from './renderer'
 import { vitePluginAstroExpressiveCode } from './vite-plugin'
 
@@ -10,6 +10,7 @@ export * from 'rehype-expressive-code'
 
 export type { AstroExpressiveCodeOptions, PartialAstroConfig, CustomConfigPreprocessors, ConfigPreprocessorFn }
 export * from './renderer'
+export { mergeEcConfigOptions }
 
 /**
  * Astro integration that adds Expressive Code support to code blocks in Markdown & MDX documents.
@@ -35,22 +36,10 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 				// Watch the EC config file for changes (including creation/deletion)
 				addWatchFile(getEcConfigFileUrl(astroConfig.root))
 
-				// Merge the given options with the ones from a potential EC config file
+				// If an EC config file is present, load it and use it to override or extend
+				// the options passed directly to the integration
 				const ecConfigFileOptions = await loadEcConfigFile(astroConfig.root)
-				const mergedOptions: AstroExpressiveCodeOptions = { ...ecConfigFileOptions, ...integrationOptions }
-
-				// Warn if the user is both using an EC config file and passing options directly
-				const forwardedIntegrationOptions = { ...integrationOptions }
-				delete forwardedIntegrationOptions.customConfigPreprocessors
-				if (Object.keys(ecConfigFileOptions).length > 0 && Object.keys(forwardedIntegrationOptions).length > 0) {
-					logger.warn(
-						`Your project includes an Expressive Code config file ("ec.config.mjs"),
-						but your Astro config file also contains Expressive Code options.
-						To avoid unexpected results from merging multiple config sources,
-						move all Expressive Code options into its config file.
-						Found options: ${Object.keys(forwardedIntegrationOptions).join(', ')}`.replace(/\s+/g, ' ')
-					)
-				}
+				const mergedOptions = mergeEcConfigOptions(integrationOptions, ecConfigFileOptions)
 
 				// Preprocess the merged config if custom preprocessors were provided
 				const processedEcConfig = (await mergedOptions.customConfigPreprocessors?.preprocessAstroIntegrationConfig({ ecConfig: mergedOptions, astroConfig })) || mergedOptions

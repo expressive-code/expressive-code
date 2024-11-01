@@ -3,6 +3,7 @@ import { getInlineStyles, selectAll, toHtml, toText } from '@expressive-code/cor
 import { renderAndOutputHtmlSnapshot, buildThemeFixtures, loadTestThemes, loadBundledShikiTheme } from '@internal/test-utils'
 import type { CodeToTokensOptions, ShikiTransformer, ShikiTransformerContextSource, ThemedToken } from 'shiki'
 import { pluginShiki } from '../src'
+import { regexp } from './assets/regexp.tmLanguage.js'
 
 const jsTestCode = `
 import { defineConfig } from 'astro/config';
@@ -396,6 +397,68 @@ describe('Language handling', async () => {
 								"'",
 								'somewhere',
 								"'",
+							])
+
+							colorAssertionExecuted = true
+						},
+					},
+				],
+			})
+
+			expect(colorAssertionExecuted).toBe(true)
+
+			// Ensure that no warnings were logged
+			expect(warnings.join('\n')).toEqual('')
+		},
+		{ timeout: 5 * 1000 }
+	)
+	test(
+		'Allows overriding bundled languages',
+		async ({ task: { name: testName } }) => {
+			let colorAssertionExecuted = false
+			const warnings: string[] = []
+
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: [
+					{
+						fixtureName: '',
+						themes,
+						code: `((document\\.getElementById)|(document\\.querySelector))`,
+						language: 'regexp',
+						meta: '',
+						plugins: [
+							pluginShiki({
+								langs: [regexp],
+							}),
+						],
+						engineOptions: {
+							logger: {
+								warn: (message) => warnings.push(message),
+							},
+						},
+						blockValidationFn: ({ renderedGroupAst }) => {
+							const html = toHtml(renderedGroupAst)
+
+							// Select the contents of all spans that do not have the default
+							// dracula theme foreground color
+							const spansWithColorAndContent = [...html.matchAll(/<span [^>]*?style="--0:([^"]*?)">(.*?)<\/span>/g)]
+							const highlightedSpans = spansWithColorAndContent.filter((match) => match[1].toLowerCase() !== themes[0].fg.toLowerCase())
+							const highlightedContents = highlightedSpans.map((match) => match[2])
+							expect(highlightedContents).toEqual([
+								// Expect the tokens provided by the custom language
+								'((',
+								'document',
+								'\\.',
+								'getElementById',
+								')',
+								'|',
+								'(',
+								'document',
+								'\\.',
+								'querySelector',
+								'))',
 							])
 
 							colorAssertionExecuted = true

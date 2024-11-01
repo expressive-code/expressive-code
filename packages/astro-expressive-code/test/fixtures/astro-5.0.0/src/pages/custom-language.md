@@ -5,7 +5,7 @@ layout: ../layouts/MainLayout.astro
 
 ## Source code
 
-````md
+````mdx
 ```test-language
 test my "lang"
 ```
