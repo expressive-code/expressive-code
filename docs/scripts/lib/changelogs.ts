@@ -35,7 +35,7 @@ export function loadChangelog(path: string): Changelog {
 	let markdown = readFileSync(path, 'utf8')
 
 	// Convert GitHub usernames in "Thanks ..." sentences to links
-	markdown = markdown.replace(/(Thank[^.!]*? )@([a-z0-9-]+)([\s,.!])/gi, '$1[@$2](https://github.com/$2)$3')
+	markdown = markdown.replace(/(?<=Thank[^.!]*? )@([a-z0-9-]+)(?=[\s,.!])/gi, '[@$1](https://github.com/$1)')
 
 	const ast = fromMarkdown(markdown)
 	// const lines = readFileSync(path, 'utf8')

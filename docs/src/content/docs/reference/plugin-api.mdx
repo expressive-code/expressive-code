@@ -82,6 +82,9 @@ cssVar method to get a CSS variable reference to any style setting.
 
 If CSS variables should not be generated for some of your style settings, you can exclude them using the `cssVarExclusions` property of the object passed to the constructor.
 
+If you want to provide descriptive names for your style settings, but keep the generated CSS variable names short, you can pass an array of search and replace string pairs to the
+`cssVarReplacements` property of the object passed to the constructor. The replacements will be applied to all generated CSS variable names.
+
 ### Example
 
 ```ts
@@ -133,6 +136,7 @@ framesStyleSettings.defaultValues.frames.titleBarForeground // ({ theme }) => th
 | `options` | `Object` |
 | `options.defaultValues` | `Partial`\<[`UnresolvedStyleSettings`](/reference/plugin-api/#unresolvedstylesettings)\> |
 | `options.cssVarExclusions`? | [`StyleSettingPath`](/reference/plugin-api/#stylesettingpath)[] |
+| `options.cssVarReplacements`? | \[`string`, `string`\][] |
 
 ### Properties
 
@@ -140,6 +144,12 @@ framesStyleSettings.defaultValues.frames.titleBarForeground // ({ theme }) => th
 
 <PropertySignature>
 - Type: **readonly** [`StyleSettingPath`](/reference/plugin-api/#stylesettingpath)[]
+</PropertySignature>
+
+#### cssVarReplacements
+
+<PropertySignature>
+- Type: **readonly** \[`string`, `string`\][]
 </PropertySignature>
 
 #### defaultValues

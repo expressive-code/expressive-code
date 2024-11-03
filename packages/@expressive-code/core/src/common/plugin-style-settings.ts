@@ -22,6 +22,11 @@ import { UnresolvedStyleSettings, StyleSettingPath } from './style-settings'
  * If CSS variables should not be generated for some of your style settings, you can exclude them
  * using the `cssVarExclusions` property of the object passed to the constructor.
  *
+ * If you want to provide descriptive names for your style settings, but keep the generated
+ * CSS variable names short, you can pass an array of search and replace string pairs to the
+ * `cssVarReplacements` property of the object passed to the constructor. The replacements
+ * will be applied to all generated CSS variable names.
+ *
  * @example
  * // When using TypeScript: Declare the types of your style settings
  * interface FramesStyleSettings {
@@ -60,9 +65,19 @@ import { UnresolvedStyleSettings, StyleSettingPath } from './style-settings'
 export class PluginStyleSettings {
 	readonly defaultValues: Partial<UnresolvedStyleSettings>
 	readonly cssVarExclusions: StyleSettingPath[]
+	readonly cssVarReplacements: [string, string][]
 
-	constructor({ defaultValues, cssVarExclusions = [] }: { defaultValues: Partial<UnresolvedStyleSettings>; cssVarExclusions?: StyleSettingPath[] | undefined }) {
+	constructor({
+		defaultValues,
+		cssVarExclusions = [],
+		cssVarReplacements = [],
+	}: {
+		defaultValues: Partial<UnresolvedStyleSettings>
+		cssVarExclusions?: StyleSettingPath[] | undefined
+		cssVarReplacements?: [string, string][] | undefined
+	}) {
 		this.defaultValues = defaultValues
 		this.cssVarExclusions = cssVarExclusions
+		this.cssVarReplacements = cssVarReplacements
 	}
 }

@@ -17,3 +17,8 @@ export * from './helpers/color-transforms'
 export * from './helpers/i18n'
 export * from './helpers/meta-options'
 export * from './helpers/objects'
+
+import { cssVarReplacements as internalCssVarReplacements } from './internal/css'
+
+/** @deprecated Please pass a `cssVarReplacements` property to the `PluginStyleSettings` constructor instead. */
+export const cssVarReplacements = internalCssVarReplacements
