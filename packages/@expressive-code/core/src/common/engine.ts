@@ -3,7 +3,7 @@ import githubLight from 'shiki/themes/github-light.mjs'
 import { ExpressiveCodePlugin, ResolverContext } from './plugin'
 import { renderGroup, RenderInput, RenderOptions } from '../internal/render-group'
 import { ExpressiveCodeTheme } from './theme'
-import { PluginStyles, scopeAndMinifyNestedCss, processPluginStyles, wrapInCascadeLayer } from '../internal/css'
+import { PluginStyles, scopeAndMinifyNestedCss, processPluginStyles, wrapInCascadeLayer, cssVarReplacements } from '../internal/css'
 import { getCoreBaseStyles, getCoreThemeStyles } from '../internal/core-styles'
 import { StyleVariant, resolveStyleVariants } from './style-variants'
 import { StyleOverrides, StyleSettingPath, getCssVarName } from './style-settings'
@@ -249,6 +249,13 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 		this.defaultProps = config.defaultProps || {}
 		this.plugins = [...corePlugins, ...(config.plugins?.flat() || [])]
 		this.logger = new ExpressiveCodeLogger(config.logger)
+
+		// Ensure cssVarReplacements contributed by plugins are globally available
+		this.plugins.forEach((plugin) => {
+			plugin.styleSettings?.cssVarReplacements?.forEach(([search, replace]) => {
+				cssVarReplacements.set(search, replace)
+			})
+		})
 
 		// Allow customizing the loaded themes
 		this.themes = this.themes.map((theme, styleVariantIndex) => {

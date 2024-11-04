@@ -1,4 +1,5 @@
 import { CoreStyleSettings } from '../internal/core-styles'
+import { cssVarReplacements } from '../internal/css'
 import { ExpressiveCodeTheme } from './theme'
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
@@ -53,50 +54,6 @@ export type StyleOverrides = Partial<{
 }>
 
 export type ResolvedStyleSettingsByPath = Map<StyleSettingPath, string>
-
-/**
- * A map of long terms commonly found in style setting paths to shorter alternatives that are
- * still human-readable. These replacements are automatically applied by {@link getCssVarName}
- * when generating CSS variable names to keep them fairly short.
- *
- * Plugins can add their own replacements to this map by importing this constant and calling
- * `cssVarReplacements.set('myLongTerm', 'myLt')` inside their plugin initialization function.
- */
-export const cssVarReplacements = new Map<string, string>([
-	['background', 'bg'],
-	['foreground', 'fg'],
-	['color', 'col'],
-	['border', 'brd'],
-	['padding', 'pad'],
-	['margin', 'marg'],
-	['radius', 'rad'],
-	['opacity', 'opa'],
-	['width', 'wd'],
-	['height', 'ht'],
-	['weight', 'wg'],
-	['block', 'blk'],
-	['inline', 'inl'],
-	['bottom', 'btm'],
-	['value', 'val'],
-	['active', 'act'],
-	['inactive', 'inact'],
-	['highlight', 'hl'],
-	['selection', 'sel'],
-	['indicator', 'ind'],
-	['shadow', 'shd'],
-	['family', 'fml'],
-	['transform', 'trf'],
-	['decoration', 'dec'],
-	['button', 'btn'],
-	['editor', 'ed'],
-	['terminal', 'trm'],
-	['scrollbar', 'sb'],
-	['toolbar', 'tb'],
-	['gutter', 'gtr'],
-	['titlebar', 'ttb'],
-	['textMarkers', 'tm'],
-	['frames', 'frm'],
-])
 
 /**
  * Generates a CSS variable name for a given style setting path.

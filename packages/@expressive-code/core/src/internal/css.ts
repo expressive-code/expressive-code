@@ -5,6 +5,50 @@ import { escapeRegExp } from './escaping'
 export const groupWrapperElement = 'div'
 export const groupWrapperClassName = 'expressive-code'
 
+/**
+ * A map of long terms commonly found in style setting paths to shorter alternatives that are
+ * still human-readable. These replacements are automatically applied by {@link getCssVarName}
+ * when generating CSS variable names to keep them fairly short.
+ *
+ * Plugins can add their own replacements to this map by adding a `cssVarReplacements` property
+ * to their {@link PluginStyleSettings} object.
+ */
+export const cssVarReplacements = new Map<string, string>([
+	['background', 'bg'],
+	['foreground', 'fg'],
+	['color', 'col'],
+	['border', 'brd'],
+	['padding', 'pad'],
+	['margin', 'marg'],
+	['radius', 'rad'],
+	['opacity', 'opa'],
+	['width', 'wd'],
+	['height', 'ht'],
+	['weight', 'wg'],
+	['block', 'blk'],
+	['inline', 'inl'],
+	['bottom', 'btm'],
+	['value', 'val'],
+	['active', 'act'],
+	['inactive', 'inact'],
+	['highlight', 'hl'],
+	['selection', 'sel'],
+	['indicator', 'ind'],
+	['shadow', 'shd'],
+	['family', 'fml'],
+	['transform', 'trf'],
+	['decoration', 'dec'],
+	['button', 'btn'],
+	['editor', 'ed'],
+	['terminal', 'trm'],
+	['scrollbar', 'sb'],
+	['toolbar', 'tb'],
+	['gutter', 'gtr'],
+	['titlebar', 'ttb'],
+	['textMarkers', 'tm'],
+	['frames', 'frm'],
+])
+
 const preprocessor = postcss([
 	// Prevent top-level selectors that are already scoped from being scoped twice
 	(root: Root) => {
