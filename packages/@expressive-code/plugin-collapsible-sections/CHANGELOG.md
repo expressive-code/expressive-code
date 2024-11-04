@@ -1,5 +1,13 @@
 # @expressive-code/plugin-collapsible-sections
 
+## 0.38.1
+
+### Patch Changes
+
+- 440bb83: Fixes invalid CSS file links when using the `Code` component together with `plugin-collapsible-sections` and `pnpm`. Thank you @simonporter007 and @ayZagen for the report!
+- Updated dependencies [440bb83]
+  - @expressive-code/core@0.38.1
+
 ## 0.38.0
 
 ### Patch Changes
