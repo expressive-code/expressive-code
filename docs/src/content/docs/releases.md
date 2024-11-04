@@ -7,6 +7,10 @@ This page combines all release notes of the Expressive Code monorepo.
 You can find the source changelogs on GitHub in the subfolders of
 [`packages`](https://github.com/expressive-code/expressive-code/tree/main/packages).
 
+## 0.38.1
+
+- Fixes invalid CSS file links when using the `Code` component together with `plugin-collapsible-sections` and `pnpm`. Thank you [@simonporter007](https://github.com/simonporter007) and [@ayZagen](https://github.com/ayZagen) for the report!
+
 ## 0.38.0
 
 - Updates Shiki to the latest version (1.22.2).
