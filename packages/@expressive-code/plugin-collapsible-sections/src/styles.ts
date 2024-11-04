@@ -96,6 +96,7 @@ export const collapsibleSectionsStyleSettings = new PluginStyleSettings({
 			openBorderColor: 'transparent',
 		},
 	},
+	cssVarReplacements: [['collapsibleSections', 'cs']],
 })
 
 export function getCollapsibleSectionsBaseStyles({ cssVar }: ResolverContext) {

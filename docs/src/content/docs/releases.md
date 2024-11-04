@@ -7,6 +7,48 @@ This page combines all release notes of the Expressive Code monorepo.
 You can find the source changelogs on GitHub in the subfolders of
 [`packages`](https://github.com/expressive-code/expressive-code/tree/main/packages).
 
+## 0.38.0
+
+- Updates Shiki to the latest version (1.22.2).
+
+- Adds config merging functionality to `astro-expressive-code`, which allows using `ec.config.mjs` together with other configuration sources like the Astro / Starlight config or Starlight themes.
+
+  Options defined in `ec.config.mjs` have the highest priority and will override any corresponding values coming from other configuration sources.
+
+  For the following object options, a deep merge is performed instead of a simple override:
+
+  - `defaultProps`
+  - `frames`
+  - `shiki`
+  - `styleOverrides`
+
+  The following array options are concatenated instead of being replaced:
+
+  - `shiki.langs`
+
+- Adds new config option `shiki.injectLangsIntoNestedCodeBlocks`.
+
+  By default, the additional languages defined in the `shiki.langs` option are only available in top-level code blocks contained directly in their parent Markdown or MDX document.
+
+  Setting the new `shiki.injectLangsIntoNestedCodeBlocks` option to `true` also enables syntax highlighting when a fenced code block using one of your additional `langs` is nested inside an outer `markdown`, `md` or `mdx` code block. Example:
+
+  `````md
+  ````md
+  This top-level Markdown code block contains a nested `my-custom-lang` code block:
+
+  ```my-custom-lang
+  This nested code block will only be highlighted using `my-custom-lang`
+  if `injectLangsIntoNestedCodeBlocks` is enabled.
+  ```
+  ````
+  `````
+
+- Allows overriding bundled languages using the `shiki.langs` option. Thank you [@Robot-Inventor](https://github.com/Robot-Inventor)!
+
+  The Shiki language loading logic has been improved to allow passing custom versions of bundled languages without the risk of them being overwritten by the bundled version later.
+
+- Adds on-demand Shiki language loading to speed up dev server startup and build times while simultaneously decreasing memory usage. Thank you, [@fweth](https://github.com/fweth)!
+
 ## 0.37.1
 
 - Adds `aria-hidden="true"` to line numbers to prevent them from being read out loud and interrupting the flow of the code. Thank you [@Yesterday17](https://github.com/Yesterday17)!
@@ -39,7 +81,7 @@ You can find the source changelogs on GitHub in the subfolders of
 
 ## 0.35.5
 
-- Fixes a Vite warning about `emitFile()` usage. Thank you [@evadecker](https://github.com/evadecker) and @alexanderniebuhr!
+- Fixes a Vite warning about `emitFile()` usage. Thank you [@evadecker](https://github.com/evadecker) and [@alexanderniebuhr](https://github.com/alexanderniebuhr)!
 
   To avoid this warning from being incorrectly triggered, the Vite plugin internally used by `astro-expressive-code` has now been split into two separate plugins, making sure that `emitFile` is only seen by Vite during build.
 
@@ -109,7 +151,7 @@ You can find the source changelogs on GitHub in the subfolders of
 
   To achieve this, the code responsible for loading the optional `ec.config.mjs` file was replaced with a new version that no longer requires any Node.js-specific functionality.
 
-- Makes Expressive Code compatible with Bun. Thank you [@tylergannon](https://github.com/tylergannon) for the fix and @richardguerre for the report!
+- Makes Expressive Code compatible with Bun. Thank you [@tylergannon](https://github.com/tylergannon) for the fix and [@richardguerre](https://github.com/richardguerre) for the report!
 
   This fixes the error `msg.match is not a function` that was thrown when trying to use Expressive Code with Bun.
 
