@@ -20,20 +20,6 @@ An interface that defines an Expressive Code plugin. To add a custom plugin, you
 
 The display name of the plugin. This is the only required property. It is used by the engine to display messages concerning the plugin, e.g. when it encounters an error.
 
-#### annotationCommentHandlers?
-
-<PropertySignature>
-- Type: [`AnnotationCommentHandler`](/reference/plugin-api/#annotationcommenthandler)[]
-</PropertySignature>
-
-An array of annotation comment handlers provided by the plugin.
-
-To add support for annotation comments, add one or more annotation comment handlers to this array. These handlers map annotation tag names to settings that define how the annotations should be processed and rendered.
-
-Annotation comment handlers can be used to enrich the presentation of code blocks with additional information, such as highlights, notes, expected output, warnings, error messages, or links to external resources.
-
-Annotation comments are processed between the `preprocessCode` and `performSyntaxAnalysis` plugin hook phases, allowing them to work on code that is unlikely to change afterwards, while still being able to remove their contents before syntax highlighting.
-
 #### baseStyles?
 
 <PropertySignature>
@@ -80,167 +66,97 @@ The calling code must take care of actually adding the collected scripts to the 
 
 An instance of `PluginStyleSettings` that is used to define the plugin's CSS variables.
 
-## AnnotationCommentHandler
+## PluginStyleSettings
+
+Represents a strongly typed set of style settings provided by a plugin (or core).
+
+The constructor expects an object with a `defaultSettings` property. This property must contain the default values for all settings and will be made available as a public instance property. Allowed default value types are plain values (e.g. strings), an array of two values to provide a dark and light variant, or resolver functions that return one of these types.
+
+If you are writing a plugin that provides style overrides, please merge your style overrides into the `StyleOverrides` interface declaration provided by the `@expressive-code/core` module. You can see an example of this below.
+
+As a plugin author, you should also assign an instance of this class to your plugin's
+`styleSettings` property. This allows the engine to automatically declare CSS variables for your style settings in all theme variants defined in the config.
+
+To consume the CSS variables in your plugin's `baseStyles` or anywhere else, see the
+cssVar method to get a CSS variable reference to any style setting.
+
+If CSS variables should not be generated for some of your style settings, you can exclude them using the `cssVarExclusions` property of the object passed to the constructor.
+
+If you want to provide descriptive names for your style settings, but keep the generated CSS variable names short, you can pass an array of search and replace string pairs to the
+`cssVarReplacements` property of the object passed to the constructor. The replacements will be applied to all generated CSS variable names.
+
+### Example
+
+```ts
+// When using TypeScript: Declare the types of your style settings
+interface FramesStyleSettings {
+  fontFamily: string
+  fontSize: string
+  minContrast: string
+  titleBarForeground: string
+}
+
+// When using TypeScript: Merge your style settings into the core module's `StyleSettings`
+declare module '@expressive-code/core' {
+  export interface StyleSettings {
+    frames: FramesStyleSettings
+  }
+}
+
+const framesStyleSettings = new PluginStyleSettings({
+  defaultValues: {
+    frames: {
+      fontFamily: 'sans-serif',
+      fontSize: '1rem',
+      minContrast: '5',
+      titleBarForeground: ({ theme }) => theme.colors['editor.foreground'],
+    }
+  },
+  cssVarExclusions: ['frames.minContrast'],
+})
+
+// ↓↓↓
+
+framesStyleSettings.defaultValues.frames.fontFamily         // 'sans-serif'
+framesStyleSettings.defaultValues.frames.fontSize           // '1rem'
+framesStyleSettings.defaultValues.frames.minContrast        // '5'
+framesStyleSettings.defaultValues.frames.titleBarForeground // ({ theme }) => theme.colors['editor.foreground']
+```
+
+### Constructors
+
+#### new PluginStyleSettings(options)
+
+- <code class="function-signature">**new PluginStyleSettings**(options): [PluginStyleSettings](/reference/plugin-api/#pluginstylesettings)</code>
+
+##### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `options` | `Object` |
+| `options.defaultValues` | `Partial`\<[`UnresolvedStyleSettings`](/reference/plugin-api/#unresolvedstylesettings)\> |
+| `options.cssVarExclusions`? | [`StyleSettingPath`](/reference/plugin-api/#stylesettingpath)[] |
+| `options.cssVarReplacements`? | \[`string`, `string`\][] |
+
+### Properties
+
+#### cssVarExclusions
 
 <PropertySignature>
-- Type: `Object`
+- Type: **readonly** [`StyleSettingPath`](/reference/plugin-api/#stylesettingpath)[]
 </PropertySignature>
 
-An object that you can add to the [`annotationCommentHandlers`](#annotationcommenthandlers) array property of an [`ExpressiveCodePlugin`](#expressivecodeplugin).
+#### cssVarReplacements
 
-A handler maps annotation tag names to settings that define how annotations using these tag names should be processed and rendered.
-
-Annotation comment handlers can be used to enrich the presentation of code blocks with additional information, such as highlights, notes, expected output, warnings, error messages, or links to external resources.
-
-### Handler properties
-
-An annotation comment handler consists of a required `tagNames` property, as well as optional properties that define the actions to take when processing matching annotations:
-
-<dl class="type-declaration-list">
-<dt>codeBlock</dt>
-<dd>
 <PropertySignature>
-- Type: [`AddClasses`](/reference/plugin-api/#addclasses) \| `undefined`
+- Type: **readonly** \[`string`, `string`\][]
 </PropertySignature>
-Allows defining actions to perform on the parent code block when an annotation comment using one of the tag names registered by this handler is encountered.
-</dd>
-<dt>tagNames</dt>
-<dd>
+
+#### defaultValues
+
 <PropertySignature>
-- Type: `string`[]
+- Type: **readonly** `Partial`\<[`UnresolvedStyleSettings`](/reference/plugin-api/#unresolvedstylesettings)\>
 </PropertySignature>
-The annotation tag names that this handler should process.
-
-By default, tag names must be unique across all annotation comment handlers, and attempting to register a handler for an existing tag name will throw an error. To change this, set the `overrideExisting` property to `true`.
-</dd>
-<dt>contents</dt>
-<dd>
-<PropertySignature>
-- Type: [`ContentOptions`](/reference/plugin-api/#contentoptions) & [`WrapWith`](/reference/plugin-api/#wrapwith) & [`CopyBehavior`](/reference/plugin-api/#copybehavior)
-</PropertySignature>
-Defines how to render any contents following the annotation tag.
-</dd>
-<dt>custom</dt>
-<dd>
-<PropertySignature>
-- Type: (`context`) => `void` \| `Promise`\<`void`\>
-</PropertySignature>
-</dd>
-<dt>fullLineTargets</dt>
-<dd>
-<PropertySignature>
-- Type: [`AddClasses`](/reference/plugin-api/#addclasses) & [`CopyBehavior`](/reference/plugin-api/#copybehavior)
-</PropertySignature>
-Allows defining actions to perform on full-line targets of annotation comments in the code.
-
-For example, the annotation comment `// [!highlight:3]` targets up to 3 lines of code, and an annotation comment handler for the tag name `highlight` would perform the actions defined in this property on the target lines.
-</dd>
-<dt>inlineTargets</dt>
-<dd>
-<PropertySignature>
-- Type: [`WrapWith`](/reference/plugin-api/#wrapwith) & [`CopyBehavior`](/reference/plugin-api/#copybehavior)
-</PropertySignature>
-Allows defining actions to perform on inline targets of annotation comments in the code (e.g. search term or regular expression matches, but not full lines).
-
-For example, the annotation comment `// [!highlight:search-term:3]` targets up to 3 matches of `search-term` in the code, and an annotation comment handler for the tag name `highlight` would perform the actions defined in this property on the targets.
-</dd>
-<dt>overrideExisting</dt>
-<dd>
-<PropertySignature>
-- Type: `boolean`
-</PropertySignature>
-Whether to allow overriding existing tag names with this handler.
-
-</dd>
-</dl>
-
-### Handler action types
-
-#### AddClasses
-
-<dl class="type-declaration-list">
-<dt>addClasses</dt>
-<dd>
-<PropertySignature>
-- Type: `string` \| `string`[]
-</PropertySignature>
-CSS class name(s) that should be added to the elements targeted by the action.
-</dd>
-</dl>
-
-#### ContentOptions
-
-<dl class="type-declaration-list">
-<dt>output</dt>
-<dd>
-<PropertySignature>
-- Type: `"none"` \| `"inlineAtAnnotation"` \| `"inlineAtEndOfTargetLine"` \| `"betweenLinesAtAnnotation"` \| `"betweenLinesAboveTarget"` \| `"betweenLinesBelowTarget"`
-</PropertySignature>
-How to output any contents following the annotation tag.
-
-The default behavior is to remove the entire annotation (tag & contents) from the code and not include it in the rendered output. To change this and render the contents, set this option to a value other than `none`.
-
-Available values:
-- `none` (default): Annotation contents are removed from the code and not rendered.
-- `inlineAtAnnotation`: Annotation contents are rendered in the line and column where the annotation is located.
-- `inlineAtEndOfTargetLine`: Annotation contents are rendered at the end of the line where the annotation is located.
-- `betweenLinesAtAnnotation`: The code lines are split at the annotation line, and the contents are rendered between the two parts.
-- `betweenLinesAboveTarget`: The code lines are split above the first target, and the contents are rendered between the two parts.
-- `betweenLinesBelowTarget`: The code lines are split below the last target, and the contents are rendered between the two parts.
-
-To further influence how the contents are rendered, see the options
-`renderAs`, `addInlineStyle` and `wrapWith`.
-</dd>
-<dt>renderAs</dt>
-<dd>
-<PropertySignature>
-- Type: `"inline-markdown"` \| `"plaintext"`
-</PropertySignature>
-Available renderers:
-- `inline-markdown` (default): The contents are rendered with limited support for inline Markdown formatting.
-  - The following Markdown features are supported:
-    - `*italic*`, `**bold**`, including combinations like `***bold** & italic*`
-  - When `output` is set to an `inline` option, contents are rendered as a single line, with support for basic inline Markdown formatting and links.
-  - When `output` is set to a `betweenLines` option, contents are rendered as a Markdown document, with support for headings, lists, code blocks, and more.
-- `plaintext`: The contents are rendered as-is, without any special formatting applied.
-  - Single line breaks are collapsed to a single space.
-  - When `output` is set to a `betweenLines` option, empty lines start a new paragraph.
-</dd>
-</dl>
-
-#### CopyBehavior
-
-<dl class="type-declaration-list">
-<dt>stripFromCode</dt>
-<dd>
-<PropertySignature>
-- Type: `boolean`
-</PropertySignature>
-Whether to remove the parts targeted by the current [AnnotationCommentHandler](/reference/plugin-api/#annotationcommenthandler) action from the code that can be copied to the clipboard.
-
-Defaults to `false` for `fullLineTargets` and `inlineTargets`, and `true` for `contents`. This keeps any targeted lines or search term matches in the code, but strips the entire annotation comment (tag, contents & comment syntax) from the copied text.
-
-An annotation that allows marking parts of the code as deleted could set this to `true` for `fullLineTargets` and `inlineTargets` to allow copying a version of the code where all marked parts have been removed.
-
-A custom note annotation could set `contents: { stripFromCode: false }` to prevent removing contents after the annotation tag from the copied code. The code will then still contain the comment syntax and the annotation contents, and only the tag will be removed.
-</dd>
-</dl>
-
-#### WrapWith
-
-<dl class="type-declaration-list">
-<dt>wrapWith</dt>
-<dd>
-<PropertySignature>
-- Type: `string` \| `WrapWithAnnotationFn`
-</PropertySignature>
-Wraps the rendered contents in a HAST element or `ExpressiveCodeAnnotation`.
-
-If set to a string, it will be treated as a hastscript-compatible CSS selector and passed to hastscript's `h()` function to create the wrapping element. See the [hastscript docs](https://github.com/syntax-tree/hastscript/blob/main/readme.md#hselector-properties-children) for more information.
-
-If set to a function, it will be called for each content or inline target to wrap, and is expected to return an `ExpressiveCodeAnnotation` that takes care of rendering it.
-</dd>
-</dl>
 
 ## AttachedPluginData
 
@@ -332,88 +248,6 @@ export const pluginFramesData = new AttachedPluginData<PluginFramesData>(
 | :------ | :------ |
 | `target` | `PluginDataTarget` |
 | `data` | `PluginDataType` |
-
-## PluginStyleSettings
-
-Represents a strongly typed set of style settings provided by a plugin (or core).
-
-The constructor expects an object with a `defaultSettings` property. This property must contain the default values for all settings and will be made available as a public instance property. Allowed default value types are plain values (e.g. strings), an array of two values to provide a dark and light variant, or resolver functions that return one of these types.
-
-If you are writing a plugin that provides style overrides, please merge your style overrides into the `StyleOverrides` interface declaration provided by the `@expressive-code/core` module. You can see an example of this below.
-
-As a plugin author, you should also assign an instance of this class to your plugin's
-`styleSettings` property. This allows the engine to automatically declare CSS variables for your style settings in all theme variants defined in the config.
-
-To consume the CSS variables in your plugin's `baseStyles` or anywhere else, see the
-cssVar method to get a CSS variable reference to any style setting.
-
-If CSS variables should not be generated for some of your style settings, you can exclude them using the `cssVarExclusions` property of the object passed to the constructor.
-
-### Example
-
-```ts
-// When using TypeScript: Declare the types of your style settings
-interface FramesStyleSettings {
-  fontFamily: string
-  fontSize: string
-  minContrast: string
-  titleBarForeground: string
-}
-
-// When using TypeScript: Merge your style settings into the core module's `StyleSettings`
-declare module '@expressive-code/core' {
-  export interface StyleSettings {
-    frames: FramesStyleSettings
-  }
-}
-
-const framesStyleSettings = new PluginStyleSettings({
-  defaultValues: {
-    frames: {
-      fontFamily: 'sans-serif',
-      fontSize: '1rem',
-      minContrast: '5',
-      titleBarForeground: ({ theme }) => theme.colors['editor.foreground'],
-    }
-  },
-  cssVarExclusions: ['frames.minContrast'],
-})
-
-// ↓↓↓
-
-framesStyleSettings.defaultValues.frames.fontFamily         // 'sans-serif'
-framesStyleSettings.defaultValues.frames.fontSize           // '1rem'
-framesStyleSettings.defaultValues.frames.minContrast        // '5'
-framesStyleSettings.defaultValues.frames.titleBarForeground // ({ theme }) => theme.colors['editor.foreground']
-```
-
-### Constructors
-
-#### new PluginStyleSettings(options)
-
-- <code class="function-signature">**new PluginStyleSettings**(options): [PluginStyleSettings](/reference/plugin-api/#pluginstylesettings)</code>
-
-##### Arguments
-
-| Parameter | Type |
-| :------ | :------ |
-| `options` | `Object` |
-| `options.defaultValues` | `Partial`\<[`UnresolvedStyleSettings`](/reference/plugin-api/#unresolvedstylesettings)\> |
-| `options.cssVarExclusions`? | [`StyleSettingPath`](/reference/plugin-api/#stylesettingpath)[] |
-
-### Properties
-
-#### cssVarExclusions
-
-<PropertySignature>
-- Type: **readonly** [`StyleSettingPath`](/reference/plugin-api/#stylesettingpath)[]
-</PropertySignature>
-
-#### defaultValues
-
-<PropertySignature>
-- Type: **readonly** `Partial`\<[`UnresolvedStyleSettings`](/reference/plugin-api/#unresolvedstylesettings)\>
-</PropertySignature>
 
 ## Referenced types
 
