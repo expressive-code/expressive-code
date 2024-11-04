@@ -1,6 +1,7 @@
 import type { Element } from '../hast'
 import type { PluginStyles } from '../internal/css'
 import type { GroupContents, RenderedGroupContents } from '../internal/render-group'
+import type { PluginGutterElement } from '../internal/render-line'
 import type { ExpressiveCodeBlock } from './block'
 import type { ExpressiveCodeLine } from './line'
 import type { ResolverContext } from './plugin'
@@ -49,6 +50,20 @@ export interface ExpressiveCodeHookContext extends ExpressiveCodeHookContextBase
 	 * The returned elements are then added as children to the line's gutter container.
 	 */
 	addGutterElement: (element: GutterElement) => void
+}
+
+export interface RenderLineContext extends ExpressiveCodeHookContextBase {
+	line: ExpressiveCodeLine
+	lineIndex: number
+	gutterElements: PluginGutterElement[]
+	/**
+	 * Allows adding classes to the rendered line element containing the annotation.
+	 */
+	addClassesToRenderedLine: (classes: string[] | string) => void
+	/**
+	 * Allows adding classes to the rendered block element containing the annotation.
+	 */
+	addClassesToRenderedBlock: (classes: string[] | string) => void
 }
 
 /**

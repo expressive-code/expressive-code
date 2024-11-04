@@ -45,7 +45,7 @@ export async function handleAnnotationComments(context: RunCommentHandlersContex
 	for (const annotationComment of annotationComments) {
 		const handler = getHandlerByTagName(annotationComment.tag.name, plugins, uniqueErrors)
 		if (!handler) continue
-		const { contents, inlineTargets, fullLineTargets, codeBlock, custom } = handler
+		//const { contents, inlineTargets, fullLineTargets, codeBlock, custom } = handler
 		// TODO: Perform actual work
 	}
 

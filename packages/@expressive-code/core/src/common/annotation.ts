@@ -1,14 +1,22 @@
 import type { Element, Parents } from '../hast'
+import type { RenderLineContext } from './plugin-hooks'
 import { getClassNames, setProperty, h } from '../hast'
-import { ExpressiveCodeLine } from './line'
-import { ResolverContext } from './plugin'
 
 export type ExpressiveCodeInlineRange = {
 	columnStart: number
 	columnEnd: number
 }
 
-export type AnnotationRenderOptions = ResolverContext & { nodesToTransform: Parents[]; line: ExpressiveCodeLine; lineIndex: number }
+/**
+ * A context object that the engine passes to an annotation's `render` method.
+ *
+ * It provides access to the nodes to be transformed, as well as context information like the
+ * line being rendered, its line index, and its parent code block. It also provides functions
+ * allowing you to add classes to the line or block containing the annotation.
+ */
+export interface AnnotationRenderOptions extends RenderLineContext {
+	nodesToTransform: Parents[]
+}
 
 export type AnnotationRenderPhase = 'earliest' | 'earlier' | 'normal' | 'later' | 'latest'
 
@@ -35,15 +43,22 @@ export abstract class ExpressiveCodeAnnotation {
 	}
 
 	/**
-	 * Renders the annotation by transforming the provided nodes.
+	 * Renders the annotation by transforming the contained HAST nodes.
 	 *
-	 * This function will be called with an array of AST nodes to transform, and is expected
-	 * to return an array containing the same number of nodes.
+	 * This function will be called with an object containing the array `nodesToTransform`,
+	 * and is expected to return an array containing the same number of nodes. For example,
+	 * you could wrap each of the the received nodes in a new HAST element. See the
+	 * [Developing Plugins](https://expressive-code.com/guides/developing-plugins/#adding-custom-annotations-to-code)
+	 * guide for more information and usage examples.
 	 *
-	 * For example, you could use the `hastscript` library to wrap the received nodes
-	 * in HTML elements.
+	 * Note that the array will contain multiple nodes if your annotation was split into parts
+	 * by other partially overlapping annotations, and you cannot merge these nodes back into one.
+	 * Instead, process each node individually and return your transformed nodes in the same order.
+	 *
+	 * See {@link AnnotationRenderOptions} for all data and functionality available through the
+	 * `options` object.
 	 */
-	abstract render({ nodesToTransform, line, lineIndex }: AnnotationRenderOptions): Parents[]
+	abstract render(options: AnnotationRenderOptions): Parents[]
 
 	/**
 	 * An optional name for the annotation. This can be used for debugging or logging purposes,
@@ -139,6 +154,7 @@ export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
 		this.styleVariantIndex = styleVariantIndex
 	}
 
+	/** @internal */
 	render({ nodesToTransform, styleVariants }: AnnotationRenderOptions) {
 		const newStyles = new Map<string, string>()
 		const addStylesForVariantIndex = (variantIndex: number) => {

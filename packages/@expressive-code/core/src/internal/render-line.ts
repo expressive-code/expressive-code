@@ -3,7 +3,7 @@ import { h } from '../hast'
 import { ExpressiveCodeLine } from '../common/line'
 import { AnnotationRenderPhase, AnnotationRenderPhaseOrder, ExpressiveCodeAnnotation } from '../common/annotation'
 import { codeLineClass } from '../common/style-settings'
-import { ExpressiveCodeHookContextBase, RenderEmptyLineFn } from '../common/plugin-hooks'
+import { ExpressiveCodeHookContextBase, RenderEmptyLineFn, RenderLineContext } from '../common/plugin-hooks'
 import { GutterElement } from '../common/gutter'
 import { isHastElement, newTypeError } from './type-checks'
 
@@ -56,12 +56,7 @@ export function splitLineAtAnnotationBoundaries(line: ExpressiveCodeLine) {
 	}
 }
 
-export function renderLineToAst({
-	line,
-	lineIndex,
-	gutterElements,
-	...restContext
-}: ExpressiveCodeHookContextBase & { line: ExpressiveCodeLine; lineIndex: number; gutterElements: PluginGutterElement[] }) {
+export function renderLineToAst({ line, lineIndex, gutterElements, ...restContext }: RenderLineContext) {
 	// Flatten intersecting annotations by splitting the line text into non-intersecting parts
 	// and mapping annotations to the contained parts
 	const { textParts, partIndicesByAnnotation } = splitLineAtAnnotationBoundaries(line)
@@ -133,7 +128,7 @@ export function renderLineToAst({
 
 		// Pass all part nodes to the annotation's render function
 		const renderInput = partIndices.map((partIndex) => partNodes[partIndex])
-		const renderOutput = annotation.render({ nodesToTransform: [...renderInput], line, lineIndex, ...restContext })
+		const renderOutput = annotation.render({ nodesToTransform: [...renderInput], line, lineIndex, gutterElements, ...restContext })
 		validateAnnotationRenderOutput(renderOutput, renderInput.length)
 		partIndices.forEach((partIndex, index) => {
 			partNodes[partIndex] = renderOutput[index]
@@ -170,7 +165,7 @@ export function renderLineToAst({
 	// Render line-level annotations
 	annotations.forEach((annotation) => {
 		if (annotation.inlineRange) return
-		const renderOutput = annotation.render({ nodesToTransform: [lineNode], line, lineIndex, ...restContext })
+		const renderOutput = annotation.render({ nodesToTransform: [lineNode], line, lineIndex, gutterElements, ...restContext })
 		validateAnnotationRenderOutput(renderOutput, 1)
 		lineNode = renderOutput[0] as Element
 		if (!isHastElement(lineNode)) {

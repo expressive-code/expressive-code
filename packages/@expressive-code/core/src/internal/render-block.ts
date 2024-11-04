@@ -4,7 +4,7 @@ import type { ExpressiveCodeBlock } from '../common/block'
 import type { ExpressiveCodePlugin } from '../common/plugin'
 import type { GutterElement } from '../common/gutter'
 import type { PluginStyles } from './css'
-import { addClassName, setInlineStyle, h } from '../hast'
+import { addClassNames, h, setInlineStyle } from '../hast'
 import { PluginGutterElement, getRenderEmptyLineFn, renderLineToAst } from './render-line'
 import { isBoolean, isHastElement, newTypeError } from './type-checks'
 import { AnnotationRenderPhaseOrder } from '../common/annotation'
@@ -93,18 +93,32 @@ export async function renderBlock({
 	const lines = codeBlock.getLines()
 	const renderedAstLines: Element[] = []
 	const renderEmptyLine = getRenderEmptyLineFn({ gutterElements, ...baseContext })
+	type ClassNames = string | string[]
+	const blockClasses: ClassNames[] = []
+	const addClassesToRenderedBlock = (classNames: ClassNames) => blockClasses.push(classNames)
 	for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
 		const line = lines[lineIndex]
 		// Render the current line to an AST and wrap it in an object that can be passed
 		// through all hooks, allowing plugins to edit or completely replace the AST
+		const lineClasses: ClassNames[] = []
+		const addClassesToRenderedLine = (classNames: ClassNames) => lineClasses.push(classNames)
 		const lineRenderData = {
-			lineAst: renderLineToAst({ line, lineIndex, gutterElements, ...baseContext }),
+			lineAst: renderLineToAst({
+				line,
+				lineIndex,
+				gutterElements,
+				addClassesToRenderedLine,
+				addClassesToRenderedBlock,
+				...baseContext,
+			}),
 		}
 		// Add indent information if wrapping is enabled and preserveIndent has not been disabled
 		if (codeBlock.props.wrap && codeBlock.props.preserveIndent !== false) {
 			const indent = line.text.match(/^\s*/)?.[0].length ?? 0
 			if (indent > 0) setInlineStyle(lineRenderData.lineAst, '--ecIndent', `${indent}ch`)
 		}
+		// Apply additional classes to the line element (if any)
+		lineClasses.forEach((classNames) => addClassNames(lineRenderData.lineAst, classNames))
 		// Allow plugins to modify or even completely replace the AST
 		await runHooks('postprocessRenderedLine', runHooksContext, async ({ hookFn, plugin }) => {
 			await hookFn({
@@ -127,6 +141,8 @@ export async function renderBlock({
 	const blockRenderData = {
 		blockAst: buildCodeBlockAstFromRenderedLines(codeBlock, renderedAstLines),
 	}
+	// Apply additional classes to the block element (if any)
+	blockClasses.forEach((classNames) => addClassNames(blockRenderData.blockAst, classNames))
 	await runHooks('postprocessRenderedBlock', runHooksContext, async ({ hookFn, plugin }) => {
 		await hookFn({
 			...baseContext,
@@ -150,7 +166,7 @@ function buildCodeBlockAstFromRenderedLines(codeBlock: ExpressiveCodeBlock, rend
 	const preElement = h('pre', preProperties, h('code', renderedLines))
 	if (codeBlock.props.wrap) {
 		const maxLineLength = codeBlock.getLines().reduce((max, line) => Math.max(max, line.text.length), 0)
-		addClassName(preElement, 'wrap')
+		addClassNames(preElement, 'wrap')
 		setInlineStyle(preElement, '--ecMaxLine', `${maxLineLength}ch`)
 	}
 	return preElement

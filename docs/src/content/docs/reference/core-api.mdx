@@ -829,11 +829,14 @@ As an abstract class, `ExpressiveCodeAnnotation` cannot be instantiated directly
 
 - <code class="function-signature">**abstract** **render**(options): Parents[]</code>
 
-Renders the annotation by transforming the provided nodes.
+Renders the annotation by transforming the contained HAST nodes.
 
-This function will be called with an array of AST nodes to transform, and is expected to return an array containing the same number of nodes.
+This function will be called with an object containing the array `nodesToTransform`, and is expected to return an array containing the same number of nodes. For example, you could wrap each of the the received nodes in a new HAST element. See the [Developing Plugins](https://expressive-code.com/guides/developing-plugins/#adding-custom-annotations-to-code) guide for more information and usage examples.
 
-For example, you could use the `hastscript` library to wrap the received nodes in HTML elements.
+Note that the array will contain multiple nodes if your annotation was split into parts by other partially overlapping annotations, and you cannot merge these nodes back into one. Instead, process each node individually and return your transformed nodes in the same order.
+
+See [AnnotationRenderOptions](/reference/core-api/#annotationrenderoptions) for all data and functionality available through the
+`options` object.
 
 ###### Arguments
 
@@ -890,24 +893,6 @@ consule.log('Hello world!')
 | :------ | :------ |
 | `options` | [`InlineStyleAnnotationOptions`](/reference/core-api/#inlinestyleannotationoptions) |
 
-#### Methods
-
-##### render()
-
-- <code class="function-signature">**render**(options): Parents[]</code>
-
-Renders the annotation by transforming the provided nodes.
-
-This function will be called with an array of AST nodes to transform, and is expected to return an array containing the same number of nodes.
-
-For example, you could use the `hastscript` library to wrap the received nodes in HTML elements.
-
-###### Arguments
-
-| Parameter | Type |
-| :------ | :------ |
-| `options` | [`AnnotationRenderOptions`](/reference/core-api/#annotationrenderoptions) |
-
 #### Properties
 
 All config options that can be passed to the constructor are also available on the instance as read-only properties.
@@ -942,32 +927,146 @@ See [`InlineStyleAnnotationOptions`](#inlinestyleannotationoptions) for the enti
 
 ### AnnotationRenderOptions
 
+A context object that the engine passes to an annotation's `render` method.
+
+It provides access to the nodes to be transformed, as well as context information like the line being rendered, its line index, and its parent code block. It also provides functions allowing you to add classes to the line or block containing the annotation.
+
+#### Properties
+
+##### addClassesToRenderedBlock
+
 <PropertySignature>
-- Type: [`ResolverContext`](/reference/plugin-api/#resolvercontext) & `Object`
+- Type: (`classes`) => `void`
 </PropertySignature>
 
-#### Object properties
+Allows adding classes to the rendered block element containing the annotation.
 
-<dl class="type-declaration-list">
-<dt>line</dt>
-<dd>
+###### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `classes` | `string` \| `string`[] |
+
+##### addClassesToRenderedLine
+
+<PropertySignature>
+- Type: (`classes`) => `void`
+</PropertySignature>
+
+Allows adding classes to the rendered line element containing the annotation.
+
+###### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `classes` | `string` \| `string`[] |
+
+##### codeBlock
+
+<PropertySignature>
+- Type: [`ExpressiveCodeBlock`](/reference/core-api/#expressivecodeblock)
+</PropertySignature>
+
+##### config
+
+<PropertySignature>
+- Type: `ResolvedExpressiveCodeEngineConfig`
+</PropertySignature>
+
+The Expressive Code engine configuration, with all optional properties resolved to their default values.
+
+##### cssVar
+
+<PropertySignature>
+- Type: (`styleSetting`, `fallbackValue`?) => `string`
+</PropertySignature>
+
+Returns a CSS variable reference for the given style setting. The CSS variable name is automatically generated based on the setting path.
+
+You can optionally pass a fallback value that will be added to the CSS `var()` function call (e.g. `var(--ec-xyz, fallbackValue)`) in case the referenced variable is not defined or unsupported. However, this should rarely be the case as the engine automatically generates CSS variables for all style settings if the plugin's `styleSettings` property is set.
+
+###### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `styleSetting` | [`StyleSettingPath`](/reference/plugin-api/#stylesettingpath) |
+| `fallbackValue`? | `string` |
+
+###### Example
+
+```ts
+cssVar('frames.fontSize')
+// ↓↓↓
+'var(--ec-frames-fontSize)'
+
+cssVar('frames.fontSize', '2rem')
+// ↓↓↓
+'var(--ec-frames-fontSize, 2rem)'
+```
+
+##### cssVarName
+
+<PropertySignature>
+- Type: (`styleSetting`) => `string`
+</PropertySignature>
+
+Returns the CSS variable name for the given style setting. The CSS variable name is automatically generated based on the setting path.
+
+###### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `styleSetting` | [`StyleSettingPath`](/reference/plugin-api/#stylesettingpath) |
+
+###### Example
+
+```ts
+cssVarName('frames.fontSize')
+// ↓↓↓
+'--ec-frames-fontSize'
+```
+
+##### groupContents
+
+<PropertySignature>
+- Type: `GroupContents`
+</PropertySignature>
+
+##### gutterElements
+
+<PropertySignature>
+- Type: `PluginGutterElement`[]
+</PropertySignature>
+
+##### line
+
 <PropertySignature>
 - Type: [`ExpressiveCodeLine`](/reference/core-api/#expressivecodeline)
 </PropertySignature>
-</dd>
-<dt>lineIndex</dt>
-<dd>
+
+##### lineIndex
+
 <PropertySignature>
 - Type: `number`
 </PropertySignature>
-</dd>
-<dt>nodesToTransform</dt>
-<dd>
+
+##### locale
+
+<PropertySignature>
+- Type: `string`
+</PropertySignature>
+
+##### nodesToTransform
+
 <PropertySignature>
 - Type: `Parents`[]
 </PropertySignature>
-</dd>
-</dl>
+
+##### styleVariants
+
+<PropertySignature>
+- Type: [`StyleVariant`](/reference/plugin-api/#stylevariant)[]
+</PropertySignature>
 
 ### AnnotationRenderPhase
 
