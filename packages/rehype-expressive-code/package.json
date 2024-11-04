@@ -1,8 +1,14 @@
 {
   "name": "rehype-expressive-code",
   "version": "0.38.0",
-  "description": "Rehype plugin for Expressive Code, a text marking & annotation engine for presenting source code on the web.",
-  "keywords": [],
+  "description": "Rehype plugin for Expressive Code, a modular syntax highlighting & annotation engine for presenting source code on the web. Offers full VS Code theme support, editor & terminal frames, copy to clipboard, text markers, collapsible sections, and more.",
+  "keywords": [
+    "code-blocks",
+    "documentation",
+    "expressive-code",
+    "shiki",
+    "syntax-highlighting"
+  ],
   "author": "Tibor Schiemann",
   "license": "MIT",
   "repository": {

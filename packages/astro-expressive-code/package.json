@@ -1,9 +1,15 @@
 {
   "name": "astro-expressive-code",
   "version": "0.38.0",
-  "description": "Astro integration for Expressive Code, a text marking & annotation engine for presenting source code on the web.",
+  "description": "Astro integration for Expressive Code, a modular syntax highlighting & annotation engine for presenting source code on the web. Offers full VS Code theme support, editor & terminal frames, copy to clipboard, text markers, collapsible sections, and more.",
   "keywords": [
-    "astro-integration"
+    "astro-integration",
+    "code-blocks",
+    "documentation",
+    "expressive-code",
+    "shiki",
+    "syntax-highlighting",
+    "withastro"
   ],
   "author": "Tibor Schiemann",
   "license": "MIT",
