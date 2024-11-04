@@ -11,3 +11,6 @@ scratch
 
 /.vscode/settings.json
 /reports
+
+# Ignore generated docs pages that change often
+/docs/src/content/docs/releases.md
