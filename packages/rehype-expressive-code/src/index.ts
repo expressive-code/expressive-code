@@ -50,22 +50,28 @@ export type RehypeExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'themes'> &
 	 * This optional function provides support for multi-language sites by allowing you
 	 * to customize the locale used for a given code block.
 	 *
+	 * The function is called with an object containing the following properties:
+	 * - `input`: Block data for the `ExpressiveCodeBlock` constructor.
+	 * - `file`: A `RehypeExpressiveCodeDocument` object with information about the parent document.
+	 *
 	 * If the function returns `undefined`, the default locale provided in the
 	 * Expressive Code configuration is used.
 	 */
-	getBlockLocale?: (({ input, file }: { input: ExpressiveCodeBlockOptions; file: AnyVFile }) => string | undefined | Promise<string | undefined>) | undefined
+	getBlockLocale?: (({ input, file }: { input: ExpressiveCodeBlockOptions; file: RehypeExpressiveCodeDocument }) => string | undefined | Promise<string | undefined>) | undefined
 	/**
 	 * This optional function allows you to customize how `ExpressiveCodeBlock`
 	 * instances are created from code blocks found in the Markdown document.
 	 *
 	 * The function is called with an object containing the following properties:
 	 * - `input`: Block data for the `ExpressiveCodeBlock` constructor.
-	 * - `file`: A `VFile` instance representing the Markdown document.
+	 * - `file`: A `RehypeExpressiveCodeDocument` object with information about the parent document.
 	 *
 	 * The function is expected to return an `ExpressiveCodeBlock` instance
 	 * or a promise resolving to one.
 	 */
-	customCreateBlock?: (({ input, file }: { input: ExpressiveCodeBlockOptions; file: AnyVFile }) => ExpressiveCodeBlock | Promise<ExpressiveCodeBlock>) | undefined
+	customCreateBlock?:
+		| (({ input, file }: { input: ExpressiveCodeBlockOptions; file: RehypeExpressiveCodeDocument }) => ExpressiveCodeBlock | Promise<ExpressiveCodeBlock>)
+		| undefined
 	/**
 	 * This advanced option allows you to influence the rendering process by creating
 	 * your own `ExpressiveCode` instance or processing the base styles and JS modules
@@ -81,8 +87,31 @@ export type ThemeObjectOrShikiThemeName = BundledShikiTheme | ExpressiveCodeThem
 export type RehypeExpressiveCodeDocument = {
 	/**
 	 * The full path to the source file containing the code block.
+	 *
+	 * This path might be an empty string if the source file location of the parent document is
+	 * unknown, e.g. when processing a dynamically generated code block, or when the parent
+	 * document is not loaded from a file. It is recommended to check the `url` property first,
+	 * and only use `path` as a fallback if the URL is not available.
 	 */
-	sourceFilePath?: string | undefined
+	path: string
+	/**
+	 * Base of `path`.
+	 *
+	 * Defaults to `process.cwd()` or `'/'` in browsers.
+	 */
+	cwd: string
+	/**
+	 * The URL to the page containing the code block.
+	 *
+	 * This can be `undefined` if the parent document is not loaded from a URL, or if the
+	 * URL is unknown at the current processing stage. It is recommended to implement a fallback
+	 * that uses the `path` and `cwd` properties in case the `url` is undefined.
+	 */
+	url?: URL | undefined
+	/**
+	 * Optional document data that might be provided by the integration.
+	 */
+	data: Record<string, unknown> | undefined
 }
 
 export type RehypeExpressiveCodeRenderer = {
@@ -263,7 +292,7 @@ function rehypeExpressiveCode(options: RehypeExpressiveCodeOptions = {}) {
 
 			// Allow the user to customize the locale for this code block
 			if (getBlockLocale) {
-				input.locale = await getBlockLocale({ input: input, file })
+				input.locale = await getBlockLocale({ input, file })
 			}
 
 			// Allow the user to customize the ExpressiveCodeBlock instance
