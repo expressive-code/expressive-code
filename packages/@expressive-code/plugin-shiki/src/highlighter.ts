@@ -1,18 +1,10 @@
-import { Highlighter, ThemeRegistration, bundledLanguages, createHighlighter, isSpecialLang } from 'shiki'
-import type { LanguageRegistration as ShikiLanguageRegistration, MaybeGetter, MaybeArray, BundledLanguage } from 'shiki'
-import { ExpressiveCodeTheme, getStableObjectHash } from '@expressive-code/core'
 import type { StyleVariant } from '@expressive-code/core'
+import { ExpressiveCodeTheme, getStableObjectHash } from '@expressive-code/core'
+import type { BundledLanguage } from 'shiki'
+import { Highlighter, ThemeRegistration, bundledLanguages, createHighlighter, isSpecialLang } from 'shiki'
+import type { LanguageInput, LanguageRegistration, ShikiLanguageRegistration } from './languages'
+import { getNestedCodeBlockInjectionLangs } from './languages'
 import type { PluginShikiOptions } from '.'
-
-// Unfortunately, the types exported by `vscode-textmate` that are used by Shiki
-// don't match the actual grammar requirements & parsing logic in some aspects.
-// The types defined here attempt to reduce the amount of incorrect type errors
-// that would otherwise occur when importing and adding external grammars.
-type IRawRepository = ShikiLanguageRegistration['repository']
-export interface LanguageRegistration extends Omit<ShikiLanguageRegistration, 'repository'> {
-	repository?: IRawRepository | undefined
-}
-export type LanguageInput = MaybeGetter<MaybeArray<LanguageRegistration>>
 
 const highlighterPromiseByConfig = new Map<string, Promise<Highlighter>>()
 // We store theme cache keys by style variant arrays because style variant arrays are unique per engine,
@@ -67,7 +59,7 @@ export async function ensureLanguagesAreLoaded(highlighter: Highlighter, languag
 	await runHighlighterTask(async () => {
 		const loadedLanguages = new Set(highlighter.getLoadedLanguages())
 		const handledLanguageNames = new Set<string>()
-		const registrations = new Map<string, ShikiLanguageRegistration>()
+		const registrations = new Map<string, LanguageRegistration>()
 
 		async function resolveLanguage(language: LanguageInput | string, referencedBy = '') {
 			let languageInput: LanguageInput
@@ -95,7 +87,7 @@ export async function ensureLanguagesAreLoaded(highlighter: Highlighter, languag
 				if (loadedLanguages.has(lang.name)) return
 				// Prevent Shiki from executing its lazy-loading logic
 				// as we load any referenced languages ourselves
-				const registration = { repository: {}, ...lang, embeddedLangsLazy: [] } as ShikiLanguageRegistration
+				const registration = { repository: {}, ...lang, embeddedLangsLazy: [] } as LanguageRegistration
 				registrations.set(lang.name, registration)
 			})
 			// Inject top-level languages into nested code blocks if enabled
@@ -113,7 +105,7 @@ export async function ensureLanguagesAreLoaded(highlighter: Highlighter, languag
 
 		await Promise.all(languages.map((lang) => resolveLanguage(lang)))
 
-		if (registrations.size) await highlighter.loadLanguage(...registrations.values())
+		if (registrations.size) await highlighter.loadLanguage(...([...registrations.values()] as ShikiLanguageRegistration[]))
 	})
 
 	return errors
@@ -156,117 +148,4 @@ async function processQueue() {
 	} finally {
 		processingQueue = false
 	}
-}
-
-function getNestedCodeBlockInjectionLangs(lang: LanguageRegistration) {
-	const injectionLangs: ShikiLanguageRegistration[] = []
-	const langNameKey = lang.name.replace(/[^a-zA-Z0-9]/g, '_')
-	const langNameAndAliases = [lang.name, ...(lang.aliases ?? [])]
-
-	// Create injection language registration for Markdown
-	injectionLangs.push({
-		name: `${lang.name}-fenced-md`,
-		scopeName: `source.${lang.name}.fenced_code_block`,
-		injectTo: ['text.html.markdown'],
-		injectionSelector: 'L:text.html.markdown',
-		patterns: [
-			{
-				include: `#fenced_code_block_${langNameKey}`,
-			},
-		],
-		repository: {
-			[`fenced_code_block_${langNameKey}`]: {
-				begin: `(^|\\G)(\\s*)(\`{3,}|~{3,})\\s*(?i:(${langNameAndAliases.join('|')})((\\s+|:|,|\\{|\\?)[^\`]*)?$)`,
-				beginCaptures: {
-					3: {
-						name: 'punctuation.definition.markdown',
-					},
-					4: {
-						name: 'fenced_code.block.language.markdown',
-					},
-					5: {
-						name: 'fenced_code.block.language.attributes.markdown',
-					},
-				},
-				end: '(^|\\G)(\\2|\\s{0,3})(\\3)\\s*$',
-				endCaptures: {
-					3: {
-						name: 'punctuation.definition.markdown',
-					},
-				},
-				name: 'markup.fenced_code.block.markdown',
-				patterns: [
-					{
-						begin: '(^|\\G)(\\s*)(.*)',
-						while: '(^|\\G)(?!\\s*([`~]{3,})\\s*$)',
-						contentName: `meta.embedded.block.${lang.name}`,
-						patterns: [
-							{
-								include: lang.scopeName,
-							},
-						],
-					},
-				],
-			},
-		},
-	})
-
-	// Create injection language registration for MDX
-	injectionLangs.push({
-		name: `${lang.name}-fenced-mdx`,
-		scopeName: `source.${lang.name}.fenced_code_block`,
-		injectTo: ['source.mdx'],
-		injectionSelector: 'L:source.mdx',
-		patterns: [
-			{
-				include: `#fenced_code_block_${langNameKey}`,
-			},
-		],
-		repository: {
-			[`fenced_code_block_${langNameKey}`]: {
-				begin: `(?:^|\\G)[\\t ]*(\`{3,})(?:[\\t ]*((?i:(?:.*\\.)?${langNameAndAliases.join('|')}))(?:[\\t ]+((?:[^\\n\\r\`])+))?)(?:[\\t ]*$)`,
-				beginCaptures: {
-					1: {
-						name: 'string.other.begin.code.fenced.mdx',
-					},
-					2: {
-						name: 'entity.name.function.mdx',
-						patterns: [
-							{
-								include: '#markdown-string',
-							},
-						],
-					},
-					3: {
-						patterns: [
-							{
-								include: '#markdown-string',
-							},
-						],
-					},
-				},
-				end: '(?:^|\\G)[\\t ]*(\\1)(?:[\\t ]*$)',
-				endCaptures: {
-					1: {
-						name: 'string.other.end.code.fenced.mdx',
-					},
-				},
-				name: `markup.code.${lang.name}.mdx`,
-				patterns: [
-					{
-						begin: '(^|\\G)(\\s*)(.*)',
-						contentName: `meta.embedded.${lang.name}`,
-						patterns: [
-							{
-								include: lang.scopeName,
-							},
-						],
-						while: '(^|\\G)(?![\\t ]*([`~]{3,})[\\t ]*$)',
-					},
-				],
-			},
-		},
-	})
-
-	return injectionLangs
 }
