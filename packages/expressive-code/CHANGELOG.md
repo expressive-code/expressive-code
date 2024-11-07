@@ -1,5 +1,25 @@
 # expressive-code
 
+## 0.38.3
+
+### Patch Changes
+
+- 90b614e: Makes the types used by the `shiki.langs` config option less strict to align them better with actual grammars found in the wild. This attempts to reduce the amount of type errors that occurred before when using external grammars, while still being supported by the language processing code.
+- Updated dependencies [90b614e]
+  - @expressive-code/plugin-shiki@0.38.3
+  - @expressive-code/plugin-frames@0.38.3
+  - @expressive-code/core@0.38.3
+  - @expressive-code/plugin-text-markers@0.38.3
+
+## 0.38.2
+
+### Patch Changes
+
+- @expressive-code/core@0.38.2
+- @expressive-code/plugin-frames@0.38.2
+- @expressive-code/plugin-shiki@0.38.2
+- @expressive-code/plugin-text-markers@0.38.2
+
 ## 0.38.1
 
 ### Patch Changes

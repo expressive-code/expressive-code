@@ -1,5 +1,25 @@
 # rehype-expressive-code
 
+## 0.38.3
+
+### Patch Changes
+
+- 90b614e: Makes the types used by the `shiki.langs` config option less strict to align them better with actual grammars found in the wild. This attempts to reduce the amount of type errors that occurred before when using external grammars, while still being supported by the language processing code.
+- Updated dependencies [90b614e]
+  - expressive-code@0.38.3
+
+## 0.38.2
+
+### Patch Changes
+
+- 480361a: Fixes an issue where the optional `getBlockLocale` callback function was not called when using the `<Code>` component. Thank you @HiDeoo!
+
+  As the parent document's source file path is not available from an Astro component, the `file` property passed to the `getBlockLocale` callback function now contains an additional `url` property that will be set to the value of `Astro.url` in this case.
+
+  When determining the locale of a code block, it is recommended to use this new property first, and only fall back to the existing `path` and `cwd` properties if `url` is undefined.
+
+  - expressive-code@0.38.2
+
 ## 0.38.1
 
 ### Patch Changes

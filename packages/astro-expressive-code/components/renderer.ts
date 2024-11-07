@@ -30,8 +30,15 @@ async function createRenderer() {
 		throw new Error(`Failed to preprocess Expressive Code config for the Code component: ${msg}`, { cause: error })
 	}
 
-	return await createAstroRenderer({
+	const astroRenderer = await createAstroRenderer({
 		astroConfig,
 		ecConfig: mergedEcConfig,
 	})
+	return {
+		...astroRenderer,
+		// Also return any config options that are normally processed by `rehype-expressive-code`
+		// and need to be processed by `astro-expressive-code` when using the `Code` component
+		tabWidth: mergedEcConfig.tabWidth,
+		getBlockLocale: mergedEcConfig.getBlockLocale,
+	}
 }

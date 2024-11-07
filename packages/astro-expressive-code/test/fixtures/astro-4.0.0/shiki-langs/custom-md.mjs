@@ -15,7 +15,7 @@ const lang = {
 	],
 	repository: {
 		ampersand: {
-			// comment: 'Markdown will convert this for us. We match it so that the HTML grammar will not mark it up as invalid.',
+			comment: 'Markdown will convert this for us. We match it so that the HTML grammar will not mark it up as invalid.',
 			match: '&(?!([a-zA-Z0-9]+|#[0-9]+|#x[0-9a-fA-F]+);)',
 			name: 'meta.other.valid-ampersand.markdown',
 		},
@@ -80,7 +80,7 @@ const lang = {
 			name: 'markup.bold.markdown',
 			patterns: [
 				{
-					applyEndPatternLast: true,
+					applyEndPatternLast: 1,
 					begin: '(?=<[^>]*?>)',
 					end: '(?<=>)',
 					patterns: [
@@ -137,7 +137,7 @@ const lang = {
 			],
 		},
 		bracket: {
-			// comment: 'Markdown will convert this for us. We match it so that the HTML grammar will not mark it up as invalid.',
+			comment: 'Markdown will convert this for us. We match it so that the HTML grammar will not mark it up as invalid.',
 			match: '<(?![a-zA-Z/?\\$!])',
 			name: 'meta.other.valid-bracket.markdown',
 		},
@@ -2614,7 +2614,7 @@ const lang = {
 			name: 'markup.italic.markdown',
 			patterns: [
 				{
-					applyEndPatternLast: true,
+					applyEndPatternLast: 1,
 					begin: '(?=<[^>]*?>)',
 					end: '(?<=>)',
 					patterns: [
@@ -2934,7 +2934,7 @@ const lang = {
 							name: 'punctuation.definition.list.begin.markdown',
 						},
 					},
-					// comment: 'Currently does not support un-indented second lines.',
+					comment: 'Currently does not support un-indented second lines.',
 					name: 'markup.list.unnumbered.markdown',
 					patterns: [
 						{
@@ -3011,7 +3011,7 @@ const lang = {
 				2: {
 					patterns: [
 						{
-							applyEndPatternLast: true,
+							applyEndPatternLast: 1,
 							begin: '(?=<[^>]*?>)',
 							end: '(?<=>)',
 							patterns: [

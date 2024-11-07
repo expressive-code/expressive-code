@@ -1,8 +1,9 @@
 import { ExpressiveCodeLine, ExpressiveCodePlugin, ExpressiveCodeTheme, InlineStyleAnnotation } from '@expressive-code/core'
-import { type LanguageInput, ensureLanguagesAreLoaded, ensureThemeIsLoaded, getCachedHighlighter, runHighlighterTask } from './highlighter'
-import { runPreprocessHook, runTokensHook, validateTransformers } from './transformers'
 import type { ThemedToken, ShikiTransformer } from 'shiki'
 import { bundledThemes } from 'shiki'
+import { ensureLanguagesAreLoaded, ensureThemeIsLoaded, getCachedHighlighter, runHighlighterTask } from './highlighter'
+import type { LanguageInput } from './languages'
+import { runPreprocessHook, runTokensHook, validateTransformers } from './transformers'
 
 export interface PluginShikiOptions {
 	/**
