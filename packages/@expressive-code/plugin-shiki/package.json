@@ -23,10 +23,10 @@
   ],
   "scripts": {
     "build": "tsup ./src/index.ts --format esm --dts --sourcemap --clean",
-    "coverage": "vitest run --coverage",
-    "test": "vitest run --reporter verbose",
-    "test-short": "vitest run --reporter basic",
-    "test-watch": "vitest --reporter verbose",
+    "coverage": "vitest run --coverage --typecheck",
+    "test": "vitest run --reporter verbose --typecheck",
+    "test-short": "vitest run --reporter basic --typecheck",
+    "test-watch": "vitest --reporter verbose --typecheck",
     "watch": "pnpm build --watch src"
   },
   "dependencies": {
