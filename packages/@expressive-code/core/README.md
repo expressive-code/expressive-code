@@ -21,8 +21,11 @@ npm install @expressive-code/core
 ## Usage example
 
 ```js
+// File: generate-html-core.mjs
+
 import { ExpressiveCodeEngine } from '@expressive-code/core'
 import { toHtml } from '@expressive-code/core/hast'
+import fs from 'fs'
 
 const ec = new ExpressiveCodeEngine({
   plugins: [
@@ -30,12 +33,16 @@ const ec = new ExpressiveCodeEngine({
   ],
 })
 
+// Get base styles that should be included on the page
+// (they are independent of the rendered code blocks)
 const baseStyles = await ec.getBaseStyles()
 const themeStyles = await ec.getThemeStyles()
+const jsModules = await ec.getJsModules()
 
 const renderResult = await ec.render({
   code: 'console.log("Hello world!")',
   language: 'js',
+  meta: '',
 })
 
 // Output results to the console
@@ -43,6 +50,44 @@ console.dir({
   baseStyles,
   themeStyles,
   blockStyles: renderResult.styles,
-  blockHtml: toHtml(renderResult.renderedGroupAst),
+  htmlContent: toHtml(renderResult.renderedGroupAst),
 })
+
+// Convert the rendered AST to HTML
+let htmlContent = toHtml(renderResult.renderedGroupAst)
+
+// Collect styles and add them before the HTML content
+const stylesToPrepend = []
+stylesToPrepend.push(baseStyles)
+stylesToPrepend.push(themeStyles)
+stylesToPrepend.push(...renderResult.styles)
+
+const styleContent = `<style> ${[...stylesToPrepend].join('')} </style>`
+const jsContent = `<script type="module"> ${[...jsModules].join('')} </script>`
+
+const htmlDocument = `
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+
+    ${styleContent}
+
+    ${jsContent}
+</head>
+<body>
+    ${htmlContent}
+</body>
+</html>
+`
+
+// Output HTML to the console
+console.log(htmlDocument)
+
+// Run `node generate-html.mjs` to generate the HTML file
+// and open it in the browser
+fs.writeFileSync('index.html', htmlDocument)
 ```
