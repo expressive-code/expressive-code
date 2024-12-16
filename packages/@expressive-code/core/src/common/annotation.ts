@@ -58,7 +58,7 @@ export abstract class ExpressiveCodeAnnotation {
 	 * See {@link AnnotationRenderOptions} for all data and functionality available through the
 	 * `options` object.
 	 */
-	abstract render(options: AnnotationRenderOptions): Parents[]
+	abstract render({ nodesToTransform }: AnnotationRenderOptions): Parents[]
 
 	/**
 	 * An optional name for the annotation. This can be used for debugging or logging purposes,

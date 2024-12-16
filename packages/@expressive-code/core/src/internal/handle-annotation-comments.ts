@@ -20,17 +20,33 @@
 		in a hook and merge the results later on
 */
 
+import type { SourceRange } from 'annotation-comments'
 import { parseAnnotationComments } from 'annotation-comments'
 import type { ExpressiveCodeBlock } from '../common/block'
 import type { ResolvedExpressiveCodeEngineConfig } from '../common/engine'
 import type { ExpressiveCodePlugin } from '../common/plugin'
 import { AnnotationCommentHandler } from '../common/annotation-comments'
+import { ExpressiveCodeInlineRange } from '../common/annotation'
+import { h } from '../hast'
 
 export type RunCommentHandlersContext = {
 	codeBlock: ExpressiveCodeBlock
 	plugins: readonly ExpressiveCodePlugin[]
 	config: ResolvedExpressiveCodeEngineConfig
 }
+
+/*
+	annotationCommentHandlers: [
+		{
+			tagNames: ['del'],
+			commentContents: { stripFromCode: false, output: 'betweenLinesBelowTarget' },
+			inlineTargets: { wrapWith: 'del' },
+			inlineTargetParentLines: { addClasses: 'has-del' },
+			fullLineTargets: { addClasses: 'del' },
+			parentBlock: { addClasses: 'has-del' },
+		}
+	],
+*/
 
 export async function handleAnnotationComments(context: RunCommentHandlersContext) {
 	const { codeBlock, plugins, config } = context
@@ -45,7 +61,32 @@ export async function handleAnnotationComments(context: RunCommentHandlersContex
 	for (const annotationComment of annotationComments) {
 		const handler = getHandlerByTagName(annotationComment.tag.name, plugins, uniqueErrors)
 		if (!handler) continue
-		//const { contents, inlineTargets, fullLineTargets, codeBlock, custom } = handler
+		for (const targetRange of annotationComment.targetRanges) {
+			const subranges = splitIntoSingleLineRanges(targetRange, codeBlock)
+			if (!subranges.length) {
+				uniqueErrors.add(`Failed to locate target range of annotation comment "${annotationComment.tag.rawTag}" in code block: ${JSON.stringify(commentRange)}`)
+				continue
+			}
+			for (const { lineIndex, inlineRange } of subranges) {
+				if (typeof handler.inlineTargets?.wrapWith === 'function') {
+					const line = codeBlock.getLine(lineIndex)
+					line?.addAnnotation(await handler.inlineTargets?.wrapWith({ annotationComment, codeBlock, line, inlineRange }))
+				}
+				codeBlock.getLine(lineIndex)?.addAnnotation({
+					inlineRange,
+					render: ({ nodesToTransform, addClassesToRenderedLine, addClassesToRenderedBlock }) => {
+						let transformedNodes = nodesToTransform
+						if (inlineRange) {
+							const wrapWith = handler.inlineTargets?.wrapWith
+							if (handler.inlineTargetParentLines?.addClasses) addClassesToRenderedLine(handler.inlineTargetParentLines.addClasses)
+						} else {
+							if (handler.fullLineTargets?.addClasses) addClassesToRenderedLine(handler.fullLineTargets.addClasses)
+						}
+						return transformedNodes
+					},
+				})
+			}
+		}
 		// TODO: Perform actual work
 	}
 
@@ -94,4 +135,20 @@ function getHandlerByTagName(tagName: string, plugins: RunCommentHandlersContext
 	}
 	if (!handler) uniqueErrors.add(`No handler found for tag name "${tagName}"`)
 	return handler ?? undefined
+}
+
+type SingleLineRange = { lineIndex: number; inlineRange?: ExpressiveCodeInlineRange | undefined }
+
+function splitIntoSingleLineRanges(range: SourceRange, codeBlock: ExpressiveCodeBlock) {
+	const ranges: SingleLineRange[] = []
+	for (let lineIndex = range.start.line; lineIndex <= range.end.line; lineIndex++) {
+		const line = codeBlock.getLine(lineIndex)
+		if (!line) continue
+		const startColumn = lineIndex === range.start.line ? range.start.column : undefined
+		const endColumn = lineIndex === range.end.line ? range.end.column : undefined
+		const hasInlineRange = startColumn !== undefined || endColumn !== undefined
+		const inlineRange = hasInlineRange ? { columnStart: startColumn ?? 0, columnEnd: endColumn ?? line.text.length } : undefined
+		ranges.push({ lineIndex, inlineRange })
+	}
+	return ranges
 }

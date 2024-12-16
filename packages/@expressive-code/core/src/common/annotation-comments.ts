@@ -23,7 +23,7 @@ export type AnnotationCommentHandler = {
 	/**
 	 * Defines how to render any contents following the annotation tag.
 	 */
-	contents?: (ContentOptions & WrapWith & CopyBehavior) | undefined
+	commentContents?: (ContentOptions & WrapWith & CopyBehavior) | undefined
 	/**
 	 * Allows defining actions to perform on inline targets of annotation comments in the code
 	 * (e.g. search term or regular expression matches, but not full lines).
@@ -33,6 +33,13 @@ export type AnnotationCommentHandler = {
 	 * would perform the actions defined in this property on the targets.
 	 */
 	inlineTargets?: (WrapWith & CopyBehavior) | undefined
+	/**
+	 * Allows defining actions to perform on the full parent lines containing at least
+	 * one inline target of annotations registered by this handler.
+	 *
+	 * This allows applying special classes to lines containing a search term match, for example.
+	 */
+	inlineTargetParentLines?: (AddClasses & CopyBehavior) | undefined
 	/**
 	 * Allows defining actions to perform on full-line targets of annotation comments in the code.
 	 *
@@ -45,7 +52,7 @@ export type AnnotationCommentHandler = {
 	 * Allows defining actions to perform on the parent code block when an annotation comment
 	 * using one of the tag names registered by this handler is encountered.
 	 */
-	codeBlock?: AddClasses | undefined
+	parentBlock?: AddClasses | undefined
 	/**
 	 * Allows providing a custom handler function that is called when an annotation comment
 	 * using one of the tag names registered by this handler is encountered.
@@ -63,7 +70,7 @@ export type AnnotationCommentHandlerContext = {
 
 export type AnnotationCommentInlineTargetContext = AnnotationCommentHandlerContext & {
 	line: ExpressiveCodeLine
-	inlineRange: ExpressiveCodeInlineRange
+	inlineRange?: ExpressiveCodeInlineRange | undefined
 }
 
 export type WrapWithAnnotationFn = (context: AnnotationCommentInlineTargetContext) => ExpressiveCodeAnnotation | Promise<ExpressiveCodeAnnotation>
