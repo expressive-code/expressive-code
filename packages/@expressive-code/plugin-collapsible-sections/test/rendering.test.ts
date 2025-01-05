@@ -67,32 +67,28 @@ describe('Renders collapsed sections', async () => {
 			})
 		})
 
-		test(
-			`Correctly handles code with text-markers and syntax highlighting`,
-			async ({ task: { name: testName } }) => {
-				await renderAndOutputHtmlSnapshot({
-					testName,
-					testBaseDir: __dirname,
-					fixtures: buildThemeFixtures(themes, {
-						code: `\n\t\n  \n${lineMarkerTestText}`,
-						meta: `del={5} ins={6-7} mark={1,2} collapse={2-2, 5-7}`,
-						plugins: [pluginShiki(), pluginTextMarkers(), pluginCollapsibleSections()],
-						engineOptions: {
-							styleOverrides: {
-								collapsibleSections: {
-									closedBorderWidth: '1px',
-								},
+		test(`Correctly handles code with text-markers and syntax highlighting`, { timeout: 5 * 1000 }, async ({ task: { name: testName } }) => {
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code: `\n\t\n  \n${lineMarkerTestText}`,
+					meta: `del={5} ins={6-7} mark={1,2} collapse={2-2, 5-7}`,
+					plugins: [pluginShiki(), pluginTextMarkers(), pluginCollapsibleSections()],
+					engineOptions: {
+						styleOverrides: {
+							collapsibleSections: {
+								closedBorderWidth: '1px',
 							},
 						},
-						blockValidationFn: buildMarkerValidationFn([
-							{ from: 2, to: 2, text: '1 collapsed line' },
-							{ from: 5, to: 7, text: '3 collapsed lines' },
-						]),
-					}),
-				})
-			},
-			{ timeout: 5 * 1000 }
-		)
+					},
+					blockValidationFn: buildMarkerValidationFn([
+						{ from: 2, to: 2, text: '1 collapsed line' },
+						{ from: 5, to: 7, text: '3 collapsed lines' },
+					]),
+				}),
+			})
+		})
 
 		test(`Uses the correct section summary if given as option`, async ({ task: { name: testName } }) => {
 			pluginCollapsibleSectionsTexts.addLocale('xy', { collapsedLines: 'Test {lineCount}' })

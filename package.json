@@ -22,11 +22,11 @@
     "internal/*"
   ],
   "devDependencies": {
-    "@changesets/cli": "^2.26.2",
-    "@types/node": "^18.15.11",
+    "@changesets/cli": "^2.27.11",
+    "@types/node": "^18.19.69",
     "@typescript-eslint/eslint-plugin": "^6.11.0",
     "@typescript-eslint/parser": "^6.11.0",
-    "@vitest/coverage-v8": "^2.1.4",
+    "@vitest/coverage-v8": "^2.1.8",
     "eslint": "^8.53.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-deprecation": "^2.0.0",
@@ -39,8 +39,8 @@
     "tsm": "^2.3.0",
     "tsup": "^7.2.0",
     "typescript": "^5.2.2",
-    "vite": "^5.4.10",
-    "vitest": "^2.1.4"
+    "vite": "^6.0.7",
+    "vitest": "^2.1.8"
   },
   "engines": {
     "node": "^14.15.0 || >=16.0.0",
