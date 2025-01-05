@@ -35,32 +35,28 @@ describe('Renders frames around the code', async () => {
 			}),
 		})
 	})
-	test(
-		'Single JS block with title',
-		async ({ task: { name: testName } }) => {
-			await renderAndOutputHtmlSnapshot({
-				testName,
-				testBaseDir: __dirname,
-				fixtures: buildThemeFixtures(themes, {
-					code: `
+	test('Single JS block with title', { timeout: 5 * 1000 }, async ({ task: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: `
 // test.config.mjs
 
 ${exampleCode}
 				`.trim(),
-					plugins: [pluginShiki(), pluginFrames()],
-					blockValidationFn: ({ renderedGroupAst }) => {
-						validateBlockAst({
-							renderedGroupAst,
-							figureSelector: '.frame.has-title:not(.is-terminal)',
-							title: 'test.config.mjs',
-							srTitlePresent: false,
-						})
-					},
-				}),
-			})
-		},
-		{ timeout: 5 * 1000 }
-	)
+				plugins: [pluginShiki(), pluginFrames()],
+				blockValidationFn: ({ renderedGroupAst }) => {
+					validateBlockAst({
+						renderedGroupAst,
+						figureSelector: '.frame.has-title:not(.is-terminal)',
+						title: 'test.config.mjs',
+						srTitlePresent: false,
+					})
+				},
+			}),
+		})
+	})
 	test('Single terminal block without title', async ({ task: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
 			testName,
@@ -80,30 +76,26 @@ ${exampleCode}
 			}),
 		})
 	})
-	test(
-		'Single terminal block with title',
-		async ({ task: { name: testName } }) => {
-			await renderAndOutputHtmlSnapshot({
-				testName,
-				testBaseDir: __dirname,
-				fixtures: buildThemeFixtures(themes, {
-					code: exampleTerminalCode,
-					language: 'shell',
-					meta: 'title="Installing Expressive Code"',
-					plugins: [pluginShiki(), pluginFrames()],
-					blockValidationFn: ({ renderedGroupAst }) => {
-						validateBlockAst({
-							renderedGroupAst,
-							figureSelector: '.frame.has-title.is-terminal',
-							title: 'Installing Expressive Code',
-							srTitlePresent: false,
-						})
-					},
-				}),
-			})
-		},
-		{ timeout: 5 * 1000 }
-	)
+	test('Single terminal block with title', { timeout: 5 * 1000 }, async ({ task: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: exampleTerminalCode,
+				language: 'shell',
+				meta: 'title="Installing Expressive Code"',
+				plugins: [pluginShiki(), pluginFrames()],
+				blockValidationFn: ({ renderedGroupAst }) => {
+					validateBlockAst({
+						renderedGroupAst,
+						figureSelector: '.frame.has-title.is-terminal',
+						title: 'Installing Expressive Code',
+						srTitlePresent: false,
+					})
+				},
+			}),
+		})
+	})
 
 	describe('Allows customizing the frame using styleOverrides', () => {
 		const runStyleOverridesTest = async ({

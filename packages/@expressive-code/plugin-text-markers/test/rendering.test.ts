@@ -466,23 +466,19 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 				}),
 			})
 		})
-		test(
-			`Does not modify actual diff content`,
-			async ({ task: { name: testName } }) => {
-				const code = actualDiff
-				await renderAndOutputHtmlSnapshot({
-					testName,
-					testBaseDir: __dirname,
-					fixtures: buildThemeFixtures(themes, {
-						code,
-						language: 'diff',
-						plugins: [pluginTextMarkers(), pluginShiki()],
-						blockValidationFn: buildMarkerValidationFn([], code),
-					}),
-				})
-			},
-			{ timeout: 5 * 1000 }
-		)
+		test(`Does not modify actual diff content`, { timeout: 5 * 1000 }, async ({ task: { name: testName } }) => {
+			const code = actualDiff
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code,
+					language: 'diff',
+					plugins: [pluginTextMarkers(), pluginShiki()],
+					blockValidationFn: buildMarkerValidationFn([], code),
+				}),
+			})
+		})
 	})
 
 	test(`Combined line and inline plaintext markers`, async ({ task: { name: testName } }) => {
@@ -518,97 +514,89 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 		{ markerType: 'mark', text: `</BaseLayout>` },
 	])
 
-	test(
-		`Actual example with Shiki highlighting`,
-		async ({ task: { name: testName } }) => {
-			await renderAndOutputHtmlSnapshot({
-				testName,
-				testBaseDir: __dirname,
-				fixtures: buildThemeFixtures(themes, {
-					code: complexDiffTestCode,
-					language: 'diff',
-					meta: complexDiffTestMeta,
-					plugins: [pluginTextMarkers(), pluginShiki()],
-					blockValidationFn: (actual) => {
-						// Expect that the correct parts were marked
-						validateComplexDiffTestMarkers(actual)
-						// Expect that MDX syntax highlighting was applied
-						// due to the `lang="mdx"` meta attribute
-						const matchingElements = selectAll(`span[style]`, actual.renderedGroupAst)
-						const tokenColors = matchingElements.map((highlight) => {
-							const text = toText(highlight)
-							return {
-								text,
-								color: highlight.properties?.style?.toString().match(/--0:(#.*?)(;|$)/)?.[1],
-							}
-						})
-						const getScopeFg = (scope: string) => {
-							for (const setting of themes[0].settings) {
-								if (setting.scope?.includes(scope) && setting.settings.foreground) {
-									return setting.settings.foreground.toLowerCase()
-								}
+	test(`Actual example with Shiki highlighting`, { timeout: 5 * 1000 }, async ({ task: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: complexDiffTestCode,
+				language: 'diff',
+				meta: complexDiffTestMeta,
+				plugins: [pluginTextMarkers(), pluginShiki()],
+				blockValidationFn: (actual) => {
+					// Expect that the correct parts were marked
+					validateComplexDiffTestMarkers(actual)
+					// Expect that MDX syntax highlighting was applied
+					// due to the `lang="mdx"` meta attribute
+					const matchingElements = selectAll(`span[style]`, actual.renderedGroupAst)
+					const tokenColors = matchingElements.map((highlight) => {
+						const text = toText(highlight)
+						return {
+							text,
+							color: highlight.properties?.style?.toString().match(/--0:(#.*?)(;|$)/)?.[1],
+						}
+					})
+					const getScopeFg = (scope: string) => {
+						for (const setting of themes[0].settings) {
+							if (setting.scope?.includes(scope) && setting.settings.foreground) {
+								return setting.settings.foreground.toLowerCase()
 							}
 						}
-						const getActualTokenFg = (text: string) => tokenColors.find((token) => token.text === text)?.color?.toLowerCase()
-						const colorTests = [
-							['title', getScopeFg('entity.name.tag')],
-							['My first MDX post', getScopeFg('string')],
-						] as const
-						colorTests.forEach(([text, expectedColor]) => {
-							expect(getActualTokenFg(text), `Frontmatter tag \`${text}\` does not have the expected color`).toEqual(expectedColor)
-						})
-					},
-				}),
-			})
-		},
-		{ timeout: 5 * 1000 }
-	)
+					}
+					const getActualTokenFg = (text: string) => tokenColors.find((token) => token.text === text)?.color?.toLowerCase()
+					const colorTests = [
+						['title', getScopeFg('entity.name.tag')],
+						['My first MDX post', getScopeFg('string')],
+					] as const
+					colorTests.forEach(([text, expectedColor]) => {
+						expect(getActualTokenFg(text), `Frontmatter tag \`${text}\` does not have the expected color`).toEqual(expectedColor)
+					})
+				},
+			}),
+		})
+	})
 
-	test(
-		`Actual example with Shiki and gutter`,
-		async ({ task: { name: testName } }) => {
-			await renderAndOutputHtmlSnapshot({
-				testName,
-				testBaseDir: __dirname,
-				fixtures: buildThemeFixtures(themes, {
-					code: complexDiffTestCode,
-					language: 'diff',
-					meta: complexDiffTestMeta + ' wrap',
-					plugins: [pluginLineNumbers(), pluginTextMarkers(), pluginShiki()],
-					blockValidationFn: (actual) => {
-						// Expect that the correct parts were marked
-						validateComplexDiffTestMarkers(actual)
-						// Expect that MDX syntax highlighting was applied
-						// due to the `lang="mdx"` meta attribute
-						const matchingElements = selectAll(`span[style]`, actual.renderedGroupAst)
-						const tokenColors = matchingElements.map((highlight) => {
-							const text = toText(highlight)
-							return {
-								text,
-								color: highlight.properties?.style?.toString().match(/--0:(#.*?)(;|$)/)?.[1],
-							}
-						})
-						const getScopeFg = (scope: string) => {
-							for (const setting of themes[0].settings) {
-								if (setting.scope?.includes(scope) && setting.settings.foreground) {
-									return setting.settings.foreground.toLowerCase()
-								}
+	test(`Actual example with Shiki and gutter`, { timeout: 5 * 1000 }, async ({ task: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: complexDiffTestCode,
+				language: 'diff',
+				meta: complexDiffTestMeta + ' wrap',
+				plugins: [pluginLineNumbers(), pluginTextMarkers(), pluginShiki()],
+				blockValidationFn: (actual) => {
+					// Expect that the correct parts were marked
+					validateComplexDiffTestMarkers(actual)
+					// Expect that MDX syntax highlighting was applied
+					// due to the `lang="mdx"` meta attribute
+					const matchingElements = selectAll(`span[style]`, actual.renderedGroupAst)
+					const tokenColors = matchingElements.map((highlight) => {
+						const text = toText(highlight)
+						return {
+							text,
+							color: highlight.properties?.style?.toString().match(/--0:(#.*?)(;|$)/)?.[1],
+						}
+					})
+					const getScopeFg = (scope: string) => {
+						for (const setting of themes[0].settings) {
+							if (setting.scope?.includes(scope) && setting.settings.foreground) {
+								return setting.settings.foreground.toLowerCase()
 							}
 						}
-						const getActualTokenFg = (text: string) => tokenColors.find((token) => token.text === text)?.color?.toLowerCase()
-						const colorTests = [
-							['title', getScopeFg('entity.name.tag')],
-							['My first MDX post', getScopeFg('string')],
-						] as const
-						colorTests.forEach(([text, expectedColor]) => {
-							expect(getActualTokenFg(text), `Frontmatter tag \`${text}\` does not have the expected color`).toEqual(expectedColor)
-						})
-					},
-				}),
-			})
-		},
-		{ timeout: 5 * 1000 }
-	)
+					}
+					const getActualTokenFg = (text: string) => tokenColors.find((token) => token.text === text)?.color?.toLowerCase()
+					const colorTests = [
+						['title', getScopeFg('entity.name.tag')],
+						['My first MDX post', getScopeFg('string')],
+					] as const
+					colorTests.forEach(([text, expectedColor]) => {
+						expect(getActualTokenFg(text), `Frontmatter tag \`${text}\` does not have the expected color`).toEqual(expectedColor)
+					})
+				},
+			}),
+		})
+	})
 
 	describe('Ensures accessible color contrast', () => {
 		afterEach(async () => {
@@ -617,154 +605,134 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 			themes = await loadTestThemes()
 		})
 
-		test(
-			'Contrast with default settings',
-			async ({ task: { name: testName } }) => {
-				await renderAndOutputHtmlSnapshot({
-					testName,
-					testBaseDir: __dirname,
-					fixtures: buildThemeFixtures(themes, {
-						code: complexDiffTestCode,
-						language: 'mdx',
-						meta: complexDiffTestMeta,
-						plugins: [pluginTextMarkers(), pluginShiki()],
-						blockValidationFn: validateColorContrast,
-					}),
-				})
-			},
-			{ timeout: 5 * 1000 }
-		)
-		test(
-			'Contrast on marker backgrounds with bright and dark colors',
-			async ({ task: { name: testName } }) => {
-				await renderAndOutputHtmlSnapshot({
-					testName,
-					testBaseDir: __dirname,
-					fixtures: buildThemeFixtures(themes, {
-						code: complexDiffTestCode,
-						language: 'mdx',
-						meta: complexDiffTestMeta,
-						engineOptions: {
-							styleOverrides: {
-								textMarkers: {
-									// Set a very bright background color for all "ins" highlights
-									// to test color contrast of bright text on bright backgrounds
-									insBackground: '#393',
-									// Set a very dark background color for all "del" highlights
-									// to test color contrast of dark text on dark backgrounds
-									delBackground: '#400',
-								},
+		test('Contrast with default settings', { timeout: 5 * 1000 }, async ({ task: { name: testName } }) => {
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code: complexDiffTestCode,
+					language: 'mdx',
+					meta: complexDiffTestMeta,
+					plugins: [pluginTextMarkers(), pluginShiki()],
+					blockValidationFn: validateColorContrast,
+				}),
+			})
+		})
+		test('Contrast on marker backgrounds with bright and dark colors', { timeout: 5 * 1000 }, async ({ task: { name: testName } }) => {
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code: complexDiffTestCode,
+					language: 'mdx',
+					meta: complexDiffTestMeta,
+					engineOptions: {
+						styleOverrides: {
+							textMarkers: {
+								// Set a very bright background color for all "ins" highlights
+								// to test color contrast of bright text on bright backgrounds
+								insBackground: '#393',
+								// Set a very dark background color for all "del" highlights
+								// to test color contrast of dark text on dark backgrounds
+								delBackground: '#400',
 							},
 						},
-						plugins: [pluginTextMarkers(), pluginShiki()],
-						blockValidationFn: validateColorContrast,
-					}),
-				})
-			},
-			{ timeout: 5 * 1000 }
-		)
-		test(
-			'Contrast on code backgrounds using fixed colors',
-			async ({ task: { name: testName } }) => {
-				await renderAndOutputHtmlSnapshot({
-					testName,
-					testBaseDir: __dirname,
-					fixtures: buildThemeFixtures(themes, {
-						code: complexDiffTestCode,
-						language: 'mdx',
-						meta: complexDiffTestMeta,
-						engineOptions: {
-							styleOverrides: {
-								codeBackground: '#fff',
-							},
+					},
+					plugins: [pluginTextMarkers(), pluginShiki()],
+					blockValidationFn: validateColorContrast,
+				}),
+			})
+		})
+		test('Contrast on code backgrounds using fixed colors', { timeout: 5 * 1000 }, async ({ task: { name: testName } }) => {
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code: complexDiffTestCode,
+					language: 'mdx',
+					meta: complexDiffTestMeta,
+					engineOptions: {
+						styleOverrides: {
+							codeBackground: '#fff',
 						},
-						plugins: [pluginTextMarkers(), pluginShiki()],
-						blockValidationFn: validateColorContrast,
-					}),
-				})
-			},
-			{ timeout: 5 * 1000 }
-		)
-		test(
-			'Contrast on code backgrounds using CSS variables with fallback',
-			async ({ task: { name: testName } }) => {
-				await renderAndOutputHtmlSnapshot({
-					testName,
-					testBaseDir: __dirname,
-					fixtures: buildThemeFixtures(themes, {
-						code: complexDiffTestCode,
-						language: 'mdx',
-						meta: complexDiffTestMeta,
-						engineOptions: {
-							styleOverrides: {
-								// The following combination would not result in proper color contrast
-								// without the fallback values as we're changing the background color
-								// to the opposite of what would be expected based on the theme type
-								codeBackground: ({ theme }) => (theme.type === 'dark' ? 'var(--white,#fff)' : 'var(--black, #202020)'),
-							},
+					},
+					plugins: [pluginTextMarkers(), pluginShiki()],
+					blockValidationFn: validateColorContrast,
+				}),
+			})
+		})
+		test('Contrast on code backgrounds using CSS variables with fallback', { timeout: 5 * 1000 }, async ({ task: { name: testName } }) => {
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code: complexDiffTestCode,
+					language: 'mdx',
+					meta: complexDiffTestMeta,
+					engineOptions: {
+						styleOverrides: {
+							// The following combination would not result in proper color contrast
+							// without the fallback values as we're changing the background color
+							// to the opposite of what would be expected based on the theme type
+							codeBackground: ({ theme }) => (theme.type === 'dark' ? 'var(--white,#fff)' : 'var(--black, #202020)'),
 						},
-						plugins: [
-							pluginTextMarkers(),
-							pluginShiki(),
-							{
-								name: 'Custom CSS Variables',
-								baseStyles: `
+					},
+					plugins: [
+						pluginTextMarkers(),
+						pluginShiki(),
+						{
+							name: 'Custom CSS Variables',
+							baseStyles: `
 									:root {
 										--black: #202020;
 										--white: #fff;
 									}
 								`,
-							},
-						],
-						blockValidationFn: (args) => {
-							// Before validating the results, set the background colors to the
-							// actual static colors to allow the validation function to access
-							// the real colors (without this, the test would not fail if the
-							// CSS fallback processing was broken)
-							args.styleVariants.forEach(({ resolvedStyleSettings, theme }) => {
-								resolvedStyleSettings.set('codeBackground', theme.type === 'dark' ? '#fff' : '#202020')
-							})
-							return validateColorContrast(args)
 						},
-					}),
-				})
-			},
-			{ timeout: 5 * 1000 }
-		)
-		test(
-			'Contrast on code backgrounds using CSS variables without fallback',
-			async ({ task: { name: testName } }) => {
-				await renderAndOutputHtmlSnapshot({
-					testName,
-					testBaseDir: __dirname,
-					fixtures: buildThemeFixtures(themes, {
-						code: complexDiffTestCode,
-						language: 'mdx',
-						meta: complexDiffTestMeta,
-						engineOptions: {
-							styleOverrides: {
-								codeBackground: ({ theme }) => (theme.type === 'dark' ? 'var(--black)' : 'var(--white)'),
-							},
+					],
+					blockValidationFn: (args) => {
+						// Before validating the results, set the background colors to the
+						// actual static colors to allow the validation function to access
+						// the real colors (without this, the test would not fail if the
+						// CSS fallback processing was broken)
+						args.styleVariants.forEach(({ resolvedStyleSettings, theme }) => {
+							resolvedStyleSettings.set('codeBackground', theme.type === 'dark' ? '#fff' : '#202020')
+						})
+						return validateColorContrast(args)
+					},
+				}),
+			})
+		})
+		test('Contrast on code backgrounds using CSS variables without fallback', { timeout: 5 * 1000 }, async ({ task: { name: testName } }) => {
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code: complexDiffTestCode,
+					language: 'mdx',
+					meta: complexDiffTestMeta,
+					engineOptions: {
+						styleOverrides: {
+							codeBackground: ({ theme }) => (theme.type === 'dark' ? 'var(--black)' : 'var(--white)'),
 						},
-						plugins: [
-							pluginTextMarkers(),
-							pluginShiki(),
-							{
-								name: 'Custom CSS Variables',
-								baseStyles: `
+					},
+					plugins: [
+						pluginTextMarkers(),
+						pluginShiki(),
+						{
+							name: 'Custom CSS Variables',
+							baseStyles: `
 									:root {
 										--black: #202020;
 										--white: #fff;
 									}
 								`,
-							},
-						],
-						blockValidationFn: validateColorContrast,
-					}),
-				})
-			},
-			{ timeout: 5 * 1000 }
-		)
+						},
+					],
+					blockValidationFn: validateColorContrast,
+				}),
+			})
+		})
 	})
 })
 
