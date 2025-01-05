@@ -13,8 +13,8 @@
     "@expressive-code/core": "workspace:^0.38.0"
   },
   "devDependencies": {
-    "@types/node": "^18.15.11",
-    "hast-util-from-html": "^2.0.1",
+    "@types/node": "^18.19.69",
+    "hast-util-from-html": "^2.0.3",
     "postcss": "^8.4.29",
     "shiki": "^1.22.2",
     "typescript": "^5.0.4"
