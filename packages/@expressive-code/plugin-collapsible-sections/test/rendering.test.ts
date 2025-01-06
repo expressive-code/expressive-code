@@ -119,19 +119,17 @@ describe('Renders collapsed sections', async () => {
 					blockValidationFn: ({ renderedGroupAst }) => {
 						const codeAst = select('pre > code', renderedGroupAst)
 						if (!codeAst) throw new Error("Couldn't find code AST")
-						
+
 						// Find all details elements
-						const details = codeAst.children.filter(
-							child => 'tagName' in child && child.tagName === 'details'
-						)
+						const details = codeAst.children.filter((child) => 'tagName' in child && child.tagName === 'details')
 
 						// Should have 2 sections
 						expect(details).toHaveLength(2)
-						
+
 						// Check that each details element has a collapse button
-						details.forEach(detail => {
+						details.forEach((detail) => {
 							if (!('children' in detail)) return
-							
+
 							// The collapse button should be the last child after the summary and content
 							const lastChild = detail.children[detail.children.length - 1]
 							if (!('properties' in lastChild)) {
