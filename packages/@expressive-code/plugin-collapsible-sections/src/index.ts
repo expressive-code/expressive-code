@@ -25,7 +25,7 @@ export interface PluginCollapsibleSectionsProps {
 	 */
 	collapsePreserveIndent: boolean
 	/**
-	 * Show a button to collapse expanded sections.
+	 * Show a button to re-collapse expanded sections.
 	 * @default false
 	 */
 	showCollapseButton: boolean
