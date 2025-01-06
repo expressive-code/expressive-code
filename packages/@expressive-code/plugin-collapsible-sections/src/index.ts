@@ -24,6 +24,11 @@ export interface PluginCollapsibleSectionsProps {
 	 * @default true
 	 */
 	collapsePreserveIndent: boolean
+	/**
+	 * Show a button to collapse expanded sections.
+	 * @default true
+	 */
+	showCollapseButton: boolean
 }
 
 declare module '@expressive-code/core' {
@@ -54,6 +59,7 @@ export function pluginCollapsibleSections(): ExpressiveCodePlugin {
 				codeBlock.props.collapsePreserveIndent = codeBlock.metaOptions.getBoolean('collapsePreserveIndent') ?? codeBlock.props.collapsePreserveIndent
 				const ranges = [...toArray(codeBlock.props.collapse), ...codeBlock.metaOptions.getRanges('collapse')]
 				codeBlock.props.collapse = ranges
+				codeBlock.props.showCollapseButton = codeBlock.metaOptions.getBoolean('showCollapseButton') ?? codeBlock.props.showCollapseButton ?? true
 
 				// Parse the given ranges into sections and store references to the targeted lines,
 				// allowing us to react to potential line number changes

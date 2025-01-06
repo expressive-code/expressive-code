@@ -75,6 +75,16 @@ export interface CollapsibleSectionsStyleSettings {
 	 * @default 'transparent'
 	 */
 	openBorderColor: string
+	/**
+	 * The padding around the collapse button.
+	 * @default '4px 8px'
+	 */
+	collapseButtonPadding: string
+	/**
+	 * The color of the collapse button.
+	 * @default 'inherit'
+	 */
+	collapseButtonColor: string
 }
 
 export const collapsibleSectionsStyleSettings = new PluginStyleSettings({
@@ -94,13 +104,15 @@ export const collapsibleSectionsStyleSettings = new PluginStyleSettings({
 			openMargin: '0',
 			openBackgroundColor: 'transparent',
 			openBorderColor: 'transparent',
+			collapseButtonPadding: '4px 8px',
+			collapseButtonColor: 'inherit',
 		},
 	},
 	cssVarReplacements: [['collapsibleSections', 'cs']],
 })
 
 export function getCollapsibleSectionsBaseStyles({ cssVar }: ResolverContext) {
-	const result = `
+	return `
 		.${collapsibleSectionClass} {
 			& summary {
 				/* hide the default <details> marker */
@@ -155,9 +167,30 @@ export function getCollapsibleSectionsBaseStyles({ cssVar }: ResolverContext) {
 				box-shadow: inset 0 calc(-1 * var(--border-width)) var(--border-color), inset 0 var(--border-width) var(--border-color);
 				padding-inline: ${cssVar('collapsibleSections.openPadding')};
 				margin-inline: ${cssVar('collapsibleSections.openMargin')};
+
+				& .collapse-button {
+					display: block;
+					cursor: pointer;
+					font-family: ${cssVar('collapsibleSections.closedFontFamily')};
+					font-size: ${cssVar('collapsibleSections.closedFontSize')};
+					line-height: ${cssVar('collapsibleSections.closedLineHeight')};
+					color: ${cssVar('collapsibleSections.closedTextColor')};
+					background-color: ${cssVar('collapsibleSections.closedBackgroundColor')};
+					padding-block: ${cssVar('collapsibleSections.closedPaddingBlock')};
+					user-select: none;
+					-webkit-user-select: none;
+
+					svg {
+						vertical-align: text-bottom;
+						fill: currentColor;
+						margin-right: 1em;
+					}
+
+					.${codeLineClass} .code {
+						text-indent: 0;
+					}
+				}
 			}
 		}
 	`
-
-	return result
 }

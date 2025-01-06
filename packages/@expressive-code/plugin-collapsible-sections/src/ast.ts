@@ -24,7 +24,9 @@ export function sectionizeAst({
 
 	// icon yoinked from octicons (MIT licensed)
 	const collapsedIconD =
-		'm8.177.677 2.896 2.896a.25.25 0 0 1-.177.427H8.75v1.25a.75.75 0 0 1-1.5 0V4H5.104a.25.25 0 0 1-.177-.427L7.823.677a.25.25 0 0 1 .354 0ZM7.25 10.75a.75.75 0 0 1 1.5 0V12h2.146a.25.25 0 0 1 .177.427l-2.896 2.896a.25.25 0 0 1-.354 0l-2.896-2.896A.25.25 0 0 1 5.104 12H7.25v-1.25Zm-5-2a.75.75 0 0 0 0-1.5h-.5a.75.75 0 0 0 0 1.5h.5ZM6 8a.75.75 0 0 1-.75.75h-.5a.75.75 0 0 1 0-1.5h.5A.75.75 0 0 1 6 8Zm2.25.75a.75.75 0 0 0 0-1.5h-.5a.75.75 0 0 0 0 1.5h.5ZM12 8a.75.75 0 0 1-.75.75h-.5a.75.75 0 0 1 0-1.5h.5A.75.75 0 0 1 12 8Zm2.25.75a.75.75 0 0 0 0-1.5h-.5a.75.75 0 0 0 0 1.5h.5Z'
+		'm8.177.677 2.896 2.896a.25.25 0 0 1-.177.427H8.75v1.25a.75.75 0 0 1-1.5 0V4H5.104a.25.25 0 0 1-.177-.427L7.823.677a.25.25 0 0 1 .354 0ZM7.25 10.75a.75.75 0 0 1 1.5 0V12h2.146a.25.25 0 0 1 .177.427l-2.896 2.896a.25.25 0 0 1-.354 0l-2.896-2.896A.25.25 0 0 1 5.104 12H7.25v-1.25Zm-5-2a.75.75 0 0 0 0-1.5h-.5a.75.75 0 0 0 0 1.5h.5ZM6 8a.75.75 0 0 1-.75.75h-.5a.75.75 0 0 1 0-1.5h.5A.75.75 0 0 1 6 8Zm2.25.75a.75.75 0 0 0 0-1.5h-.5a.75.75 0 0 0 0 1.5h.5ZM12 8a.75.75 0 0 1 .75.75h-.5a.75.75 0 0 1 0-1.5h.5A.75.75 0 0 1 12 8Zm2.25.75a.75.75 0 0 0 0-1.5h-.5a.75.75 0 0 0 0 1.5h.5Z'
+
+	const collapseIconD = 'M7.823 1.677 4.927 4.573A.25.25 0 0 0 5.104 5H7.25v3.236a.75.75 0 1 0 1.5 0V5h2.146a.25.25 0 0 0 .177-.427L8.177 1.677a.25.25 0 0 0-.354 0ZM13.75 11a.75.75 0 0 0 0 1.5h.5a.75.75 0 0 0 0-1.5h-.5Zm-3.75.75a.75.75 0 0 1 .75-.75h.5a.75.75 0 0 1 0 1.5h-.5a.75.75 0 0 1-.75-.75ZM7.75 11a.75.75 0 0 0 0 1.5h.5a.75.75 0 0 0 0-1.5h-.5ZM4 11.75a.75.75 0 0 1 .75-.75h.5a.75.75 0 0 1 0 1.5h-.5a.75.75 0 0 1-.75-.75ZM1.75 11a.75.75 0 0 0 0 1.5h.5a.75.75 0 0 0 0-1.5h-.5Z'
 
 	// by sorting from last to first, we're certain that the relevant lines can still be looked up by their index
 	;[...sections]
@@ -40,7 +42,39 @@ export function sectionizeAst({
 			)
 			// Wrap it in a summary element, and then in a details element with the target lines
 			const summary = h('summary', [summaryLine.lineAst])
-			const details = h('details', { class: collapsibleSectionClass }, [summary, ...targetLines])
+			
+			let collapseButton = null
+			if (codeBlock.props.showCollapseButton !== false) {
+				const collapseLine = renderEmptyLine()
+				collapseLine.codeWrapper.children.push(
+					s('svg', { xmlns: 'http://www.w3.org/2000/svg', 'aria-hidden': 'true', viewBox: '0 0 16 16', width: '16', height: '16' }, [
+						s('path', { d: collapseIconD })
+					]),
+					{ type: 'text', value: `collapse ${targetLines.length} ${targetLines.length === 1 ? 'line' : 'lines'}` }
+				)
+
+				collapseButton = h('div', { 
+					class: 'collapse-button',
+					onclick: 'this.parentElement.removeAttribute("open")'
+				}, [collapseLine.lineAst])
+
+				// Apply same indentation if enabled
+				if (codeBlock.props.collapsePreserveIndent !== false) {
+					const minIndent = codeBlock.getLines(from - 1, to).reduce((acc, line) => {
+						if (line.text.trim().length === 0) return acc
+						return Math.min(acc, line.text.match(/^\s*/)?.[0].length ?? 0)
+					}, Infinity)
+					if (minIndent > 0 && minIndent < Infinity) {
+						setInlineStyle(collapseLine.lineAst, '--ecIndent', `${minIndent}ch`)
+					}
+				}
+			}
+
+			const details = h('details', { class: collapsibleSectionClass }, [
+				summary,
+				...targetLines,
+				...(collapseButton ? [collapseButton] : [])
+			])
 			// Add information about the minimum indent level of the collapsed lines
 			// unless disabled in the props
 			if (codeBlock.props.collapsePreserveIndent !== false) {
