@@ -107,6 +107,47 @@ describe('Renders collapsed sections', async () => {
 				}),
 			})
 		})
+
+		test(`Shows collapse button when showCollapseButton is true`, async ({ task: { name: testName } }) => {
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code: lineMarkerTestText,
+					meta: `collapse={5-7,1-4} showCollapseButton=true`,
+					plugins: [pluginCollapsibleSections()],
+					blockValidationFn: ({ renderedGroupAst }) => {
+						const codeAst = select('pre > code', renderedGroupAst)
+						if (!codeAst) throw new Error("Couldn't find code AST")
+						
+						// Find all details elements
+						const details = codeAst.children.filter(
+							child => 'tagName' in child && child.tagName === 'details'
+						)
+
+						// Should have 2 sections
+						expect(details).toHaveLength(2)
+						
+						// Check that each details element has a collapse button
+						details.forEach(detail => {
+							if (!('children' in detail)) return
+							
+							// The collapse button should be the last child after the summary and content
+							const lastChild = detail.children[detail.children.length - 1]
+							if (!('properties' in lastChild)) {
+								throw new Error('Last child is not an element')
+							}
+
+							const properties = lastChild.properties || {}
+							// className in AST is an array of classes
+							expect(Array.isArray(properties.className)).toBe(true)
+							expect(properties.className).toContain('collapse-button')
+							expect(properties.onClick).toBe('this.parentElement.removeAttribute("open")')
+						})
+					},
+				}),
+			})
+		})
 	})
 })
 

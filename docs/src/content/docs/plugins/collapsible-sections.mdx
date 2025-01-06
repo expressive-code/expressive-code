@@ -101,6 +101,15 @@ Collapses the given line range or ranges.
 
 Determines if collapsed section titles (`X collapsed lines`) should be indented to preserve the minimum indent level of their contained collapsed code lines.
 
+#### showCollapseButton
+
+<PropertySignature>
+- Type: `boolean`
+- Default: ``false``
+</PropertySignature>
+
+Show a button to re-collapse expanded sections.
+
 ## Styling
 
 This plugin adds a `collapsibleSections` object to the `styleOverrides` engine config option, allowing you to customize the visual appearance of the sections:
@@ -202,6 +211,24 @@ The block padding of closed sections.
 </PropertySignature>
 
 The text color of the closed section summary text.
+
+#### collapseButtonColor
+
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'inherit'``
+</PropertySignature>
+
+The color of the collapse button.
+
+#### collapseButtonPadding
+
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``'4px 8px'``
+</PropertySignature>
+
+The padding around the collapse button.
 
 #### openBackgroundColor
 

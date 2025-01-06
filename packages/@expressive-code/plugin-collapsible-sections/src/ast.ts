@@ -43,8 +43,8 @@ export function sectionizeAst({
 			// Wrap it in a summary element, and then in a details element with the target lines
 			const summary = h('summary', [summaryLine.lineAst])
 			
-			let collapseButton = null
-			if (codeBlock.props.showCollapseButton !== false) {
+			let collapseButton = undefined
+			if (codeBlock.props.showCollapseButton === true) {
 				const collapseLine = renderEmptyLine()
 				collapseLine.codeWrapper.children.push(
 					s('svg', { xmlns: 'http://www.w3.org/2000/svg', 'aria-hidden': 'true', viewBox: '0 0 16 16', width: '16', height: '16' }, [
@@ -55,7 +55,7 @@ export function sectionizeAst({
 
 				collapseButton = h('div', { 
 					class: 'collapse-button',
-					onclick: 'this.parentElement.removeAttribute("open")'
+					onClick: 'this.parentElement.removeAttribute("open")'
 				}, [collapseLine.lineAst])
 
 				// Apply same indentation if enabled
