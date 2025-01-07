@@ -92,7 +92,7 @@ enum FontStyle {
 }
 
 export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlugin {
-	const { langs, langAlias, injectLangsIntoNestedCodeBlocks, engine } = options
+	const { langs, langAlias = {}, injectLangsIntoNestedCodeBlocks, engine } = options
 
 	// Validate all configured transformers
 	validateTransformers(options)
@@ -126,8 +126,8 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 
 				// Try to load the language if necessary, and log a warning if it's is unknown
 				const languageLoadErrors = await ensureLanguagesAreLoaded({ highlighter, langs: [codeBlock.language], langAlias })
-				const loadedLanguageName = languageLoadErrors.length ? 'txt' : codeBlock.language
-				if (loadedLanguageName !== codeBlock.language) {
+				const loadedLanguageName = languageLoadErrors.length ? 'txt' : langAlias[codeBlock.language] ?? codeBlock.language
+				if (languageLoadErrors.length) {
 					logger.warn(
 						`Error while loading code block language "${codeBlock.language}" in ${
 							codeBlock.parentDocument?.sourceFilePath ? `document "${codeBlock.parentDocument?.sourceFilePath}"` : 'markdown/MDX document'
