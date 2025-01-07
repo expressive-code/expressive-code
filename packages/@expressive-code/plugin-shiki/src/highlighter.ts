@@ -1,12 +1,14 @@
 import type { StyleVariant } from '@expressive-code/core'
 import { ExpressiveCodeTheme, getStableObjectHash } from '@expressive-code/core'
-import type { BundledLanguage } from 'shiki'
-import { Highlighter, ThemeRegistration, bundledLanguages, createHighlighter, isSpecialLang } from 'shiki'
+import type { BundledLanguage, HighlighterCore, ThemeRegistration } from 'shiki'
+import { createJavaScriptRegexEngine } from 'shiki/engine/javascript'
+import { createOnigurumaEngine } from 'shiki/engine/oniguruma'
+import { bundledLanguages, createHighlighterCore, isSpecialLang } from 'shiki'
 import type { LanguageInput, LanguageRegistration, ShikiLanguageRegistration } from './languages'
 import { getNestedCodeBlockInjectionLangs } from './languages'
 import type { PluginShikiOptions } from '.'
 
-const highlighterPromiseByConfig = new Map<string, Promise<Highlighter>>()
+const highlighterPromiseByConfig = new Map<string, Promise<HighlighterCore>>()
 // We store theme cache keys by style variant arrays because style variant arrays are unique per engine,
 // and we can be confident that the same theme object used by the same engine has the same contents
 const themeCacheKeysByStyleVariants = new WeakMap<StyleVariant[], WeakMap<ExpressiveCodeTheme, string>>()
@@ -14,17 +16,18 @@ const themeCacheKeysByStyleVariants = new WeakMap<StyleVariant[], WeakMap<Expres
 /**
  * Gets a cached Shiki highlighter instance for the given configuration.
  */
-export async function getCachedHighlighter(config: PluginShikiOptions = {}): Promise<Highlighter> {
+export async function getCachedHighlighter(config: PluginShikiOptions = {}): Promise<HighlighterCore> {
 	const configCacheKey = getStableObjectHash(config)
 	let highlighterPromise = highlighterPromiseByConfig.get(configCacheKey)
 	if (highlighterPromise === undefined) {
 		highlighterPromise = (async () => {
-			const highlighter = await createHighlighter({
+			const highlighter = await createHighlighterCore({
 				themes: [],
 				langs: [],
+				engine: config.engine === 'javascript' ? createJavaScriptRegexEngine({ forgiving: true }) : createOnigurumaEngine(import('shiki/wasm')),
 			})
 			// Load any user-provided languages
-			if (config.langs?.length) await ensureLanguagesAreLoaded(highlighter, config.langs, config.injectLangsIntoNestedCodeBlocks)
+			await ensureLanguagesAreLoaded({ highlighter, ...config })
 			return highlighter
 		})()
 		highlighterPromiseByConfig.set(configCacheKey, highlighterPromise)
@@ -32,7 +35,7 @@ export async function getCachedHighlighter(config: PluginShikiOptions = {}): Pro
 	return highlighterPromise
 }
 
-export async function ensureThemeIsLoaded(highlighter: Highlighter, theme: ExpressiveCodeTheme, styleVariants: StyleVariant[]) {
+export async function ensureThemeIsLoaded(highlighter: HighlighterCore, theme: ExpressiveCodeTheme, styleVariants: StyleVariant[]) {
 	// Unfortunately, Shiki caches themes by name, so we need to ensure that the theme name changes
 	// whenever the theme contents change by appending a content hash
 	let themeCacheKeys = themeCacheKeysByStyleVariants.get(styleVariants)
@@ -53,8 +56,11 @@ export async function ensureThemeIsLoaded(highlighter: Highlighter, theme: Expre
 	return cacheKey
 }
 
-export async function ensureLanguagesAreLoaded(highlighter: Highlighter, languages: (LanguageInput | string)[], injectLangsIntoNestedCodeBlocks: boolean = false) {
+export async function ensureLanguagesAreLoaded(options: Omit<PluginShikiOptions, 'langs'> & { highlighter: HighlighterCore; langs?: (LanguageInput | string)[] | undefined }) {
+	const { highlighter, langs = [], langAlias = {}, injectLangsIntoNestedCodeBlocks } = options
 	const errors: string[] = []
+
+	if (!langs.length) return errors
 
 	await runHighlighterTask(async () => {
 		const loadedLanguages = new Set(highlighter.getLoadedLanguages())
@@ -63,8 +69,10 @@ export async function ensureLanguagesAreLoaded(highlighter: Highlighter, languag
 
 		async function resolveLanguage(language: LanguageInput | string, referencedBy = '') {
 			let languageInput: LanguageInput
-			// Retrieve the language input of named languages from the bundle if necessary
+			// Retrieve the language input of named languages if necessary
 			if (typeof language === 'string') {
+				// Resolve language aliases
+				language = langAlias[language] ?? language
 				// Skip if we already handled this language
 				if (handledLanguageNames.has(language)) return []
 				handledLanguageNames.add(language)
@@ -93,7 +101,7 @@ export async function ensureLanguagesAreLoaded(highlighter: Highlighter, languag
 			// Inject top-level languages into nested code blocks if enabled
 			if (injectLangsIntoNestedCodeBlocks && !referencedBy) {
 				languageRegistrations.forEach((lang) => {
-					const injectionLangs = getNestedCodeBlockInjectionLangs(lang)
+					const injectionLangs = getNestedCodeBlockInjectionLangs(lang, langAlias)
 					injectionLangs.forEach((injectionLang) => registrations.set(injectionLang.name, injectionLang))
 				})
 			}
@@ -103,7 +111,7 @@ export async function ensureLanguagesAreLoaded(highlighter: Highlighter, languag
 			await Promise.all(referencedLangs.map((lang) => resolveLanguage(lang, referencers)))
 		}
 
-		await Promise.all(languages.map((lang) => resolveLanguage(lang)))
+		await Promise.all(langs.map((lang) => resolveLanguage(lang)))
 
 		if (registrations.size) await highlighter.loadLanguage(...([...registrations.values()] as ShikiLanguageRegistration[]))
 	})

@@ -15,6 +15,14 @@ const pageTitle = "Home Page";\n---
     <meta name="viewport" content="width=device-width" />
     <meta name="generator" content={Astro.generator} />
     <title>{pageTitle}</title>
+    <style lang="sass">
+      $font-stack: Helvetica, sans-serif
+      $primary-color: #333
+      
+      body
+        font: 100% $font-stack
+        color: $primary-color
+    </style>
   </head>
   <body>
     <Header />
