@@ -1,16 +1,32 @@
+# Package manager-related content
 node_modules/
+.pnpm-debug.log
+
+# Generated content (e.g. build & test output, caches)
+.astro/
+.wrangler/
+__actual__/
 coverage/
 dist/
-__actual__/
 .buildcache
 .DS_Store
-.pnpm-debug.log
 scratch
-*.tsbuildinfo
-*.log
-
-/.vscode/settings.json
 /reports
 
-# Ignore generated docs pages that change often
+# Log files
+*.tsbuildinfo
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local config files
+/.vscode/settings.json
+
+# Environment variables & secrets
+.env
+.env.production
+
+# Generated docs pages that change often
 /docs/src/content/docs/releases.md
