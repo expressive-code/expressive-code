@@ -1,8 +1,6 @@
 import type { StyleVariant } from '@expressive-code/core'
 import { ExpressiveCodeTheme, getStableObjectHash } from '@expressive-code/core'
 import type { BundledLanguage, HighlighterCore, ThemeRegistration } from 'shiki'
-import { createJavaScriptRegexEngine } from 'shiki/engine/javascript'
-import { createOnigurumaEngine } from 'shiki/engine/oniguruma'
 import { bundledLanguages, createHighlighterCore, isSpecialLang } from 'shiki'
 import type { LanguageInput, LanguageRegistration, ShikiLanguageRegistration } from './languages'
 import { getNestedCodeBlockInjectionLangs } from './languages'
@@ -24,7 +22,7 @@ export async function getCachedHighlighter(config: PluginShikiOptions = {}): Pro
 			const highlighter = await createHighlighterCore({
 				themes: [],
 				langs: [],
-				engine: config.engine === 'javascript' ? createJavaScriptRegexEngine({ forgiving: true }) : createOnigurumaEngine(import('shiki/wasm')),
+				engine: createRegexEngine(config.engine),
 			})
 			// Load any user-provided languages
 			await ensureLanguagesAreLoaded({ highlighter, ...config })
@@ -33,6 +31,13 @@ export async function getCachedHighlighter(config: PluginShikiOptions = {}): Pro
 		highlighterPromiseByConfig.set(configCacheKey, highlighterPromise)
 	}
 	return highlighterPromise
+}
+
+async function createRegexEngine(engine: PluginShikiOptions['engine']) {
+	// The [...engine...][0] syntax makes it easier to find this code in the built package,
+	// allowing astro-expressive-code to remove unused engines from the SSR bundle
+	if (engine === 'javascript') return [(await import('shiki/engine/javascript')).createJavaScriptRegexEngine({ forgiving: true })][0]
+	return [(await import('shiki/engine/oniguruma')).createOnigurumaEngine(import('shiki/wasm'))][0]
 }
 
 export async function ensureThemeIsLoaded(highlighter: HighlighterCore, theme: ExpressiveCodeTheme, styleVariants: StyleVariant[]) {
@@ -58,16 +63,17 @@ export async function ensureThemeIsLoaded(highlighter: HighlighterCore, theme: E
 
 export async function ensureLanguagesAreLoaded(options: Omit<PluginShikiOptions, 'langs'> & { highlighter: HighlighterCore; langs?: (LanguageInput | string)[] | undefined }) {
 	const { highlighter, langs = [], langAlias = {}, injectLangsIntoNestedCodeBlocks } = options
-	const errors: string[] = []
+	const failedLanguages = new Set<string>()
+	const failedEmbeddedLanguages = new Set<string>()
 
-	if (!langs.length) return errors
+	if (!langs.length) return { failedLanguages, failedEmbeddedLanguages }
 
 	await runHighlighterTask(async () => {
 		const loadedLanguages = new Set(highlighter.getLoadedLanguages())
 		const handledLanguageNames = new Set<string>()
 		const registrations = new Map<string, LanguageRegistration>()
 
-		async function resolveLanguage(language: LanguageInput | string, referencedBy = '') {
+		async function resolveLanguage(language: LanguageInput | string, isEmbedded = false) {
 			let languageInput: LanguageInput
 			// Retrieve the language input of named languages if necessary
 			if (typeof language === 'string') {
@@ -80,7 +86,11 @@ export async function ensureLanguagesAreLoaded(options: Omit<PluginShikiOptions,
 				if (loadedLanguages.has(language) || isSpecialLang(language)) return []
 				// We can't resolve named languages we don't know
 				if (!Object.keys(bundledLanguages).includes(language)) {
-					errors.push(`Unknown language "${language}"${referencedBy ? `, referenced by language(s): ${referencedBy}` : ''}`)
+					if (isEmbedded) {
+						failedEmbeddedLanguages.add(language)
+					} else {
+						failedLanguages.add(language)
+					}
 					return []
 				}
 				languageInput = bundledLanguages[language as BundledLanguage]
@@ -99,16 +109,15 @@ export async function ensureLanguagesAreLoaded(options: Omit<PluginShikiOptions,
 				registrations.set(lang.name, registration)
 			})
 			// Inject top-level languages into nested code blocks if enabled
-			if (injectLangsIntoNestedCodeBlocks && !referencedBy) {
+			if (injectLangsIntoNestedCodeBlocks && !isEmbedded) {
 				languageRegistrations.forEach((lang) => {
 					const injectionLangs = getNestedCodeBlockInjectionLangs(lang, langAlias)
 					injectionLangs.forEach((injectionLang) => registrations.set(injectionLang.name, injectionLang))
 				})
 			}
-			// Recursively resolve referenced languages
+			// Recursively resolve embedded languages
 			const referencedLangs = [...new Set(languageRegistrations.map((lang) => lang.embeddedLangsLazy ?? []).flat())] as BundledLanguage[]
-			const referencers = languageRegistrations.map((lang) => lang.name).join(', ')
-			await Promise.all(referencedLangs.map((lang) => resolveLanguage(lang, referencers)))
+			await Promise.all(referencedLangs.map((lang) => resolveLanguage(lang, true)))
 		}
 
 		await Promise.all(langs.map((lang) => resolveLanguage(lang)))
@@ -116,7 +125,7 @@ export async function ensureLanguagesAreLoaded(options: Omit<PluginShikiOptions,
 		if (registrations.size) await highlighter.loadLanguage(...([...registrations.values()] as ShikiLanguageRegistration[]))
 	})
 
-	return errors
+	return { failedLanguages, failedEmbeddedLanguages }
 }
 
 const taskQueue: { taskFn: () => void | Promise<void>; resolve: () => void; reject: (error: unknown) => void }[] = []

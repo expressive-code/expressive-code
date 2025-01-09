@@ -74,6 +74,11 @@ export interface PluginShikiOptions {
 export type BundledShikiTheme = Exclude<keyof typeof bundledThemes, 'css-variables'>
 
 /**
+ * A list of all languages bundled with Shiki.
+ */
+export type { BundledLanguage as BundledShikiLanguage } from 'shiki'
+
+/**
  * Loads a theme bundled with Shiki for use with Expressive Code.
  */
 export async function loadShikiTheme(bundledThemeName: BundledShikiTheme) {
@@ -126,13 +131,27 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 
 				// Try to load the language if necessary, and log a warning if it's is unknown
 				const languageLoadErrors = await ensureLanguagesAreLoaded({ highlighter, langs: [codeBlock.language], langAlias })
-				const loadedLanguageName = languageLoadErrors.length ? 'txt' : langAlias[codeBlock.language] ?? codeBlock.language
-				if (languageLoadErrors.length) {
-					logger.warn(
-						`Error while loading code block language "${codeBlock.language}" in ${
+				const resolvedLanguage = langAlias[codeBlock.language] ?? codeBlock.language
+				const primaryLanguageFailed = languageLoadErrors.failedLanguages.has(resolvedLanguage)
+				const embeddedLanguagesFailed = languageLoadErrors.failedEmbeddedLanguages.size > 0
+				const loadedLanguageName = primaryLanguageFailed ? 'txt' : resolvedLanguage
+				if (primaryLanguageFailed || embeddedLanguagesFailed) {
+					const formatLangs = (langs: Set<string> | string[]) =>
+						`language${[...langs].length !== 1 ? 's' : ''} ${[...langs]
+							.sort()
+							.map((lang) => `"${lang}"`)
+							.join(', ')}`
+					const errorParts = [
+						`Error while highlighting code block using ${formatLangs([codeBlock.language])} in ${
 							codeBlock.parentDocument?.sourceFilePath ? `document "${codeBlock.parentDocument?.sourceFilePath}"` : 'markdown/MDX document'
-						}. Using "${loadedLanguageName}" instead. You can add custom languages using the "langs" config option. Error details: ${languageLoadErrors.join(', ')}`
-					)
+						}.`,
+					]
+					if (primaryLanguageFailed) errorParts.push(`The language could not be found. Using "${loadedLanguageName}" instead.`)
+					if (embeddedLanguagesFailed) {
+						errorParts.push(`The embedded ${formatLangs(languageLoadErrors.failedEmbeddedLanguages)} could not be found, so highlighting may be incomplete.`)
+					}
+					errorParts.push('Ensure that all required languages are either part of the bundle or custom languages provided in the "langs" config option.')
+					logger.warn(errorParts.join(' '))
 				}
 
 				for (let styleVariantIndex = 0; styleVariantIndex < styleVariants.length; styleVariantIndex++) {

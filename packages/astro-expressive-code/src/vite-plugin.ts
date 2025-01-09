@@ -1,8 +1,10 @@
 import type { HookParameters, ViteUserConfig } from 'astro'
+import type { BundledShikiLanguage } from 'rehype-expressive-code'
 import { stableStringify } from 'rehype-expressive-code'
 import { getEcConfigFileUrl } from './ec-config'
-import { PartialAstroConfig, serializePartialAstroConfig } from './astro-config'
-import { AstroExpressiveCodeOptions } from './ec-config'
+import type { PartialAstroConfig } from './astro-config'
+import { serializePartialAstroConfig } from './astro-config'
+import type { AstroExpressiveCodeOptions } from './ec-config'
 
 /**
  * This Vite plugin provides access to page-wide styles & scripts that the Astro integration
@@ -14,12 +16,14 @@ export function vitePluginAstroExpressiveCode({
 	styles,
 	scripts,
 	ecIntegrationOptions,
+	processedEcConfig,
 	astroConfig,
 	command,
 }: {
 	styles: [string, string][]
 	scripts: [string, string][]
 	ecIntegrationOptions: AstroExpressiveCodeOptions
+	processedEcConfig: AstroExpressiveCodeOptions
 	astroConfig: PartialAstroConfig
 	command: HookParameters<'astro:config:setup'>['command']
 }): NonNullable<ViteUserConfig['plugins']>[number] {
@@ -50,6 +54,12 @@ export function vitePluginAstroExpressiveCode({
 
 	// Create virtual config preprocessor module
 	modules['virtual:astro-expressive-code/preprocess-config'] = customConfigPreprocessors?.preprocessComponentConfig || `export default ({ ecConfig }) => ecConfig`
+
+	// Prepare Shiki-related SSR bundle trimming
+	const shikiConfig = typeof processedEcConfig.shiki === 'object' ? processedEcConfig.shiki : {}
+	const configuredEngine = shikiConfig.engine === 'javascript' ? 'javascript' : 'oniguruma'
+	const configuredBundledThemes: string[] = (processedEcConfig.themes ?? []).filter((theme) => typeof theme === 'string')
+	const shikiAssetRegExp = /(?<=\n)\s*\{[\s\S]*?"id": "(.*?)",[\s\S]*?\n\s*\},?\s*\n/g
 
 	const noQuery = (source: string) => source.split('?')[0]
 
@@ -98,6 +108,32 @@ export function vitePluginAstroExpressiveCode({
 				}
 				if (modules.some((module) => isImportedByEcConfig(module))) {
 					await server.restart()
+				}
+			},
+			transform: (code, id) => {
+				// Modify plugin-shiki to reduce bundle size
+				if (id.includes('/plugin-shiki/dist/')) {
+					// Remove references to unused Shiki RegExp engines
+					return code.replace(/(return \[)(?:.*?shiki\/engine\/(javascript|oniguruma).*?)(\]\[0\])/g, (match, prefix, engine, suffix) => {
+						if (engine === configuredEngine) return match
+						return `${prefix}undefined${suffix}`
+					})
+				}
+
+				// Only bundle Shiki themes referenced by the configuration
+				if (id.match(/\/shiki\/dist\/themes\.m?js$/)) {
+					return code.replace(shikiAssetRegExp, (match, bundledTheme) => {
+						if (configuredBundledThemes.includes(bundledTheme as string)) return match
+						return ''
+					})
+				}
+
+				// If an allow list was given, only bundle Shiki languages contained in the list
+				if (shikiConfig.bundledLangs && id.match(/\/shiki\/dist\/langs\.m?js$/)) {
+					return code.replace(shikiAssetRegExp, (match, bundledLang) => {
+						if (shikiConfig.bundledLangs!.includes(bundledLang as BundledShikiLanguage)) return match
+						return ''
+					})
 				}
 			},
 		},
