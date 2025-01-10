@@ -1,5 +1,5 @@
 import type { AstroIntegration } from 'astro'
-import type { BundledShikiLanguage, BundledShikiTheme, RehypeExpressiveCodeOptions } from 'rehype-expressive-code'
+import type { BundledShikiLanguage, RehypeExpressiveCodeOptions } from 'rehype-expressive-code'
 import rehypeExpressiveCode from 'rehype-expressive-code'
 import { ConfigSetupHookArgs, PartialAstroConfig } from './astro-config'
 import { AstroExpressiveCodeOptions, CustomConfigPreprocessors, ConfigPreprocessorFn, getEcConfigFileUrl, loadEcConfigFile, mergeEcConfigOptions } from './ec-config'
