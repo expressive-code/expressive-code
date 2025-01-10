@@ -121,7 +121,7 @@ export function vitePluginAstroExpressiveCode({
 				}
 
 				// Unless disabled, trim the bundled Shiki themes to only those used in the config
-				if (shikiConfig.removeUnusedThemes !== false && id.match(/\/shiki\/dist\/themes\.m?js$/)) {
+				if (processedEcConfig.removeUnusedThemes !== false && id.match(/\/shiki\/dist\/themes\.m?js$/)) {
 					return code.replace(shikiAssetRegExp, (match, bundledTheme) => {
 						if (configuredBundledThemes.includes(bundledTheme as string)) return match
 						return ''
