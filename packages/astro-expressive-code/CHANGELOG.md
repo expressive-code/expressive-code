@@ -1,5 +1,45 @@
 # astro-expressive-code
 
+## 0.39.0
+
+### Minor Changes
+
+- dc05ddc: Adds new config option `shiki.engine`.
+
+  Allows selecting the Shiki RegExp engine to be used for syntax highlighting. The following options are available:
+
+  - `'oniguruma'`: The default engine that supports all grammars, but requires a target environment with WebAssembly (WASM) support.
+  - `'javascript'`: A pure JavaScript engine that does not require WASM. The Shiki team is continuously improving this engine and aims for full compatibility with the Oniguruma engine. Use this engine if your target environment does not support WASM.
+
+- 9149332: Adds new config option `shiki.bundledLangs`.
+
+  Allows defining a subset of language IDs from the full Shiki bundle that should be available for syntax highlighting.
+
+  In server-side rendering (SSR) environments, setting this option to the languages used on your site can reduce bundle size by up to 80%.
+
+  If this option is not set, all languages from the full Shiki bundle are available.
+
+- dc05ddc: Adds new config option `removeUnusedThemes`.
+
+  In Astro and Starlight, Expressive Code now automatically removes any themes from the bundle that are not used by your `themes` configuration. This reduces the SSR bundle size by over 1 MB.
+
+  This new optimization is enabled by default and does not need to be configured for most sites. If you have an advanced use case that requires access all bundled themes, you can set this option to `false`.
+
+- dc05ddc: Adds new config option `shiki.langAlias`.
+
+  Allows defining alias names for languages. The keys are the alias names, and the values are the language IDs to which they should resolve.
+
+  The values can either be bundled languages, or additional languages defined in `shiki.langs`.
+
+  For example, setting `langAlias: { mjs: 'javascript' }` allows using `mjs` in your code blocks as an alias for the `javascript` language.
+
+- 9149332: Updates Shiki to the latest version (1.26.1).
+
+### Patch Changes
+
+- Updated dependencies [9149332]
+  - rehype-expressive-code@0.39.0
+
 ## 0.38.3
 
 ### Patch Changes

@@ -1,5 +1,16 @@
 # rehype-expressive-code
 
+## 0.39.0
+
+### Minor Changes
+
+- 9149332: Updates Shiki to the latest version (1.26.1).
+
+### Patch Changes
+
+- Updated dependencies [9149332]
+  - expressive-code@0.39.0
+
 ## 0.38.3
 
 ### Patch Changes
