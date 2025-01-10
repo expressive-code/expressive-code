@@ -44,10 +44,14 @@ export { ShikiLanguageRegistration }
  * Creates a set of language registrations that inject the given language into
  * Markdown and MDX fenced code blocks.
  */
-export function getNestedCodeBlockInjectionLangs(lang: LanguageRegistration) {
+export function getNestedCodeBlockInjectionLangs(lang: LanguageRegistration, langAlias: Record<string, string> = {}) {
 	const injectionLangs: LanguageRegistration[] = []
 	const langNameKey = lang.name.replace(/[^a-zA-Z0-9]/g, '_')
 	const langNameAndAliases = [lang.name, ...(lang.aliases ?? [])]
+	// Add user-configured aliases for the current lang (if any)
+	Object.entries(langAlias).forEach(([alias, target]) => {
+		if (target === lang.name && !langNameAndAliases.includes(alias)) langNameAndAliases.push(alias)
+	})
 
 	// Create injection language registration for Markdown
 	injectionLangs.push({

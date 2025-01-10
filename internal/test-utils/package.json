@@ -16,7 +16,7 @@
     "@types/node": "^18.19.69",
     "hast-util-from-html": "^2.0.3",
     "postcss": "^8.4.29",
-    "shiki": "^1.22.2",
+    "shiki": "^1.26.1",
     "typescript": "^5.0.4"
   }
 }

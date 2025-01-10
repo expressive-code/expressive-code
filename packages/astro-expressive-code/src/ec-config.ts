@@ -38,6 +38,15 @@ export type AstroExpressiveCodeOptions = RehypeExpressiveCodeOptions & {
 	 * and additional theme options.
 	 */
 	customConfigPreprocessors?: CustomConfigPreprocessors | undefined
+	/**
+	 * Controls whether any themes from the full Shiki bundle that are not used by your
+	 * Expressive Code configuration should be removed from the final bundle.
+	 *
+	 * Defaults to `true`, which automatically reduces SSR bundle size by over 1 MB.
+	 *
+	 * If you need to access all themes on your site, you can set this option to `false`.
+	 */
+	removeUnusedThemes?: boolean | undefined
 }
 
 export type CustomConfigPreprocessors = {

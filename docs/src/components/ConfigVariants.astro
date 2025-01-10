@@ -3,12 +3,14 @@ import { Code, TabItem, Tabs } from '@astrojs/starlight/components'
 
 type Props = {
 	settings: string
+	nonIntegrationSettings: string
 	namedImports?: string[] | undefined
 	imports?: string | undefined
 	ecConfigFile: boolean
+	noNextJs: boolean
 }
 
-const { settings: rawSettings, namedImports = [], imports: rawImports, ecConfigFile, ...otherProps } = Astro.props
+const { settings: rawSettings, nonIntegrationSettings: rawNonIntegrationSettings = '', namedImports = [], imports: rawImports, ecConfigFile, noNextJs, ...otherProps } = Astro.props
 
 const tabsToSpaces = (str: string) => str.replace(/\t/g, '  ')
 const lines = (str: string) => str.split(/\r?\n/)
@@ -35,6 +37,7 @@ const removeCommonIndent = (lines: string[]) => {
 const preprocess = (str: string) => removeCommonIndent(lines(tabsToSpaces(str)))
 
 const arrSettings = preprocess(rawSettings)
+const arrNonIntegrationSettings = preprocess(rawNonIntegrationSettings)
 const arrImports = rawImports ? preprocess(rawImports) : []
 
 type Variant = {
@@ -62,6 +65,7 @@ if (!ecConfigFile) {
 			[SETTINGS]
 					}),
 				],
+			[NON_INTEGRATION_SETTINGS]
 			})
 		`,
 		namedImports: namedImports.length ? `, { ${namedImports.join(', ')} }` : '',
@@ -84,14 +88,16 @@ if (!ecConfigFile) {
 						},
 					}),
 				],
+			[NON_INTEGRATION_SETTINGS]
 			})
 		`,
 		namedImports: namedImports.length ? `import { ${namedImports.join(', ')} } from '@astrojs/starlight/expressive-code'` : '',
 		settingsIndent: 4,
 	}
-	variants['Next.js'] = {
-		title: 'next.config.mjs',
-		code: `
+	if (!noNextJs)
+		variants['Next.js'] = {
+			title: 'next.config.mjs',
+			code: `
 			import createMDX from '@next/mdx'
 			import rehypeExpressiveCode[NAMED_IMPORTS] from 'rehype-expressive-code'
 			[IMPORTS]
@@ -121,9 +127,9 @@ if (!ecConfigFile) {
 
 			export default withMDX(nextConfig)
 		`,
-		namedImports: namedImports.length ? `, { ${namedImports.join(', ')} }` : '',
-		settingsIndent: 1,
-	}
+			namedImports: namedImports.length ? `, { ${namedImports.join(', ')} }` : '',
+			settingsIndent: 1,
+		}
 } else {
 	variants.Astro = {
 		title: 'ec.config.mjs',
@@ -200,6 +206,10 @@ if (!ecConfigFile) {
 					const indent = '  '.repeat(settingsIndent)
 					codeLines.splice(i, 1, ...arrSettings.map((s) => `${indent}${s}`))
 					pushIns(i, arrSettings)
+				} else if (line === '[NON_INTEGRATION_SETTINGS]') {
+					const indent = '  '.repeat(1)
+					codeLines.splice(i, 1, ...arrNonIntegrationSettings.map((s) => `${indent}${s}`))
+					pushIns(i, arrNonIntegrationSettings)
 				}
 			}
 			return (

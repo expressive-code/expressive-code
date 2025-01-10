@@ -120,6 +120,52 @@ Here are configuration examples for common scenarios:
 
 You can pass the following options to the plugin:
 
+#### bundledLangs
+
+<PropertySignature>
+- Type: BundledShikiLanguage[]
+- Default: undefined
+- Availability: Astro and Starlight integrations only
+</PropertySignature>
+
+Allows defining a subset of language IDs from the full Shiki bundle that should be available for syntax highlighting.
+
+In server-side rendering (SSR) environments, setting this option to the languages used on your site can reduce bundle size by up to 80%.
+
+If this option is not set, all languages from the full Shiki bundle are available.
+
+<ConfigVariants
+  imports={`
+    import cloudflare from '@astrojs/cloudflare // no-ins'
+  `}
+  settings={`
+    shiki: {
+      // Example: Only include languages 'astro' and 'sass'
+      // in the bundle, reducing SSR bundle size by 80%
+      bundledLangs: ['astro', 'sass'],
+    },
+  `}
+  nonIntegrationSettings={`
+    // Server-side rendering (SSR) must be enabled
+    // for bundle size trimming to have an effect
+    output: 'server', // no-ins
+    adapter: cloudflare(), // no-ins
+  `}
+  noNextJs
+/>
+
+#### engine
+
+<PropertySignature>
+- Type: `'oniguruma'` | `'javascript'`
+- Default: `'oniguruma'`
+</PropertySignature>
+
+The Shiki RegExp engine to be used for syntax highlighting. The following options are available:
+
+- `'oniguruma'`: The default engine that supports all grammars, but requires a target environment with WebAssembly (WASM) support.
+- `'javascript'`: A pure JavaScript engine that does not require WASM. The Shiki team is continuously improving this engine and aims for full compatibility with the Oniguruma engine. Use this engine if your target environment does not support WASM.
+
 #### langs
 
 <PropertySignature>
@@ -136,8 +182,32 @@ You can pass any of the language input types supported by Shiki, e.g.:
 See the [Shiki documentation](https://shiki.style/guide/load-lang) for more information.
 
 :::caution
-When using this option, Expressive Code automatically ensures that all bundled default languages are still available. You should not add Shiki's `bundledLanguages` manually to this array, as this would load many unused languages and slow down both the dev server and build times.
+When using this option, Expressive Code automatically ensures that the languages bundled with Shiki are still available, unless you have limited them using the [`bundledLangs`](#bundledlangs) option.
+
+Therefore, please do not add Shiki's bundled languages manually to this array, as this would load many unused languages and slow down both the dev server and build times.
 :::
+
+#### langAlias
+
+<PropertySignature>
+- Type: Record\<string, string\>
+- Default: {}
+</PropertySignature>
+
+Allows defining alias names for languages. The keys are the alias names, and the values are the language IDs to which they should resolve.
+
+The values can either be bundled languages, or additional languages defined in [`langs`](#langs).
+
+<ConfigVariants
+  settings={`
+    shiki: {
+      // Allow using the alias 'mjs' for the 'javascript' language
+      langAlias: {
+        mjs: 'javascript',
+      },
+    },
+  `}
+/>
 
 #### injectLangsIntoNestedCodeBlocks
 

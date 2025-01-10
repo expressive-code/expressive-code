@@ -60,7 +60,7 @@
   },
   "devDependencies": {
     "@internal/test-utils": "workspace:^",
-    "astro": "^4.5.2",
+    "astro": "^4.16.18",
     "execa": "^7.1.1"
   }
 }

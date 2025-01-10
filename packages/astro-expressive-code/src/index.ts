@@ -1,10 +1,25 @@
 import type { AstroIntegration } from 'astro'
-import type { RehypeExpressiveCodeOptions } from 'rehype-expressive-code'
+import type { BundledShikiLanguage, RehypeExpressiveCodeOptions } from 'rehype-expressive-code'
 import rehypeExpressiveCode from 'rehype-expressive-code'
 import { ConfigSetupHookArgs, PartialAstroConfig } from './astro-config'
 import { AstroExpressiveCodeOptions, CustomConfigPreprocessors, ConfigPreprocessorFn, getEcConfigFileUrl, loadEcConfigFile, mergeEcConfigOptions } from './ec-config'
 import { createAstroRenderer } from './renderer'
 import { vitePluginAstroExpressiveCode } from './vite-plugin'
+
+declare module 'rehype-expressive-code' {
+	export interface PluginShikiOptions {
+		/**
+		 * Allows defining a subset of language IDs from the full Shiki bundle
+		 * that should be available for syntax highlighting.
+		 *
+		 * In server-side rendering (SSR) environments, setting this option to the languages
+		 * used on your site can reduce bundle size by up to 80%.
+		 *
+		 * If this option is not set, all languages from the full Shiki bundle are available.
+		 */
+		bundledLangs?: BundledShikiLanguage[] | undefined
+	}
+}
 
 export * from 'rehype-expressive-code'
 
@@ -67,6 +82,7 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 								styles: hashedStyles,
 								scripts: hashedScripts,
 								ecIntegrationOptions: integrationOptions,
+								processedEcConfig,
 								astroConfig,
 								command,
 							}),
