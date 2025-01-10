@@ -1,5 +1,19 @@
 # expressive-code
 
+## 0.39.0
+
+### Minor Changes
+
+- 9149332: Updates Shiki to the latest version (1.26.1).
+
+### Patch Changes
+
+- Updated dependencies [9149332]
+  - @expressive-code/plugin-shiki@0.39.0
+  - @expressive-code/plugin-frames@0.39.0
+  - @expressive-code/plugin-text-markers@0.39.0
+  - @expressive-code/core@0.39.0
+
 ## 0.38.3
 
 ### Patch Changes
