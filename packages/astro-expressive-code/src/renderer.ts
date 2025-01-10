@@ -64,8 +64,10 @@ export async function createAstroRenderer({ ecConfig, astroConfig, logger }: Cre
 	// Unless Shiki was disabled, merge any supported Shiki settings
 	// from the Astro config into the plugin options
 	const mergedShikiConfig = shiki === true ? {} : shiki
-	if (mergedShikiConfig && !mergedShikiConfig.langs && astroConfig.markdown?.shikiConfig?.langs) {
-		mergedShikiConfig.langs = astroConfig.markdown.shikiConfig.langs as NonNullable<typeof mergedShikiConfig.langs>
+	const astroShikiConfig = astroConfig.markdown?.shikiConfig
+	if (mergedShikiConfig) {
+		if (!mergedShikiConfig.langs && astroShikiConfig?.langs) mergedShikiConfig.langs = astroShikiConfig.langs as NonNullable<typeof mergedShikiConfig.langs>
+		if (!mergedShikiConfig.langAlias && astroShikiConfig?.langAlias) mergedShikiConfig.langAlias = astroShikiConfig.langAlias
 	}
 
 	// Create the renderer

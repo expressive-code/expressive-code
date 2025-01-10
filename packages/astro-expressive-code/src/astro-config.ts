@@ -14,7 +14,7 @@ export type PartialAstroConfig = Pick<AstroConfig, 'base' | 'root' | 'srcDir'> &
 	build?: Partial<Pick<AstroConfig['build'], 'assets' | 'assetsPrefix'>> | undefined
 	markdown?:
 		| Partial<{
-				shikiConfig: Partial<Pick<AstroConfig['markdown']['shikiConfig'], 'langs'>>
+				shikiConfig: Partial<Pick<AstroConfig['markdown']['shikiConfig'], 'langs' | 'langAlias'>>
 		  }>
 		| undefined
 }
