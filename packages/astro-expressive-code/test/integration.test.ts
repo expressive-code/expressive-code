@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeAll } from 'vitest'
-import { existsSync, rmSync, readFileSync, readdirSync } from 'fs'
+import { existsSync, rmSync, readFileSync, readdirSync, statSync } from 'fs'
 import { join } from 'path'
 import { execa } from 'execa'
 import type { AstroUserConfig } from 'astro/config'
@@ -274,6 +274,44 @@ describe('Integration into Astro ^4.5.0 with Cloudflare adapter', () => {
 		const files = fixture?.readDir('_astro') ?? []
 		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.js$/))).toHaveLength(1)
 	})
+
+	test('Removes unused Shiki language chunks based on `bundledLangs` option', () => {
+		const files = fixture?.readDir('_worker.js/chunks') ?? []
+		expect(
+			files.filter((fileName) => fileName.match(/^(sass)_.*?\.m?js$/)),
+			'No Shiki language chunk was found for "sass"'
+		).toHaveLength(1)
+		expect(
+			files.filter((fileName) => fileName.match(/^(abap|clojure|docker|ruby)_.*?\.m?js$/)),
+			'Unwanted Shiki language chunks were found in the bundle'
+		).toHaveLength(0)
+	})
+
+	test('Removes unused Shiki theme chunks by default', () => {
+		const files = fixture?.readDir('_worker.js/chunks') ?? []
+		expect(
+			files.filter((fileName) => fileName.match(/^(catppuccin-.*?|dracula.*?|dark-plus)_.*?\.m?js$/)),
+			'Unused Shiki theme chunks were found in the bundle'
+		).toHaveLength(0)
+	})
+
+	test('Removes Shiki WASM engine if JS was selected in `engine` option', () => {
+		const files = fixture?.readDir('_worker.js/chunks') ?? []
+		expect(
+			files.filter((fileName) => fileName.match(/^(wasm)_.*?\.m?js$/)),
+			'Shiki WASM engine was found in the bundle'
+		).toHaveLength(0)
+	})
+
+	test('Total bundle size does not exceed 1.5 MB', () => {
+		const files = fixture?.readDir('_worker.js/chunks') ?? []
+		const totalSize = files.reduce((total, fileName) => {
+			const filePath = join(fixture?.path ?? '', '_worker.js/chunks', fileName)
+			const stats = statSync(filePath)
+			return total + stats.size
+		}, 0)
+		expect(totalSize).toBeLessThanOrEqual(1.5 * 1024 * 1024)
+	})
 })
 
 describe('Integration into Astro ^5.0.0', () => {
@@ -421,21 +459,35 @@ function validateHtml(
 	// TODO: Maybe add a second set of pages including two code blocks to test that the styles are deduplicated
 }
 
-async function buildFixture({ fixtureDir, buildCommand, buildArgs, outputDir }: { fixtureDir: string; buildCommand: string; buildArgs?: string[] | undefined; outputDir: string }) {
+async function buildFixture({
+	fixtureDir,
+	buildCommand,
+	buildArgs,
+	outputDir,
+	keepPreviousBuild = false,
+}: {
+	fixtureDir: string
+	buildCommand: string
+	buildArgs?: string[] | undefined
+	outputDir: string
+	keepPreviousBuild?: boolean | undefined
+}) {
 	const fixturePath = join(__dirname, 'fixtures', fixtureDir)
 	const outputDirPath = join(fixturePath, outputDir)
 
-	// Remove the output directory if it exists
-	if (existsSync(outputDirPath)) {
-		rmSync(outputDirPath, { recursive: true })
-	}
+	if (!keepPreviousBuild) {
+		// Remove the output directory if it exists
+		if (existsSync(outputDirPath)) {
+			rmSync(outputDirPath, { recursive: true })
+		}
 
-	// Run the build command
-	const buildCommandResult = await execa(buildCommand, buildArgs ?? [], { cwd: fixturePath })
+		// Run the build command
+		const buildCommandResult = await execa(buildCommand, buildArgs ?? [], { cwd: fixturePath })
 
-	// Throw an error if the build command failed
-	if (buildCommandResult.failed || buildCommandResult.stderr) {
-		throw new Error(buildCommandResult.stderr.toString())
+		// Throw an error if the build command failed
+		if (buildCommandResult.failed || buildCommandResult.stderr) {
+			throw new Error(buildCommandResult.stderr.toString())
+		}
 	}
 
 	// Return an object that contains the output directory path and allows to read files from it

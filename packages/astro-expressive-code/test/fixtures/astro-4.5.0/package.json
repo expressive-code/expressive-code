@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "astro build",
-    "preview": "wrangler pages dev ./dist"
+    "preview": "wrangler pages dev ./dist --compatibility-date=2024-12-30"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^10.0.2",

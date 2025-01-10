@@ -120,15 +120,15 @@ export function vitePluginAstroExpressiveCode({
 					})
 				}
 
-				// Only bundle Shiki themes referenced by the configuration
-				if (id.match(/\/shiki\/dist\/themes\.m?js$/)) {
+				// Unless disabled, trim the bundled Shiki themes to only those used in the config
+				if (shikiConfig.removeUnusedThemes !== false && id.match(/\/shiki\/dist\/themes\.m?js$/)) {
 					return code.replace(shikiAssetRegExp, (match, bundledTheme) => {
 						if (configuredBundledThemes.includes(bundledTheme as string)) return match
 						return ''
 					})
 				}
 
-				// If an allow list was given, only bundle Shiki languages contained in the list
+				// If an allow list was given, trim the bundled Shiki languages to those in the list
 				if (shikiConfig.bundledLangs && id.match(/\/shiki\/dist\/langs\.m?js$/)) {
 					return code.replace(shikiAssetRegExp, (match, bundledLang) => {
 						if (shikiConfig.bundledLangs!.includes(bundledLang as BundledShikiLanguage)) return match

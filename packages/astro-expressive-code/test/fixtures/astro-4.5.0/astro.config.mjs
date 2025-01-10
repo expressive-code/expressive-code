@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from 'astro/config'
+import { defineConfig, passthroughImageService } from 'astro/config'
 import mdx from '@astrojs/mdx'
 import cloudflare from '@astrojs/cloudflare'
 import { astroExpressiveCode } from 'astro-expressive-code'
@@ -10,11 +10,14 @@ export default defineConfig({
 		astroExpressiveCode({
 			shiki: {
 				engine: 'javascript',
-				bundledLangs: ['astro'],
+				bundledLangs: ['astro', 'sass'],
 			},
 		}),
 		mdx(),
 	],
 	output: 'server',
 	adapter: cloudflare(),
+	image: {
+		service: passthroughImageService(),
+	},
 })
