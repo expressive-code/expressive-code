@@ -1,10 +1,12 @@
 import { AttachedPluginData, ExpressiveCodePlugin, PluginTexts } from '@expressive-code/core'
 import { select } from '@expressive-code/core/hast'
-import { Section, parseSections } from './utils'
+import type { CollapseStyle, Section } from './utils'
+import { parseCollapseStyle, parseSections } from './utils'
 import { sectionizeAst } from './ast'
-import { CollapsibleSectionsStyleSettings, collapsibleSectionsStyleSettings, getCollapsibleSectionsBaseStyles } from './styles'
+import type { CollapsibleSectionsStyleSettings } from './styles'
+import { collapsibleSectionsStyleSettings, getCollapsibleSectionsBaseStyles } from './styles'
 
-export { CollapsibleSectionsStyleSettings }
+export type { CollapsibleSectionsStyleSettings }
 
 declare module '@expressive-code/core' {
 	export interface StyleSettings {
@@ -18,17 +20,31 @@ export interface PluginCollapsibleSectionsProps {
 	 */
 	collapse: string | string[]
 	/**
-	 * Determines if collapsed section titles (`X collapsed lines`) should be indented
-	 * to preserve the minimum indent level of their contained collapsed code lines.
+	 * Determines if the summary line content of collapsible sections should be indented
+	 * to match the minimum indent level of the contained code lines.
 	 *
 	 * @default true
 	 */
 	collapsePreserveIndent: boolean
 	/**
-	 * Show a button to re-collapse expanded sections.
-	 * @default false
+	 * Allows to select one of the following collapsible section styles:
+	 *
+	 * - `github`: The default style, similar to the one used by GitHub.
+	 *   A summary line with an expand icon and the default text `X collapsed lines` is shown.
+	 *   When expanded, the summary line is replaced by the section's code lines.
+	 *   It is not possible to re-collapse the section.
+	 * - `foldable-top`: When collapsed, the summary line looks like the `github` style.
+	 *   However, when expanded, it remains visible above the expanded code lines,
+	 *   making it possible to re-collapse the section.
+	 * - `foldable-bottom`: Same as `foldable-top`, but the summary line remains visible
+	 *   below the expanded code lines.
+	 * - `foldable-auto`: Automatically selects `foldable-top` or `foldable-bottom` based on the
+	 *   location of the collapsible section in the code block. Uses `foldable-top` unless the
+	 *   section ends at the bottom of the code block, in which case `foldable-bottom` is used.
+	 *
+	 * @default 'github'
 	 */
-	showCollapseButton: boolean
+	collapseStyle: CollapseStyle
 }
 
 declare module '@expressive-code/core' {
@@ -59,7 +75,7 @@ export function pluginCollapsibleSections(): ExpressiveCodePlugin {
 				codeBlock.props.collapsePreserveIndent = codeBlock.metaOptions.getBoolean('collapsePreserveIndent') ?? codeBlock.props.collapsePreserveIndent
 				const ranges = [...toArray(codeBlock.props.collapse), ...codeBlock.metaOptions.getRanges('collapse')]
 				codeBlock.props.collapse = ranges
-				codeBlock.props.showCollapseButton = codeBlock.metaOptions.getBoolean('showCollapseButton') ?? codeBlock.props.showCollapseButton ?? false
+				codeBlock.props.collapseStyle = parseCollapseStyle(codeBlock.metaOptions.getString('collapseStyle') ?? codeBlock.props.collapseStyle ?? 'github')
 
 				// Parse the given ranges into sections and store references to the targeted lines,
 				// allowing us to react to potential line number changes

@@ -1,7 +1,7 @@
 import { formatTemplate, ExpressiveCodeBlock, RenderEmptyLineFn } from '@expressive-code/core'
-import type { ElementContent } from '@expressive-code/core/hast'
-import { setInlineStyle, h, s } from '@expressive-code/core/hast'
-import { Section } from './utils'
+import type { Element, ElementContent } from '@expressive-code/core/hast'
+import { setInlineStyle, h } from '@expressive-code/core/hast'
+import type { Section } from './utils'
 import { collapsibleSectionClass } from './styles'
 
 /**
@@ -20,71 +20,41 @@ export function sectionizeAst({
 	text: string
 	renderEmptyLine: RenderEmptyLineFn
 }): ElementContent[] {
+	const { collapseStyle = 'github' } = codeBlock.props
 	const outp = [...lines]
 
-	// icon yoinked from octicons (MIT licensed)
-	const collapsedIconD =
-		'm8.177.677 2.896 2.896a.25.25 0 0 1-.177.427H8.75v1.25a.75.75 0 0 1-1.5 0V4H5.104a.25.25 0 0 1-.177-.427L7.823.677a.25.25 0 0 1 .354 0ZM7.25 10.75a.75.75 0 0 1 1.5 0V12h2.146a.25.25 0 0 1 .177.427l-2.896 2.896a.25.25 0 0 1-.354 0l-2.896-2.896A.25.25 0 0 1 5.104 12H7.25v-1.25Zm-5-2a.75.75 0 0 0 0-1.5h-.5a.75.75 0 0 0 0 1.5h.5ZM6 8a.75.75 0 0 1-.75.75h-.5a.75.75 0 0 1 0-1.5h.5A.75.75 0 0 1 6 8Zm2.25.75a.75.75 0 0 0 0-1.5h-.5a.75.75 0 0 0 0 1.5h.5ZM12 8a.75.75 0 0 1 .75.75h-.5a.75.75 0 0 1 0-1.5h.5A.75.75 0 0 1 12 8Zm2.25.75a.75.75 0 0 0 0-1.5h-.5a.75.75 0 0 0 0 1.5h.5Z'
-
-	const collapseIconD =
-		'M7.823 1.677 4.927 4.573A.25.25 0 0 0 5.104 5H7.25v3.236a.75.75 0 1 0 1.5 0V5h2.146a.25.25 0 0 0 .177-.427L8.177 1.677a.25.25 0 0 0-.354 0ZM13.75 11a.75.75 0 0 0 0 1.5h.5a.75.75 0 0 0 0-1.5h-.5Zm-3.75.75a.75.75 0 0 1 .75-.75h.5a.75.75 0 0 1 0 1.5h-.5a.75.75 0 0 1-.75-.75ZM7.75 11a.75.75 0 0 0 0 1.5h.5a.75.75 0 0 0 0-1.5h-.5ZM4 11.75a.75.75 0 0 1 .75-.75h.5a.75.75 0 0 1 0 1.5h-.5a.75.75 0 0 1-.75-.75ZM1.75 11a.75.75 0 0 0 0 1.5h.5a.75.75 0 0 0 0-1.5h-.5Z'
-
-	// by sorting from last to first, we're certain that the relevant lines can still be looked up by their index
+	// By sorting from last to first, we're certain that the relevant lines can still be looked up by their index
 	;[...sections]
 		.sort((a, b) => b.to - a.to)
 		.forEach(({ from, to }) => {
-			const targetLines = lines.slice(from - 1, to)
+			const contentLines = lines.slice(from - 1, to)
 
-			// Create the summary line for the collapsible section
-			const summaryLine = renderEmptyLine()
-			summaryLine.codeWrapper.children.push(
-				s('svg', { xmlns: 'http://www.w3.org/2000/svg', 'aria-hidden': 'true', viewBox: '0 0 16 16', width: '16', height: '16' }, [s('path', { d: collapsedIconD })]),
-				{ type: 'text', value: formatTemplate(text, { lineCount: targetLines.length }) }
-			)
-			// Wrap it in a summary element, and then in a details element with the target lines
-			const summary = h('summary', [summaryLine.lineAst])
-
-			let collapseButton = undefined
-			if (codeBlock.props.showCollapseButton === true) {
-				const collapseLine = renderEmptyLine()
-				collapseLine.codeWrapper.children.push(
-					s('svg', { xmlns: 'http://www.w3.org/2000/svg', 'aria-hidden': 'true', viewBox: '0 0 16 16', width: '16', height: '16' }, [s('path', { d: collapseIconD })]),
-					{ type: 'text', value: `collapse ${targetLines.length} ${targetLines.length === 1 ? 'line' : 'lines'}` }
-				)
-
-				collapseButton = h(
-					'div',
-					{
-						class: 'collapse-button',
-						onClick: 'this.parentElement.removeAttribute("open")',
-					},
-					[collapseLine.lineAst]
-				)
-
-				// Apply same indentation if enabled
-				if (codeBlock.props.collapsePreserveIndent !== false) {
-					const minIndent = codeBlock.getLines(from - 1, to).reduce((acc, line) => {
-						if (line.text.trim().length === 0) return acc
-						return Math.min(acc, line.text.match(/^\s*/)?.[0].length ?? 0)
-					}, Infinity)
-					if (minIndent > 0 && minIndent < Infinity) {
-						setInlineStyle(collapseLine.lineAst, '--ecIndent', `${minIndent}ch`)
-					}
-				}
-			}
-
-			const details = h('details', { class: collapsibleSectionClass }, [summary, ...targetLines, ...(collapseButton ? [collapseButton] : [])])
-			// Add information about the minimum indent level of the collapsed lines
+			// Determine information about the minimum indent level of the collapsed lines
 			// unless disabled in the props
-			if (codeBlock.props.collapsePreserveIndent !== false) {
-				const minIndent = codeBlock.getLines(from - 1, to).reduce((acc, line) => {
+			const minIndent =
+				codeBlock.props.collapsePreserveIndent !== false &&
+				codeBlock.getLines(from - 1, to).reduce((acc, line) => {
 					if (line.text.trim().length === 0) return acc
 					return Math.min(acc, line.text.match(/^\s*/)?.[0].length ?? 0)
 				}, Infinity)
-				if (minIndent > 0 && minIndent < Infinity) setInlineStyle(summaryLine.lineAst, '--ecIndent', `${minIndent}ch`)
+
+			// Create the summary line for the collapsible section and wrap it in a summary element
+			const summaryLine = renderEmptyLine()
+			if (minIndent && minIndent < Infinity) setInlineStyle(summaryLine.lineAst, '--ecIndent', `${minIndent}ch`)
+			summaryLine.codeWrapper.children.push(h('span.expand'), h('span.collapse'), h('span.text', formatTemplate(text, { lineCount: contentLines.length })))
+			const summary = h('summary', summaryLine.lineAst)
+
+			// Create an outer wrapper based on the collapse style
+			const resolvedCollapseStyle = collapseStyle === 'foldable-auto' ? (to >= lines.length ? 'foldable-bottom' : 'foldable-top') : collapseStyle
+			const outerSelector = `.${collapsibleSectionClass}.${resolvedCollapseStyle}`
+			let outerElement: Element
+			if (collapseStyle === 'github') {
+				outerElement = h(`details${outerSelector}`, [summary, ...contentLines])
+			} else {
+				outerElement = h(`div${outerSelector}`, [h(`details`, [summary]), h(`div.content-lines`, contentLines)])
 			}
 
-			outp.splice(from - 1, targetLines.length, details)
+			outp.splice(from - 1, to - from + 1, outerElement)
 		})
 
 	return outp

@@ -8,7 +8,7 @@ export default defineConfig({
 	integrations: [
 		astroExpressiveCode({
 			// This should get overwritten by the themes specified in `ec.config.mjs`
-			themes: ['github-dark', 'github-light'],
+			themes: ['catppuccin-macchiato', 'catppuccin-latte'],
 			// This should get merged with the overrides specified in `ec.config.mjs`
 			styleOverrides: {
 				textMarkers: {
