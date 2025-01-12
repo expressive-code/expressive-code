@@ -154,8 +154,7 @@ export function getCollapsibleSectionsBaseStyles({ cssVar }: ResolverContext) {
 				}
 
 				/* Expand & collapse icons */
-				.expand,
-				.collapse {
+				:is(.expand, .collapse) {
 					position: relative;
 					display: inline-block;
 					width: 16px;
@@ -177,6 +176,9 @@ export function getCollapsibleSectionsBaseStyles({ cssVar }: ResolverContext) {
 				.expand::after {
 					-webkit-mask-image: ${unfoldSvg};
 					mask-image: ${unfoldSvg};
+					/* Ensure that the expand icons of closed sections get printed to avoid gap */
+					-webkit-print-color-adjust: exact;
+					print-color-adjust: exact;
 				}
 				.collapse {
 					display: none;
@@ -215,8 +217,7 @@ export function getCollapsibleSectionsBaseStyles({ cssVar }: ResolverContext) {
 
 			/* Collapse styles 'foldable-top' and 'foldable-bottom' 
 			   ('foldable-auto' gets resolved during AST generation) */
-			&.foldable-top,
-			&.foldable-bottom {
+			&:is(.foldable-top, .foldable-bottom) {
 				display: flex;
 				flex-direction: column;
 
@@ -225,13 +226,13 @@ export function getCollapsibleSectionsBaseStyles({ cssVar }: ResolverContext) {
 				}
 				& details[open] {
 					& .collapse { display: inline-block; }
-					& .expand { display: none; }
-					& .expand { display: none; }
-					& .text { display: none; }
+					& :is(.expand, .text) { display: none; }
 					& + .content-lines {
 						display: block;
 						background-color: ${cssVar('collapsibleSections.openBackgroundColorFoldable')};
 					}
+					/* Hide re-collapsible headers of open sections when printing */
+					@media print { display: none; }
 				}
 			}
 			&.foldable-bottom {
