@@ -13,8 +13,6 @@
   - `collapsible-end`: Same as `collapsible-start`, but the summary line remains visible below the expanded code lines.
   - `collapsible-auto`: Automatically selects `collapsible-start` or `collapsible-end` based on the location of the collapsible section in the code block. Uses `collapsible-start` unless the section ends at the bottom of the code block, in which case `collapsible-end` is used.
 
-- 4eed5d0: add option to re-collapse expanded lines using `showCollapseButton` property
-
 ### Patch Changes
 
 - @expressive-code/core@0.40.0
