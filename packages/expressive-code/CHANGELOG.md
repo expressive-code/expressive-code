@@ -1,5 +1,14 @@
 # expressive-code
 
+## 0.40.0
+
+### Patch Changes
+
+- @expressive-code/core@0.40.0
+- @expressive-code/plugin-frames@0.40.0
+- @expressive-code/plugin-shiki@0.40.0
+- @expressive-code/plugin-text-markers@0.40.0
+
 ## 0.39.0
 
 ### Minor Changes
