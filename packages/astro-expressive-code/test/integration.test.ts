@@ -399,7 +399,7 @@ describe('Integration into Astro ^5.0.0', () => {
 	test('Config options from `ec.config.mjs` are merged with integration options', () => {
 		const matchingAssets = enumerateAssets(fixture, 'css')
 		const cssContents = fixture?.readFile(`_astro/${matchingAssets[0]}`) ?? ''
-		expect(cssContents, 'Expected themes array to be fully replaced by the one in ec.config.mjs').to.not.contain('github')
+		expect(cssContents, 'Expected themes array to be fully replaced by the one in ec.config.mjs').to.not.contain('catppuccin')
 		expect(
 			cssContents.match(/--ec-tm-inlMarkerBrdWd:(.*?);/)?.[1],
 			'Expected styleOverrides value for textMarkers.inlineMarkerBorderWidth to be overwritten by ec.config.mjs'

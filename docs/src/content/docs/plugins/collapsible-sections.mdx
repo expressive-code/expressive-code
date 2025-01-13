@@ -4,6 +4,7 @@
 title: Collapsible Sections
 ---
 
+import { Code } from '@astrojs/starlight/components'
 import PropertySignature from '@components/PropertySignature.astro'
 import ConfigVariants from '@components/ConfigVariants.astro'
 import PackageManagers from '@components/PackageManagers.astro'
@@ -38,8 +39,7 @@ To mark a section as collapsible, you need to add **meta information** to your c
 
 You can also collapse multiple sections in a single code block by separating them with commas:
 
-````md ins="collapse={1-5, 12-14}"
-```js collapse={1-5, 12-14}
+export const exampleCode = `
 // All this boilerplate setup code will be collapsed
 import { someBoilerplateEngine } from '@example/some-boilerplate'
 import { evenMoreBoilerplate } from '@example/even-more-boilerplate'
@@ -53,30 +53,69 @@ function calcFn() {
   // You can have multiple collapsed sections
   const a = 1
   const b = 2
-  return a + b
+  const c = a + b
+
+  // This will remain visible
+  console.log(\`Calculation result: \${a} + \${b} = \${c}\`)
+  return c
 }
-```
-````
 
-The above code block will be rendered like this:
+// All this code until the end of the block will be collapsed again
+engine.closeConnection()
+engine.freeMemory()
+engine.shutdown({ reason: 'End of example boilerplate code' })
+`
 
-```js collapse={1-5, 12-14}
-// All this boilerplate setup code will be collapsed
-import { someBoilerplateEngine } from '@example/some-boilerplate'
-import { evenMoreBoilerplate } from '@example/even-more-boilerplate'
+export const exampleMeta = `collapse={1-5, 12-14, 21-24}`
 
-const engine = someBoilerplateEngine(evenMoreBoilerplate())
+<Code lang="md" code={'```js ' + exampleMeta + exampleCode + '```'} meta={`ins="${exampleMeta}"`} />
 
-// This part of the code will be visible by default
-engine.doSomething(1, 2, 3, calcFn)
+### Available styles
 
-function calcFn() {
-  // You can have multiple collapsed sections
-  const a = 1
-  const b = 2
-  return a + b
-}
-```
+The plugin supports different section styles, which can be set per block using the `collapseStyle` prop:
+
+<Code lang="md" code={'```js ' + exampleMeta + ' collapseStyle=<your style here>\n// ...\n```'} meta={`ins="collapseStyle=<your style here>"`} />
+
+You can also change the prop's default value globally to avoid having to specify it for each code block. To do so, add it to the [`defaultProps`](/reference/configuration/#defaultprops) configuration option:
+
+<ConfigVariants
+  imports={`
+    import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections' // no-ins
+  `}
+  settings={`
+    plugins: [pluginCollapsibleSections()], // no-ins
+    defaultProps: {
+      // Change the default style of collapsible sections
+      collapseStyle: 'collapsible-auto',
+    },
+  `}
+/>
+
+In the following sections, you can see the different styles in action.
+
+#### `github` (default style)
+
+This style is similar to the one used by GitHub. A summary line with an expand icon and the default text `X collapsed lines` is shown. When expanded, the summary line is replaced by the section's code lines. It is not possible to re-collapse the section.
+
+<Code lang="js" code={exampleCode} meta={exampleMeta} />
+
+#### `collapsible-start`
+
+When collapsed, the summary line looks like the `github` style. However, when expanded, it remains visible before the expanded code lines, making it possible to re-collapse the section.
+
+<Code lang="js" code={exampleCode} meta={exampleMeta + ' collapseStyle=collapsible-start'} />
+
+#### `collapsible-end`
+
+Same as `collapsible-start`, but the summary line remains visible after the expanded code lines.
+
+<Code lang="js" code={exampleCode} meta={exampleMeta + ' collapseStyle=collapsible-end'} />
+
+#### `collapsible-auto`
+
+Automatically selects `collapsible-start` or `collapsible-end` based on the location of the collapsible section in the code block. Uses `collapsible-start` unless the section ends at the end of the code block, in which case `collapsible-end` is used.
+
+<Code lang="js" code={exampleCode} meta={exampleMeta + ' collapseStyle=collapsible-auto'} />
 
 ## Usage in the `<Code>` component
 
@@ -99,7 +138,21 @@ Collapses the given line range or ranges.
 - Default: ``true``
 </PropertySignature>
 
-Determines if collapsed section titles (`X collapsed lines`) should be indented to preserve the minimum indent level of their contained collapsed code lines.
+Determines if the summary line content of collapsible sections should be indented to match the minimum indent level of the contained code lines.
+
+#### collapseStyle
+
+<PropertySignature>
+- Type: `"github"` \| `"collapsible-start"` \| `"collapsible-end"` \| `"collapsible-auto"`
+- Default: ``'github'``
+</PropertySignature>
+
+Allows to select one of the following collapsible section styles:
+
+- `github`: The default style, similar to the one used by GitHub. A summary line with an expand icon and the default text `X collapsed lines` is shown. When expanded, the summary line is replaced by the section's code lines. It is not possible to re-collapse the section.
+- `collapsible-start`: When collapsed, the summary line looks like the `github` style. However, when expanded, it remains visible above the expanded code lines, making it possible to re-collapse the section.
+- `collapsible-end`: Same as `collapsible-start`, but the summary line remains visible below the expanded code lines.
+- `collapsible-auto`: Automatically selects `collapsible-start` or `collapsible-end` based on the location of the collapsible section in the code block. Uses `collapsible-start` unless the section ends at the bottom of the code block, in which case `collapsible-end` is used.
 
 ## Styling
 
@@ -129,7 +182,7 @@ This plugin adds a `collapsibleSections` object to the `styleOverrides` engine c
 - Default: ``({ theme }) => setAlpha(theme.colors['editor.foldBackground'], 0.2) || 'rgb(84 174 255 / 20%)'``
 </PropertySignature>
 
-The background color of closed sections.
+The background color of the summary line.
 
 #### closedBorderColor
 
@@ -138,7 +191,7 @@ The background color of closed sections.
 - Default: ``({ theme }) => setAlpha(theme.colors['editor.foldBackground'], 0.5) || 'rgb(84 174 255 / 50%)'``
 </PropertySignature>
 
-The border color of closed sections.
+The border color of the summary line.
 
 #### closedBorderWidth
 
@@ -147,7 +200,9 @@ The border color of closed sections.
 - Default: ``'0'``
 </PropertySignature>
 
-The border width of closed sections.
+The border width of the summary line.
+
+Note: Despite the setting prefix `closed`, summary lines are also visible while the section is open when using any of the `collapsible-*` styles. This is the same for all `closed*` settings.
 
 #### closedFontFamily
 
@@ -156,7 +211,7 @@ The border width of closed sections.
 - Default: ``'inherit'``
 </PropertySignature>
 
-The font family of the closed section summary text.
+The font family of the section summary line.
 
 #### closedFontSize
 
@@ -165,7 +220,7 @@ The font family of the closed section summary text.
 - Default: ``'inherit'``
 </PropertySignature>
 
-The font size of the closed section summary text.
+The font size of the section summary line.
 
 #### closedLineHeight
 
@@ -174,7 +229,7 @@ The font size of the closed section summary text.
 - Default: ``'inherit'``
 </PropertySignature>
 
-The line height of the closed section summary text.
+The line height of the section summary line.
 
 #### closedMargin
 
@@ -183,7 +238,7 @@ The line height of the closed section summary text.
 - Default: ``'0'``
 </PropertySignature>
 
-The margin around closed sections.
+The margin around the summary line.
 
 #### closedPaddingBlock
 
@@ -192,7 +247,7 @@ The margin around closed sections.
 - Default: ``'4px'``
 </PropertySignature>
 
-The block padding of closed sections.
+The block padding of the summary line.
 
 #### closedTextColor
 
@@ -201,7 +256,7 @@ The block padding of closed sections.
 - Default: ``'inherit'``
 </PropertySignature>
 
-The text color of the closed section summary text.
+The text color of the section summary line.
 
 #### openBackgroundColor
 
@@ -210,7 +265,16 @@ The text color of the closed section summary text.
 - Default: ``'transparent'``
 </PropertySignature>
 
-The background color of open sections.
+The background color of expanded code lines when using the default `github` style.
+
+#### openBackgroundColorCollapsible
+
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+- Default: ``({ theme }) => setAlpha(theme.colors['editor.foldBackground'], 0.1) || 'rgb(84 174 255 / 10%)'``
+</PropertySignature>
+
+The background color of expanded code lines when using any of the `collapsible-*` styles.
 
 #### openBorderColor
 
@@ -219,7 +283,7 @@ The background color of open sections.
 - Default: ``'transparent'``
 </PropertySignature>
 
-The border color of open sections.
+The color of the border around expanded code lines.
 
 #### openBorderWidth
 
@@ -228,7 +292,7 @@ The border color of open sections.
 - Default: ``'1px'``
 </PropertySignature>
 
-The border width of open sections.
+The width of the border around expanded code lines.
 
 #### openMargin
 
