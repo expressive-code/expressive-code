@@ -131,7 +131,7 @@ describe('Renders collapsed sections', async () => {
 						styleOverrides: {
 							collapsibleSections: {
 								openBorderColor: ({ resolveSetting }) => resolveSetting('collapsibleSections.closedBorderColor'),
-								openBackgroundColor: ({ resolveSetting }) => resolveSetting('collapsibleSections.openBackgroundColorFoldable'),
+								openBackgroundColor: ({ resolveSetting }) => resolveSetting('collapsibleSections.openBackgroundColorCollapsible'),
 							},
 						},
 					},
@@ -146,13 +146,13 @@ describe('Renders collapsed sections', async () => {
 			})
 		})
 
-		test(`Supports foldable styles`, { timeout: 5 * 1000 }, async ({ task: { name: testName } }) => {
+		test(`Supports collapsible-* styles`, { timeout: 5 * 1000 }, async ({ task: { name: testName } }) => {
 			await renderAndOutputHtmlSnapshot({
 				testName,
 				testBaseDir: __dirname,
 				fixtures: buildThemeFixtures(themes, {
 					code: longTestText,
-					meta: longTestMeta + ' collapseStyle=foldable-auto',
+					meta: longTestMeta + ' collapseStyle=collapsible-auto',
 					plugins: [pluginShiki(), pluginTextMarkers(), pluginCollapsibleSections()],
 					blockValidationFn: ({ renderedGroupAst }) => {
 						const codeAst = select('pre > code', renderedGroupAst)
@@ -162,14 +162,14 @@ describe('Renders collapsed sections', async () => {
 						const wrappers = selectAll(`div.${collapsibleSectionClass}`, codeAst)
 						expect(wrappers).toHaveLength(3)
 
-						// Expect the correct foldable style classes on the wrappers
+						// Expect the correct collapsible style classes on the wrappers
 						// based on their location in the code snippet
 						const styleClasses = wrappers.map((wrapper) =>
 							getClassNames(wrapper)
-								.filter((className) => className.startsWith('foldable-'))
+								.filter((className) => className.startsWith('collapsible-'))
 								.join(',')
 						)
-						expect(styleClasses).toEqual(['foldable-top', 'foldable-top', 'foldable-bottom'])
+						expect(styleClasses).toEqual(['collapsible-start', 'collapsible-start', 'collapsible-end'])
 					},
 				}),
 			})

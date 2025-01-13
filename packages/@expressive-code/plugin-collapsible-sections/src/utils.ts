@@ -30,7 +30,7 @@ export function parseSections(value: string): Section[] {
 	return sections
 }
 
-const collapseStyles = ['github', 'foldable-top', 'foldable-bottom', 'foldable-auto'] as const
+const collapseStyles = ['github', 'collapsible-start', 'collapsible-end', 'collapsible-auto'] as const
 export type CollapseStyle = (typeof collapseStyles)[number]
 
 export function parseCollapseStyle(value: string): CollapseStyle {

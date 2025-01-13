@@ -7,7 +7,7 @@ export interface CollapsibleSectionsStyleSettings {
 	 * The border width of the summary line.
 	 *
 	 * Note: Despite the setting prefix `closed`, summary lines are also visible
-	 * while the section is open when using any of the `foldable-*` styles.
+	 * while the section is open when using any of the `collapsible-*` styles.
 	 * This is the same for all `closed*` settings.
 	 * @default '0'
 	 */
@@ -80,11 +80,11 @@ export interface CollapsibleSectionsStyleSettings {
 	 */
 	openBackgroundColor: string
 	/**
-	 * The background color of expanded code lines when using any of the `foldable-*` styles.
+	 * The background color of expanded code lines when using any of the `collapsible-*` styles.
 	 * @default
 	 * ({ theme }) => setAlpha(theme.colors['editor.foldBackground'], 0.1) || 'rgb(84 174 255 / 10%)'
 	 */
-	openBackgroundColorFoldable: string
+	openBackgroundColorCollapsible: string
 }
 
 export const collapsibleSectionsStyleSettings = new PluginStyleSettings({
@@ -103,7 +103,7 @@ export const collapsibleSectionsStyleSettings = new PluginStyleSettings({
 			openPadding: '0',
 			openMargin: '0',
 			openBackgroundColor: 'transparent',
-			openBackgroundColorFoldable: ({ theme }) => setAlpha(theme.colors['editor.foldBackground'], 0.1) || 'rgb(84 174 255 / 10%)',
+			openBackgroundColorCollapsible: ({ theme }) => setAlpha(theme.colors['editor.foldBackground'], 0.1) || 'rgb(84 174 255 / 10%)',
 			openBorderColor: 'transparent',
 		},
 	},
@@ -215,9 +215,9 @@ export function getCollapsibleSectionsBaseStyles({ cssVar }: ResolverContext) {
 				background-color: ${cssVar('collapsibleSections.openBackgroundColor')};
 			}
 
-			/* Collapse styles 'foldable-top' and 'foldable-bottom' 
-			   ('foldable-auto' gets resolved during AST generation) */
-			&:is(.foldable-top, .foldable-bottom) {
+			/* Collapse styles 'collapsible-start' and 'collapsible-end' 
+			   ('collapsible-auto' gets resolved during AST generation) */
+			&:is(.collapsible-start, .collapsible-end) {
 				display: flex;
 				flex-direction: column;
 
@@ -229,13 +229,13 @@ export function getCollapsibleSectionsBaseStyles({ cssVar }: ResolverContext) {
 					& :is(.expand, .text) { display: none; }
 					& + .content-lines {
 						display: block;
-						background-color: ${cssVar('collapsibleSections.openBackgroundColorFoldable')};
+						background-color: ${cssVar('collapsibleSections.openBackgroundColorCollapsible')};
 					}
 					/* Hide re-collapsible headers of open sections when printing */
 					@media print { display: none; }
 				}
 			}
-			&.foldable-bottom {
+			&.collapsible-end {
 				flex-direction: column-reverse;
 			}
 		}

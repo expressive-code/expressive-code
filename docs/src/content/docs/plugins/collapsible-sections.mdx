@@ -72,9 +72,24 @@ export const exampleMeta = `collapse={1-5, 12-14, 21-24}`
 
 ### Available styles
 
-The plugin supports different collapsible section styles, which can be set using the `collapseStyle` prop. This prop can be provided per block in the meta information, or globally using the [`defaultProps`](/reference/configuration/#defaultprops) configuration option.
+The plugin supports different section styles, which can be set per block using the `collapseStyle` prop:
 
 <Code lang="md" code={'```js ' + exampleMeta + ' collapseStyle=<your style here>\n// ...\n```'} meta={`ins="collapseStyle=<your style here>"`} />
+
+You can also change the prop's default value globally to avoid having to specify it for each code block. To do so, add it to the [`defaultProps`](/reference/configuration/#defaultprops) configuration option:
+
+<ConfigVariants
+  imports={`
+    import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections' // no-ins
+  `}
+  settings={`
+    plugins: [pluginCollapsibleSections()], // no-ins
+    defaultProps: {
+      // Change the default style of collapsible sections
+      collapseStyle: 'collapsible-auto',
+    },
+  `}
+/>
 
 In the following sections, you can see the different styles in action.
 
@@ -84,23 +99,23 @@ This style is similar to the one used by GitHub. A summary line with an expand i
 
 <Code lang="js" code={exampleCode} meta={exampleMeta} />
 
-#### `foldable-top`
+#### `collapsible-start`
 
-When collapsed, the summary line looks like the `github` style. However, when expanded, it remains visible above the expanded code lines, making it possible to re-collapse the section.
+When collapsed, the summary line looks like the `github` style. However, when expanded, it remains visible before the expanded code lines, making it possible to re-collapse the section.
 
-<Code lang="js" code={exampleCode} meta={exampleMeta + ' collapseStyle=foldable-top'} />
+<Code lang="js" code={exampleCode} meta={exampleMeta + ' collapseStyle=collapsible-start'} />
 
-#### `foldable-bottom`
+#### `collapsible-end`
 
-Same as `foldable-top`, but the summary line remains visible below the expanded code lines.
+Same as `collapsible-start`, but the summary line remains visible after the expanded code lines.
 
-<Code lang="js" code={exampleCode} meta={exampleMeta + ' collapseStyle=foldable-bottom'} />
+<Code lang="js" code={exampleCode} meta={exampleMeta + ' collapseStyle=collapsible-end'} />
 
-#### `foldable-auto`
+#### `collapsible-auto`
 
-Automatically selects `foldable-top` or `foldable-bottom` based on the location of the collapsible section in the code block. Uses `foldable-top` unless the section ends at the bottom of the code block, in which case `foldable-bottom` is used.
+Automatically selects `collapsible-start` or `collapsible-end` based on the location of the collapsible section in the code block. Uses `collapsible-start` unless the section ends at the end of the code block, in which case `collapsible-end` is used.
 
-<Code lang="js" code={exampleCode} meta={exampleMeta + ' collapseStyle=foldable-auto'} />
+<Code lang="js" code={exampleCode} meta={exampleMeta + ' collapseStyle=collapsible-auto'} />
 
 ## Usage in the `<Code>` component
 
@@ -128,16 +143,16 @@ Determines if the summary line content of collapsible sections should be indente
 #### collapseStyle
 
 <PropertySignature>
-- Type: `"github"` \| `"foldable-top"` \| `"foldable-bottom"` \| `"foldable-auto"`
+- Type: `"github"` \| `"collapsible-start"` \| `"collapsible-end"` \| `"collapsible-auto"`
 - Default: ``'github'``
 </PropertySignature>
 
 Allows to select one of the following collapsible section styles:
 
 - `github`: The default style, similar to the one used by GitHub. A summary line with an expand icon and the default text `X collapsed lines` is shown. When expanded, the summary line is replaced by the section's code lines. It is not possible to re-collapse the section.
-- `foldable-top`: When collapsed, the summary line looks like the `github` style. However, when expanded, it remains visible above the expanded code lines, making it possible to re-collapse the section.
-- `foldable-bottom`: Same as `foldable-top`, but the summary line remains visible below the expanded code lines.
-- `foldable-auto`: Automatically selects `foldable-top` or `foldable-bottom` based on the location of the collapsible section in the code block. Uses `foldable-top` unless the section ends at the bottom of the code block, in which case `foldable-bottom` is used.
+- `collapsible-start`: When collapsed, the summary line looks like the `github` style. However, when expanded, it remains visible above the expanded code lines, making it possible to re-collapse the section.
+- `collapsible-end`: Same as `collapsible-start`, but the summary line remains visible below the expanded code lines.
+- `collapsible-auto`: Automatically selects `collapsible-start` or `collapsible-end` based on the location of the collapsible section in the code block. Uses `collapsible-start` unless the section ends at the bottom of the code block, in which case `collapsible-end` is used.
 
 ## Styling
 
@@ -187,7 +202,7 @@ The border color of the summary line.
 
 The border width of the summary line.
 
-Note: Despite the setting prefix `closed`, summary lines are also visible while the section is open when using any of the `foldable-*` styles. This is the same for all `closed*` settings.
+Note: Despite the setting prefix `closed`, summary lines are also visible while the section is open when using any of the `collapsible-*` styles. This is the same for all `closed*` settings.
 
 #### closedFontFamily
 
@@ -252,14 +267,14 @@ The text color of the section summary line.
 
 The background color of expanded code lines when using the default `github` style.
 
-#### openBackgroundColorFoldable
+#### openBackgroundColorCollapsible
 
 <PropertySignature>
 - Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
 - Default: ``({ theme }) => setAlpha(theme.colors['editor.foldBackground'], 0.1) || 'rgb(84 174 255 / 10%)'``
 </PropertySignature>
 
-The background color of expanded code lines when using any of the `foldable-*` styles.
+The background color of expanded code lines when using any of the `collapsible-*` styles.
 
 #### openBorderColor
 

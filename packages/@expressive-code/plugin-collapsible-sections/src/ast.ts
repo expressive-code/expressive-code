@@ -45,7 +45,7 @@ export function sectionizeAst({
 			const summary = h('summary', summaryLine.lineAst)
 
 			// Create an outer wrapper based on the collapse style
-			const resolvedCollapseStyle = collapseStyle === 'foldable-auto' ? (to >= lines.length ? 'foldable-bottom' : 'foldable-top') : collapseStyle
+			const resolvedCollapseStyle = collapseStyle === 'collapsible-auto' ? (to >= lines.length ? 'collapsible-end' : 'collapsible-start') : collapseStyle
 			const outerSelector = `.${collapsibleSectionClass}.${resolvedCollapseStyle}`
 			let outerElement: Element
 			if (collapseStyle === 'github') {
