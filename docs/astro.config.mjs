@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config'
 import starlight from '@astrojs/starlight'
 import starlightLinksValidator from 'starlight-links-validator'
+import starlightLlmsTxt from '@internal/starlight-llms-txt'
 
 // https://astro.build/config
 export default defineConfig({
@@ -47,7 +48,13 @@ export default defineConfig({
 					},
 				},
 			],
-			plugins: [starlightLinksValidator()],
+			plugins: [
+				starlightLlmsTxt({
+					exclude: ['**/developing-plugins*', 'releases*'],
+					demote: ['**/developing-plugins*', 'releases*'],
+				}),
+				starlightLinksValidator(),
+			],
 			customCss: ['./src/styles/custom.css'],
 			components: {
 				Head: './src/components/starlight/Head.astro',

@@ -1,0 +1,50 @@
+{
+	"name": "@internal/starlight-llms-txt",
+	"version": "0.2.1",
+	"license": "MIT",
+	"description": "Generate llms.txt files to train large language models on your Starlight documentation website",
+	"author": "delucis",
+	"type": "module",
+	"exports": {
+		".": "./index.ts"
+	},
+	"dependencies": {
+		"@astrojs/mdx": "^4.0.5",
+		"@types/hast": "^3.0.4",
+		"@types/micromatch": "^4.0.9",
+		"hast-util-select": "^6.0.3",
+		"micromatch": "^4.0.8",
+		"rehype-parse": "^9.0.1",
+		"rehype-remark": "^10.0.0",
+		"remark-gfm": "^4.0.0",
+		"remark-stringify": "^11.0.0",
+		"unified": "^11.0.5",
+		"unist-util-remove": "^4.0.0"
+	},
+	"devDependencies": {
+		"@astrojs/starlight": "^0.31.0",
+		"astro": "^5.1.6"
+	},
+	"peerDependencies": {
+		"@astrojs/starlight": ">=0.31",
+		"astro": "^5.1.6"
+	},
+	"engines": {
+		"node": "^18.17.1 || ^20.3.0 || >=21.0.0"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"homepage": "https://delucis.github.io/starlight-llms-txt/",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/delucis/starlight-llms-txt.git",
+		"directory": "packages/starlight-llms-txt"
+	},
+	"bugs": "https://github.com/delucis/starlight-llms-txt/issues",
+	"keywords": [
+		"llms.txt",
+		"withastro",
+		"starlight"
+	]
+}
