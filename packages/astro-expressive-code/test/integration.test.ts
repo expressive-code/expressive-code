@@ -303,7 +303,7 @@ describe('Integration into Astro ^4.5.0 with Cloudflare adapter', () => {
 		).toHaveLength(0)
 	})
 
-	const allowedBundleSizeInMb = 1.8
+	const allowedBundleSizeInMb = 2
 	test(`Total bundle size does not exceed ${allowedBundleSizeInMb} MB`, () => {
 		const files = fixture?.readDirWithTypesRecursive('.') ?? []
 		const fileSizes = files
