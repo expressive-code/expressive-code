@@ -8,7 +8,7 @@ import { fromHtml } from '@internal/test-utils'
 import { buildSampleCodeHtmlRegExp } from '../../rehype-expressive-code/test/utils'
 import { getAssetsBaseHref } from '../src/astro-config'
 
-const skipAstro3Tests = !!process.env.npm_config_ecosystem_ci
+const isEcosystemCiRun = !!process.env.npm_config_ecosystem_ci
 
 const complexHtmlRegExp = buildSampleCodeHtmlRegExp({
 	title: 'src/layouts/BaseLayout.astro',
@@ -45,7 +45,7 @@ const multiCodeComponentHtmlRegExp = buildSampleCodeHtmlRegExp({
 	],
 })
 
-describe.skipIf(skipAstro3Tests)('Integration into Astro 3.3.0', () => {
+describe.skipIf(isEcosystemCiRun)('Integration into Astro 3.3.0', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	beforeAll(async () => {
@@ -76,7 +76,7 @@ describe.skipIf(skipAstro3Tests)('Integration into Astro 3.3.0', () => {
 	})
 })
 
-describe.skipIf(skipAstro3Tests)('Integration into Astro ^3.5.0 with `emitExternalStylesheet: false`', () => {
+describe.skipIf(isEcosystemCiRun)('Integration into Astro ^3.5.0 with `emitExternalStylesheet: false`', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	beforeAll(async () => {
@@ -108,7 +108,7 @@ describe.skipIf(skipAstro3Tests)('Integration into Astro ^3.5.0 with `emitExtern
 	})
 })
 
-describe.skipIf(skipAstro3Tests)('Integration into Astro ^3.5.0 using custom `base` and `build.assets` paths', () => {
+describe.skipIf(isEcosystemCiRun)('Integration into Astro ^3.5.0 using custom `base` and `build.assets` paths', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	// Provide a copy of the settings defined in `astro.config.mjs` to the tests
@@ -178,7 +178,7 @@ describe.skipIf(skipAstro3Tests)('Integration into Astro ^3.5.0 using custom `ba
 	})
 })
 
-describe('Integration into Astro ^4.0.0', () => {
+describe.skipIf(isEcosystemCiRun)('Integration into Astro ^4.0.0', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	beforeAll(async () => {
