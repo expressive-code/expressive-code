@@ -1,5 +1,13 @@
 # astro-expressive-code
 
+## 0.40.1
+
+### Patch Changes
+
+- ecf6ca1: Removes unnecessary end padding from the first code line if the copy to clipboard button is disabled. Thank you @goulvenclech!
+- Updated dependencies [ecf6ca1]
+  - rehype-expressive-code@0.40.1
+
 ## 0.40.0
 
 ### Patch Changes
