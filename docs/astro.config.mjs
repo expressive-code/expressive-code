@@ -2,7 +2,7 @@
 import { defineConfig } from 'astro/config'
 import starlight from '@astrojs/starlight'
 import starlightLinksValidator from 'starlight-links-validator'
-import starlightLlmsTxt from '@internal/starlight-llms-txt'
+import starlightLlmsTxt from 'starlight-llms-txt'
 
 // https://astro.build/config
 export default defineConfig({
@@ -50,8 +50,9 @@ export default defineConfig({
 			],
 			plugins: [
 				starlightLlmsTxt({
-					exclude: ['**/developing-plugins*', 'releases*'],
+					promote: ['index*', 'installation*', 'key-features/**'],
 					demote: ['**/developing-plugins*', 'releases*'],
+					exclude: ['**/developing-plugins*', 'releases*'],
 				}),
 				starlightLinksValidator(),
 			],
