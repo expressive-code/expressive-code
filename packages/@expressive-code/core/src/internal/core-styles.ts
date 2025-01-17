@@ -366,11 +366,6 @@ export function getCoreBaseStyles({
 			}
 		}
 
-		/* Increase end padding of the first line for the copy button */
-		:nth-child(1 of .${codeLineClass}) .code {
-			padding-inline-end: calc(2rem + ${cssVar('codePaddingInline')});
-		}
-
 		/* Common style to hide elements from screen readers */
 		.sr-only {
 			position: absolute;
