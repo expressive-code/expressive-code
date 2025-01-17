@@ -303,14 +303,26 @@ describe('Integration into Astro ^4.5.0 with Cloudflare adapter', () => {
 		).toHaveLength(0)
 	})
 
-	test('Total bundle size does not exceed 1.5 MB', () => {
-		const files = fixture?.readDir('_worker.js/chunks') ?? []
-		const totalSize = files.reduce((total, fileName) => {
-			const filePath = join(fixture?.path ?? '', '_worker.js/chunks', fileName)
-			const stats = statSync(filePath)
-			return total + stats.size
-		}, 0)
-		expect(totalSize).toBeLessThanOrEqual(1.5 * 1024 * 1024)
+	const allowedBundleSizeInMb = 1.8
+	test(`Total bundle size does not exceed ${allowedBundleSizeInMb} MB`, () => {
+		const files = fixture?.readDirWithTypesRecursive('.') ?? []
+		const fileSizes = files
+			.filter((file) => !file.isDirectory())
+			.map((file) => {
+				const filePath = join(file.parentPath, file.name)
+				return {
+					path: filePath,
+					size: statSync(filePath).size,
+				}
+			})
+		fileSizes.sort((a, b) => b.size - a.size)
+		const fmtKb = (bytes: number) => `${(bytes / 1024).toFixed(2)} KB`
+		const largestFiles = fileSizes.slice(0, 10).map((file) => `${file.path} (${fmtKb(file.size)})`)
+		const totalSize = fileSizes.reduce((total, file) => total + file.size, 0)
+		const allowedBundleSizeInBytes = allowedBundleSizeInMb * 1024 * 1024
+		const sizeStats = `total size: ${fmtKb(totalSize)}, allowed size: ${fmtKb(allowedBundleSizeInBytes)}`
+		const errorMessage = `Bundle exceeded allowed size (${sizeStats}).\n\nLargest files:\n${largestFiles.join(',\n')}\n\nError`
+		expect(totalSize, errorMessage).toBeLessThanOrEqual(allowedBundleSizeInBytes)
 	})
 })
 
@@ -495,6 +507,8 @@ async function buildFixture({
 		path: outputDirPath,
 		readFile: (filePath: string) => readFileSync(join(outputDirPath, filePath), 'utf-8'),
 		readDir: (subPath: string) => readdirSync(join(outputDirPath, subPath), 'utf-8'),
+		readDirWithTypes: (subPath: string) => readdirSync(join(outputDirPath, subPath), { encoding: 'utf-8', withFileTypes: true }),
+		readDirWithTypesRecursive: (subPath: string) => readdirSync(join(outputDirPath, subPath), { encoding: 'utf-8', withFileTypes: true, recursive: true }),
 	}
 }
 
