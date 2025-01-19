@@ -82,6 +82,7 @@ The plugin supports different section styles, which can be set per block using t
 You can also change the prop's default value globally to avoid having to specify it for each code block. To do so, add it to the [`defaultProps`](/reference/configuration/#defaultprops) configuration option:
 
 <ConfigVariants
+  preferEcConfigFile
   imports={`
     import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections' // no-ins
   `}
@@ -139,6 +140,7 @@ editSections:
 This plugin adds a `collapsibleSections` object to the `styleOverrides` engine config option, allowing you to customize the visual appearance of the sections:
 
 <ConfigVariants
+  preferEcConfigFile
   imports={`
     import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections' // no-ins
   `}

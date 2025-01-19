@@ -117,6 +117,7 @@ After installing the plugin, line numbers will be displayed in the gutter of all
 You can configure this default behavior using the `defaultProps` option in your Expressive Code configuration. You can also change the defaults by language using the sub-property `overridesByLang`:
 
 <ConfigVariants
+  preferEcConfigFile
   imports={`
     import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers' // no-ins
   `}
@@ -140,6 +141,7 @@ You can configure this default behavior using the `defaultProps` option in your 
 This plugin adds a `lineNumbers` object to the `styleOverrides` engine config option, allowing you to customize the visual appearance of the line numbers:
 
 <ConfigVariants
+  preferEcConfigFile
   imports={`
     import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers' // no-ins
   `}
