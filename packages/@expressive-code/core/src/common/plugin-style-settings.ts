@@ -9,7 +9,7 @@ import { UnresolvedStyleSettings, StyleSettingPath } from './style-settings'
  * to provide a dark and light variant, or resolver functions that return one of these types.
  *
  * If you are writing a plugin that provides style overrides, please merge your style overrides
- * into the `StyleOverrides` interface declaration provided by the `@expressive-code/core` module.
+ * into the `StyleSettings` interface declaration provided by the `@expressive-code/core` module.
  * You can see an example of this below.
  *
  * As a plugin author, you should also assign an instance of this class to your plugin's

@@ -4,7 +4,7 @@ title: Line Numbers
 
 import ConfigVariants from '@components/ConfigVariants.astro'
 import PackageManagers from '@components/PackageManagers.astro'
-import { Tabs, TabItem } from '@astrojs/starlight/components'
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components'
 
 This optional plugin allows you to display line numbers in your code blocks. The line numbers are displayed in the gutter to the left of the code.
 
@@ -12,13 +12,18 @@ This optional plugin allows you to display line numbers in your code blocks. The
 
 Before being able to display line numbers in your code blocks, you need to install the plugin as a dependency and add it to your configuration:
 
+<Steps>
+
 1. Add the package to your site's dependencies:
 
     <PackageManagers pkg="@expressive-code/plugin-line-numbers" />
 
-2. Add the plugin to your site's configuration by passing it in the `plugins` list:
+2. Add the plugin to your site's configuration by passing it in the `plugins` list.
+
+    In Astro and Starlight projects, we recommend putting this option in `ec.config.mjs` to ensure that the [`<Code>` component](/key-features/code-component/#using-an-ecconfigmjs-file) can still be used on your site.
 
     <ConfigVariants
+      preferEcConfigFile
       imports={`
         import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers'
       `}
@@ -26,6 +31,8 @@ Before being able to display line numbers in your code blocks, you need to insta
         plugins: [pluginLineNumbers()],
       `}
     />
+
+</Steps>
 
 ## Usage in markdown / MDX
 

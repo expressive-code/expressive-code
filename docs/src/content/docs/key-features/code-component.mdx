@@ -113,7 +113,7 @@ In these cases, you will receive the following error message when trying to use 
 
 As instructed by the error message, you can fix this issue by creating a separate `ec.config.mjs` file in your project root and moving your Expressive Code options object into the config file. Here is an example of how this file could look like if you're using the [collapsible sections plugin](/plugins/collapsible-sections/):
 
-<ConfigVariants ecConfigFile ins={[]}
+<ConfigVariants onlyEcConfigFile ins={[]}
   imports={`
     import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
   `}

@@ -4,7 +4,7 @@ title: Collapsible Sections
 
 import ConfigVariants from '@components/ConfigVariants.astro'
 import PackageManagers from '@components/PackageManagers.astro'
-import { Tabs, TabItem } from '@astrojs/starlight/components'
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components'
 
 This optional plugin allows you to reduce long code examples to their relevant parts by collapsing any line ranges that are not relevant to the example.
 
@@ -14,13 +14,18 @@ The lines of collapsed sections will be replaced by a clickable `X collapsed l
 
 Before being able to use collapsible sections in your code blocks, you need to install the plugin as a dependency and add it to your configuration:
 
+<Steps>
+
 1. Add the package to your site's dependencies:
 
     <PackageManagers pkg="@expressive-code/plugin-collapsible-sections" />
 
-2. Add the plugin to your site's configuration by passing it in the `plugins` list:
+2. Add the plugin to your site's configuration by passing it in the `plugins` list.
+
+    In Astro and Starlight projects, we recommend putting this option in `ec.config.mjs` to ensure that the [`<Code>` component](/key-features/code-component/#using-an-ecconfigmjs-file) can still be used on your site.
 
     <ConfigVariants
+      preferEcConfigFile
       imports={`
         import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
       `}
@@ -28,6 +33,8 @@ Before being able to use collapsible sections in your code blocks, you need to i
         plugins: [pluginCollapsibleSections()],
       `}
     />
+
+</Steps>
 
 ## Usage in markdown / MDX
 

@@ -2,6 +2,7 @@
 title: Upgrading Expressive Code
 ---
 
+import { Steps } from '@astrojs/starlight/components'
 import PackageManagers from '@components/PackageManagers.astro'
 
 If your site is already using Expressive Code, this page guides you through the process of upgrading it to the latest version.
@@ -16,6 +17,8 @@ Please select your framework to jump to the respective upgrade instructions:
 
 To upgrade your Astro site to the latest version of Expressive Code, follow these steps:
 
+<Steps>
+
 1. Change into the directory of your Astro site.
 
 2. Install the latest version of `astro-expressive-code`:
@@ -26,15 +29,21 @@ To upgrade your Astro site to the latest version of Expressive Code, follow thes
 
 4. You're done! 🎉
 
+</Steps>
+
 ## Starlight
 
 Starlight already has a dependency on `astro-expressive-code`, so you don't need to install or upgrade Expressive Code separately on Starlight sites.
 
 We always try to keep Starlight's dependencies up to date, so upgrading Starlight should automatically upgrade Expressive Code as well:
 
+<Steps>
+
 1. Follow the instructions in [Starlight's documentation](https://starlight.astro.build/getting-started/#updating-starlight) to upgrade your site to the latest version of Starlight.
 
 2. You're done! 🎉
+
+</Steps>
 
 ### Overriding Expressive Code within Starlight
 
@@ -43,6 +52,8 @@ If you've already installed the latest version of Starlight and want to use a la
 :::caution
 This is an advanced strategy that might lead to incompatibilities, and we recommend waiting for the next Starlight release instead. If you continue, please check if your site still works as expected after the upgrade.
 :::
+
+<Steps>
 
 1. Add the following `overrides` section to your `package.json`:
 
@@ -80,9 +91,13 @@ This is an advanced strategy that might lead to incompatibilities, and we recomm
 
   4. You're done! 🎉
 
+</Steps>
+
 ## Next.js
 
 To upgrade your Next.js site to the latest version of Expressive Code, follow these steps:
+
+<Steps>
 
 1. Change into the directory of your Next.js site.
 
@@ -93,3 +108,5 @@ To upgrade your Next.js site to the latest version of Expressive Code, follow th
 3. Check our [release history](/releases/) for breaking changes that might affect your site, and apply any necessary changes.
 
 4. You're done! 🎉
+
+</Steps>
