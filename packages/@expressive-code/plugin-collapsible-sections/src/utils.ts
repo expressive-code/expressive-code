@@ -29,3 +29,12 @@ export function parseSections(value: string): Section[] {
 		})
 	return sections
 }
+
+const collapseStyles = ['github', 'collapsible-start', 'collapsible-end', 'collapsible-auto'] as const
+export type CollapseStyle = (typeof collapseStyles)[number]
+
+export function parseCollapseStyle(value: string): CollapseStyle {
+	value = value.toLowerCase()
+	if (collapseStyles.includes(value as CollapseStyle)) return value as CollapseStyle
+	return 'github'
+}

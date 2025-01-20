@@ -12,6 +12,7 @@ const extractSignaturePart = (name: string) => {
 };
 const propertyType = extractSignaturePart('Type')
 const defaultValue = extractSignaturePart('Default')
+const availability = extractSignaturePart('Availability')
 ---
 
 <div class="property-signature not-content">
@@ -22,5 +23,9 @@ const defaultValue = extractSignaturePart('Default')
 	{defaultValue && (
 		<span class="name">Default:</span>
 		<span class="value" set:html={defaultValue} />
+	)}
+	{availability && (
+		<span class="name">Availability:</span>
+		<span set:html={availability} />
 	)}
 </div>

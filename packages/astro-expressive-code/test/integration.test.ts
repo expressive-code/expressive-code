@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeAll } from 'vitest'
-import { existsSync, rmSync, readFileSync, readdirSync } from 'fs'
+import { existsSync, rmSync, readFileSync, readdirSync, statSync } from 'fs'
 import { join } from 'path'
 import { execa } from 'execa'
 import type { AstroUserConfig } from 'astro/config'
@@ -8,7 +8,7 @@ import { fromHtml } from '@internal/test-utils'
 import { buildSampleCodeHtmlRegExp } from '../../rehype-expressive-code/test/utils'
 import { getAssetsBaseHref } from '../src/astro-config'
 
-const skipAstro3Tests = !!process.env.npm_config_ecosystem_ci
+const isEcosystemCiRun = !!process.env.npm_config_ecosystem_ci
 
 const complexHtmlRegExp = buildSampleCodeHtmlRegExp({
 	title: 'src/layouts/BaseLayout.astro',
@@ -45,7 +45,7 @@ const multiCodeComponentHtmlRegExp = buildSampleCodeHtmlRegExp({
 	],
 })
 
-describe.skipIf(skipAstro3Tests)('Integration into Astro 3.3.0', () => {
+describe.skipIf(isEcosystemCiRun)('Integration into Astro 3.3.0', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	beforeAll(async () => {
@@ -76,7 +76,7 @@ describe.skipIf(skipAstro3Tests)('Integration into Astro 3.3.0', () => {
 	})
 })
 
-describe.skipIf(skipAstro3Tests)('Integration into Astro ^3.5.0 with `emitExternalStylesheet: false`', () => {
+describe.skipIf(isEcosystemCiRun)('Integration into Astro ^3.5.0 with `emitExternalStylesheet: false`', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	beforeAll(async () => {
@@ -108,7 +108,7 @@ describe.skipIf(skipAstro3Tests)('Integration into Astro ^3.5.0 with `emitExtern
 	})
 })
 
-describe.skipIf(skipAstro3Tests)('Integration into Astro ^3.5.0 using custom `base` and `build.assets` paths', () => {
+describe.skipIf(isEcosystemCiRun)('Integration into Astro ^3.5.0 using custom `base` and `build.assets` paths', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	// Provide a copy of the settings defined in `astro.config.mjs` to the tests
@@ -178,7 +178,7 @@ describe.skipIf(skipAstro3Tests)('Integration into Astro ^3.5.0 using custom `ba
 	})
 })
 
-describe('Integration into Astro ^4.0.0', () => {
+describe.skipIf(isEcosystemCiRun)('Integration into Astro ^4.0.0', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	beforeAll(async () => {
@@ -274,6 +274,56 @@ describe('Integration into Astro ^4.5.0 with Cloudflare adapter', () => {
 		const files = fixture?.readDir('_astro') ?? []
 		expect(files.filter((fileName) => fileName.match(/^ec\..*?\.js$/))).toHaveLength(1)
 	})
+
+	test('Removes unused Shiki language chunks based on `bundledLangs` option', () => {
+		const files = fixture?.readDir('_worker.js/chunks') ?? []
+		expect(
+			files.filter((fileName) => fileName.match(/^(sass)_.*?\.m?js$/)),
+			'No Shiki language chunk was found for "sass"'
+		).toHaveLength(1)
+		expect(
+			files.filter((fileName) => fileName.match(/^(abap|clojure|docker|ruby)_.*?\.m?js$/)),
+			'Unwanted Shiki language chunks were found in the bundle'
+		).toHaveLength(0)
+	})
+
+	test('Removes unused Shiki theme chunks by default', () => {
+		const files = fixture?.readDir('_worker.js/chunks') ?? []
+		expect(
+			files.filter((fileName) => fileName.match(/^(catppuccin-.*?|dracula.*?|dark-plus)_.*?\.m?js$/)),
+			'Unused Shiki theme chunks were found in the bundle'
+		).toHaveLength(0)
+	})
+
+	test('Removes Shiki WASM engine if JS was selected in `engine` option', () => {
+		const files = fixture?.readDir('_worker.js/chunks') ?? []
+		expect(
+			files.filter((fileName) => fileName.match(/^(wasm)_.*?\.m?js$/)),
+			'Shiki WASM engine was found in the bundle'
+		).toHaveLength(0)
+	})
+
+	const allowedBundleSizeInMb = 2
+	test(`Total bundle size does not exceed ${allowedBundleSizeInMb} MB`, () => {
+		const files = fixture?.readDirWithTypesRecursive('.') ?? []
+		const fileSizes = files
+			.filter((file) => !file.isDirectory())
+			.map((file) => {
+				const filePath = join(file.parentPath, file.name)
+				return {
+					path: filePath,
+					size: statSync(filePath).size,
+				}
+			})
+		fileSizes.sort((a, b) => b.size - a.size)
+		const fmtKb = (bytes: number) => `${(bytes / 1024).toFixed(2)} KB`
+		const largestFiles = fileSizes.slice(0, 10).map((file) => `${file.path} (${fmtKb(file.size)})`)
+		const totalSize = fileSizes.reduce((total, file) => total + file.size, 0)
+		const allowedBundleSizeInBytes = allowedBundleSizeInMb * 1024 * 1024
+		const sizeStats = `total size: ${fmtKb(totalSize)}, allowed size: ${fmtKb(allowedBundleSizeInBytes)}`
+		const errorMessage = `Bundle exceeded allowed size (${sizeStats}).\n\nLargest files:\n${largestFiles.join(',\n')}\n\nError`
+		expect(totalSize, errorMessage).toBeLessThanOrEqual(allowedBundleSizeInBytes)
+	})
 })
 
 describe('Integration into Astro ^5.0.0', () => {
@@ -361,7 +411,7 @@ describe('Integration into Astro ^5.0.0', () => {
 	test('Config options from `ec.config.mjs` are merged with integration options', () => {
 		const matchingAssets = enumerateAssets(fixture, 'css')
 		const cssContents = fixture?.readFile(`_astro/${matchingAssets[0]}`) ?? ''
-		expect(cssContents, 'Expected themes array to be fully replaced by the one in ec.config.mjs').to.not.contain('github')
+		expect(cssContents, 'Expected themes array to be fully replaced by the one in ec.config.mjs').to.not.contain('catppuccin')
 		expect(
 			cssContents.match(/--ec-tm-inlMarkerBrdWd:(.*?);/)?.[1],
 			'Expected styleOverrides value for textMarkers.inlineMarkerBorderWidth to be overwritten by ec.config.mjs'
@@ -421,21 +471,35 @@ function validateHtml(
 	// TODO: Maybe add a second set of pages including two code blocks to test that the styles are deduplicated
 }
 
-async function buildFixture({ fixtureDir, buildCommand, buildArgs, outputDir }: { fixtureDir: string; buildCommand: string; buildArgs?: string[] | undefined; outputDir: string }) {
+async function buildFixture({
+	fixtureDir,
+	buildCommand,
+	buildArgs,
+	outputDir,
+	keepPreviousBuild = false,
+}: {
+	fixtureDir: string
+	buildCommand: string
+	buildArgs?: string[] | undefined
+	outputDir: string
+	keepPreviousBuild?: boolean | undefined
+}) {
 	const fixturePath = join(__dirname, 'fixtures', fixtureDir)
 	const outputDirPath = join(fixturePath, outputDir)
 
-	// Remove the output directory if it exists
-	if (existsSync(outputDirPath)) {
-		rmSync(outputDirPath, { recursive: true })
-	}
+	if (!keepPreviousBuild) {
+		// Remove the output directory if it exists
+		if (existsSync(outputDirPath)) {
+			rmSync(outputDirPath, { recursive: true })
+		}
 
-	// Run the build command
-	const buildCommandResult = await execa(buildCommand, buildArgs ?? [], { cwd: fixturePath })
+		// Run the build command
+		const buildCommandResult = await execa(buildCommand, buildArgs ?? [], { cwd: fixturePath })
 
-	// Throw an error if the build command failed
-	if (buildCommandResult.failed || buildCommandResult.stderr) {
-		throw new Error(buildCommandResult.stderr.toString())
+		// Throw an error if the build command failed
+		if (buildCommandResult.failed || buildCommandResult.stderr) {
+			throw new Error(buildCommandResult.stderr.toString())
+		}
 	}
 
 	// Return an object that contains the output directory path and allows to read files from it
@@ -443,6 +507,8 @@ async function buildFixture({ fixtureDir, buildCommand, buildArgs, outputDir }: 
 		path: outputDirPath,
 		readFile: (filePath: string) => readFileSync(join(outputDirPath, filePath), 'utf-8'),
 		readDir: (subPath: string) => readdirSync(join(outputDirPath, subPath), 'utf-8'),
+		readDirWithTypes: (subPath: string) => readdirSync(join(outputDirPath, subPath), { encoding: 'utf-8', withFileTypes: true }),
+		readDirWithTypesRecursive: (subPath: string) => readdirSync(join(outputDirPath, subPath), { encoding: 'utf-8', withFileTypes: true, recursive: true }),
 	}
 }
 

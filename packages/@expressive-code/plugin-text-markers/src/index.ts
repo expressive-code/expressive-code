@@ -93,7 +93,7 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 					if (kind === 'range') {
 						// Detect an optional label prefix in double or single quotes: `{"1":3-5}`
 						let label: string | undefined = undefined
-						const range = value.replace(/^\s*?(["'])([^\1]+?)\1:\s*?/, (_match, _quote, labelValue: string) => {
+						const range = value.replace(/^\s*?(["'])((?:(?!\1).)+?)\1:\s*?/, (_match, _quote, labelValue: string) => {
 							label = labelValue
 							return ''
 						})

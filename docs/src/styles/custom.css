@@ -12,6 +12,7 @@
 	--sl-color-gray-6: #262435;
 	--sl-color-black: #18171f;
 }
+
 /* Light mode colors. */
 :root[data-theme='light'] {
 	--sl-color-accent-low: #d6d2f8;
@@ -26,6 +27,11 @@
 	--sl-color-gray-6: #edecf5;
 	--sl-color-gray-7: #f6f6fa;
 	--sl-color-black: #ffffff;
+}
+
+/* Add bottom padding to list items if they contain tabs and a script as their last children */
+.sl-markdown-content li:has(starlight-tabs + script:last-child) {
+	padding-bottom: 1.5rem;
 }
 
 table td code[dir="auto"] {

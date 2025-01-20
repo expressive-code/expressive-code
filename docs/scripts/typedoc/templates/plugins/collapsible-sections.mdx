@@ -4,7 +4,7 @@ title: Collapsible Sections
 
 import ConfigVariants from '@components/ConfigVariants.astro'
 import PackageManagers from '@components/PackageManagers.astro'
-import { Tabs, TabItem } from '@astrojs/starlight/components'
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components'
 
 This optional plugin allows you to reduce long code examples to their relevant parts by collapsing any line ranges that are not relevant to the example.
 
@@ -14,13 +14,18 @@ The lines of collapsed sections will be replaced by a clickable `X collapsed l
 
 Before being able to use collapsible sections in your code blocks, you need to install the plugin as a dependency and add it to your configuration:
 
+<Steps>
+
 1. Add the package to your site's dependencies:
 
     <PackageManagers pkg="@expressive-code/plugin-collapsible-sections" />
 
-2. Add the plugin to your site's configuration by passing it in the `plugins` list:
+2. Add the plugin to your site's configuration by passing it in the `plugins` list.
+
+    In Astro and Starlight projects, we recommend putting this option in `ec.config.mjs` to ensure that the [`<Code>` component](/key-features/code-component/#using-an-ecconfigmjs-file) can still be used on your site.
 
     <ConfigVariants
+      preferEcConfigFile
       imports={`
         import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
       `}
@@ -29,14 +34,15 @@ Before being able to use collapsible sections in your code blocks, you need to i
       `}
     />
 
+</Steps>
+
 ## Usage in markdown / MDX
 
 To mark a section as collapsible, you need to add **meta information** to your code blocks. This is done by appending `collapse={X-Y}` to your opening code fence, indicating a collapsed section from line `X` to (and including) line `Y`.
 
 You can also collapse multiple sections in a single code block by separating them with commas:
 
-````md ins="collapse={1-5, 12-14}"
-```js collapse={1-5, 12-14}
+export const exampleCode = `
 // All this boilerplate setup code will be collapsed
 import { someBoilerplateEngine } from '@example/some-boilerplate'
 import { evenMoreBoilerplate } from '@example/even-more-boilerplate'
@@ -50,30 +56,70 @@ function calcFn() {
   // You can have multiple collapsed sections
   const a = 1
   const b = 2
-  return a + b
+  const c = a + b
+
+  // This will remain visible
+  console.log(\`Calculation result: \${a} + \${b} = \${c}\`)
+  return c
 }
-```
-````
 
-The above code block will be rendered like this:
+// All this code until the end of the block will be collapsed again
+engine.closeConnection()
+engine.freeMemory()
+engine.shutdown({ reason: 'End of example boilerplate code' })
+`
 
-```js collapse={1-5, 12-14}
-// All this boilerplate setup code will be collapsed
-import { someBoilerplateEngine } from '@example/some-boilerplate'
-import { evenMoreBoilerplate } from '@example/even-more-boilerplate'
+export const exampleMeta = `collapse={1-5, 12-14, 21-24}`
 
-const engine = someBoilerplateEngine(evenMoreBoilerplate())
+<Code lang="md" code={'```js ' + exampleMeta + exampleCode + '```'} meta={`ins="${exampleMeta}"`} />
 
-// This part of the code will be visible by default
-engine.doSomething(1, 2, 3, calcFn)
+### Available styles
 
-function calcFn() {
-  // You can have multiple collapsed sections
-  const a = 1
-  const b = 2
-  return a + b
-}
-```
+The plugin supports different section styles, which can be set per block using the `collapseStyle` prop:
+
+<Code lang="md" code={'```js ' + exampleMeta + ' collapseStyle=<your style here>\n// ...\n```'} meta={`ins="collapseStyle=<your style here>"`} />
+
+You can also change the prop's default value globally to avoid having to specify it for each code block. To do so, add it to the [`defaultProps`](/reference/configuration/#defaultprops) configuration option:
+
+<ConfigVariants
+  preferEcConfigFile
+  imports={`
+    import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections' // no-ins
+  `}
+  settings={`
+    plugins: [pluginCollapsibleSections()], // no-ins
+    defaultProps: {
+      // Change the default style of collapsible sections
+      collapseStyle: 'collapsible-auto',
+    },
+  `}
+/>
+
+In the following sections, you can see the different styles in action.
+
+#### `github` (default style)
+
+This style is similar to the one used by GitHub. A summary line with an expand icon and the default text `X collapsed lines` is shown. When expanded, the summary line is replaced by the section's code lines. It is not possible to re-collapse the section.
+
+<Code lang="js" code={exampleCode} meta={exampleMeta} />
+
+#### `collapsible-start`
+
+When collapsed, the summary line looks like the `github` style. However, when expanded, it remains visible before the expanded code lines, making it possible to re-collapse the section.
+
+<Code lang="js" code={exampleCode} meta={exampleMeta + ' collapseStyle=collapsible-start'} />
+
+#### `collapsible-end`
+
+Same as `collapsible-start`, but the summary line remains visible after the expanded code lines.
+
+<Code lang="js" code={exampleCode} meta={exampleMeta + ' collapseStyle=collapsible-end'} />
+
+#### `collapsible-auto`
+
+Automatically selects `collapsible-start` or `collapsible-end` based on the location of the collapsible section in the code block. Uses `collapsible-start` unless the section ends at the end of the code block, in which case `collapsible-end` is used.
+
+<Code lang="js" code={exampleCode} meta={exampleMeta + ' collapseStyle=collapsible-auto'} />
 
 ## Usage in the `<Code>` component
 
@@ -94,6 +140,7 @@ editSections:
 This plugin adds a `collapsibleSections` object to the `styleOverrides` engine config option, allowing you to customize the visual appearance of the sections:
 
 <ConfigVariants
+  preferEcConfigFile
   imports={`
     import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections' // no-ins
   `}

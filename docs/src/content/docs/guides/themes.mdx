@@ -4,6 +4,7 @@ title: Themes
 
 import ConfigVariants from '@components/ConfigVariants.astro'
 import PackageManagers from '@components/PackageManagers.astro'
+import PropertySignature from '@components/PropertySignature.astro'
 import { Tabs, TabItem } from '@astrojs/starlight/components'
 
 Expressive Code supports the full range of themes available for VS Code. Any theme that works in the editor will work in Expressive Code!
@@ -34,6 +35,46 @@ Expressive Code comes with a set of popular themes bundled with our default synt
 import BundledThemes from '../../../components/BundledThemes.astro'
 
 <BundledThemes/>
+
+### Configuration
+
+#### removeUnusedThemes
+
+<PropertySignature>
+- Type: boolean
+- Default: true
+- Availability: Astro and Starlight integrations only
+</PropertySignature>
+
+In Astro and Starlight, Expressive Code automatically removes any themes from the full Shiki bundle that are not used by your configuration. This reduces the SSR bundle size by over 1 MB. You can control this behavior with the `removeUnusedThemes` option.
+
+:::note[Only for advanced use cases]
+Most sites **do not need to set this option**, as it already defaults to `true`, which is the optimal setting.
+:::
+
+If you really need to disable this automatic optimization because of an advanced use case that requires access all bundled Shiki themes, you can set this option to `false`.
+
+<ConfigVariants
+  imports={`
+    import cloudflare from '@astrojs/cloudflare // no-ins'
+  `}
+  settings={`
+    // This example uses non-default themes, but unused theme removal
+    // also works with the default themes ['github-dark', 'github-light']
+    themes: ['catppuccin-macchiato', 'catppuccin-latte'], // no-ins
+    // Disable automatic removal of unused themes from the bundle,
+    // allowing access to other themes than the ones specified
+    // in the \`themes\` option
+    removeUnusedThemes: false,
+  `}
+  nonIntegrationSettings={`
+    // This example uses server-side rendering (SSR)
+    // with the Cloudflare adapter
+    output: 'server',
+    adapter: cloudflare(),
+  `}
+  noNextJs
+/>
 
 ## Using themes from NPM
 

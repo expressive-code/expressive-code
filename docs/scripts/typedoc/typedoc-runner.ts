@@ -155,6 +155,15 @@ export async function generateTypeDoc(sourceFiles: PartialConfig) {
 		})
 	})
 
+	// eslint-disable-next-line @typescript-eslint/unbound-method
+	const originalWarn = app.logger.warn
+	app.logger.warn = (text: string, ...args: unknown[]) => {
+		if (text.includes('You are running with an unsupported TypeScript version!')) {
+			return
+		}
+		originalWarn.apply(app.logger, [text, ...args] as Parameters<typeof originalWarn>)
+	}
+
 	app.renderer.defineTheme('starlight-theme', StarlightTypeDocTheme)
 	app.renderer.on(PageEvent.END, (event: PageEvent<DeclarationReflection>) => {
 		onRendererPageEnd(event)

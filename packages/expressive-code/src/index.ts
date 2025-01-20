@@ -1,6 +1,7 @@
 import { ExpressiveCodeEngine, ExpressiveCodeEngineConfig, ExpressiveCodePlugin } from '@expressive-code/core'
-import { PluginFramesOptions, pluginFrames } from '@expressive-code/plugin-frames'
-import { PluginShikiOptions } from '@expressive-code/plugin-shiki'
+import type { PluginFramesOptions } from '@expressive-code/plugin-frames'
+import { pluginFrames } from '@expressive-code/plugin-frames'
+import type { PluginShikiOptions } from '@expressive-code/plugin-shiki'
 import { pluginShiki } from '@expressive-code/plugin-shiki'
 import { pluginTextMarkers } from '@expressive-code/plugin-text-markers'
 

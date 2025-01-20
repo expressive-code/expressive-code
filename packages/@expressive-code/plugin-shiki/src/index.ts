@@ -17,6 +17,16 @@ export interface PluginShikiOptions {
 	 */
 	langs?: LanguageInput[] | undefined
 	/**
+	 * Allows defining alias names for languages. The keys are the alias names,
+	 * and the values are the language IDs to which they should resolve.
+	 *
+	 * The values can either be bundled languages, or additional languages
+	 * defined in `langs`.
+	 *
+	 * @example { 'mjs': 'javascript' }
+	 */
+	langAlias?: Record<string, string> | undefined
+	/**
 	 * By default, the additional languages defined in `langs` are only available in
 	 * top-level code blocks contained directly in their parent Markdown or MDX document.
 	 *
@@ -48,12 +58,25 @@ export interface PluginShikiOptions {
 	 * https://expressive-code.com/key-features/syntax-highlighting/#transformers
 	 */
 	transformers?: ShikiTransformer[] | undefined
+	/**
+	 * The RegExp engine to use for syntax highlighting.
+	 *
+	 * - `'oniguruma'`: The default engine that supports all grammars,
+	 *   but requires WebAssembly support.
+	 * - `'javascript'`: A pure JavaScript engine that does not require WebAssembly.
+	 */
+	engine?: 'oniguruma' | 'javascript' | undefined
 }
 
 /**
  * A list of all themes bundled with Shiki.
  */
 export type BundledShikiTheme = Exclude<keyof typeof bundledThemes, 'css-variables'>
+
+/**
+ * A list of all languages bundled with Shiki.
+ */
+export type { BundledLanguage as BundledShikiLanguage } from 'shiki'
 
 /**
  * Loads a theme bundled with Shiki for use with Expressive Code.
@@ -74,7 +97,7 @@ enum FontStyle {
 }
 
 export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlugin {
-	const { langs, injectLangsIntoNestedCodeBlocks } = options
+	const { langs, langAlias = {}, injectLangsIntoNestedCodeBlocks, engine } = options
 
 	// Validate all configured transformers
 	validateTransformers(options)
@@ -97,7 +120,7 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 
 				let highlighter
 				try {
-					highlighter = await getCachedHighlighter({ langs, injectLangsIntoNestedCodeBlocks })
+					highlighter = await getCachedHighlighter({ langs, langAlias, injectLangsIntoNestedCodeBlocks, engine })
 				} catch (err) {
 					/* c8 ignore next */
 					const error = err instanceof Error ? err : new Error(String(err))
@@ -107,14 +130,28 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 				}
 
 				// Try to load the language if necessary, and log a warning if it's is unknown
-				const languageLoadErrors = await ensureLanguagesAreLoaded(highlighter, [codeBlock.language])
-				const loadedLanguageName = languageLoadErrors.length ? 'txt' : codeBlock.language
-				if (loadedLanguageName !== codeBlock.language) {
-					logger.warn(
-						`Error while loading code block language "${codeBlock.language}" in ${
+				const languageLoadErrors = await ensureLanguagesAreLoaded({ highlighter, langs: [codeBlock.language], langAlias })
+				const resolvedLanguage = langAlias[codeBlock.language] ?? codeBlock.language
+				const primaryLanguageFailed = languageLoadErrors.failedLanguages.has(resolvedLanguage)
+				const embeddedLanguagesFailed = languageLoadErrors.failedEmbeddedLanguages.size > 0
+				const loadedLanguageName = primaryLanguageFailed ? 'txt' : resolvedLanguage
+				if (primaryLanguageFailed || embeddedLanguagesFailed) {
+					const formatLangs = (langs: Set<string> | string[]) =>
+						`language${[...langs].length !== 1 ? 's' : ''} ${[...langs]
+							.sort()
+							.map((lang) => `"${lang}"`)
+							.join(', ')}`
+					const errorParts = [
+						`Error while highlighting code block using ${formatLangs([codeBlock.language])} in ${
 							codeBlock.parentDocument?.sourceFilePath ? `document "${codeBlock.parentDocument?.sourceFilePath}"` : 'markdown/MDX document'
-						}. Using "${loadedLanguageName}" instead. You can add custom languages using the "langs" config option. Error details: ${languageLoadErrors.join(', ')}`
-					)
+						}.`,
+					]
+					if (primaryLanguageFailed) errorParts.push(`The language could not be found. Using "${loadedLanguageName}" instead.`)
+					if (embeddedLanguagesFailed) {
+						errorParts.push(`The embedded ${formatLangs(languageLoadErrors.failedEmbeddedLanguages)} could not be found, so highlighting may be incomplete.`)
+					}
+					errorParts.push('Ensure that all required languages are either part of the bundle or custom languages provided in the "langs" config option.')
+					logger.warn(errorParts.join(' '))
 				}
 
 				for (let styleVariantIndex = 0; styleVariantIndex < styleVariants.length; styleVariantIndex++) {
@@ -137,11 +174,7 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 
 						const codeToTokensBase = highlighter.codeToTokensBase
 						await runHighlighterTask(() => {
-							tokenLines = codeToTokensBase(
-								code,
-								// @ts-expect-error: We took care that the language and theme are loaded
-								codeToTokensOptions
-							)
+							tokenLines = codeToTokensBase(code, codeToTokensOptions)
 						})
 
 						// Run tokens hook of all configured transformers
