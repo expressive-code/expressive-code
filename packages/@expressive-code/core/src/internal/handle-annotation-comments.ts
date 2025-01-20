@@ -64,7 +64,7 @@ export async function handleAnnotationComments(context: RunCommentHandlersContex
 		for (const targetRange of annotationComment.targetRanges) {
 			const subranges = splitIntoSingleLineRanges(targetRange, codeBlock)
 			if (!subranges.length) {
-				uniqueErrors.add(`Failed to locate target range of annotation comment "${annotationComment.tag.rawTag}" in code block: ${JSON.stringify(commentRange)}`)
+				uniqueErrors.add(`Failed to locate target range of annotation comment "${annotationComment.tag.rawTag}"`)
 				continue
 			}
 			for (const { lineIndex, inlineRange } of subranges) {
@@ -75,7 +75,7 @@ export async function handleAnnotationComments(context: RunCommentHandlersContex
 				codeBlock.getLine(lineIndex)?.addAnnotation({
 					inlineRange,
 					render: ({ nodesToTransform, addClassesToRenderedLine, addClassesToRenderedBlock }) => {
-						let transformedNodes = nodesToTransform
+						const transformedNodes = nodesToTransform
 						if (inlineRange) {
 							const wrapWith = handler.inlineTargets?.wrapWith
 							if (handler.inlineTargetParentLines?.addClasses) addClassesToRenderedLine(handler.inlineTargetParentLines.addClasses)

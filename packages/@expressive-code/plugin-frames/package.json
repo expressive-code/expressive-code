@@ -26,7 +26,7 @@
     "build-js-modules": "tsm --require=../../../scripts/lib/filter-warnings.cjs ../../../scripts/build-js-module.ts ./src/copy-js-module.ts",
     "coverage": "vitest run --coverage",
     "test": "vitest run --reporter verbose",
-    "test-short": "vitest run --reporter basic",
+    "test-short": "vitest run",
     "test-watch": "vitest --reporter verbose",
     "watch": "pnpm build --watch src"
   },

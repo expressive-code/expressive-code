@@ -106,14 +106,7 @@ The annotation tag names that this handler should process.
 
 By default, tag names must be unique across all annotation comment handlers, and attempting to register a handler for an existing tag name will throw an error. To change this, set the `overrideExisting` property to `true`.
 </dd>
-<dt>codeBlock</dt>
-<dd>
-<PropertySignature>
-- Type: [`AddClasses`](/reference/plugin-api/#addclasses)
-</PropertySignature>
-Allows defining actions to perform on the parent code block when an annotation comment using one of the tag names registered by this handler is encountered.
-</dd>
-<dt>contents</dt>
+<dt>commentContents</dt>
 <dd>
 <PropertySignature>
 - Type: [`ContentOptions`](/reference/plugin-api/#contentoptions) & [`WrapWith`](/reference/plugin-api/#wrapwith) & [`CopyBehavior`](/reference/plugin-api/#copybehavior)
@@ -135,6 +128,15 @@ Allows defining actions to perform on full-line targets of annotation comments i
 
 For example, the annotation comment `// [!highlight:3]` targets up to 3 lines of code, and an annotation comment handler for the tag name `highlight` would perform the actions defined in this property on the target lines.
 </dd>
+<dt>inlineTargetParentLines</dt>
+<dd>
+<PropertySignature>
+- Type: [`AddClasses`](/reference/plugin-api/#addclasses) & [`CopyBehavior`](/reference/plugin-api/#copybehavior)
+</PropertySignature>
+Allows defining actions to perform on the full parent lines containing at least one inline target of annotations registered by this handler.
+
+This allows applying special classes to lines containing a search term match, for example.
+</dd>
 <dt>inlineTargets</dt>
 <dd>
 <PropertySignature>
@@ -151,6 +153,13 @@ For example, the annotation comment `// [!highlight:search-term:3]` targets up t
 </PropertySignature>
 Whether to allow overriding existing tag names with this handler.
 
+</dd>
+<dt>parentBlock</dt>
+<dd>
+<PropertySignature>
+- Type: [`AddClasses`](/reference/plugin-api/#addclasses)
+</PropertySignature>
+Allows defining actions to perform on the parent code block when an annotation comment using one of the tag names registered by this handler is encountered.
 </dd>
 </dl>
 

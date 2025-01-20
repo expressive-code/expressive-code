@@ -36,8 +36,7 @@ export function getInlineSearchTermMatches(lineText: string, codeBlock: Expressi
 					// (capture group feature fallback, impossible to cover in tests)
 					/* c8 ignore start */
 					if (!groupIndices.length) {
-						const fullMatchIndex = match.index as number
-						groupIndices = [[fullMatchIndex, fullMatchIndex + match[0].length]]
+						groupIndices = [[match.index, match.index + match[0].length]]
 					}
 					/* c8 ignore end */
 					// If there are multiple non-null indices, remove the first one
