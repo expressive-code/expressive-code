@@ -18,6 +18,7 @@
     "@astrojs/starlight": "^0.31.0",
     "@expressive-code/plugin-collapsible-sections": "workspace:^",
     "@expressive-code/plugin-line-numbers": "workspace:^",
+    "@shikijs/colorized-brackets": "^2.0.3",
     "astro": "^5.1.7",
     "astro-expressive-code": "workspace:^",
     "astro-og-canvas": "^0.5.6",
