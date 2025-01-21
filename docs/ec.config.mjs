@@ -4,7 +4,7 @@ import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-s
 import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers'
 import { pluginFirstWordRed } from './plugins/plugin-first-word-red.js'
 import { pluginErrorPreview } from './plugins/plugin-error-preview.js'
-import shikiColorizedBrackets from './plugins/shiki-colorized-brackets/index.js'
+import { transformerColorizedBrackets } from '@shikijs/colorized-brackets'
 
 export default defineEcConfig({
 	plugins: [pluginCollapsibleSections(), pluginLineNumbers(), pluginFirstWordRed(), pluginErrorPreview()],
@@ -15,7 +15,7 @@ export default defineEcConfig({
 		},
 	},
 	shiki: {
-		transformers: [shikiColorizedBrackets()],
+		transformers: [transformerColorizedBrackets()],
 	},
 	defaultProps: {
 		showLineNumbers: false,
