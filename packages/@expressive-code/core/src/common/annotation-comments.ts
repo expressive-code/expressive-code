@@ -21,9 +21,27 @@ export type AnnotationCommentHandler = {
 	 */
 	overrideExisting?: boolean | undefined
 	/**
-	 * Defines how to render any contents following the annotation tag.
+	 * Defines how to preprocess the annotation tag (e.g. `[!note]`) inside the annotation comment.
+	 *
+	 * By default, the tag is replaced with an empty string, removing it from the code
+	 * that can be copied to the clipboard.
+	 *
+	 * For some annotations, it might be useful to change this to a human-readable prefix text
+	 * to ensure the meaning of the annotation is clear even without the tag itself
+	 * (e.g. `[!error]` -> `Error:`).
 	 */
-	commentContents?: (ContentOptions & WrapWith & CopyBehavior) | undefined
+	commentTag?: PreprocessingOptions | undefined
+	/**
+	 * Defines how to preprocess and render any contents following the annotation tag
+	 * (e.g. `[!note] These are the contents`) inside the annotation comment.
+	 *
+	 * By default, they are kept in the code that can be copied to the clipboard, but not rendered.
+	 *
+	 * To render the contents, set the `renderLocation` option to a value other than `none`.
+	 * You can then further customize the output, e.g. by setting the `wrapWith` option
+	 * to wrap the contents in a new HAST element that can be styled with CSS.
+	 */
+	commentContents?: (PreprocessingOptions & ContentRenderOptions & WrapWith) | undefined
 	/**
 	 * Allows defining actions to perform on inline targets of annotation comments in the code
 	 * (e.g. search term or regular expression matches, but not full lines).
@@ -32,14 +50,14 @@ export type AnnotationCommentHandler = {
 	 * of `search-term` in the code, and an annotation comment handler for the tag name `highlight`
 	 * would perform the actions defined in this property on the targets.
 	 */
-	inlineTargets?: (WrapWith & CopyBehavior) | undefined
+	inlineTargets?: (WrapWith & CopyOptions) | undefined
 	/**
 	 * Allows defining actions to perform on the full parent lines containing at least
 	 * one inline target of annotations registered by this handler.
 	 *
 	 * This allows applying special classes to lines containing a search term match, for example.
 	 */
-	inlineTargetParentLines?: (AddClasses & CopyBehavior) | undefined
+	inlineTargetParentLines?: (AddClasses & CopyOptions) | undefined
 	/**
 	 * Allows defining actions to perform on full-line targets of annotation comments in the code.
 	 *
@@ -47,7 +65,7 @@ export type AnnotationCommentHandler = {
 	 * and an annotation comment handler for the tag name `highlight` would perform the actions
 	 * defined in this property on the target lines.
 	 */
-	fullLineTargets?: (AddClasses & CopyBehavior) | undefined
+	fullLineTargets?: (AddClasses & CopyOptions) | undefined
 	/**
 	 * Allows defining actions to perform on the parent code block when an annotation comment
 	 * using one of the tag names registered by this handler is encountered.
@@ -68,14 +86,19 @@ export type AnnotationCommentHandlerContext = {
 	annotationComment: AnnotationComment
 }
 
-export type AnnotationCommentInlineTargetContext = AnnotationCommentHandlerContext & {
+export type AnnotationCommentCodeContext = AnnotationCommentHandlerContext & {
 	line: ExpressiveCodeLine
 	inlineRange?: ExpressiveCodeInlineRange | undefined
 }
 
-export type WrapWithAnnotationFn = (context: AnnotationCommentInlineTargetContext) => ExpressiveCodeAnnotation | Promise<ExpressiveCodeAnnotation>
+export type ReplaceCodeFn = (context: AnnotationCommentCodeContext) => string | Promise<string>
+export type WrapWithAnnotationFn = (context: AnnotationCommentCodeContext) => ExpressiveCodeAnnotation | Promise<ExpressiveCodeAnnotation>
 
-export type ContentOptions = {
+export type PreprocessingOptions = {
+	replaceCode?: string | ReplaceCodeFn | undefined
+}
+
+export type ContentRenderOptions = {
 	/**
 	 * How to output any contents following the annotation tag.
 	 *
@@ -99,7 +122,7 @@ export type ContentOptions = {
 	 * To further influence how the contents are rendered, see the options
 	 * `renderAs`, `addInlineStyle` and `wrapWith`.
 	 */
-	output: 'none' | 'inlineAtAnnotation' | 'inlineAtEndOfTargetLine' | 'betweenLinesAtAnnotation' | 'betweenLinesAboveTarget' | 'betweenLinesBelowTarget'
+	renderLocation: 'none' | 'inlineAtAnnotation' | 'inlineAtEndOfTargetLine' | 'betweenLinesAtAnnotation' | 'betweenLinesAboveTarget' | 'betweenLinesBelowTarget'
 	/**
 	 * Available renderers:
 	 * - `inline-markdown` (default): The contents are rendered with limited support for inline
@@ -124,24 +147,16 @@ export type AddClasses = {
 	addClasses?: string | string[] | undefined
 }
 
-export type CopyBehavior = {
+export type CopyOptions = {
 	/**
-	 * Whether to remove the parts targeted by the current {@link AnnotationCommentHandler} action
-	 * from the code that can be copied to the clipboard.
+	 * Allows modifying the targeted code when creating the plaintext version that can be copied
+	 * to the clipboard.
 	 *
-	 * Defaults to `false` for `fullLineTargets` and `inlineTargets`, and `true` for `contents`.
-	 * This keeps any targeted lines or search term matches in the code, but strips the entire
-	 * annotation comment (tag, contents & comment syntax) from the copied text.
-	 *
-	 * An annotation that allows marking parts of the code as deleted could set this to `true`
-	 * for `fullLineTargets` and `inlineTargets` to allow copying a version of the code where
-	 * all marked parts have been removed.
-	 *
-	 * A custom note annotation could set `contents: { stripFromCode: false }` to prevent removing
-	 * contents after the annotation tag from the copied code. The code will then still contain
-	 * the comment syntax and the annotation contents, and only the tag will be removed.
+	 * For example, a handler for deleted lines could use this to create a commented out version
+	 * of the targeted lines. Without this, the deletions would not be recognizable in the
+	 * copied code, as its plaintext format cannot contain the formatting of rendered annotations.
 	 */
-	stripFromCode?: boolean | undefined
+	replaceCodeForCopying?: ReplaceCodeFn | undefined
 }
 
 export type WrapWith = {
