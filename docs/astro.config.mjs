@@ -60,6 +60,7 @@ export default defineConfig({
 			components: {
 				Head: './src/components/starlight/Head.astro',
 				TableOfContents: './src/components/starlight/TableOfContents.astro',
+				Footer: './src/components/starlight/Footer.astro',
 			},
 			tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 4 },
 			sidebar: [

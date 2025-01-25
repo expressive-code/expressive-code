@@ -1,4 +1,4 @@
-/* Dark mode colors. */
+/* Dark mode colors */
 :root {
 	--sl-color-accent-low: #241c43;
 	--sl-color-accent: #6e45d7;
@@ -13,7 +13,7 @@
 	--sl-color-black: #18171f;
 }
 
-/* Light mode colors. */
+/* Light mode colors */
 :root[data-theme='light'] {
 	--sl-color-accent-low: #d6d2f8;
 	--sl-color-accent: #7048d9;
@@ -75,4 +75,16 @@ dl.type-declaration-list dd {
 }
 .property-signature a:hover {
 	color: var(--sl-color-white);
+}
+
+/* Add view transitions */
+@media (prefers-reduced-motion: no-preference) {
+	@view-transition {
+		navigation: auto;
+	}
+}
+
+:root::view-transition-old(*),
+:root::view-transition-new(*) {
+	animation-duration: 200ms;
 }
