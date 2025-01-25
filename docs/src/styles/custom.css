@@ -84,7 +84,7 @@ dl.type-declaration-list dd {
 	}
 }
 
-:root::view-transition-old(*),
-:root::view-transition-new(*) {
-	animation-duration: 200ms;
+:root::view-transition-old(root),
+:root::view-transition-new(root) {
+	animation-duration: 175ms;
 }
