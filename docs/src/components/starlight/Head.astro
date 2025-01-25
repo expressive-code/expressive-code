@@ -11,3 +11,4 @@ const canonicalImageSrc = ogImageUrl && new URL(ogImageUrl, Astro.site)
 <meta property="og:image" content={canonicalImageSrc} />
 <meta name="twitter:image" content={canonicalImageSrc} />
 )}
+<link rel="expect" href="#footer" blocking="render" />
