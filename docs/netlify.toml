@@ -1,4 +1,18 @@
+# Cache hashed assets for 1 year and don't revalidate them
 [[headers]]
   for = "/_astro/*"
   [headers.values]
     Cache-Control = "public,max-age=31536000,immutable"
+
+# Regular pages are considered fresh for 5 minutes, and afterwards, their cached version
+# can still be used for up to 1 day while revalidating in the background
+[[headers]]
+  for = "/*/"
+  [headers.values]
+    Cache-Control = "public,max-age=300,stale-while-revalidate=86400"
+
+# Same for the homepage
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "public,max-age=300,stale-while-revalidate=86400"
