@@ -83,3 +83,8 @@ dl.type-declaration-list dd {
 		navigation: auto;
 	}
 }
+
+:root::view-transition-old(root),
+:root::view-transition-new(root) {
+	animation-duration: 175ms;
+}
