@@ -21,53 +21,54 @@ export type AnnotationCommentHandler = {
 	 */
 	overrideExisting?: boolean | undefined
 	/**
-	 * Defines how to preprocess the annotation tag (e.g. `[!note]`) inside the annotation comment.
+	 * Defines how to handle the annotation tag (e.g. `[!note]`) inside the annotation comment.
 	 *
-	 * By default, the tag is replaced with an empty string, removing it from the code
-	 * that can be copied to the clipboard.
+	 * When preparing the version of the code that can be copied to the clipboard,
+	 * annotation tags are replaced with an empty string by default. As annotation tags are never
+	 * rendered, this default ensures that the copied code matches the rendered code.
 	 *
-	 * For some annotations, it might be useful to change this to a human-readable prefix text
-	 * to ensure the meaning of the annotation is clear even without the tag itself
+	 * For some annotations, it might be useful to change this to include a human-readable prefix
+	 * text to ensure the meaning of the annotation is clear even without the tag itself
 	 * (e.g. `[!error]` -> `Error:`).
 	 */
-	commentTag?: PreprocessingOptions | undefined
+	commentTag?: ProcessPlaintext | undefined
 	/**
-	 * Defines how to preprocess and render any contents following the annotation tag
-	 * (e.g. `[!note] These are the contents`) inside the annotation comment.
+	 * Defines how to handle annotation comment contents following the annotation tag
+	 * (e.g. `[!note] These are the contents`).
 	 *
-	 * By default, they are kept in the code that can be copied to the clipboard, but not rendered.
+	 * By default, these contents are kept in the code that can be copied to the clipboard,
+	 * but not rendered.
 	 *
 	 * To render the contents, set the `renderLocation` option to a value other than `none`.
 	 * You can then further customize the output, e.g. by setting the `wrapWith` option
 	 * to wrap the contents in a new HAST element that can be styled with CSS.
 	 */
-	commentContents?: (PreprocessingOptions & ContentRenderOptions & WrapWith) | undefined
+	commentContents?: (ProcessPlaintext & RenderContents & WrapWith) | undefined
 	/**
-	 * Allows defining actions to perform on inline targets of annotation comments in the code
+	 * Defines actions to perform on inline targets of annotation comments in the code
 	 * (e.g. search term or regular expression matches, but not full lines).
 	 *
 	 * For example, the annotation comment `// [!highlight:search-term:3]` targets up to 3 matches
-	 * of `search-term` in the code, and an annotation comment handler for the tag name `highlight`
-	 * would perform the actions defined in this property on the targets.
+	 * of `search-term` in the code, and setting `inlineTargets: { wrapWith: 'span.highlight' }`
+	 * would wrap each match in a `span` element with the class `highlight`.
 	 */
-	inlineTargets?: (WrapWith & CopyOptions) | undefined
+	inlineTargets?: (ProcessPlaintext & WrapWith) | undefined
 	/**
-	 * Allows defining actions to perform on the full parent lines containing at least
+	 * Defines actions to perform on the full parent lines containing at least
 	 * one inline target of annotations registered by this handler.
 	 *
 	 * This allows applying special classes to lines containing a search term match, for example.
 	 */
-	inlineTargetParentLines?: (AddClasses & CopyOptions) | undefined
+	inlineTargetParentLines?: (AddClasses & ProcessPlaintext & WrapWith) | undefined
 	/**
-	 * Allows defining actions to perform on full-line targets of annotation comments in the code.
+	 * Defines actions to perform on full-line targets of annotation comments in the code.
 	 *
 	 * For example, the annotation comment `// [!highlight:3]` targets up to 3 lines of code,
-	 * and an annotation comment handler for the tag name `highlight` would perform the actions
-	 * defined in this property on the target lines.
+	 * and this property defines the actions to be performed on these target lines.
 	 */
-	fullLineTargets?: (AddClasses & CopyOptions) | undefined
+	fullLineTargets?: (AddClasses & ProcessPlaintext & WrapWith) | undefined
 	/**
-	 * Allows defining actions to perform on the parent code block when an annotation comment
+	 * Defines actions to perform on the parent code block when an annotation comment
 	 * using one of the tag names registered by this handler is encountered.
 	 */
 	parentBlock?: AddClasses | undefined
@@ -94,52 +95,6 @@ export type AnnotationCommentCodeContext = AnnotationCommentHandlerContext & {
 export type ReplaceCodeFn = (context: AnnotationCommentCodeContext) => string | Promise<string>
 export type WrapWithAnnotationFn = (context: AnnotationCommentCodeContext) => ExpressiveCodeAnnotation | Promise<ExpressiveCodeAnnotation>
 
-export type PreprocessingOptions = {
-	replaceCode?: string | ReplaceCodeFn | undefined
-}
-
-export type ContentRenderOptions = {
-	/**
-	 * How to output any contents following the annotation tag.
-	 *
-	 * The default behavior is to remove the entire annotation (tag & contents) from the code
-	 * and not include it in the rendered output. To change this and render the contents,
-	 * set this option to a value other than `none`.
-	 *
-	 * Available values:
-	 * - `none` (default): Annotation contents are removed from the code and not rendered.
-	 * - `inlineAtAnnotation`: Annotation contents are rendered in the line and column
-	 *   where the annotation is located.
-	 * - `inlineAtEndOfTargetLine`: Annotation contents are rendered at the end of the line
-	 *   where the annotation is located.
-	 * - `betweenLinesAtAnnotation`: The code lines are split at the annotation line,
-	 *   and the contents are rendered between the two parts.
-	 * - `betweenLinesAboveTarget`: The code lines are split above the first target,
-	 *   and the contents are rendered between the two parts.
-	 * - `betweenLinesBelowTarget`: The code lines are split below the last target,
-	 *   and the contents are rendered between the two parts.
-	 *
-	 * To further influence how the contents are rendered, see the options
-	 * `renderAs`, `addInlineStyle` and `wrapWith`.
-	 */
-	renderLocation: 'none' | 'inlineAtAnnotation' | 'inlineAtEndOfTargetLine' | 'betweenLinesAtAnnotation' | 'betweenLinesAboveTarget' | 'betweenLinesBelowTarget'
-	/**
-	 * Available renderers:
-	 * - `inline-markdown` (default): The contents are rendered with limited support for inline
-	 *   Markdown formatting.
-	 *   - The following Markdown features are supported:
-	 *     - `*italic*`, `**bold**`, including combinations like `***bold** & italic*`
-	 *   - When `output` is set to an `inline` option, contents are rendered as a single line,
-	 *     with support for basic inline Markdown formatting and links.
-	 *   - When `output` is set to a `betweenLines` option, contents are rendered as a Markdown
-	 *     document, with support for headings, lists, code blocks, and more.
-	 * - `plaintext`: The contents are rendered as-is, without any special formatting applied.
-	 *   - Single line breaks are collapsed to a single space.
-	 *   - When `output` is set to a `betweenLines` option, empty lines start a new paragraph.
-	 */
-	renderAs: 'inline-markdown' | 'plaintext'
-}
-
 export type AddClasses = {
 	/**
 	 * CSS class name(s) that should be added to the elements targeted by the action.
@@ -147,16 +102,81 @@ export type AddClasses = {
 	addClasses?: string | string[] | undefined
 }
 
-export type CopyOptions = {
+export type RenderContents = {
 	/**
-	 * Allows modifying the targeted code when creating the plaintext version that can be copied
-	 * to the clipboard.
+	 * Where to render any contents following the annotation tag.
+	 *
+	 * Available values:
+	 * - `none` (default): Contents are not rendered.
+	 * - `inlineAtAnnotation`: Contents are rendered in the line and column
+	 *   where the annotation is located.
+	 * - `inlineAtEndOfTargetLine`: Contents are rendered at the end of the line
+	 *   where the annotation is located.
+	 * - `betweenLinesAtAnnotation`: The code lines are split at the annotation line,
+	 *   and contents are rendered between the two parts.
+	 * - `betweenLinesAboveTarget`: The code lines are split above the first target,
+	 *   and contents are rendered between the two parts.
+	 * - `betweenLinesBelowTarget`: The code lines are split below the last target,
+	 *   and contents are rendered between the two parts.
+	 *
+	 * To further influence how the contents are rendered, see the options `renderAs` and `wrapWith`.
+	 *
+	 * Please note that rendering is independent from how contents are copied to the clipboard.
+	 * You can control the copied code separately using the `replaceInCopiedCode` option.
+	 */
+	renderLocation: 'none' | 'inlineAtAnnotation' | 'inlineAtEndOfTargetLine' | 'betweenLinesAtAnnotation' | 'betweenLinesAboveTarget' | 'betweenLinesBelowTarget'
+	/**
+	 * How to parse and render the contents following the annotation tag.
+	 *
+	 * Available renderers:
+	 * - `inline-markdown` (default): The contents are rendered with limited support for inline
+	 *   Markdown formatting.
+	 *   - The following Markdown features are supported:
+	 *     - `*italic*`, `**bold**`, including combinations like `***bold** & italic*`
+	 *   - When `renderLocation` is set to an `inline` option, contents are rendered
+	 *     as a single line, with support for basic inline Markdown formatting and links.
+	 *   - When `renderLocation` is set to a `betweenLines` option, contents are rendered
+	 *     as a Markdown document, with support for headings, lists, code blocks, and more.
+	 * - `plaintext`: The contents are rendered as-is, without any special formatting applied.
+	 *   - Single line breaks are collapsed to a single space.
+	 *   - When `renderLocation` is set to a `betweenLines` option,
+	 *     empty lines start a new paragraph.
+	 *
+	 * Please ensure that the `renderLocation` option is set to a value other than `none`
+	 * to actually render the contents.
+	 */
+	renderAs: 'inline-markdown' | 'plaintext'
+}
+
+export type ProcessPlaintext = {
+	/**
+	 * Allows preprocessing the targeted code plaintext before performing syntax highlighting
+	 * or rendering. This is done during the `preprocessCode` hook phase.
+	 *
+	 * By default, Expressive Code does not perform any replacements in your code, with the
+	 * exception of the `commentTag` target, which is considered metadata that should neither
+	 * be rendered nor copied to the clipboard, and is therefore replaced with an empty string.
+	 *
+	 * Note that replacements done by this option are applied to both the code that is rendered
+	 * and the code that is copied to the clipboard. You can use the `replaceInCopiedCode` option
+	 * either as an alternative or in combination with this option to specify replacements that
+	 * should only be applied to the code that is copied to the clipboard. When using both options,
+	 * this creates two separate versions of the code: one for rendering and one for copying.
+	 */
+	preprocessCode?: string | ReplaceCodeFn | undefined
+	/**
+	 * Allows replacing the targeted code plaintext when preparing the version that can be copied
+	 * to the clipboard. The replacements will be done in the `postprocessAnalyzedCode` hook phase.
+	 *
+	 * You can either provide a string that will be used as a direct replacement,
+	 * or a function that will be called with the context of the current code block
+	 * and annotation comment, and is expected to return the replacement string.
 	 *
 	 * For example, a handler for deleted lines could use this to create a commented out version
 	 * of the targeted lines. Without this, the deletions would not be recognizable in the
 	 * copied code, as its plaintext format cannot contain the formatting of rendered annotations.
 	 */
-	replaceCodeForCopying?: ReplaceCodeFn | undefined
+	replaceInCopiedCode?: string | ReplaceCodeFn | undefined
 }
 
 export type WrapWith = {
@@ -188,6 +208,26 @@ export class AddClassesAnnotation extends ExpressiveCodeAnnotation {
 		return nodesToTransform.map((node) => {
 			if (node.type !== 'element') node = h('span', node)
 			addClassNames(node, this.classes)
+			return node
+		})
+	}
+}
+
+export class ReplaceInCopiedCodeAnnotation extends ExpressiveCodeAnnotation {
+	name: string
+	replacement: string | ReplaceCodeFn
+
+	constructor({ replacement, ...baseOptions }: { replacement: string | ReplaceCodeFn } & AnnotationBaseOptions) {
+		super(baseOptions)
+		this.name = 'Replace in copied code'
+		this.replacement = replacement
+	}
+
+	render({ nodesToTransform }: AnnotationRenderOptions) {
+		return nodesToTransform.map((node) => {
+			// TODO: Actually perform the replacement here (or don't, and instead go through all
+			// lines and check for this annotation type, replacing the code in the function that
+			// generates the copied code)
 			return node
 		})
 	}

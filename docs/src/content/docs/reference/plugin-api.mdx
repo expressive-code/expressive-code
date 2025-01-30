@@ -109,9 +109,24 @@ By default, tag names must be unique across all annotation comment handlers, and
 <dt>commentContents</dt>
 <dd>
 <PropertySignature>
-- Type: [`ContentOptions`](/reference/plugin-api/#contentoptions) & [`WrapWith`](/reference/plugin-api/#wrapwith) & [`CopyBehavior`](/reference/plugin-api/#copybehavior)
+- Type: [`ProcessPlaintext`](/reference/plugin-api/#processplaintext) & [`RenderContents`](/reference/plugin-api/#rendercontents) & [`WrapWith`](/reference/plugin-api/#wrapwith)
 </PropertySignature>
-Defines how to render any contents following the annotation tag.
+Defines how to handle annotation comment contents following the annotation tag (e.g. `[!note] These are the contents`).
+
+By default, these contents are kept in the code that can be copied to the clipboard, but not rendered.
+
+To render the contents, set the `renderLocation` option to a value other than `none`. You can then further customize the output, e.g. by setting the `wrapWith` option to wrap the contents in a new HAST element that can be styled with CSS.
+</dd>
+<dt>commentTag</dt>
+<dd>
+<PropertySignature>
+- Type: [`ProcessPlaintext`](/reference/plugin-api/#processplaintext)
+</PropertySignature>
+Defines how to handle the annotation tag (e.g. `[!note]`) inside the annotation comment.
+
+When preparing the version of the code that can be copied to the clipboard, annotation tags are replaced with an empty string by default. As annotation tags are never rendered, this default ensures that the copied code matches the rendered code.
+
+For some annotations, it might be useful to change this to include a human-readable prefix text to ensure the meaning of the annotation is clear even without the tag itself (e.g. `[!error]` -> `Error:`).
 </dd>
 <dt>custom</dt>
 <dd>
@@ -122,29 +137,29 @@ Defines how to render any contents following the annotation tag.
 <dt>fullLineTargets</dt>
 <dd>
 <PropertySignature>
-- Type: [`AddClasses`](/reference/plugin-api/#addclasses) & [`CopyBehavior`](/reference/plugin-api/#copybehavior)
+- Type: [`AddClasses`](/reference/plugin-api/#addclasses) & [`ProcessPlaintext`](/reference/plugin-api/#processplaintext) & [`WrapWith`](/reference/plugin-api/#wrapwith)
 </PropertySignature>
-Allows defining actions to perform on full-line targets of annotation comments in the code.
+Defines actions to perform on full-line targets of annotation comments in the code.
 
-For example, the annotation comment `// [!highlight:3]` targets up to 3 lines of code, and an annotation comment handler for the tag name `highlight` would perform the actions defined in this property on the target lines.
+For example, the annotation comment `// [!highlight:3]` targets up to 3 lines of code, and this property defines the actions to be performed on these target lines.
 </dd>
 <dt>inlineTargetParentLines</dt>
 <dd>
 <PropertySignature>
-- Type: [`AddClasses`](/reference/plugin-api/#addclasses) & [`CopyBehavior`](/reference/plugin-api/#copybehavior)
+- Type: [`AddClasses`](/reference/plugin-api/#addclasses) & [`ProcessPlaintext`](/reference/plugin-api/#processplaintext) & [`WrapWith`](/reference/plugin-api/#wrapwith)
 </PropertySignature>
-Allows defining actions to perform on the full parent lines containing at least one inline target of annotations registered by this handler.
+Defines actions to perform on the full parent lines containing at least one inline target of annotations registered by this handler.
 
 This allows applying special classes to lines containing a search term match, for example.
 </dd>
 <dt>inlineTargets</dt>
 <dd>
 <PropertySignature>
-- Type: [`WrapWith`](/reference/plugin-api/#wrapwith) & [`CopyBehavior`](/reference/plugin-api/#copybehavior)
+- Type: [`ProcessPlaintext`](/reference/plugin-api/#processplaintext) & [`WrapWith`](/reference/plugin-api/#wrapwith)
 </PropertySignature>
-Allows defining actions to perform on inline targets of annotation comments in the code (e.g. search term or regular expression matches, but not full lines).
+Defines actions to perform on inline targets of annotation comments in the code (e.g. search term or regular expression matches, but not full lines).
 
-For example, the annotation comment `// [!highlight:search-term:3]` targets up to 3 matches of `search-term` in the code, and an annotation comment handler for the tag name `highlight` would perform the actions defined in this property on the targets.
+For example, the annotation comment `// [!highlight:search-term:3]` targets up to 3 matches of `search-term` in the code, and setting `inlineTargets: { wrapWith: 'span.highlight' }` would wrap each match in a `span` element with the class `highlight`.
 </dd>
 <dt>overrideExisting</dt>
 <dd>
@@ -159,7 +174,7 @@ Whether to allow overriding existing tag names with this handler.
 <PropertySignature>
 - Type: [`AddClasses`](/reference/plugin-api/#addclasses)
 </PropertySignature>
-Allows defining actions to perform on the parent code block when an annotation comment using one of the tag names registered by this handler is encountered.
+Defines actions to perform on the parent code block when an annotation comment using one of the tag names registered by this handler is encountered.
 </dd>
 </dl>
 
@@ -177,61 +192,73 @@ CSS class name(s) that should be added to the elements targeted by the action.
 </dd>
 </dl>
 
-#### ContentOptions
+#### RenderContents
 
 <dl class="type-declaration-list">
-<dt>output</dt>
-<dd>
-<PropertySignature>
-- Type: `"none"` \| `"inlineAtAnnotation"` \| `"inlineAtEndOfTargetLine"` \| `"betweenLinesAtAnnotation"` \| `"betweenLinesAboveTarget"` \| `"betweenLinesBelowTarget"`
-</PropertySignature>
-How to output any contents following the annotation tag.
-
-The default behavior is to remove the entire annotation (tag & contents) from the code and not include it in the rendered output. To change this and render the contents, set this option to a value other than `none`.
-
-Available values:
-- `none` (default): Annotation contents are removed from the code and not rendered.
-- `inlineAtAnnotation`: Annotation contents are rendered in the line and column where the annotation is located.
-- `inlineAtEndOfTargetLine`: Annotation contents are rendered at the end of the line where the annotation is located.
-- `betweenLinesAtAnnotation`: The code lines are split at the annotation line, and the contents are rendered between the two parts.
-- `betweenLinesAboveTarget`: The code lines are split above the first target, and the contents are rendered between the two parts.
-- `betweenLinesBelowTarget`: The code lines are split below the last target, and the contents are rendered between the two parts.
-
-To further influence how the contents are rendered, see the options
-`renderAs`, `addInlineStyle` and `wrapWith`.
-</dd>
 <dt>renderAs</dt>
 <dd>
 <PropertySignature>
 - Type: `"inline-markdown"` \| `"plaintext"`
 </PropertySignature>
+How to parse and render the contents following the annotation tag.
+
 Available renderers:
 - `inline-markdown` (default): The contents are rendered with limited support for inline Markdown formatting.
   - The following Markdown features are supported:
     - `*italic*`, `**bold**`, including combinations like `***bold** & italic*`
-  - When `output` is set to an `inline` option, contents are rendered as a single line, with support for basic inline Markdown formatting and links.
-  - When `output` is set to a `betweenLines` option, contents are rendered as a Markdown document, with support for headings, lists, code blocks, and more.
+  - When `renderLocation` is set to an `inline` option, contents are rendered as a single line, with support for basic inline Markdown formatting and links.
+  - When `renderLocation` is set to a `betweenLines` option, contents are rendered as a Markdown document, with support for headings, lists, code blocks, and more.
 - `plaintext`: The contents are rendered as-is, without any special formatting applied.
   - Single line breaks are collapsed to a single space.
-  - When `output` is set to a `betweenLines` option, empty lines start a new paragraph.
+  - When `renderLocation` is set to a `betweenLines` option, empty lines start a new paragraph.
+
+Please ensure that the `renderLocation` option is set to a value other than `none` to actually render the contents.
+</dd>
+<dt>renderLocation</dt>
+<dd>
+<PropertySignature>
+- Type: `"none"` \| `"inlineAtAnnotation"` \| `"inlineAtEndOfTargetLine"` \| `"betweenLinesAtAnnotation"` \| `"betweenLinesAboveTarget"` \| `"betweenLinesBelowTarget"`
+</PropertySignature>
+Where to render any contents following the annotation tag.
+
+Available values:
+- `none` (default): Contents are not rendered.
+- `inlineAtAnnotation`: Contents are rendered in the line and column where the annotation is located.
+- `inlineAtEndOfTargetLine`: Contents are rendered at the end of the line where the annotation is located.
+- `betweenLinesAtAnnotation`: The code lines are split at the annotation line, and contents are rendered between the two parts.
+- `betweenLinesAboveTarget`: The code lines are split above the first target, and contents are rendered between the two parts.
+- `betweenLinesBelowTarget`: The code lines are split below the last target, and contents are rendered between the two parts.
+
+To further influence how the contents are rendered, see the options `renderAs` and `wrapWith`.
+
+Please note that rendering is independent from how contents are copied to the clipboard. You can control the copied code separately using the `replaceInCopiedCode` option.
 </dd>
 </dl>
 
-#### CopyBehavior
+#### ProcessPlaintext
 
 <dl class="type-declaration-list">
-<dt>stripFromCode</dt>
+<dt>preprocessCode</dt>
 <dd>
 <PropertySignature>
-- Type: `boolean`
+- Type: `string` \| `ReplaceCodeFn`
 </PropertySignature>
-Whether to remove the parts targeted by the current [AnnotationCommentHandler](/reference/plugin-api/#annotationcommenthandler) action from the code that can be copied to the clipboard.
+Allows preprocessing the targeted code plaintext before performing syntax highlighting or rendering. This is done during the `preprocessCode` hook phase.
 
-Defaults to `false` for `fullLineTargets` and `inlineTargets`, and `true` for `contents`. This keeps any targeted lines or search term matches in the code, but strips the entire annotation comment (tag, contents & comment syntax) from the copied text.
+By default, Expressive Code does not perform any replacements in your code, with the exception of the `commentTag` target, which is considered metadata that should neither be rendered nor copied to the clipboard, and is therefore replaced with an empty string.
 
-An annotation that allows marking parts of the code as deleted could set this to `true` for `fullLineTargets` and `inlineTargets` to allow copying a version of the code where all marked parts have been removed.
+Note that replacements done by this option are applied to both the code that is rendered and the code that is copied to the clipboard. You can use the `replaceInCopiedCode` option either as an alternative or in combination with this option to specify replacements that should only be applied to the code that is copied to the clipboard. When using both options, this creates two separate versions of the code: one for rendering and one for copying.
+</dd>
+<dt>replaceInCopiedCode</dt>
+<dd>
+<PropertySignature>
+- Type: `string` \| `ReplaceCodeFn`
+</PropertySignature>
+Allows replacing the targeted code plaintext when preparing the version that can be copied to the clipboard. The replacements will be done in the `postprocessAnalyzedCode` hook phase.
 
-A custom note annotation could set `contents: { stripFromCode: false }` to prevent removing contents after the annotation tag from the copied code. The code will then still contain the comment syntax and the annotation contents, and only the tag will be removed.
+You can either provide a string that will be used as a direct replacement, or a function that will be called with the context of the current code block and annotation comment, and is expected to return the replacement string.
+
+For example, a handler for deleted lines could use this to create a commented out version of the targeted lines. Without this, the deletions would not be recognizable in the copied code, as its plaintext format cannot contain the formatting of rendered annotations.
 </dd>
 </dl>
 
