@@ -238,7 +238,7 @@ export function getCoreBaseStyles({
 		text-size-adjust: none;
 		-webkit-text-size-adjust: none;
 
-		*:not(path) {
+		*:not(:is(svg, svg *)) {
 			${useStyleReset ? 'all: revert;' : ''}
 			box-sizing: border-box;
 		}
