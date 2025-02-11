@@ -1,5 +1,12 @@
 # remark-expressive-code
 
+## 0.40.2
+
+### Patch Changes
+
+- Updated dependencies [1734d73]
+  - expressive-code@0.40.2
+
 ## 0.40.1
 
 ### Patch Changes
