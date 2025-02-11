@@ -1,5 +1,13 @@
 # astro-expressive-code
 
+## 0.40.2
+
+### Patch Changes
+
+- 1734d73: Prevents the default [style reset](https://expressive-code.com/reference/configuration/#usestylereset) from interfering with more complex SVGs inside Expressive Code blocks. Now, not only `path` elements, but all SVGs and their contents are excluded from the reset. Thank you @xt0rted!
+- Updated dependencies [1734d73]
+  - rehype-expressive-code@0.40.2
+
 ## 0.40.1
 
 ### Patch Changes
