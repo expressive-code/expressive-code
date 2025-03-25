@@ -79,6 +79,12 @@ export type InlineStyleAnnotationOptions = AnnotationBaseOptions & {
 	 */
 	color?: string | undefined
 	/**
+	 * The background color of the annotation. This is expected to be a hex color string,
+	 * e.g. `#888`. Using CSS variables or other color formats is possible, but prevents
+	 * automatic color contrast checks from working.
+	 */
+	bgColor?: string | undefined
+	/**
 	 * Whether the annotation should be rendered in italics.
 	 */
 	italic?: boolean | undefined
@@ -124,15 +130,17 @@ export type InlineStyleAnnotationOptions = AnnotationBaseOptions & {
 export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
 	name: string
 	color: string | undefined
+	bgColor: string | undefined
 	italic: boolean
 	bold: boolean
 	underline: boolean
 	styleVariantIndex: number | undefined
 
-	constructor({ color, italic = false, bold = false, underline = false, styleVariantIndex, ...baseOptions }: InlineStyleAnnotationOptions) {
+	constructor({ color, bgColor, italic = false, bold = false, underline = false, styleVariantIndex, ...baseOptions }: InlineStyleAnnotationOptions) {
 		super(baseOptions)
 		this.name = 'Inline style'
 		this.color = color
+		this.bgColor = bgColor
 		this.italic = italic
 		this.bold = bold
 		this.underline = underline
@@ -144,6 +152,7 @@ export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
 		const addStylesForVariantIndex = (variantIndex: number) => {
 			const varPrefix = `--${variantIndex}`
 			if (this.color) newStyles.set(varPrefix, this.color)
+			if (this.bgColor) newStyles.set(`${varPrefix}bg`, this.bgColor)
 			if (this.italic) newStyles.set(`${varPrefix}fs`, 'italic')
 			if (this.bold) newStyles.set(`${varPrefix}fw`, 'bold')
 			if (this.underline) newStyles.set(`${varPrefix}td`, 'underline')
