@@ -97,6 +97,10 @@ export type InlineStyleAnnotationOptions = AnnotationBaseOptions & {
 	 */
 	underline?: boolean | undefined
 	/**
+	 * Whether the annotation should be rendered with a strikethrough.
+	 */
+	strikethrough?: boolean | undefined
+	/**
 	 * Inline styles can be theme-dependent, which allows plugins like syntax highlighters to
 	 * style the same code differently depending on the theme.
 	 *
@@ -134,9 +138,10 @@ export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
 	italic: boolean
 	bold: boolean
 	underline: boolean
+	strikethrough: boolean
 	styleVariantIndex: number | undefined
 
-	constructor({ color, bgColor, italic = false, bold = false, underline = false, styleVariantIndex, ...baseOptions }: InlineStyleAnnotationOptions) {
+	constructor({ color, bgColor, italic = false, bold = false, underline = false, strikethrough = false, styleVariantIndex, ...baseOptions }: InlineStyleAnnotationOptions) {
 		super(baseOptions)
 		this.name = 'Inline style'
 		this.color = color
@@ -144,6 +149,7 @@ export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
 		this.italic = italic
 		this.bold = bold
 		this.underline = underline
+		this.strikethrough = strikethrough
 		this.styleVariantIndex = styleVariantIndex
 	}
 
@@ -155,7 +161,10 @@ export class InlineStyleAnnotation extends ExpressiveCodeAnnotation {
 			if (this.bgColor) newStyles.set(`${varPrefix}bg`, this.bgColor)
 			if (this.italic) newStyles.set(`${varPrefix}fs`, 'italic')
 			if (this.bold) newStyles.set(`${varPrefix}fw`, 'bold')
-			if (this.underline) newStyles.set(`${varPrefix}td`, 'underline')
+			const textDecorations = []
+			if (this.underline) textDecorations.push('underline')
+			if (this.strikethrough) textDecorations.push('line-through')
+			if (textDecorations.length) newStyles.set(`${varPrefix}td`, textDecorations.join(' '))
 		}
 		const variantIndices = this.styleVariantIndex !== undefined ? [this.styleVariantIndex] : styleVariants.map((_, i) => i)
 		variantIndices.forEach(addStylesForVariantIndex)
