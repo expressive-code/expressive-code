@@ -179,8 +179,8 @@ importers:
         specifier: ^4.0.4
         version: 4.0.4
       annotation-comments:
-        specifier: ^0.3.0
-        version: 0.3.0
+        specifier: ^1.0.0
+        version: 1.0.0
       hast-util-select:
         specifier: ^6.0.2
         version: 6.0.2
@@ -2732,8 +2732,8 @@ packages:
   ajv@6.12.6:
     resolution: {integrity: sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g==}
 
-  annotation-comments@0.3.0:
-    resolution: {integrity: sha512-7+IYJDCvjLhnT9fg8DPX2elrsEop3OuaINwOArW93SSk6USFNQ707OeDRLTirCK+mhLE6SHL7w8SZsCcX5ewtA==}
+  annotation-comments@1.0.0:
+    resolution: {integrity: sha512-GnZdYjA81Uszsg7eEvNUBdmD0cimoLizK6aXafCPovEhfxRMn5Ao4ptV96xz4UnPvI/R04wCCKdGKYlWx3XMsg==}
 
   ansi-align@3.0.1:
     resolution: {integrity: sha512-IOfwwBF5iczOjp/WeY4YxyjqAFMQoZufdQWDd19SEExbVLNXqvpzSJ/M7Za4/sCPmQ0+GRquoA7bGcINcxew6w==}
@@ -9715,7 +9715,7 @@ snapshots:
       json-schema-traverse: 0.4.1
       uri-js: 4.4.1
 
-  annotation-comments@0.3.0: {}
+  annotation-comments@1.0.0: {}
 
   ansi-align@3.0.1:
     dependencies:

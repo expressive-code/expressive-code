@@ -21,18 +21,6 @@ export type AnnotationCommentHandler = {
 	 */
 	overrideExisting?: boolean | undefined
 	/**
-	 * Defines how to handle the annotation tag (e.g. `[!note]`) inside the annotation comment.
-	 *
-	 * When preparing the version of the code that can be copied to the clipboard,
-	 * annotation tags are replaced with an empty string by default. As annotation tags are never
-	 * rendered, this default ensures that the copied code matches the rendered code.
-	 *
-	 * For some annotations, it might be useful to change this to include a human-readable prefix
-	 * text to ensure the meaning of the annotation is clear even without the tag itself
-	 * (e.g. `[!error]` -> `Error:`).
-	 */
-	commentTag?: ProcessPlaintext | undefined
-	/**
 	 * Defines how to handle annotation comment contents following the annotation tag
 	 * (e.g. `[!note] These are the contents`).
 	 *
@@ -43,30 +31,30 @@ export type AnnotationCommentHandler = {
 	 * You can then further customize the output, e.g. by setting the `wrapWith` option
 	 * to wrap the contents in a new HAST element that can be styled with CSS.
 	 */
-	commentContents?: (ProcessPlaintext & RenderContents & WrapWith) | undefined
+	commentContents?: (CopyOptions<ReplaceCommentContentsFn> & RenderContents & WrapWith) | undefined
 	/**
 	 * Defines actions to perform on inline targets of annotation comments in the code
 	 * (e.g. search term or regular expression matches, but not full lines).
 	 *
-	 * For example, the annotation comment `// [!highlight:search-term:3]` targets up to 3 matches
-	 * of `search-term` in the code, and setting `inlineTargets: { wrapWith: 'span.highlight' }`
+	 * For example, the annotation comment `// [!highlight:"search term":3]` targets up to 3 matches
+	 * of `search term` in the code, and setting `inlineTargets: { wrapWith: 'span.highlight' }`
 	 * would wrap each match in a `span` element with the class `highlight`.
 	 */
-	inlineTargets?: (ProcessPlaintext & WrapWith) | undefined
+	inlineTargets?: (ProcessPlaintext & CopyOptions & WrapWith) | undefined
 	/**
 	 * Defines actions to perform on the full parent lines containing at least
 	 * one inline target of annotations registered by this handler.
 	 *
 	 * This allows applying special classes to lines containing a search term match, for example.
 	 */
-	inlineTargetParentLines?: (AddClasses & ProcessPlaintext & WrapWith) | undefined
+	inlineTargetParentLines?: (ProcessPlaintext & CopyOptions & AddClasses & WrapWith) | undefined
 	/**
 	 * Defines actions to perform on full-line targets of annotation comments in the code.
 	 *
 	 * For example, the annotation comment `// [!highlight:3]` targets up to 3 lines of code,
 	 * and this property defines the actions to be performed on these target lines.
 	 */
-	fullLineTargets?: (AddClasses & ProcessPlaintext & WrapWith) | undefined
+	fullLineTargets?: (ProcessPlaintext & CopyOptions & AddClasses & WrapWith) | undefined
 	/**
 	 * Defines actions to perform on the parent code block when an annotation comment
 	 * using one of the tag names registered by this handler is encountered.
@@ -87,13 +75,20 @@ export type AnnotationCommentHandlerContext = {
 	annotationComment: AnnotationComment
 }
 
-export type AnnotationCommentCodeContext = AnnotationCommentHandlerContext & {
+export type AnnotationCommentCodeRange = {
+	/**
+	 * The line in the code block that contains the annotation comment.
+	 */
 	line: ExpressiveCodeLine
+	/**
+	 * The inline range within the line (if any) that is targeted by the annotation comment.
+	 */
 	inlineRange?: ExpressiveCodeInlineRange | undefined
 }
 
-export type ReplaceCodeFn = (context: AnnotationCommentCodeContext) => string | Promise<string>
-export type WrapWithAnnotationFn = (context: AnnotationCommentCodeContext) => ExpressiveCodeAnnotation | Promise<ExpressiveCodeAnnotation>
+export type ReplaceCodeFn = (context: AnnotationCommentHandlerContext & AnnotationCommentCodeRange) => string | Promise<string>
+export type ReplaceCommentContentsFn = (context: AnnotationCommentHandlerContext) => string[] | Promise<string[]>
+export type WrapWithAnnotationFn = (context: AnnotationCommentHandlerContext) => ExpressiveCodeAnnotation | Promise<ExpressiveCodeAnnotation>
 
 export type AddClasses = {
 	/**
@@ -108,10 +103,9 @@ export type RenderContents = {
 	 *
 	 * Available values:
 	 * - `none` (default): Contents are not rendered.
-	 * - `inlineAtAnnotation`: Contents are rendered in the line and column
-	 *   where the annotation is located.
-	 * - `inlineAtEndOfTargetLine`: Contents are rendered at the end of the line
-	 *   where the annotation is located.
+	 * - `inlineAtAnnotation`: Contents are rendered at the location of the annotation comment.
+	 * - `inlineAtEndOfFirstTargetLine`: Contents are rendered at the end of the first target line.
+	 * - `inlineAtEndOfAllTargetLines`: Contents are rendered at the end of all target lines.
 	 * - `betweenLinesAtAnnotation`: The code lines are split at the annotation line,
 	 *   and contents are rendered between the two parts.
 	 * - `betweenLinesAboveTarget`: The code lines are split above the first target,
@@ -124,7 +118,14 @@ export type RenderContents = {
 	 * Please note that rendering is independent from how contents are copied to the clipboard.
 	 * You can control the copied code separately using the `replaceInCopiedCode` option.
 	 */
-	renderLocation: 'none' | 'inlineAtAnnotation' | 'inlineAtEndOfTargetLine' | 'betweenLinesAtAnnotation' | 'betweenLinesAboveTarget' | 'betweenLinesBelowTarget'
+	renderLocation:
+		| 'none'
+		| 'inlineAtAnnotation'
+		| 'inlineAtEndOfFirstTargetLine'
+		| 'inlineAtEndOfAllTargetLines'
+		| 'betweenLinesAtAnnotation'
+		| 'betweenLinesAboveTarget'
+		| 'betweenLinesBelowTarget'
 	/**
 	 * How to parse and render the contents following the annotation tag.
 	 *
@@ -148,14 +149,10 @@ export type RenderContents = {
 	renderAs: 'inline-markdown' | 'plaintext'
 }
 
-export type ProcessPlaintext = {
+export type ProcessPlaintext<PreprocessCodeFn = ReplaceCodeFn> = {
 	/**
 	 * Allows preprocessing the targeted code plaintext before performing syntax highlighting
 	 * or rendering. This is done during the `preprocessCode` hook phase.
-	 *
-	 * By default, Expressive Code does not perform any replacements in your code, with the
-	 * exception of the `commentTag` target, which is considered metadata that should neither
-	 * be rendered nor copied to the clipboard, and is therefore replaced with an empty string.
 	 *
 	 * Note that replacements done by this option are applied to both the code that is rendered
 	 * and the code that is copied to the clipboard. You can use the `replaceInCopiedCode` option
@@ -163,7 +160,10 @@ export type ProcessPlaintext = {
 	 * should only be applied to the code that is copied to the clipboard. When using both options,
 	 * this creates two separate versions of the code: one for rendering and one for copying.
 	 */
-	preprocessCode?: string | ReplaceCodeFn | undefined
+	preprocessCode?: string[] | PreprocessCodeFn | undefined
+}
+
+export type CopyOptions<ReplaceInCopiedCodeFn = ReplaceCodeFn> = {
 	/**
 	 * Allows replacing the targeted code plaintext when preparing the version that can be copied
 	 * to the clipboard. The replacements will be done in the `postprocessAnalyzedCode` hook phase.
@@ -176,7 +176,7 @@ export type ProcessPlaintext = {
 	 * of the targeted lines. Without this, the deletions would not be recognizable in the
 	 * copied code, as its plaintext format cannot contain the formatting of rendered annotations.
 	 */
-	replaceInCopiedCode?: string | ReplaceCodeFn | undefined
+	replaceInCopiedCode?: string[] | ReplaceInCopiedCodeFn | undefined
 }
 
 export type WrapWith = {
@@ -215,9 +215,9 @@ export class AddClassesAnnotation extends ExpressiveCodeAnnotation {
 
 export class ReplaceInCopiedCodeAnnotation extends ExpressiveCodeAnnotation {
 	name: string
-	replacement: string | ReplaceCodeFn
+	replacement: string | string[]
 
-	constructor({ replacement, ...baseOptions }: { replacement: string | ReplaceCodeFn } & AnnotationBaseOptions) {
+	constructor({ replacement, ...baseOptions }: { replacement: string | string[] } & AnnotationBaseOptions) {
 		super(baseOptions)
 		this.name = 'Replace in copied code'
 		this.replacement = replacement
