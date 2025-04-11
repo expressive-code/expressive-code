@@ -219,6 +219,16 @@ If `true`, a "Copy to clipboard" button will be shown for each code block.
 
 This plugin adds a `frames` object to the `styleOverrides` engine config option, allowing you to customize the visual appearance of the rendered frames. The object contains the following properties:
 
+#### copyIcon
+
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+</PropertySignature>
+
+An inline SVG URL for the copy to clipboard icon.
+
+Expects a string in the format `url("data:image/svg+xml,...")`, which can be generated from the contents of an SVG file using [createInlineSvgUrl](/reference/core-api/#createinlinesvgurl).
+
 #### editorActiveTabBackground
 
 <PropertySignature>
@@ -429,6 +439,18 @@ The color to use for the shadow of the frame.
 </PropertySignature>
 
 The background color of the terminal window. This color is used for the "terminal" frame type.
+
+#### terminalIcon
+
+<PropertySignature>
+- Type: [UnresolvedStyleValue](/reference/plugin-api/#unresolvedstylevalue)
+</PropertySignature>
+
+An inline SVG URL for the terminal icon.
+
+Expects a string in the format `url("data:image/svg+xml,...")`, which can be generated from the contents of an SVG file using [createInlineSvgUrl](/reference/core-api/#createinlinesvgurl).
+
+Defaults to three dots in a row.
 
 #### terminalTitlebarBackground
 

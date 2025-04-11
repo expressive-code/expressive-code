@@ -915,6 +915,225 @@ All config options that can be passed to the constructor are also available on t
 See [`InlineStyleAnnotationOptions`](#inlinestyleannotationoptions) for the entire list.
 
 
+## Asset functions
+
+### createInlineSvgUrl
+
+- <code class="function-signature">**createInlineSvgUrl**(svgContents): string</code>
+
+Creates an inline SVG image data URL from the given contents of an SVG file.
+
+You can use it to embed SVG images directly into your plugin's styles or HAST.
+
+#### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `svgContents` | `string` \| `string`[] |
+
+## Color analysis functions
+
+### getColorContrast
+
+- <code class="function-signature">**getColorContrast**(color1, color2): number</code>
+
+#### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `color1` | `string` |
+| `color2` | `string` |
+
+### getColorContrastOnBackground
+
+- <code class="function-signature">**getColorContrastOnBackground**(input, background): number</code>
+
+#### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `input` | `string` |
+| `background` | `string` |
+
+### getFirstStaticColor
+
+- <code class="function-signature">**getFirstStaticColor**(...inputs): undefined \| string</code>
+
+Given any number of input colors, which may include CSS variables with optional fallbacks, returns the first static color.
+
+Returns `undefined` if no parseable static color can be found.
+
+#### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| ...`inputs` | (`undefined` \| `string`)[] |
+
+### getLuminance
+
+- <code class="function-signature">**getLuminance**(input): number</code>
+
+Returns the luminance of a color. Luminance values are between 0 and 1.
+
+#### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `input` | `string` |
+
+### getStaticBackgroundColor
+
+- <code class="function-signature">**getStaticBackgroundColor**(styleVariant): string</code>
+
+Determine a static background color based on the given style variant, trying to resolve fallback values of CSS variables if necessary.
+
+This color is intended to be used for contrast calculations, not as an actual background color.
+
+#### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `styleVariant` | [`StyleVariant`](/reference/plugin-api/#stylevariant) |
+
+## Color manipulation functions
+
+### changeAlphaToReachColorContrast
+
+- <code class="function-signature">**changeAlphaToReachColorContrast**(input, background, minContrast, maxContrast): string</code>
+
+#### Arguments
+
+| Parameter | Type | Default value |
+| :------ | :------ | :------ |
+| `input` | `string` | `undefined` |
+| `background` | `string` | `undefined` |
+| `minContrast` | `number` | `6` |
+| `maxContrast` | `number` | `22` |
+
+### changeLuminanceToReachColorContrast
+
+- <code class="function-signature">**changeLuminanceToReachColorContrast**(input1, input2, minContrast): string</code>
+
+#### Arguments
+
+| Parameter | Type | Default value |
+| :------ | :------ | :------ |
+| `input1` | `string` | `undefined` |
+| `input2` | `string` | `undefined` |
+| `minContrast` | `number` | `6` |
+
+### darken
+
+- <code class="function-signature">**darken**(input, amount): string</code>
+
+Darkens a color by the given amount. Automatically limits the resulting lightness value to the range 0 to 1.
+
+#### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `input` | `string` |
+| `amount` | `number` |
+
+### ensureColorContrastOnBackground
+
+- <code class="function-signature">**ensureColorContrastOnBackground**(input, background, minContrast, maxContrast): string</code>
+
+Modifies the luminance and/or the alpha value of a color to ensure its color contrast on the given background color is within the given range.
+
+- If the contrast is too low, the luminance is either increased or decreased first, and then the alpha value is increased (if required).
+- If the contrast is too high, only the alpha value is decreased.
+
+If the target contrast cannot be reached, the function will try to get as close as possible.
+
+#### Arguments
+
+| Parameter | Type | Default value |
+| :------ | :------ | :------ |
+| `input` | `string` | `undefined` |
+| `background` | `string` | `undefined` |
+| `minContrast` | `number` | `5.5` |
+| `maxContrast` | `number` | `22` |
+
+### lighten
+
+- <code class="function-signature">**lighten**(input, amount): string</code>
+
+Lightens a color by the given amount. Automatically limits the resulting lightness value to the range 0 to 1.
+
+#### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `input` | `string` |
+| `amount` | `number` |
+
+### mix
+
+- <code class="function-signature">**mix**(input, mixinInput, amount): string</code>
+
+Mixes the second color into the first color by the given amount. Amount should be between 0 and 1.
+
+#### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `input` | `string` |
+| `mixinInput` | `string` |
+| `amount` | `number` |
+
+### multiplyAlpha
+
+- <code class="function-signature">**multiplyAlpha**(input, factor): string</code>
+
+Multiplies the existing alpha value of a color with the given factor. Automatically limits the resulting alpha value to the range 0 to 1.
+
+#### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `input` | `string` |
+| `factor` | `number` |
+
+### onBackground
+
+- <code class="function-signature">**onBackground**(input, background): string</code>
+
+Computes how the first color would look on top of the second color.
+
+#### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `input` | `string` |
+| `background` | `string` |
+
+### setAlpha
+
+- <code class="function-signature">**setAlpha**(input, newAlpha): string</code>
+
+Overrides the alpha value of a color with the given value. Values should be between 0 and 1.
+
+#### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `input` | `string` |
+| `newAlpha` | `number` |
+
+### setLuminance
+
+- <code class="function-signature">**setLuminance**(input, targetLuminance): string</code>
+
+Mixes a color with white or black to achieve the desired luminance. Luminance values should be between 0 and 1.
+
+#### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `input` | `string` |
+| `targetLuminance` | `number` |
+
 ## Referenced types
 
 ### AnnotationBaseOptions

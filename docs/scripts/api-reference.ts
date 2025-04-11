@@ -21,7 +21,7 @@ const sourceFiles: PartialConfig = {
 	exclude: ['**/coverage/**/*', '**/node_modules/**/*', '**/dist/**/*', '**/test/**/*'],
 	skipErrorChecking: true,
 	tsconfig: '../tsconfig.base.json',
-	useTsLinkResolution: false,
+	useTsLinkResolution: true,
 }
 
 const { outputPath } = await generateTypeDoc(sourceFiles)
