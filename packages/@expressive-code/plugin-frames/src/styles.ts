@@ -1,5 +1,5 @@
 import type { ResolverContext } from '@expressive-code/core'
-import { PluginStyleSettings, codeLineClass, multiplyAlpha, onBackground, setLuminance } from '@expressive-code/core'
+import { PluginStyleSettings, codeLineClass, createInlineSvgUrl, multiplyAlpha, onBackground, setLuminance } from '@expressive-code/core'
 import type { PluginFramesOptions } from '.'
 
 export interface FramesStyleSettings {
@@ -189,6 +189,22 @@ export interface FramesStyleSettings {
 	 * @default 'white'
 	 */
 	tooltipSuccessForeground: string
+	/**
+	 * An inline SVG URL for the copy to clipboard icon.
+	 *
+	 * Expects a string in the format `url("data:image/svg+xml,...")`, which can
+	 * be generated from the contents of an SVG file using {@link createInlineSvgUrl}.
+	 */
+	copyIcon: string
+	/**
+	 * An inline SVG URL for the terminal icon.
+	 *
+	 * Expects a string in the format `url("data:image/svg+xml,...")`, which can
+	 * be generated from the contents of an SVG file using {@link createInlineSvgUrl}.
+	 *
+	 * Defaults to three dots in a row.
+	 */
+	terminalIcon: string
 }
 
 declare module '@expressive-code/core' {
@@ -231,31 +247,25 @@ export const framesStyleSettings = new PluginStyleSettings({
 			inlineButtonBorderOpacity: '0.4',
 			tooltipSuccessBackground: ({ theme }) => setLuminance(theme.colors['terminal.ansiGreen'] || '#0dbc79', 0.18),
 			tooltipSuccessForeground: 'white',
+			copyIcon: createInlineSvgUrl([
+				`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75'>`,
+				`<path d='M3 19a2 2 0 0 1-1-2V2a2 2 0 0 1 1-1h13a2 2 0 0 1 2 1'/>`,
+				`<rect x='6' y='5' width='16' height='18' rx='1.5' ry='1.5'/>`,
+				`</svg>`,
+			]),
+			terminalIcon: createInlineSvgUrl([
+				`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 16' preserveAspectRatio='xMidYMid meet'>`,
+				`<circle cx='8' cy='8' r='8'/>`,
+				`<circle cx='30' cy='8' r='8'/>`,
+				`<circle cx='52' cy='8' r='8'/>`,
+				`</svg>`,
+			]),
 		},
 	},
 	preventUnitlessValues: ['frames.editorActiveTabIndicatorHeight', 'frames.editorTabBorderRadius'],
 })
 
 export function getFramesBaseStyles({ cssVar }: ResolverContext, options: PluginFramesOptions) {
-	const dotsSvg = [
-		`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 16' preserveAspectRatio='xMidYMid meet'>`,
-		`<circle cx='8' cy='8' r='8'/>`,
-		`<circle cx='30' cy='8' r='8'/>`,
-		`<circle cx='52' cy='8' r='8'/>`,
-		`</svg>`,
-	].join('')
-	const escapedDotsSvg = dotsSvg.replace(/</g, '%3C').replace(/>/g, '%3E')
-	const terminalTitlebarDots = `url("data:image/svg+xml,${escapedDotsSvg}")`
-
-	const copySvg = [
-		`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75'>`,
-		`<path d='M3 19a2 2 0 0 1-1-2V2a2 2 0 0 1 1-1h13a2 2 0 0 1 2 1'/>`,
-		`<rect x='6' y='5' width='16' height='18' rx='1.5' ry='1.5'/>`,
-		`</svg>`,
-	].join('')
-	const escapedCopySvg = copySvg.replace(/</g, '%3C').replace(/>/g, '%3E')
-	const copyToClipboard = `url("data:image/svg+xml,${escapedCopySvg}")`
-
 	const tabBarBackground = [
 		`linear-gradient(to top, ${cssVar('frames.editorTabBarBorderBottomColor')} ${cssVar('borderWidth')}, transparent ${cssVar('borderWidth')})`,
 		`linear-gradient(${cssVar('frames.editorTabBarBackground')}, ${cssVar('frames.editorTabBarBackground')})`,
@@ -376,9 +386,9 @@ export function getFramesBaseStyles({ cssVar }: ResolverContext, options: Plugin
 					line-height: 0;
 					background-color: ${cssVar('frames.terminalTitlebarDotsForeground')};
 					opacity: ${cssVar('frames.terminalTitlebarDotsOpacity')};
-					-webkit-mask-image: ${terminalTitlebarDots};
+					-webkit-mask-image: ${cssVar('frames.terminalIcon')};
 					-webkit-mask-repeat: no-repeat;
-					mask-image: ${terminalTitlebarDots};
+					mask-image: ${cssVar('frames.terminalIcon')};
 					mask-repeat: no-repeat;
 				}
 				/* Display a border below the header */
@@ -465,9 +475,9 @@ export function getFramesBaseStyles({ cssVar }: ResolverContext, options: Plugin
 				pointer-events: none;
 				inset: 0;
 				background-color: ${cssVar('frames.inlineButtonForeground')};
-				-webkit-mask-image: ${copyToClipboard};
+				-webkit-mask-image: ${cssVar('frames.copyIcon')};
 				-webkit-mask-repeat: no-repeat;
-				mask-image: ${copyToClipboard};
+				mask-image: ${cssVar('frames.copyIcon')};
 				mask-repeat: no-repeat;
 				margin: 0.475rem;
 				line-height: 0;
