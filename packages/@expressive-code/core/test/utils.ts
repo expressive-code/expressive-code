@@ -1,5 +1,5 @@
 import { expect } from 'vitest'
-import type { PropertyDefinition } from 'hast-util-sanitize/lib'
+import type { Schema } from 'hast-util-sanitize'
 import { sanitize } from 'hast-util-sanitize'
 import type { Element, Parents } from '../src/hast'
 import { h, toHtml, addClassName } from '../src/hast'
@@ -9,6 +9,8 @@ import { ExpressiveCodeBlockOptions } from '../src/common/block'
 import { ExpressiveCodeEngine } from '../src/common/engine'
 import { ExpressiveCodePlugin } from '../src/common/plugin'
 import { ExpressiveCodePluginHookName, ExpressiveCodeHook, ExpressiveCodePluginHooks } from '../src/common/plugin-hooks'
+
+type PropertyDefinition = NonNullable<Schema['attributes']>[string][number]
 
 const nothings = [undefined, null, NaN]
 const booleans = [true, false]
