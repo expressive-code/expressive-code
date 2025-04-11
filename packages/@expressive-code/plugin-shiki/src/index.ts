@@ -200,7 +200,7 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 								new InlineStyleAnnotation({
 									styleVariantIndex,
 									color: token.color || theme.fg,
-									bgColor: token.bgColor || theme.bg,
+									bgColor: token.bgColor,
 									italic: ((fontStyle & FontStyle.Italic) as FontStyle) === FontStyle.Italic,
 									bold: ((fontStyle & FontStyle.Bold) as FontStyle) === FontStyle.Bold,
 									underline: ((fontStyle & FontStyle.Underline) as FontStyle) === FontStyle.Underline,
