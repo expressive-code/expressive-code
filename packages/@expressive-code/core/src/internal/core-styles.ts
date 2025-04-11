@@ -214,6 +214,7 @@ export const coreStyleSettings = new PluginStyleSettings({
 		scrollbarThumbHoverColor: ({ theme, resolveSetting }) =>
 			ensureColorContrastOnBackground(theme.colors['scrollbarSlider.hoverBackground'], resolveSetting('codeBackground'), 2.5, 3.5),
 	} satisfies UnresolvedStyleSettings,
+	preventUnitlessValues: ['borderRadius', 'borderWidth', 'gutterBorderWidth'],
 })
 
 export function getCoreBaseStyles({

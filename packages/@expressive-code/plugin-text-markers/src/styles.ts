@@ -234,6 +234,7 @@ export const textMarkersStyleSettings = new PluginStyleSettings({
 		'textMarkers.indicatorLuminance',
 		'textMarkers.indicatorOpacity',
 	],
+	preventUnitlessValues: ['textMarkers.lineMarkerLabelPaddingInline', 'textMarkers.lineMarkerAccentWidth'],
 })
 
 export function getTextMarkersBaseStyles({ cssVar }: ResolverContext) {

@@ -108,6 +108,7 @@ export const collapsibleSectionsStyleSettings = new PluginStyleSettings({
 		},
 	},
 	cssVarReplacements: [['collapsibleSections', 'cs']],
+	preventUnitlessValues: ['collapsibleSections.closedBorderWidth', 'collapsibleSections.openBorderWidth'],
 })
 
 export function getCollapsibleSectionsBaseStyles({ cssVar }: ResolverContext) {

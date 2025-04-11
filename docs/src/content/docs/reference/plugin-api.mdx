@@ -85,6 +85,9 @@ If CSS variables should not be generated for some of your style settings, you ca
 If you want to provide descriptive names for your style settings, but keep the generated CSS variable names short, you can pass an array of search and replace string pairs to the
 `cssVarReplacements` property of the object passed to the constructor. The replacements will be applied to all generated CSS variable names.
 
+If you want to prevent unitless values for specific style settings (e.g. because you intend to use them in CSS calculations), you can pass an array of style setting paths to the
+`preventUnitlessValues` property of the object passed to the constructor. If the user passes a unitless value to one of these settings, the engine will automatically add `px` to the value.
+
 ### Example
 
 ```ts
@@ -137,6 +140,7 @@ framesStyleSettings.defaultValues.frames.titleBarForeground // ({ theme }) => th
 | `options.defaultValues` | `Partial`\<[`UnresolvedStyleSettings`](/reference/plugin-api/#unresolvedstylesettings)\> |
 | `options.cssVarExclusions`? | [`StyleSettingPath`](/reference/plugin-api/#stylesettingpath)[] |
 | `options.cssVarReplacements`? | \[`string`, `string`\][] |
+| `options.preventUnitlessValues`? | [`StyleSettingPath`](/reference/plugin-api/#stylesettingpath)[] |
 
 ### Properties
 
@@ -156,6 +160,12 @@ framesStyleSettings.defaultValues.frames.titleBarForeground // ({ theme }) => th
 
 <PropertySignature>
 - Type: **readonly** `Partial`\<[`UnresolvedStyleSettings`](/reference/plugin-api/#unresolvedstylesettings)\>
+</PropertySignature>
+
+#### preventUnitlessValues
+
+<PropertySignature>
+- Type: **readonly** [`StyleSettingPath`](/reference/plugin-api/#stylesettingpath)[]
 </PropertySignature>
 
 ## AttachedPluginData

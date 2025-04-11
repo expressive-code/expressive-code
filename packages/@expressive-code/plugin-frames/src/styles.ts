@@ -233,6 +233,7 @@ export const framesStyleSettings = new PluginStyleSettings({
 			tooltipSuccessForeground: 'white',
 		},
 	},
+	preventUnitlessValues: ['frames.editorActiveTabIndicatorHeight', 'frames.editorTabBorderRadius'],
 })
 
 export function getFramesBaseStyles({ cssVar }: ResolverContext, options: PluginFramesOptions) {
