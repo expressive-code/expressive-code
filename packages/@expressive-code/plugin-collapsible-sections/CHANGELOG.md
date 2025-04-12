@@ -1,5 +1,29 @@
 # @expressive-code/plugin-collapsible-sections
 
+## 0.41.0
+
+### Minor Changes
+
+- 380bfcc: Adds new `createInlineSvgUrl` export that creates an inline SVG image data URL from the given contents of an SVG file.
+
+  You can use it to embed SVG images directly into a plugin's styles or HAST, or pass it to an existing `styleOverrides` icon setting.
+
+- 380bfcc: Adds the following new `styleOverrides` settings:
+
+  - `collapsibleSections.expandIcon` and `collapsibleSections.collapseIcon`: Allows overriding the SVG icons used for the expand/collapse buttons.
+
+- 6497f09: Uses the new `preventUnitlessValues` property of `PluginStyleSettings` to make style calculations in the plugins "Collapsible Sections", "Frames" and "Text Markers" more robust.
+
+### Patch Changes
+
+- Updated dependencies [380bfcc]
+- Updated dependencies [0f33477]
+- Updated dependencies [6497f09]
+- Updated dependencies [a826a4a]
+- Updated dependencies [0f33477]
+- Updated dependencies [0f33477]
+  - @expressive-code/core@0.41.0
+
 ## 0.40.2
 
 ### Patch Changes
