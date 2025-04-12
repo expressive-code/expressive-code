@@ -88,6 +88,8 @@ export async function renderBlock({
 	const lines = codeBlock.getLines()
 	const renderedAstLines: Element[] = []
 	const renderEmptyLine = getRenderEmptyLineFn({ gutterElements, ...baseContext })
+	const { wrap = false, preserveIndent = true, hangingIndent = 0 } = codeBlock.props
+
 	for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
 		const line = lines[lineIndex]
 		// Render the current line to an AST and wrap it in an object that can be passed
@@ -95,9 +97,11 @@ export async function renderBlock({
 		const lineRenderData = {
 			lineAst: renderLineToAst({ line, lineIndex, gutterElements, ...baseContext }),
 		}
-		// Add indent information if wrapping is enabled and preserveIndent has not been disabled
-		if (codeBlock.props.wrap && codeBlock.props.preserveIndent !== false) {
-			const indent = line.text.match(/^\s*/)?.[0].length ?? 0
+		// Add indent information if wrapping is enabled and the configuration
+		// either requests preserving indent or rendering a hanging indent
+		if (wrap && (preserveIndent || hangingIndent > 0)) {
+			const baseIndent = preserveIndent ? line.text.match(/^\s*/)?.[0].length ?? 0 : 0
+			const indent = baseIndent + hangingIndent
 			if (indent > 0) setInlineStyle(lineRenderData.lineAst, '--ecIndent', `${indent}ch`)
 		}
 		// Allow plugins to modify or even completely replace the AST
@@ -161,11 +165,10 @@ function applyDefaultProps(codeBlock: ExpressiveCodeBlock, config: ExpressiveCod
 			Object.assign(mergedDefaults, overridesByLang[key])
 		}
 	})
-	// Apply the merged defaults to the code block
+	// Apply the merged default values to undefined code block props
 	const defaultKeys = Object.keys(mergedDefaults) as (keyof ExpressiveCodeBlock['props'])[]
-	defaultKeys.forEach((key) => {
-		if (codeBlock.props[key] === undefined) codeBlock.props[key] = mergedDefaults[key]
-	})
+	const undefinedValueKeys = defaultKeys.filter((key) => codeBlock.props[key] === undefined)
+	Object.assign(codeBlock.props, Object.fromEntries(undefinedValueKeys.map((key) => [key, mergedDefaults[key]])))
 }
 
 export interface ExpressiveCodeProcessingState {
