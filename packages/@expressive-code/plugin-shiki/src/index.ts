@@ -57,7 +57,7 @@ export interface PluginShikiOptions {
 	 *
 	 * https://expressive-code.com/key-features/syntax-highlighting/#transformers
 	 */
-	transformers?: ShikiTransformer[] | undefined
+	transformers?: ShikiTransformer[] | unknown[] | undefined
 	/**
 	 * The RegExp engine to use for syntax highlighting.
 	 *

@@ -10,6 +10,8 @@ headingLevel: 3
 replacements:
 - search: '/api/expressive-code/core/interfaces/ExpressiveCodeEngineConfig/'
   replace: '/reference/configuration/'
+- search: '/api/expressive-code/interfaces/ExpressiveCodeConfig/'
+  replace: '/reference/configuration/'
 editSections:
 - path: "Properties"
   replaceWith: |
@@ -152,6 +154,92 @@ editSections:
     See [`InlineStyleAnnotationOptions`](#inlinestyleannotationoptions) for the entire list.
 ````
 
+## Asset functions
+
+````yml include
+name: "createInlineSvgUrl"
+headingLevel: 3
+````
+
+## Color analysis functions
+
+````yml include
+name: "getColorContrast"
+headingLevel: 3
+````
+
+````yml include
+name: "getColorContrastOnBackground"
+headingLevel: 3
+````
+
+````yml include
+name: "getFirstStaticColor"
+headingLevel: 3
+````
+
+````yml include
+name: "getLuminance"
+headingLevel: 3
+````
+
+````yml include
+name: "getStaticBackgroundColor"
+headingLevel: 3
+````
+
+## Color manipulation functions
+
+````yml include
+name: "changeAlphaToReachColorContrast"
+headingLevel: 3
+````
+
+````yml include
+name: "changeLuminanceToReachColorContrast"
+headingLevel: 3
+````
+
+````yml include
+name: "darken"
+headingLevel: 3
+````
+
+````yml include
+name: "ensureColorContrastOnBackground"
+headingLevel: 3
+````
+
+````yml include
+name: "lighten"
+headingLevel: 3
+````
+
+````yml include
+name: "mix"
+headingLevel: 3
+````
+
+````yml include
+name: "multiplyAlpha"
+headingLevel: 3
+````
+
+````yml include
+name: "onBackground"
+headingLevel: 3
+````
+
+````yml include
+name: "setAlpha"
+headingLevel: 3
+````
+
+````yml include
+name: "setLuminance"
+headingLevel: 3
+````
+
 ## Referenced types
 
 ````yml include
@@ -171,6 +259,11 @@ headingLevel: 3
 
 ````yml include
 name: "ChromaticRecolorTarget"
+headingLevel: 3
+````
+
+````yml include
+name: "CreateInlineSvgUrlOptions"
 headingLevel: 3
 ````
 

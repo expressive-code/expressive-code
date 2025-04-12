@@ -15,7 +15,7 @@ export type BaseHookArgs = {
 export function validateTransformers(options: PluginShikiOptions) {
 	if (!options.transformers) return
 	const unsupportedTransformerHooks: (keyof ShikiTransformer)[] = ['code', 'line', 'postprocess', 'pre', 'root', 'span']
-	for (const transformer of options.transformers) {
+	for (const transformer of coerceTransformers(options.transformers)) {
 		const unsupportedHook = unsupportedTransformerHooks.find((hook) => transformer[hook] != null)
 		if (unsupportedHook) {
 			throw new ExpressiveCodeShikiTransformerError(transformer, `The transformer hook "${unsupportedHook}" is not supported by Expressive Code yet.`)
@@ -25,7 +25,7 @@ export function validateTransformers(options: PluginShikiOptions) {
 
 export function runPreprocessHook(args: BaseHookArgs) {
 	const { options, code, codeBlock, codeToTokensOptions } = args
-	options.transformers?.forEach((transformer) => {
+	coerceTransformers(options.transformers).forEach((transformer) => {
 		if (!transformer.preprocess) return
 		const transformerContext = getTransformerContext({ transformer, code, codeBlock, codeToTokensOptions })
 		const transformedCode = transformer.preprocess.call(transformerContext, code, codeToTokensOptions)
@@ -38,7 +38,7 @@ export function runPreprocessHook(args: BaseHookArgs) {
 export function runTokensHook(args: BaseHookArgs & { tokenLines: ThemedToken[][] }) {
 	const { options, code, codeBlock, codeToTokensOptions } = args
 	const originalTokenLinesText = getTokenLinesText(args.tokenLines)
-	options.transformers?.forEach((transformer) => {
+	coerceTransformers(options.transformers).forEach((transformer) => {
 		if (!transformer.tokens) return
 		const transformerContext = getTransformerContext({ transformer, code, codeBlock, codeToTokensOptions })
 		const transformedTokenLines = transformer.tokens.call(transformerContext, args.tokenLines)
@@ -65,6 +65,16 @@ export function runTokensHook(args: BaseHookArgs & { tokenLines: ThemedToken[][]
 		}
 	})
 	return args.tokenLines
+}
+
+/**
+ * To circumvent breaking changes in the Shiki transformer API
+ * that we don't support anyway, we accept unknown transformers
+ * and coerce them to ShikiTransformer.
+ */
+function coerceTransformers(transformers: (ShikiTransformer | unknown)[] | undefined) {
+	if (!transformers) return []
+	return transformers.map((transformer) => transformer as ShikiTransformer)
 }
 
 function getTokenLinesText(tokenLines: ThemedToken[][]) {

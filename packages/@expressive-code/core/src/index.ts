@@ -12,6 +12,7 @@ export * from './common/style-settings'
 export * from './common/style-variants'
 export * from './common/theme'
 
+export * from './helpers/assets'
 export * from './helpers/ast'
 export * from './helpers/color-transforms'
 export * from './helpers/i18n'
