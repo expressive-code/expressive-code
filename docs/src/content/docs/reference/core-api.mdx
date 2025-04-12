@@ -919,17 +919,20 @@ See [`InlineStyleAnnotationOptions`](#inlinestyleannotationoptions) for the enti
 
 ### createInlineSvgUrl
 
-- <code class="function-signature">**createInlineSvgUrl**(svgContents): string</code>
+- <code class="function-signature">**createInlineSvgUrl**(svgContents, options): string</code>
 
 Creates an inline SVG image data URL from the given contents of an SVG file.
 
 You can use it to embed SVG images directly into your plugin's styles or HAST.
+
+The optional `options` argument allows further customization of the generated URL.
 
 #### Arguments
 
 | Parameter | Type |
 | :------ | :------ |
 | `svgContents` | `string` \| `string`[] |
+| `options` | [`CreateInlineSvgUrlOptions`](/reference/core-api/#createinlinesvgurloptions) |
 
 ## Color analysis functions
 
@@ -1227,6 +1230,27 @@ The target hue in degrees (0 – 360).
 The lightness (0 – 1) that the target chroma was measured at.
 
 If given, the chroma will be adjusted relative to this lightness before applying it to the input color.
+</dd>
+</dl>
+
+### CreateInlineSvgUrlOptions
+
+<PropertySignature>
+- Type: `Object`
+</PropertySignature>
+
+#### Object properties
+
+<dl class="type-declaration-list">
+<dt>keepSize</dt>
+<dd>
+<PropertySignature>
+- Type: `boolean`
+</PropertySignature>
+Whether to keep the original size of the SVG image.
+
+By default, any `width` and `height` attributes inside the SVG tag are removed.
+
 </dd>
 </dl>
 
