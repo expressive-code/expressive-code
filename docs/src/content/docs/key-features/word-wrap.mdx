@@ -183,6 +183,23 @@ If `false`, wrapped parts of long lines will always start at column 1. This can 
 This option only has an effect if `wrap` is `true`. It only affects how the code block is displayed and does not change the actual code. When copied to the clipboard, the code will still contain the original unwrapped lines.
 :::
 
+#### hangingIndent
+
+<PropertySignature>
+- Type: `number`
+- Default: ``0``
+</PropertySignature>
+
+Defines the number of columns by which all wrapped lines are indented.
+
+This option only has an effect if `wrap` is `true`.
+
+If `preserveIndent` is `true`, this value is added to the indentation of the original line. If `preserveIndent` is `false`, this value is used as the indentation for all wrapped lines.
+
+:::note
+This option only affects how the code block is displayed and does not change the actual code. When copied to the clipboard, the code will still contain the original unwrapped lines.
+:::
+
 ## Configuration
 
 You can configure the default word wrap settings using the `defaultProps` option in your Expressive Code configuration. You can also change the defaults by language using the sub-property `overridesByLang`:
