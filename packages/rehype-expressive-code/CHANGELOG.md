@@ -1,5 +1,13 @@
 # rehype-expressive-code
 
+## 0.41.1
+
+### Patch Changes
+
+- a53e749: Fixes a regression that caused inline text markers to be rendered with two layered background colors.
+- Updated dependencies [a53e749]
+  - expressive-code@0.41.1
+
 ## 0.41.0
 
 ### Minor Changes
