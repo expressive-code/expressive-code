@@ -1,5 +1,32 @@
 # @expressive-code/plugin-shiki
 
+## 0.41.1
+
+### Patch Changes
+
+- Updated dependencies [a53e749]
+  - @expressive-code/core@0.41.1
+
+## 0.41.0
+
+### Minor Changes
+
+- 0f33477: Updates Shiki to the latest version (3.2.2).
+
+  This adds support for the strikethrough ANSI control code, updates language grammars and adds the bundled themes `gruvbox-dark-hard`, `gruvbox-dark-medium`, `gruvbox-dark-soft`, `gruvbox-light-hard`, `gruvbox-light-medium`, and `gruvbox-light-soft`.
+
+- 0f33477: Extends ANSI formatting support to allow background colors and strikethrough text. Thank you @dhruvkb!
+
+### Patch Changes
+
+- Updated dependencies [380bfcc]
+- Updated dependencies [0f33477]
+- Updated dependencies [6497f09]
+- Updated dependencies [a826a4a]
+- Updated dependencies [0f33477]
+- Updated dependencies [0f33477]
+  - @expressive-code/core@0.41.0
+
 ## 0.40.2
 
 ### Patch Changes

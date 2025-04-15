@@ -9,7 +9,8 @@
     "components/components.ts"
   ],
   "compilerOptions": {
+    "rootDir": ".",
     "outDir": "./dist",
-    "jsx": "preserve",
+    "jsx": "preserve"
   }
 }

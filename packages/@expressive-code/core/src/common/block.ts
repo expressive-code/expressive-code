@@ -110,6 +110,22 @@ export interface ExpressiveCodeBlockProps {
 	 * @default true
 	 */
 	preserveIndent: boolean
+	/**
+	 * Defines the number of columns by which all wrapped lines are indented.
+	 *
+	 * This option only has an effect if `wrap` is `true`.
+	 *
+	 * If `preserveIndent` is `true`, this value is added to the indentation of the
+	 * original line. If `preserveIndent` is `false`, this value is used as the
+	 * indentation for all wrapped lines.
+	 *
+	 * @note This option only affects how the code block is displayed
+	 * and does not change the actual code. When copied to the clipboard,
+	 * the code will still contain the original unwrapped lines.
+	 *
+	 * @default 0
+	 */
+	hangingIndent: number
 }
 
 /**
@@ -140,6 +156,7 @@ export class ExpressiveCodeBlock {
 		// Transfer core meta options to props
 		this.props.wrap = this.metaOptions.getBoolean('wrap') ?? this.props.wrap
 		this.props.preserveIndent = this.metaOptions.getBoolean('preserveIndent') ?? this.props.preserveIndent
+		this.props.hangingIndent = this.metaOptions.getInteger('hangingIndent') ?? this.props.hangingIndent
 	}
 
 	/**

@@ -27,6 +27,11 @@ import { UnresolvedStyleSettings, StyleSettingPath } from './style-settings'
  * `cssVarReplacements` property of the object passed to the constructor. The replacements
  * will be applied to all generated CSS variable names.
  *
+ * If you want to prevent unitless values for specific style settings (e.g. because you intend
+ * to use them in CSS calculations), you can pass an array of style setting paths to the
+ * `preventUnitlessValues` property of the object passed to the constructor. If the user passes
+ * a unitless value to one of these settings, the engine will automatically add `px` to the value.
+ *
  * @example
  * // When using TypeScript: Declare the types of your style settings
  * interface FramesStyleSettings {
@@ -66,18 +71,22 @@ export class PluginStyleSettings {
 	readonly defaultValues: Partial<UnresolvedStyleSettings>
 	readonly cssVarExclusions: StyleSettingPath[]
 	readonly cssVarReplacements: [string, string][]
+	readonly preventUnitlessValues: StyleSettingPath[]
 
 	constructor({
 		defaultValues,
 		cssVarExclusions = [],
 		cssVarReplacements = [],
+		preventUnitlessValues = [],
 	}: {
 		defaultValues: Partial<UnresolvedStyleSettings>
 		cssVarExclusions?: StyleSettingPath[] | undefined
 		cssVarReplacements?: [string, string][] | undefined
+		preventUnitlessValues?: StyleSettingPath[] | undefined
 	}) {
 		this.defaultValues = defaultValues
 		this.cssVarExclusions = cssVarExclusions
 		this.cssVarReplacements = cssVarReplacements
+		this.preventUnitlessValues = preventUnitlessValues
 	}
 }

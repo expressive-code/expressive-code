@@ -1,6 +1,6 @@
 {
   "name": "@internal/test-utils",
-  "version": "0.2.33",
+  "version": "0.2.34",
   "private": true,
   "description": "Internal test tools for Expressive Code packages",
   "keywords": [],
@@ -10,13 +10,13 @@
   "main": "./src/index.ts",
   "module": "./src/index.ts",
   "dependencies": {
-    "@expressive-code/core": "workspace:^0.40.0"
+    "@expressive-code/core": "workspace:^0.41.0"
   },
   "devDependencies": {
     "@types/node": "^18.19.69",
     "hast-util-from-html": "^2.0.3",
     "postcss": "^8.4.29",
-    "shiki": "^1.26.1",
+    "shiki": "^3.2.2",
     "typescript": "^5.0.4"
   }
 }

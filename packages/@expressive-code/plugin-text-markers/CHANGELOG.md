@@ -1,5 +1,28 @@
 # @expressive-code/plugin-text-markers
 
+## 0.41.1
+
+### Patch Changes
+
+- Updated dependencies [a53e749]
+  - @expressive-code/core@0.41.1
+
+## 0.41.0
+
+### Minor Changes
+
+- 6497f09: Uses the new `preventUnitlessValues` property of `PluginStyleSettings` to make style calculations in the plugins "Collapsible Sections", "Frames" and "Text Markers" more robust.
+
+### Patch Changes
+
+- Updated dependencies [380bfcc]
+- Updated dependencies [0f33477]
+- Updated dependencies [6497f09]
+- Updated dependencies [a826a4a]
+- Updated dependencies [0f33477]
+- Updated dependencies [0f33477]
+  - @expressive-code/core@0.41.0
+
 ## 0.40.2
 
 ### Patch Changes

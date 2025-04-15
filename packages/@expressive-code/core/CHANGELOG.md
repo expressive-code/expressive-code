@@ -1,5 +1,38 @@
 # @expressive-code/core
 
+## 0.41.1
+
+### Patch Changes
+
+- a53e749: Fixes a regression that caused inline text markers to be rendered with two layered background colors.
+
+## 0.41.0
+
+### Minor Changes
+
+- 380bfcc: Adds new `createInlineSvgUrl` export that creates an inline SVG image data URL from the given contents of an SVG file.
+
+  You can use it to embed SVG images directly into a plugin's styles or HAST, or pass it to an existing `styleOverrides` icon setting.
+
+- 0f33477: Updates Shiki to the latest version (3.2.2).
+
+  This adds support for the strikethrough ANSI control code, updates language grammars and adds the bundled themes `gruvbox-dark-hard`, `gruvbox-dark-medium`, `gruvbox-dark-soft`, `gruvbox-light-hard`, `gruvbox-light-medium`, and `gruvbox-light-soft`.
+
+- 6497f09: Adds new `preventUnitlessValues` property to `PluginStyleSettings`. Thank you @RantingHuman!
+
+  Plugins can set this property to an array of style setting paths to prevent unitless values for specific style settings. If the user passes a unitless value to one of these settings, the engine will automatically add `px` to the value. This is recommended for settings used in CSS calculations which would otherwise break if a unitless value is passed.
+
+- a826a4a: Adds a new `hangingIndent` prop to all code blocks. Thank you @Signum!
+
+  By setting this prop to a positive number of columns (either in the opening code fence, as a prop on the `<Code>` component, or in the `defaultProps` config option), you can now further refine the indentation of wrapped lines.
+
+  If the prop `preserveIndent` is `true` (which is the default), the `hangingIndent` value is added to the indentation of the original line. If `preserveIndent` is `false`, the value is used as the fixed indentation level of all wrapped lines.
+
+  This option only affects how the code block is displayed and does not change the actual code. When copied to the clipboard, the code will still contain the original unwrapped lines.
+
+- 0f33477: Extends ANSI formatting support to allow background colors and strikethrough text. Thank you @dhruvkb!
+- 0f33477: Adds support for `bgColor` and `strikethrough` to `InlineStyleAnnotation`. Thank you @dhruvkb!
+
 ## 0.40.2
 
 ### Patch Changes

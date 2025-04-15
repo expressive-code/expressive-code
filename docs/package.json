@@ -42,7 +42,7 @@
   "devDependencies": {
     "@expressive-code/core": "workspace:^",
     "@types/mdast": "^4.0.4",
-    "shiki": "^1.26.1"
+    "shiki": "^3.2.2"
   },
   "peerDependencies": {
     "@expressive-code/core": "workspace:^"

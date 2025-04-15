@@ -57,7 +57,7 @@ export interface PluginShikiOptions {
 	 *
 	 * https://expressive-code.com/key-features/syntax-highlighting/#transformers
 	 */
-	transformers?: ShikiTransformer[] | undefined
+	transformers?: ShikiTransformer[] | unknown[] | undefined
 	/**
 	 * The RegExp engine to use for syntax highlighting.
 	 *
@@ -94,6 +94,7 @@ enum FontStyle {
 	Italic = 1,
 	Bold = 2,
 	Underline = 4,
+	Strikethrough = 8,
 }
 
 export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlugin {
@@ -199,9 +200,11 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 								new InlineStyleAnnotation({
 									styleVariantIndex,
 									color: token.color || theme.fg,
+									bgColor: token.bgColor,
 									italic: ((fontStyle & FontStyle.Italic) as FontStyle) === FontStyle.Italic,
 									bold: ((fontStyle & FontStyle.Bold) as FontStyle) === FontStyle.Bold,
 									underline: ((fontStyle & FontStyle.Underline) as FontStyle) === FontStyle.Underline,
+									strikethrough: ((fontStyle & FontStyle.Strikethrough) as FontStyle) === FontStyle.Strikethrough,
 									inlineRange: {
 										columnStart: charIndex,
 										columnEnd: tokenEndIndex,

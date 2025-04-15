@@ -55,11 +55,13 @@ Manually adding the `wrap` prop as shown above is useful if you only want to cha
 
 ### Configuring indentation of wrapped lines
 
+#### Indent preservation
+
 By default, wrapped parts of long lines will be aligned with their line's indentation level, making the wrapped code appear to start at the same column. This increases readability of the wrapped code and can be especially useful for languages where indentation is significant, e.g. Python.
 
-You can also disable this behavior so that wrapped parts of long lines will always start at column 1. This can be useful to reproduce terminal output.
+You can disable the default behavior so that wrapped parts of lines will always start at column 1. This can be useful to reproduce terminal output.
 
-To change this behavior for a code block, you can use the `preserveIndent` boolean prop in the **meta information** of your code blocks:
+To configure this behavior, you can use the `preserveIndent` boolean prop in the **meta information** of your code blocks:
 
 ````md ins=/(?\<=&#96;.*)preserveIndent\S*/
 ```js wrap preserveIndent
@@ -90,6 +92,58 @@ function getLongString() {
 // Example with preserveIndent=false
 function getLongString() {
   return 'This is a very long string that will most probably not fit into the available space unless the container is extremely wide'
+}
+```
+
+#### Hanging indent
+
+You can also define a number of columns by which all wrapped lines should be indented.
+
+If `preserveIndent` is `true` (which is the default), this value will be added to the indentation of the original line. Otherwise, the indentation of any wrapped lines will be fixed to the specified number of columns.
+
+To configure this behavior, you can use the `hangingIndent` numeric prop in the **meta information** of your code blocks:
+
+````md ins=/(?\<=&#96;.*)hangingIndent\S*/
+```js wrap hangingIndent=2
+// Example with hangingIndent=2
+function getLongString() {
+  return 'This is a very long string that will most probably not fit into the available space unless the container is extremely wide'
+}
+function heavilyIndentedCode() {
+          return 'This long line already starts with a lot of indentation, and its wrapped parts will be indented by 2 additional columns due to hangingIndent=2'
+}
+```
+
+```js wrap hangingIndent=2 preserveIndent=false
+// Example with hangingIndent=2 and preserveIndent=false
+function getLongString() {
+  return 'This is a very long string that will most probably not fit into the available space unless the container is extremely wide'
+}
+function heavilyIndentedCode() {
+          return 'Even though this long line starts with a lot of indentation, its wrapped parts will only be indented by 2 columns due to the combination of hangingIndent=2 and preserveIndent=false'
+}
+```
+````
+
+The above code will be rendered like this:
+
+```js wrap hangingIndent=2
+// Example with hangingIndent=2
+function getLongString() {
+  return 'This is a very long string that will most probably not fit into the available space unless the container is extremely wide'
+}
+function heavilyIndentedCode() {
+          return 'This long line already starts with a lot of indentation, and its wrapped parts will be indented by 2 additional columns due to hangingIndent=2'
+}
+```
+
+```js wrap hangingIndent=2 preserveIndent=false
+// Example with hangingIndent=2 and preserveIndent=false
+function getLongString() {
+  return 'This is a very long string that will most probably not fit into the available space unless the container is extremely wide'
+}
+function heavilyIndentedCode() {
+          return 'Even though this long line starts with a lot of indentation, its wrapped parts will only be indented by 2 columns due to the combination of hangingIndent=2 and preserveIndent=false'
 }
 ```
 
@@ -127,6 +181,23 @@ If `false`, wrapped parts of long lines will always start at column 1. This can 
 
 :::note
 This option only has an effect if `wrap` is `true`. It only affects how the code block is displayed and does not change the actual code. When copied to the clipboard, the code will still contain the original unwrapped lines.
+:::
+
+#### hangingIndent
+
+<PropertySignature>
+- Type: `number`
+- Default: ``0``
+</PropertySignature>
+
+Defines the number of columns by which all wrapped lines are indented.
+
+This option only has an effect if `wrap` is `true`.
+
+If `preserveIndent` is `true`, this value is added to the indentation of the original line. If `preserveIndent` is `false`, this value is used as the indentation for all wrapped lines.
+
+:::note
+This option only affects how the code block is displayed and does not change the actual code. When copied to the clipboard, the code will still contain the original unwrapped lines.
 :::
 
 ## Configuration

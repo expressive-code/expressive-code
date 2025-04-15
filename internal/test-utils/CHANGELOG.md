@@ -1,5 +1,17 @@
 # @internal/test-utils
 
+## 0.2.34
+
+### Patch Changes
+
+- Updated dependencies [380bfcc]
+- Updated dependencies [0f33477]
+- Updated dependencies [6497f09]
+- Updated dependencies [a826a4a]
+- Updated dependencies [0f33477]
+- Updated dependencies [0f33477]
+  - @expressive-code/core@0.41.0
+
 ## 0.2.33
 
 ### Patch Changes

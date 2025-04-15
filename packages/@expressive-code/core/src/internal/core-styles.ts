@@ -214,6 +214,7 @@ export const coreStyleSettings = new PluginStyleSettings({
 		scrollbarThumbHoverColor: ({ theme, resolveSetting }) =>
 			ensureColorContrastOnBackground(theme.colors['scrollbarSlider.hoverBackground'], resolveSetting('codeBackground'), 2.5, 3.5),
 	} satisfies UnresolvedStyleSettings,
+	preventUnitlessValues: ['borderRadius', 'borderWidth', 'gutterBorderWidth'],
 })
 
 export function getCoreBaseStyles({
@@ -386,6 +387,7 @@ export function getCoreThemeStyles(styleVariantIndex: number) {
 		/* Theme-dependent styles for InlineStyleAnnotation */
 		.${codeLineClass} :where(span[style^='--']:not([class])) {
 			color: var(--${styleVariantIndex}, inherit);
+			background-color: var(--${styleVariantIndex}bg, transparent);
 			font-style: var(--${styleVariantIndex}fs, inherit);
 			font-weight: var(--${styleVariantIndex}fw, inherit);
 			text-decoration: var(--${styleVariantIndex}td, inherit);

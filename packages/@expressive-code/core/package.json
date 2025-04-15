@@ -1,6 +1,6 @@
 {
   "name": "@expressive-code/core",
-  "version": "0.40.2",
+  "version": "0.41.1",
   "description": "A text marking & annotation engine for presenting source code on the web.",
   "keywords": [],
   "author": "Tibor Schiemann",
@@ -61,7 +61,7 @@
     "culori": "^4.0.1",
     "djb2a": "^2.0.0",
     "hast-util-sanitize": "^5.0.1",
-    "shiki": "^1.26.1",
+    "shiki": "^3.2.2",
     "strip-json-comments": "^5.0.1"
   }
 }

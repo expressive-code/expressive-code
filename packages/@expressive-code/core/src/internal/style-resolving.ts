@@ -38,6 +38,12 @@ export function resolveStyleSettings({
 	// Apply any theme style overrides
 	applyStyleSettings(unresolvedByPath, getStyleSettingsByPath(theme.styleOverrides ?? {}))
 
+	// Collect all settings to be respected when resolving values
+	const preventUnitlessValues = new Set<StyleSettingPath>(coreStyleSettings.preventUnitlessValues)
+	plugins.forEach((plugin) => {
+		plugin.styleSettings?.preventUnitlessValues.forEach((path) => preventUnitlessValues.add(path))
+	})
+
 	// Define a setting resolver function that can be used both by plugins and ourselves
 	function resolveSetting(settingPath: StyleSettingPath): string {
 		let result = resolvedByPath.get(settingPath)
@@ -45,9 +51,18 @@ export function resolveStyleSettings({
 			if (attemptedToResolve.has(settingPath)) throw new Error(`Circular dependency detected while resolving style setting '${settingPath as string}'`)
 			attemptedToResolve.add(settingPath)
 
+			// Resolve the setting value
 			const valueOrResolver = unresolvedByPath.get(settingPath)
 			const resolvedDefinition = (typeof valueOrResolver === 'function' ? valueOrResolver(resolverArgs) : valueOrResolver) as StyleValueOrValues
 			result = Array.isArray(resolvedDefinition) ? resolvedDefinition[theme.type === 'dark' ? 0 : 1] : resolvedDefinition
+
+			// If the resolved result is required to have a unit,
+			// ensure that it has one
+			if (preventUnitlessValues.has(settingPath)) {
+				result = result.trim()
+				if (result in ['', 'none']) result = '0px'
+				if (result.match(/^[0-9.]+$/)) result = `${result}px`
+			}
 
 			resolvedByPath.set(settingPath, result)
 		}
