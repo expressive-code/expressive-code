@@ -1,5 +1,13 @@
 # astro-expressive-code
 
+## 0.41.2
+
+### Patch Changes
+
+- 013f07a: Fixes an issue where the deprecated, but still available `theme` option was not being taken into account during SSR bundle trimming.
+- 013f07a: Improves the error message when the `<Code>` component is being used on a page without having the Astro integration enabled in the project.
+  - rehype-expressive-code@0.41.2
+
 ## 0.41.1
 
 ### Patch Changes

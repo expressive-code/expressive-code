@@ -228,14 +228,14 @@ importers:
   packages/@expressive-code/plugin-collapsible-sections:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.41.1
+        specifier: workspace:^0.41.2
         version: link:../core
     devDependencies:
       '@expressive-code/plugin-shiki':
-        specifier: workspace:^0.41.1
+        specifier: workspace:^0.41.2
         version: link:../plugin-shiki
       '@expressive-code/plugin-text-markers':
-        specifier: workspace:^0.41.1
+        specifier: workspace:^0.41.2
         version: link:../plugin-text-markers
       '@internal/test-utils':
         specifier: workspace:^
@@ -244,7 +244,7 @@ importers:
   packages/@expressive-code/plugin-frames:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.41.1
+        specifier: workspace:^0.41.2
         version: link:../core
     devDependencies:
       '@expressive-code/plugin-shiki':
@@ -257,20 +257,20 @@ importers:
   packages/@expressive-code/plugin-line-numbers:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.41.1
+        specifier: workspace:^0.41.2
         version: link:../core
     devDependencies:
       '@expressive-code/plugin-collapsible-sections':
-        specifier: workspace:^0.41.1
+        specifier: workspace:^0.41.2
         version: link:../plugin-collapsible-sections
       '@expressive-code/plugin-frames':
-        specifier: workspace:^0.41.1
+        specifier: workspace:^0.41.2
         version: link:../plugin-frames
       '@expressive-code/plugin-shiki':
-        specifier: workspace:^0.41.1
+        specifier: workspace:^0.41.2
         version: link:../plugin-shiki
       '@expressive-code/plugin-text-markers':
-        specifier: workspace:^0.41.1
+        specifier: workspace:^0.41.2
         version: link:../plugin-text-markers
       '@internal/test-utils':
         specifier: workspace:^
@@ -279,7 +279,7 @@ importers:
   packages/@expressive-code/plugin-shiki:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.41.1
+        specifier: workspace:^0.41.2
         version: link:../core
       shiki:
         specifier: ^3.2.2
@@ -292,11 +292,11 @@ importers:
   packages/@expressive-code/plugin-text-markers:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.41.1
+        specifier: workspace:^0.41.2
         version: link:../core
     devDependencies:
       '@expressive-code/plugin-shiki':
-        specifier: workspace:^0.41.1
+        specifier: workspace:^0.41.2
         version: link:../plugin-shiki
       '@internal/test-utils':
         specifier: workspace:^
@@ -308,7 +308,7 @@ importers:
   packages/astro-expressive-code:
     dependencies:
       rehype-expressive-code:
-        specifier: workspace:^0.41.1
+        specifier: workspace:^0.41.2
         version: link:../rehype-expressive-code
     devDependencies:
       '@internal/test-utils':
@@ -442,22 +442,22 @@ importers:
   packages/expressive-code:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.41.1
+        specifier: workspace:^0.41.2
         version: link:../@expressive-code/core
       '@expressive-code/plugin-frames':
-        specifier: workspace:^0.41.1
+        specifier: workspace:^0.41.2
         version: link:../@expressive-code/plugin-frames
       '@expressive-code/plugin-shiki':
-        specifier: workspace:^0.41.1
+        specifier: workspace:^0.41.2
         version: link:../@expressive-code/plugin-shiki
       '@expressive-code/plugin-text-markers':
-        specifier: workspace:^0.41.1
+        specifier: workspace:^0.41.2
         version: link:../@expressive-code/plugin-text-markers
 
   packages/rehype-expressive-code:
     dependencies:
       expressive-code:
-        specifier: workspace:^0.41.1
+        specifier: workspace:^0.41.2
         version: link:../expressive-code
     devDependencies:
       '@internal/test-utils':
@@ -549,7 +549,7 @@ importers:
   packages/remark-expressive-code:
     dependencies:
       expressive-code:
-        specifier: workspace:^0.41.1
+        specifier: workspace:^0.41.2
         version: link:../expressive-code
     devDependencies:
       '@internal/test-utils':
