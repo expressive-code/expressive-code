@@ -1,6 +1,6 @@
 {
   "name": "@expressive-code/plugin-collapsible-sections",
-  "version": "0.41.1",
+  "version": "0.41.2",
   "description": "Collapsible sections plugin for Expressive Code. Allows code sections to be marked as collapsible.",
   "keywords": [],
   "author": "Johan Fagerberg (birjj)",
@@ -30,11 +30,11 @@
     "watch": "pnpm build --watch src"
   },
   "dependencies": {
-    "@expressive-code/core": "workspace:^0.41.1"
+    "@expressive-code/core": "workspace:^0.41.2"
   },
   "devDependencies": {
-    "@expressive-code/plugin-shiki": "workspace:^0.41.1",
-    "@expressive-code/plugin-text-markers": "workspace:^0.41.1",
+    "@expressive-code/plugin-shiki": "workspace:^0.41.2",
+    "@expressive-code/plugin-text-markers": "workspace:^0.41.2",
     "@internal/test-utils": "workspace:^"
   }
 }
