@@ -58,7 +58,12 @@ export function vitePluginAstroExpressiveCode({
 	// Prepare Shiki-related SSR bundle trimming
 	const shikiConfig = typeof processedEcConfig.shiki === 'object' ? processedEcConfig.shiki : {}
 	const configuredEngine = shikiConfig.engine === 'javascript' ? 'javascript' : 'oniguruma'
-	const configuredBundledThemes: string[] = (processedEcConfig.themes ?? []).filter((theme) => typeof theme === 'string')
+	// Extract any bundled theme names from the config, supporting the deprecated `theme` option
+	// and the current `themes` option
+	const anyThemeOrThemes = processedEcConfig as unknown as { theme: string | string[]; themes: string | string[] }
+	const effectiveThemesOrTheme = anyThemeOrThemes.themes ?? anyThemeOrThemes.theme ?? []
+	const effectiveThemes = Array.isArray(effectiveThemesOrTheme) ? effectiveThemesOrTheme : [effectiveThemesOrTheme]
+	const configuredBundledThemes = effectiveThemes.filter((theme) => typeof theme === 'string')
 	const shikiAssetRegExp = /(?<=\n)\s*\{[\s\S]*?"id": "(.*?)",[\s\S]*?\n\s*\},?\s*\n/g
 
 	const noQuery = (source: string) => source.split('?')[0]

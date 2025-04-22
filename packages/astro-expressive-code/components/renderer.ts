@@ -11,6 +11,25 @@ async function createRenderer() {
 	const { astroConfig, ecConfigFileOptions, ecIntegrationOptions = {} } = await import('virtual:astro-expressive-code/config')
 	const { createAstroRenderer, mergeEcConfigOptions } = await import('virtual:astro-expressive-code/api')
 
+	if (typeof mergeEcConfigOptions !== 'function') {
+		throw new Error(
+			`You are trying to use Expressive Code's \`<Code>\` component, but the Expressive Code
+			Astro integration is not enabled in your project.
+
+			If you are using Starlight, ensure that its default Expressive Code integration
+			was not disabled by you or your themes or plugins.
+
+			If you are not a Starlight user, ensure that Expressive Code was added to
+			\`integrations\` in your Astro config file.
+
+			In case you don't want to use Expressive Code, you can import Astro's own \`<Code>\`
+			component from \`astro:components\` instead.`
+				.split(/\r?\n[ \t]*\r?\n/)
+				.map((s) => s.replace(/\s+/g, ' ').trim())
+				.join('\n\n')
+		)
+	}
+
 	const strIntegrationOptions = JSON.stringify(ecIntegrationOptions)
 	if (strIntegrationOptions.includes('"[Function]"') || strIntegrationOptions.includes("'[Circular]'")) {
 		throw new Error(
