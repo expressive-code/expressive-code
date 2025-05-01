@@ -508,9 +508,6 @@ importers:
       '@expressive-code/plugin-collapsible-sections':
         specifier: workspace:^
         version: link:../../../../@expressive-code/plugin-collapsible-sections
-      '@expressive-code/plugin-shiki':
-        specifier: workspace:^
-        version: link:../../../../@expressive-code/plugin-shiki
       '@mdx-js/loader':
         specifier: ^3.1.0
         version: 3.1.0
