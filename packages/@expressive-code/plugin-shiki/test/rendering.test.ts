@@ -2,8 +2,9 @@ import { describe, test, expect } from 'vitest'
 import { getInlineStyles, selectAll, toHtml, toText } from '@expressive-code/core/hast'
 import { renderAndOutputHtmlSnapshot, buildThemeFixtures, loadTestThemes, loadBundledShikiTheme } from '@internal/test-utils'
 import type { CodeToTokensOptions, ShikiTransformer, ShikiTransformerContextSource, ThemedToken } from 'shiki'
-import { pluginShiki } from '../src'
+import { pluginShiki, pluginShikiBundle, pluginShikiWithHighlighter } from '../src'
 import { regexp } from './assets/regexp.tmLanguage.js'
+import { createHighlighter, createJavaScriptRegexEngine } from 'shiki'
 
 const jsTestCode = `
 import { defineConfig } from 'astro/config';
@@ -135,6 +136,47 @@ describe('Renders syntax highlighting', { timeout: 5 * 1000 }, async () => {
 		})
 	})
 
+	test('Supports themes in JS code with shiki bundle', async ({ task: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: jsTestCode,
+				language: 'js',
+				meta: '',
+				plugins: [
+					pluginShikiBundle({
+						langAlias: { js: 'javascript' },
+						engine: createJavaScriptRegexEngine,
+						bundledLangs: {
+							javascript: import('shiki/langs/javascript.mjs'),
+						},
+						bundledThemes: {
+							// themes are loaded via test utils and passed directly in so no need to support any themes within the bundle
+						},
+					}),
+				],
+			}),
+		})
+	})
+
+	test('Supports themes in JS code with shiki highlighter', async ({ task: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: jsTestCode,
+				language: 'js',
+				meta: '',
+				plugins: [
+					pluginShikiWithHighlighter({
+						highlighter: () => createHighlighter({ themes: [], langs: [] }), // this is shiki full highlighter
+					}),
+				],
+			}),
+		})
+	})
+
 	test('Supports themes in Astro code', async ({ task: { name: testName } }) => {
 		await renderAndOutputHtmlSnapshot({
 			testName,
@@ -241,6 +283,100 @@ describe('Language handling', { timeout: 5 * 1000 }, async () => {
 					language: 'unknown-test-language',
 					meta: '',
 					plugins: [pluginShiki()],
+					engineOptions: {
+						logger: {
+							warn: (message) => warnings.push(message),
+						},
+					},
+					blockValidationFn: ({ renderedGroupAst }) => {
+						const html = toHtml(renderedGroupAst)
+
+						// Select all inline colors and expect them to match
+						// the default dracula theme foreground color
+						const colors = [...html.matchAll(/<span [^>]*?style="--0:([^"]*?)">/g)].map((match) => match[1])
+						const colorsNotMatchingDraculaFg = colors.filter((color) => color !== themes[0].fg)
+						expect(colors.length).toBeGreaterThan(0)
+						expect(colorsNotMatchingDraculaFg.length).toBe(0)
+
+						colorAssertionExecuted = true
+					},
+				},
+			],
+		})
+
+		expect(colorAssertionExecuted).toBe(true)
+
+		// Ensure that the logger was called with a warning
+		expect(warnings.length).toBe(1)
+		expect(warnings[0]).toContain('unknown-test-language')
+	})
+	test('Falls back to plaintext and logs a warning for unknown languages with shiki bundle', async ({ task: { name: testName } }) => {
+		let colorAssertionExecuted = false
+		const warnings: string[] = []
+
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: [
+				{
+					fixtureName: '',
+					themes,
+					code: astroTestCode,
+					language: 'unknown-test-language',
+					meta: '',
+					plugins: [
+						pluginShikiBundle({
+							engine: createJavaScriptRegexEngine,
+							bundledLangs: {},
+							bundledThemes: {},
+						}),
+					],
+					engineOptions: {
+						logger: {
+							warn: (message) => warnings.push(message),
+						},
+					},
+					blockValidationFn: ({ renderedGroupAst }) => {
+						const html = toHtml(renderedGroupAst)
+
+						// Select all inline colors and expect them to match
+						// the default dracula theme foreground color
+						const colors = [...html.matchAll(/<span [^>]*?style="--0:([^"]*?)">/g)].map((match) => match[1])
+						const colorsNotMatchingDraculaFg = colors.filter((color) => color !== themes[0].fg)
+						expect(colors.length).toBeGreaterThan(0)
+						expect(colorsNotMatchingDraculaFg.length).toBe(0)
+
+						colorAssertionExecuted = true
+					},
+				},
+			],
+		})
+
+		expect(colorAssertionExecuted).toBe(true)
+
+		// Ensure that the logger was called with a warning
+		expect(warnings.length).toBe(1)
+		expect(warnings[0]).toContain('unknown-test-language')
+	})
+	test('Falls back to plaintext and logs a warning for unknown languages with shiki highlighter', async ({ task: { name: testName } }) => {
+		let colorAssertionExecuted = false
+		const warnings: string[] = []
+
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: [
+				{
+					fixtureName: '',
+					themes,
+					code: astroTestCode,
+					language: 'unknown-test-language',
+					meta: '',
+					plugins: [
+						pluginShikiWithHighlighter({
+							highlighter: () => createHighlighter({ themes: [], langs: [] }), // this is shiki full highlighter
+						}),
+					],
 					engineOptions: {
 						logger: {
 							warn: (message) => warnings.push(message),

@@ -1,21 +1,11 @@
 import { ExpressiveCodeLine, ExpressiveCodePlugin, ExpressiveCodeTheme, InlineStyleAnnotation } from '@expressive-code/core'
-import type { ThemedToken, ShikiTransformer } from 'shiki'
-import { bundledThemes } from 'shiki'
-import { ensureLanguagesAreLoaded, ensureThemeIsLoaded, getCachedHighlighter, runHighlighterTask } from './highlighter'
+import type { ThemedToken, ShikiTransformer, BundledLanguage, Awaitable, RegexEngine, ThemeInput, StringLiteralUnion } from 'shiki'
+import { bundledLanguages as shikiBundledLanguages, bundledThemes as shikiBundledThemes } from 'shiki'
+import { ensureLanguagesAreLoaded, ensureThemeIsLoaded, getCachedHighlighter, runHighlighterTask, ShikiHighlighter } from './highlighter'
 import type { LanguageInput } from './languages'
 import { runPreprocessHook, runTokensHook, validateTransformers } from './transformers'
 
-export interface PluginShikiOptions {
-	/**
-	 * A list of additional languages that should be available for syntax highlighting.
-	 *
-	 * You can pass any of the language input types supported by Shiki, e.g.:
-	 * - `import('./some-exported-grammar.mjs')`
-	 * - `async () => JSON.parse(await fs.readFile('some-json-grammar.json', 'utf-8'))`
-	 *
-	 * See the [Shiki documentation](https://shiki.style/guide/load-lang) for more information.
-	 */
-	langs?: LanguageInput[] | undefined
+export interface PluginShikiCoreOptions<L extends string> {
 	/**
 	 * Allows defining alias names for languages. The keys are the alias names,
 	 * and the values are the language IDs to which they should resolve.
@@ -25,7 +15,9 @@ export interface PluginShikiOptions {
 	 *
 	 * @example { 'mjs': 'javascript' }
 	 */
-	langAlias?: Record<string, string> | undefined
+	// TODO: This should be simply L but for backwards compat, need to support string. This should be changed so that you cannot provide
+	// a mapping to a language that does not exist in the bundle.
+	langAlias?: Record<string, StringLiteralUnion<L>> | undefined
 	/**
 	 * By default, the additional languages defined in `langs` are only available in
 	 * top-level code blocks contained directly in their parent Markdown or MDX document.
@@ -58,6 +50,26 @@ export interface PluginShikiOptions {
 	 * https://expressive-code.com/key-features/syntax-highlighting/#transformers
 	 */
 	transformers?: ShikiTransformer[] | unknown[] | undefined
+}
+
+export interface PluginShikiOptions extends PluginShikiCoreOptions<BundledShikiLanguage> {
+	/**
+	 * A list of additional languages that should be available for syntax highlighting.
+	 *
+	 * By default, all languages from the Shiki full bundle are included and available
+	 * for syntax highlighting.
+	 *
+	 * You can pass any of the language input types supported by Shiki, e.g.:
+	 * - `import('./some-exported-grammar.mjs')`
+	 * - `async () => JSON.parse(await fs.readFile('some-json-grammar.json', 'utf-8'))`
+	 *
+	 * Any languages specified will be eagerly loaded.
+	 *
+	 * See the Shiki documentation for more information on [Loading Custom Languages](https://shiki.style/guide/load-lang)
+	 * and [Full Bundle Preset](https://shiki.style/guide/bundles#shiki-bundle-full).
+	 */
+	langs?: LanguageInput[] | undefined
+
 	/**
 	 * The RegExp engine to use for syntax highlighting.
 	 *
@@ -68,21 +80,91 @@ export interface PluginShikiOptions {
 	engine?: 'oniguruma' | 'javascript' | undefined
 }
 
+export interface PluginShikiBundleOptions<L extends string, T extends string> extends PluginShikiCoreOptions<L> {
+	/**
+	 * A list of languages from your `bundledLangs` that you want eagerly loaded.
+	 */
+	langs?: LanguageInput[] | undefined
+	/**
+	 * The RegExp engine to use for syntax highlighting.
+	 *
+	 * See the Shiki documentation for more information on [RegExp Engines](https://shiki.style/guide/regex-engines).
+	 */
+	engine: () => Awaitable<RegexEngine>
+	/**
+	 * A list of languages that should be included in the bundle and available for syntax highlighting. Note
+	 * that these languages are lazy loaded. If you want a language eagerly loaded, see {@link langs}.
+	 *
+	 * Setting this option to only the languages used on your site can significantly reduce bundle size.
+	 *
+	 * See the Shiki documentation for more information on [Fine-grained Bundle](https://shiki.style/guide/bundles#fine-grained-bundle).
+	 */
+	bundledLangs: Record<L, LanguageInput>
+	/**
+	 * A list of themes that should be included in the bundle and available for syntax highlighting. Note
+	 * that these themes are lazy loaded. If you want a theme eagerly loaded, see the `themes` property
+	 * of `ExpressiveCodeConfig | ExpressiveCodeCoreConfig`.
+	 *
+	 * Setting this option to only the themes used on your site can significantly reduce bundle size.
+	 *
+	 * See the Shiki documentation for more information on [Fine-grained Bundle](https://shiki.style/guide/bundles#fine-grained-bundle).
+	 */
+	bundledThemes: Record<T, ThemeInput>
+}
+
+export interface PluginShikiWithHighlighterOptions<L extends string, T extends string> extends PluginShikiCoreOptions<L> {
+	/**
+	 * Allows full control over the highlighter used.
+	 *
+	 * Use this when you want to use a highlighter that you using in other areas of your
+	 * application to minimize resource utilization.
+	 *
+	 * See the Shiki documentation for more information on [Fine-grained Bundle](https://shiki.style/guide/bundles#fine-grained-bundle).
+	 */
+	highlighter: () => Awaitable<ShikiHighlighter<L, T>>
+}
+
 /**
  * A list of all themes bundled with Shiki.
  */
-export type BundledShikiTheme = Exclude<keyof typeof bundledThemes, 'css-variables'>
+export type BundledShikiTheme = Exclude<keyof typeof shikiBundledThemes, 'css-variables'>
 
 /**
  * A list of all languages bundled with Shiki.
  */
-export type { BundledLanguage as BundledShikiLanguage } from 'shiki'
+export type BundledShikiLanguage = BundledLanguage
 
 /**
  * Loads a theme bundled with Shiki for use with Expressive Code.
  */
 export async function loadShikiTheme(bundledThemeName: BundledShikiTheme) {
-	const shikiTheme = (await bundledThemes[bundledThemeName]()).default
+	const registration = shikiBundledThemes[bundledThemeName]
+	if (!registration) {
+		throw new Error(`Failed to find theme ${bundledThemeName}. Please ensure that you've provided a valid Shiki theme name.`)
+	}
+	const shikiTheme = await registration().then((m) => m.default)
+	return new ExpressiveCodeTheme(shikiTheme)
+}
+
+export async function loadShikiThemeFromBundle<L extends string, T extends string>(options: PluginShikiBundleOptions<L, T>, bundledThemeName: T) {
+	const highlighter = await getCachedHighlighter(options)
+	return loadFromHighlighter(highlighter, bundledThemeName)
+}
+
+export async function loadShikiThemeFromHighlighter<L extends string, T extends string>(options: PluginShikiWithHighlighterOptions<L, T>, bundledThemeName: T) {
+	const highlighter = await options.highlighter()
+	return loadFromHighlighter(highlighter, bundledThemeName)
+}
+
+async function loadFromHighlighter<L extends string, T extends string>(highlighter: ShikiHighlighter<L, T>, bundledThemeName: T) {
+	const loadedThemes = highlighter.getLoadedThemes()
+	if (!loadedThemes.includes(bundledThemeName)) {
+		if (!Object.keys(highlighter.getBundledThemes()).find((id) => id === bundledThemeName)) {
+			throw new Error(`Failed to find theme ${bundledThemeName}. Please ensure that you've included it in your Shiki bundle configuration.`)
+		}
+		await highlighter.loadTheme(bundledThemeName)
+	}
+	const shikiTheme = highlighter.getTheme(bundledThemeName)
 	return new ExpressiveCodeTheme(shikiTheme)
 }
 
@@ -98,7 +180,24 @@ enum FontStyle {
 }
 
 export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlugin {
-	const { langs, langAlias = {}, injectLangsIntoNestedCodeBlocks, engine } = options
+	const { engine, ...rest } = options
+	return pluginShikiBundle({
+		...rest,
+		bundledLangs: shikiBundledLanguages,
+		bundledThemes: shikiBundledThemes,
+		engine: () => createRegexEngine(engine),
+	})
+}
+
+export function pluginShikiBundle<L extends string, T extends string>(options: PluginShikiBundleOptions<L, T>): ExpressiveCodePlugin {
+	return pluginShikiWithHighlighter({
+		...options,
+		highlighter: () => getCachedHighlighter(options),
+	})
+}
+
+export function pluginShikiWithHighlighter<L extends string, T extends string>(options: PluginShikiWithHighlighterOptions<L, T>): ExpressiveCodePlugin {
+	const { langAlias = {}, highlighter: getHighlighter } = options
 
 	// Validate all configured transformers
 	validateTransformers(options)
@@ -121,7 +220,7 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 
 				let highlighter
 				try {
-					highlighter = await getCachedHighlighter({ langs, langAlias, injectLangsIntoNestedCodeBlocks, engine })
+					highlighter = await getHighlighter()
 				} catch (err) {
 					/* c8 ignore next */
 					const error = err instanceof Error ? err : new Error(String(err))
@@ -131,7 +230,7 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 				}
 
 				// Try to load the language if necessary, and log a warning if it's is unknown
-				const languageLoadErrors = await ensureLanguagesAreLoaded({ highlighter, langs: [codeBlock.language], langAlias })
+				const languageLoadErrors = await ensureLanguagesAreLoaded<L, T>({ highlighter, langs: [codeBlock.language], langAlias })
 				const resolvedLanguage = langAlias[codeBlock.language] ?? codeBlock.language
 				const primaryLanguageFailed = languageLoadErrors.failedLanguages.has(resolvedLanguage)
 				const embeddedLanguagesFailed = languageLoadErrors.failedEmbeddedLanguages.size > 0
@@ -165,8 +264,8 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 					let tokenLines: ThemedToken[][] = []
 					try {
 						const codeToTokensOptions = {
-							lang: loadedLanguageName,
-							theme: loadedThemeName,
+							lang: loadedLanguageName as L,
+							theme: loadedThemeName as T,
 							includeExplanation: false,
 						}
 
@@ -270,4 +369,14 @@ function getRemovedRanges(original: string, edited: string): [start: number, end
 	if (orgIdx < original.length) ranges.push([orgIdx, original.length])
 
 	return ranges
+}
+
+async function createRegexEngine(engine: PluginShikiOptions['engine']) {
+	// The [...engine...][0] syntax makes it easier to find this code in the built package,
+	// allowing astro-expressive-code to remove unused engines from the SSR bundle
+	// TODO: This could be adjusted to use direct imports if/when astro-expressive-code is updated
+	// to adopt the new strategy of reducing bundle size. For now, these must remain
+	// as dynamic imports since one of these files may not be available.
+	if (engine === 'javascript') return [(await import('shiki/engine/javascript')).createJavaScriptRegexEngine({ forgiving: true })][0]
+	return [(await import('shiki/engine/oniguruma')).createOnigurumaEngine(import('shiki/wasm'))][0]
 }

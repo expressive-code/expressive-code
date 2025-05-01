@@ -9,16 +9,28 @@ import {
 	ExpressiveCodeBlockOptions,
 	ExpressiveCodeBlock,
 	ExpressiveCodeThemeInput,
+	ExpressiveCodeCore,
+	ExpressiveCodeCoreConfig,
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars -- required for docs
+	type loadShikiThemeFromBundle,
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars -- required for docs
+	type loadShikiThemeFromHighlighter,
+	ExpressiveCodeEngine,
 } from 'expressive-code'
 import type { Root, Parents, Element } from 'expressive-code/hast'
 import { visit } from 'expressive-code/hast'
 import { CodeBlockInfo, createInlineAssetElement, getCodeBlockInfo } from './utils'
+import { Awaitable } from 'shiki'
 
 type AnyVFile = VFile | VFileWithOutput<null>
 
 export * from 'expressive-code'
 
-export type RehypeExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'themes'> & {
+type ThemeArrayType<T extends string> = [Extract<T, string>] extends [never] ? ThemeObject[] : ThemeObjectOrBundleThemeName<T>[]
+
+type LoadTheme<T extends string> = (themeName: T) => Awaitable<ExpressiveCodeTheme>
+
+type RehypeExpressiveCodeCommonOptions<C extends ExpressiveCodeCoreConfig, R extends ExpressiveCodeEngine, T extends string = never> = Omit<C, 'themes'> & {
 	/**
 	 * The color themes that should be available for your code blocks.
 	 *
@@ -28,14 +40,18 @@ export type RehypeExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'themes'> &
 	 * through the `useDarkModeMediaQuery` and `themeCssSelector` options.
 	 *
 	 * The following item types are supported in this array:
-	 * - any theme name bundled with Shiki (e.g. `dracula`)
 	 * - any theme object compatible with VS Code or Shiki (e.g. imported from an NPM theme package)
 	 * - any ExpressiveCodeTheme instance (e.g. using `ExpressiveCodeTheme.fromJSONString(...)`
 	 *   to load a custom JSON/JSONC theme file yourself)
 	 *
-	 * Defaults to `['github-dark', 'github-light']`, two themes bundled with Shiki.
+	 * In addition to the above, when using {@link RehypeExpressiveCodeOptions} or {@link RehypeExpressiveCodeCoreOptions} 
+	 * with a `string` type argument, any theme name that is included in the corresponding Shiki bundle can be specified.
+	 *
+	 * Defaults:
+	 *   - {@link RehypeExpressiveCodeOptions}  `['github-dark', 'github-light']`, two themes bundled with Shiki.
+	 *   - {@link RehypeExpressiveCodeCoreOptions} `[]`
 	 */
-	themes?: ThemeObjectOrShikiThemeName[] | undefined
+	themes?: ThemeArrayType<T> | undefined
 	/**
 	 * The number of spaces that should be used to render tabs. Defaults to 2.
 	 *
@@ -79,10 +95,45 @@ export type RehypeExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'themes'> &
 	 *
 	 * The return value will be cached and used for all code blocks on the site.
 	 */
-	customCreateRenderer?: ((options: RehypeExpressiveCodeOptions) => Promise<RehypeExpressiveCodeRenderer> | RehypeExpressiveCodeRenderer) | undefined
-}
+	customCreateRenderer?: ((options: RehypeExpressiveCodeCommonOptions<C, R, T>) => Awaitable<RehypeExpressiveCodeEngineRenderer<R>>) | undefined
+} & ([T] extends [never]
+		? object
+		: {
+				/**
+				 * This advanced option allows you to load a theme by name. When using {@link RehypeExpressiveCodeOptions} a default
+				 * theme loader is provided that will load themes by name from the Shiki full bundle. When using {@link RehypeExpressiveCodeCoreOptions}
+				 * with a `string` type parameter, you must provide a `customLoadTheme` function to ensure themes can be loaded by name.
+				 *
+				 * The `plugin-shiki` package provides theme loaders that can be used or you can provide your own:
+				 * - {@link loadShikiTheme}
+				 * - {@link loadShikiThemeFromBundle}
+				 * - {@link loadShikiThemeFromHighlighter}
+				 */
+				customLoadTheme?: LoadTheme<T> | undefined // only support customLoadTheme when T extends string
+		  })
 
-export type ThemeObjectOrShikiThemeName = BundledShikiTheme | ExpressiveCodeTheme | ExpressiveCodeThemeInput
+export type RehypeExpressiveCodeOptions = RehypeExpressiveCodeCommonOptions<ExpressiveCodeConfig, ExpressiveCode, BundleThemeName<BundledShikiTheme>>
+export type RehypeExpressiveCodeCoreOptions<T extends string = never> = RehypeExpressiveCodeCommonOptions<ExpressiveCodeCoreConfig, ExpressiveCodeCore, T> &
+	([T] extends [never]
+		? object
+		: {
+				/**
+				 * This advanced option allows you to load a theme by name. When using {@link RehypeExpressiveCodeOptions} a default
+				 * theme loader is provided that will load themes by name from the Shiki full bundle. When using {@link RehypeExpressiveCodeCoreOptions}
+				 * with a `string` type parameter, you must provide a `customLoadTheme` function to ensure themes can be loaded by name.
+				 *
+				 * The `plugin-shiki` package provides theme loaders that can be used or you can provide your own:
+				 * - {@link loadShikiTheme}
+				 * - {@link loadShikiThemeFromBundle}
+				 * - {@link loadShikiThemeFromHighlighter}
+				 */
+				customLoadTheme: LoadTheme<T> // require customLoadTheme when T extends string
+		  })
+
+export type ThemeObject = ExpressiveCodeTheme | ExpressiveCodeThemeInput
+export type BundleThemeName<T extends string> = T
+export type ThemeObjectOrBundleThemeName<T extends string> = ThemeObject | BundleThemeName<T>
+export type ThemeObjectOrShikiThemeName = ThemeObjectOrBundleThemeName<BundledShikiTheme>
 
 export type RehypeExpressiveCodeDocument = {
 	/**
@@ -114,12 +165,15 @@ export type RehypeExpressiveCodeDocument = {
 	data: Record<string, unknown> | undefined
 }
 
-export type RehypeExpressiveCodeRenderer = {
-	ec: ExpressiveCode
+type RehypeExpressiveCodeEngineRenderer<T extends ExpressiveCodeEngine> = {
+	ec: T
 	baseStyles: string
 	themeStyles: string
 	jsModules: string[]
 }
+
+export type RehypeExpressiveCodeCoreRenderer = RehypeExpressiveCodeEngineRenderer<ExpressiveCodeCore>
+export type RehypeExpressiveCodeRenderer = RehypeExpressiveCodeEngineRenderer<ExpressiveCode>
 
 /**
  * Creates an `ExpressiveCode` instance using the given `options`,
@@ -128,25 +182,55 @@ export type RehypeExpressiveCodeRenderer = {
  * Returns the created `ExpressiveCode` instance together with the base styles and JS modules
  * that should be added to every page.
  */
-export async function createRenderer(options: RehypeExpressiveCodeOptions = {}): Promise<RehypeExpressiveCodeRenderer> {
+export async function createRenderer(options: RehypeExpressiveCodeOptions): Promise<RehypeExpressiveCodeRenderer> {
+	return createRendererCommon(options, { ctor: ExpressiveCode, loadTheme: loadShikiTheme })
+}
+
+/**
+ * Creates an `ExpressiveCodeCore` instance using the given `options`.
+ *
+ * Returns the created `ExpressiveCodeCore` instance together with the base styles and JS modules
+ * that should be added to every page.
+ */
+export async function createRendererCore<T extends string = never>(options: RehypeExpressiveCodeCoreOptions<T>): Promise<RehypeExpressiveCodeCoreRenderer> {
+	// typescript can't infer T here so it requires loadTheme but we do not provide a default loadTheme for Core,
+	// customLoadTheme must be used if T extends string so we must cast
+	return createRendererCommon(options, { ctor: ExpressiveCodeCore } as CreateRendererDefaultOptions<ExpressiveCodeCore, T>)
+}
+
+type CreateRendererDefaultOptions<E extends ExpressiveCodeCore, T extends string = never> = {
+	ctor: new (...args: ConstructorParameters<typeof ExpressiveCodeEngine>) => E
+} & ([T] extends [never] ? object : { loadTheme: LoadTheme<T> }) // loadTheme must be provided when T extends string
+
+async function createRendererCommon<E extends ExpressiveCodeEngine, T extends string = never>(
+	options: RehypeExpressiveCodeCommonOptions<ExpressiveCodeCoreConfig, E, T>,
+	defaultOptions: CreateRendererDefaultOptions<E, T>
+): Promise<RehypeExpressiveCodeEngineRenderer<E>> {
 	// Transfer deprecated `theme` option to `themes` without triggering the deprecation warning
-	const deprecatedOptions: Omit<RehypeExpressiveCodeOptions, 'theme'> & { theme?: ThemeObjectOrShikiThemeName | ThemeObjectOrShikiThemeName[] | undefined } = options
+	const deprecatedOptions: Omit<RehypeExpressiveCodeCommonOptions<ExpressiveCodeCoreConfig, E, T>, 'theme'> & {
+		theme?: ThemeObjectOrBundleThemeName<T> | ThemeObjectOrBundleThemeName<T>[] | undefined
+	} = options
 	if (deprecatedOptions.theme && !options.themes) {
 		options.themes = Array.isArray(deprecatedOptions.theme) ? deprecatedOptions.theme : [deprecatedOptions.theme]
 		delete deprecatedOptions.theme
 	}
 	const { themes, ...ecOptions } = options
+	const { ctor } = defaultOptions
 
 	const loadedThemes =
 		themes &&
 		(await Promise.all(
-			(Array.isArray(themes) ? themes : [themes]).map(async (theme) => {
-				const mustLoadTheme = theme !== undefined && !(theme instanceof ExpressiveCodeTheme)
-				const optLoadedTheme = mustLoadTheme ? new ExpressiveCodeTheme(typeof theme === 'string' ? await loadShikiTheme(theme) : theme) : theme
-				return optLoadedTheme
-			})
+			(Array.isArray(themes) ? themes : [themes])
+				.filter((t) => !!t)
+				.map(async (theme) => {
+					if (theme instanceof ExpressiveCodeTheme) return theme
+					if (typeof theme !== 'string') return new ExpressiveCodeTheme(theme)
+					if ('customLoadTheme' in options && !!options.customLoadTheme) return new ExpressiveCodeTheme(await options.customLoadTheme(theme))
+					if ('loadTheme' in defaultOptions && !!defaultOptions.loadTheme) return new ExpressiveCodeTheme(await defaultOptions.loadTheme(theme))
+					throw new Error('unable to load theme, please use a supported theme type or provide a value for customLoadTheme')
+				})
 		))
-	const ec = new ExpressiveCode({
+	const ec = new ctor({
 		themes: loadedThemes,
 		...ecOptions,
 	})
@@ -162,10 +246,28 @@ export async function createRenderer(options: RehypeExpressiveCodeOptions = {}):
 	}
 }
 
-function rehypeExpressiveCode(options: RehypeExpressiveCodeOptions = {}) {
-	const { tabWidth = 2, getBlockLocale, customCreateRenderer, customCreateBlock } = options
+export function rehypeExpressiveCode(options: RehypeExpressiveCodeOptions = {}) {
+	return rehypeExpressiveCodeCommon<BundledShikiTheme, ExpressiveCode>(options, { createRenderer })
+}
 
-	let asyncRenderer: Promise<RehypeExpressiveCodeRenderer> | RehypeExpressiveCodeRenderer | undefined
+export function rehypeExpressiveCodeCore<T extends string = never>(options: RehypeExpressiveCodeCoreOptions<T>) {
+	return rehypeExpressiveCodeCommon(options, { createRenderer: createRendererCore } as RehypeExpressiveCodeCommonDefaultOptions<T, ExpressiveCodeCore>)
+}
+
+type RequireDefined<T, K extends keyof T> = T & { [P in K]-?: NonNullable<T[P]> }
+
+type RehypeExpressiveCodeCommonDefaultOptions<T extends string, E extends ExpressiveCodeEngine> = {
+	createRenderer: RequireDefined<RehypeExpressiveCodeCommonOptions<ExpressiveCodeCoreConfig, E, T>, 'customCreateRenderer'>['customCreateRenderer']
+}
+
+function rehypeExpressiveCodeCommon<T extends string, E extends ExpressiveCodeEngine>(
+	options: RehypeExpressiveCodeCommonOptions<ExpressiveCodeCoreConfig, E, T>,
+	defaultOptions: RehypeExpressiveCodeCommonDefaultOptions<T, E>
+) {
+	const { tabWidth = 2, getBlockLocale, customCreateRenderer, customCreateBlock } = options
+	const { createRenderer } = defaultOptions
+
+	let asyncRenderer: Awaitable<RehypeExpressiveCodeEngineRenderer<E>> | undefined
 
 	const renderBlockToHast = async ({
 		codeBlock,

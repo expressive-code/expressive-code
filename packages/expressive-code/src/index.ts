@@ -10,7 +10,9 @@ export * from '@expressive-code/plugin-frames'
 export * from '@expressive-code/plugin-shiki'
 export * from '@expressive-code/plugin-text-markers'
 
-export interface ExpressiveCodeConfig extends ExpressiveCodeEngineConfig {
+export interface ExpressiveCodeCoreConfig extends ExpressiveCodeEngineConfig {}
+
+export interface ExpressiveCodeConfig extends ExpressiveCodeCoreConfig {
 	/**
 	 * The Shiki plugin adds syntax highlighting to code blocks.
 	 *
@@ -35,7 +37,9 @@ export interface ExpressiveCodeConfig extends ExpressiveCodeEngineConfig {
 	frames?: PluginFramesOptions | boolean | undefined
 }
 
-export class ExpressiveCode extends ExpressiveCodeEngine {
+export class ExpressiveCodeCore extends ExpressiveCodeEngine {}
+
+export class ExpressiveCode extends ExpressiveCodeCore {
 	constructor({ shiki, textMarkers, frames, ...baseConfig }: ExpressiveCodeConfig = {}) {
 		// Collect all default plugins with their configuration,
 		// but skip those that were disabled or already added to plugins
