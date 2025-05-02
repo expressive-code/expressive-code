@@ -1,26 +1,22 @@
 import type { VFileWithOutput } from 'unified'
 import type { VFile } from 'vfile'
-import {
+import { loadShikiTheme, ExpressiveCode, ExpressiveCodeTheme, ExpressiveCodeBlock, ExpressiveCodeCore, ExpressiveCodeEngine } from 'expressive-code'
+import type {
 	BundledShikiTheme,
-	loadShikiTheme,
-	ExpressiveCode,
 	ExpressiveCodeConfig,
-	ExpressiveCodeTheme,
 	ExpressiveCodeBlockOptions,
-	ExpressiveCodeBlock,
 	ExpressiveCodeThemeInput,
-	ExpressiveCodeCore,
 	ExpressiveCodeCoreConfig,
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars -- required for docs
-	type loadShikiThemeFromBundle,
+	loadShikiThemeFromBundle,
 	// eslint-disable-next-line @typescript-eslint/no-unused-vars -- required for docs
-	type loadShikiThemeFromHighlighter,
-	ExpressiveCodeEngine,
+	loadShikiThemeFromHighlighter,
 } from 'expressive-code'
 import type { Root, Parents, Element } from 'expressive-code/hast'
 import { visit } from 'expressive-code/hast'
-import { CodeBlockInfo, createInlineAssetElement, getCodeBlockInfo } from './utils'
-import { Awaitable } from 'shiki'
+import { createInlineAssetElement, getCodeBlockInfo } from './utils'
+import type { CodeBlockInfo } from './utils'
+import type { Awaitable } from 'shiki'
 
 type AnyVFile = VFile | VFileWithOutput<null>
 
@@ -44,7 +40,7 @@ type RehypeExpressiveCodeCommonOptions<C extends ExpressiveCodeCoreConfig, R ext
 	 * - any ExpressiveCodeTheme instance (e.g. using `ExpressiveCodeTheme.fromJSONString(...)`
 	 *   to load a custom JSON/JSONC theme file yourself)
 	 *
-	 * In addition to the above, when using {@link RehypeExpressiveCodeOptions} or {@link RehypeExpressiveCodeCoreOptions} 
+	 * In addition to the above, when using {@link RehypeExpressiveCodeOptions} or {@link RehypeExpressiveCodeCoreOptions}
 	 * with a `string` type argument, any theme name that is included in the corresponding Shiki bundle can be specified.
 	 *
 	 * Defaults:
@@ -277,7 +273,7 @@ function rehypeExpressiveCodeCommon<T extends string, E extends ExpressiveCodeEn
 		useMdxJsx,
 	}: {
 		codeBlock: ExpressiveCodeBlock
-		renderer: RehypeExpressiveCodeRenderer
+		renderer: RehypeExpressiveCodeEngineRenderer<E>
 		addedStyles: Set<string>
 		addedJsModules: Set<string>
 		useMdxJsx: boolean
