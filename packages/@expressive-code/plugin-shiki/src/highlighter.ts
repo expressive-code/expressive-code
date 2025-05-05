@@ -2,7 +2,7 @@ import type { StyleVariant } from '@expressive-code/core'
 import { ExpressiveCodeTheme, getStableObjectHash } from '@expressive-code/core'
 import type { BundledLanguage, HighlighterGeneric, ThemeRegistration, LanguageInput as ShikiLanguageInput } from 'shiki'
 import { createdBundledHighlighter, isSpecialLang } from 'shiki'
-import type { LanguageInput, LanguageRegistration, ShikiLanguageRegistration } from './languages'
+import type { LanguageInput, LanguageRegistration, ShikiLanguageRegistration, LanguageAlias } from './languages'
 import { getNestedCodeBlockInjectionLangs } from './languages'
 import type { PluginShikiBundleOptions, PluginShikiWithHighlighterOptions } from './core'
 
@@ -76,7 +76,11 @@ export async function ensureThemeIsLoaded<L extends string, T extends string>(hi
 }
 
 export async function ensureLanguagesAreLoaded<L extends string, T extends string>(
-	options: Omit<PluginShikiWithHighlighterOptions<L, T>, 'langs' | 'highlighter'> & { highlighter: ShikiHighlighter<L, T>; langs?: (LanguageInput | string)[] | undefined }
+	options: Omit<PluginShikiWithHighlighterOptions<L, T>, 'langs' | 'highlighter' | 'langAlias'> & {
+		highlighter: ShikiHighlighter<L, T>
+		langs?: (LanguageInput | string)[] | undefined
+		langAlias?: LanguageAlias<L> | undefined
+	}
 ) {
 	const { highlighter, langs = [], langAlias = {}, injectLangsIntoNestedCodeBlocks } = options
 	const failedLanguages = new Set<string>()

@@ -1,7 +1,7 @@
 import { ExpressiveCodeLine, type ExpressiveCodePlugin, ExpressiveCodeTheme, InlineStyleAnnotation } from '@expressive-code/core'
-import type { ThemedToken, ShikiTransformer, Awaitable, RegexEngine, ThemeInput, StringLiteralUnion } from 'shiki/core'
+import type { ThemedToken, ShikiTransformer, Awaitable, RegexEngine, ThemeInput } from 'shiki/core'
 import { ensureLanguagesAreLoaded, ensureThemeIsLoaded, getCachedHighlighter, runHighlighterTask, type ShikiHighlighter } from './highlighter'
-import type { LanguageInput } from './languages'
+import type { LanguageInput, LanguageAlias } from './languages'
 import { runPreprocessHook, runTokensHook, validateTransformers } from './transformers'
 
 export interface PluginShikiCoreOptions<L extends string> {
@@ -12,11 +12,13 @@ export interface PluginShikiCoreOptions<L extends string> {
 	 * The values can either be bundled languages, or additional languages
 	 * defined in `langs`.
 	 *
+	 * Note that when referencing a language provided in `langs`, the value
+	 * must match the `name` property (the language ID) of the language object
+	 * that was provided in `langs`.
+	 *
 	 * @example { 'mjs': 'javascript' }
 	 */
-	// TODO: This should be simply L but for backwards compat, need to support string. This should be changed so that you cannot provide
-	// a mapping to a language that does not exist in the bundle.
-	langAlias?: Record<string, StringLiteralUnion<L>> | undefined
+	langAlias?: LanguageAlias<L> | undefined
 	/**
 	 * By default, the additional languages defined in `langs` are only available in
 	 * top-level code blocks contained directly in their parent Markdown or MDX document.
@@ -53,7 +55,15 @@ export interface PluginShikiCoreOptions<L extends string> {
 
 export interface PluginShikiBundleOptions<L extends string, T extends string> extends PluginShikiCoreOptions<L> {
 	/**
-	 * A list of languages from your `bundledLangs` that you want eagerly loaded.
+	 * A list of additional languages that should be available for syntax highlighting.
+	 *
+	 * You can pass any of the language input types supported by Shiki, e.g.:
+	 * - `import('./some-exported-grammar.mjs')`
+	 * - `async () => JSON.parse(await fs.readFile('some-json-grammar.json', 'utf-8'))`
+	 *
+	 * Any languages specified will be eagerly loaded.
+	 *
+	 * See the Shiki documentation for more information on [Loading Custom Languages](https://shiki.style/guide/load-lang).
 	 */
 	langs?: LanguageInput[] | undefined
 	/**
@@ -83,7 +93,7 @@ export interface PluginShikiBundleOptions<L extends string, T extends string> ex
 	bundledThemes: Record<T, ThemeInput>
 }
 
-export interface PluginShikiWithHighlighterOptions<L extends string, T extends string> extends PluginShikiCoreOptions<L> {
+export interface PluginShikiWithHighlighterOptions<L extends string, T extends string> extends Omit<PluginShikiCoreOptions<L>, 'langAlias'> {
 	/**
 	 * Allows full control over the highlighter used.
 	 *
@@ -129,13 +139,18 @@ enum FontStyle {
 }
 
 export function pluginShikiBundle<L extends string, T extends string>(options: PluginShikiBundleOptions<L, T>): ExpressiveCodePlugin {
-	return pluginShikiWithHighlighter({
+	return createPlugin({
 		...options,
 		highlighter: () => getCachedHighlighter(options),
 	})
 }
 
 export function pluginShikiWithHighlighter<L extends string, T extends string>(options: PluginShikiWithHighlighterOptions<L, T>): ExpressiveCodePlugin {
+	return createPlugin(options)
+}
+
+type CreatePluginOptions<L extends string, T extends string> = PluginShikiWithHighlighterOptions<L, T> & { langAlias?: LanguageAlias<L> | undefined }
+function createPlugin<L extends string, T extends string>(options: CreatePluginOptions<L, T>): ExpressiveCodePlugin {
 	const { langAlias = {}, highlighter: getHighlighter } = options
 
 	// Validate all configured transformers
