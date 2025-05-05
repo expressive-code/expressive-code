@@ -1,4 +1,5 @@
-import { loadShikiThemeFromBundle, rehypeExpressiveCodeCore, RehypeExpressiveCodeCoreOptions, pluginShikiBundle, PluginShikiBundleOptions } from 'rehype-expressive-code'
+import { rehypeExpressiveCodeCore, type RehypeExpressiveCodeCoreOptions } from 'rehype-expressive-code/core'
+import { loadShikiThemeFromBundle, pluginShikiBundle, type PluginShikiBundleOptions } from '@expressive-code/plugin-shiki/core'
 import { createJavaScriptRegexEngine, createOnigurumaEngine } from 'shiki'
 import { createJavaScriptRawEngine } from 'shiki/engine/javascript'
 

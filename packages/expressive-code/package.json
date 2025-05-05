@@ -21,6 +21,10 @@
     "./hast": {
       "types": "./dist/hast.d.ts",
       "default": "./dist/hast.js"
+    },
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "default": "./dist/core.js"      
     }
   },
   "types": "./dist/index.d.ts",
@@ -35,7 +39,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup ./src/index.ts ./src/hast.ts --format esm --dts --sourcemap --clean",
+    "build": "tsup ./src/index.ts ./src/hast.ts ./src/core.ts --format esm --dts --sourcemap --clean --no-splitting",
     "coverage": "vitest run --coverage",
     "test": "vitest run --reporter verbose",
     "test-short": "vitest run --reporter basic",

@@ -4,7 +4,7 @@ import type { BundledLanguage, HighlighterGeneric, ThemeRegistration, LanguageIn
 import { createdBundledHighlighter, isSpecialLang } from 'shiki'
 import type { LanguageInput, LanguageRegistration, ShikiLanguageRegistration } from './languages'
 import { getNestedCodeBlockInjectionLangs } from './languages'
-import type { PluginShikiBundleOptions, PluginShikiWithHighlighterOptions } from '.'
+import type { PluginShikiBundleOptions, PluginShikiWithHighlighterOptions } from './core'
 
 export type ShikiHighlighter<L extends string, T extends string> = HighlighterGeneric<L, T>
 

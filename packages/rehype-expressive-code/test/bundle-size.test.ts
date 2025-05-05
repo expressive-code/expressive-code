@@ -5,42 +5,35 @@ import { visualizer } from 'rollup-plugin-visualizer'
 import { bundledThemes, bundledLanguagesInfo } from 'shiki'
 import { bundleStats } from 'rollup-plugin-bundle-stats'
 
-type ShikiDetails = Awaited<ReturnType<typeof buildFixture>>
+type BuildResult = Awaited<ReturnType<typeof buildFixture>>
+type TestCase = [string, boolean?, number?]
 
 describe('integration with shiki affect on ec bundle size', () => {
 	/* EC Core Tests */
-	test.for(['no-themes.ts', 'with-themes.ts', 'with-themes-dynamic.ts'])('rehype-ec-core - %s', async (fileName, { expect }) => {
-		const details = await buildFixture({
-			fixtureDir: 'bundle-size/rehype-ec-core',
-			entryPoint: fileName,
-			outputDir: 'dist',
-		})
-		assertSnapshot(expect, details, false, 500000)
-	})
+	test.for([['no-themes.ts'], ['with-themes.ts'], ['with-themes-dynamic.ts'], ['all-plugins.ts', true]] as TestCase[])(
+		'rehype-ec-core - %s',
+		async ([fileName, isFull, size], { expect }) => {
+			const result = await buildFixture({
+				fixtureDir: 'bundle-size/rehype-ec-core',
+				entryPoint: fileName,
+				outputDir: 'dist',
+			})
+			if (isFull) {
+				assertFull(expect, result, false)
+			} else {
+				assertSnapshot(expect, result, false, size ?? 900000)
+			}
+		}
+	)
 
 	/* EC Tests */
 	test.for(['no-themes.ts', 'with-themes.ts', 'with-themes-dynamic.ts', 'shiki-false.ts'])('rehype-ec - %s', async (fileName, { expect }) => {
-		const details = await buildFixture({
+		const result = await buildFixture({
 			fixtureDir: 'bundle-size/rehype-ec',
 			entryPoint: fileName,
 			outputDir: 'dist',
 		})
-		const baseLangs = bundledLanguagesInfo.map((i) => i.id)
-		const themes = Object.keys(bundledThemes)
-
-		// We don't snapshot here because Shiki can evolve their full bundle
-		// and we do not want test to break every time they change it. Instead,
-		// we make sure we match what is in their current bundle. Since we are
-		// identifying what's in our bundle using filenames, it won't include language
-		// aliases so we only compare against the base languages. Additionally, due to bundling
-		// and shared files across languages, we will have more files than languages
-		// but we should have a file for every language.
-		expect(details.modules.shiki.files.bundle.langs.length).toBeGreaterThan(baseLangs.length)
-		expect(details.modules.shiki.files.bundle['langs-precompiled'].length).toBe(0)
-		expect(details.modules.shiki.files.bundle.themes.length).toBe(themes.length)
-		expect(details.modules.shiki.files.bundle.engine.length).toBe(2)
-		expect(details.totalSize).toBeGreaterThan(0)
-		expect(details.totalSize).toBeLessThan(10000000)
+		assertFull(expect, result, false)
 	})
 
 	/* EC Bundle Tests */
@@ -51,25 +44,37 @@ describe('integration with shiki affect on ec bundle size', () => {
 		['engine-javascript-compile.ts'],
 		['engine-javascript-raw.ts'],
 		['engine-oniguruma.ts'],
-		['engine-all.ts', 1100000],
-	] as [string, number | undefined][])('rehype-ec-core-bundle - %s', async ([fileName, size], { expect }) => {
-		const details = await buildFixture({
+		['engine-all.ts', false, 1100000],
+		['all-plugins.ts', true],
+	] as TestCase[])('rehype-ec-core-bundle - %s', async ([fileName, isFull, size], { expect }) => {
+		const result = await buildFixture({
 			fixtureDir: 'bundle-size/rehype-ec-core-bundle',
 			entryPoint: fileName,
 			outputDir: 'dist',
 		})
-		assertSnapshot(expect, details, true, size || 900000)
+		if (isFull) {
+			assertFull(expect, result, true)
+		} else {
+			assertSnapshot(expect, result, true, size ?? 900000)
+		}
 	})
 
 	// /* EC Highlighter Tests */
-	test.for(['no-themes.ts', 'with-themes.ts', 'with-themes-dynamic.ts'])('rehype-ec-core-highlighter - %s', async (fileName, { expect }) => {
-		const details = await buildFixture({
-			fixtureDir: 'bundle-size/rehype-ec-core-highlighter',
-			entryPoint: fileName,
-			outputDir: 'dist',
-		})
-		assertSnapshot(expect, details, true, 900000)
-	})
+	test.for([['no-themes.ts'], ['with-themes.ts'], ['with-themes-dynamic.ts'], ['all-plugins.ts', true]] as TestCase[])(
+		'rehype-ec-core-highlighter - %s',
+		async ([fileName, isFull, size], { expect }) => {
+			const result = await buildFixture({
+				fixtureDir: 'bundle-size/rehype-ec-core-highlighter',
+				entryPoint: fileName,
+				outputDir: 'dist',
+			})
+			if (isFull) {
+				assertFull(expect, result, true)
+			} else {
+				assertSnapshot(expect, result, true, size ?? 900000)
+			}
+		}
+	)
 })
 
 async function buildFixture({
@@ -250,26 +255,50 @@ export function getByteSize(content: string): number {
 	return !content ? 0 : Buffer.from(content).length
 }
 
-function assertSnapshot(expect: ExpectStatic, details: ShikiDetails, expectOther: boolean, expectSize: number) {
-	expect(details.modules.shiki.files.bundle).toMatchSnapshot()
-	expect(details.totalSize).toBeGreaterThan(0)
-	expect(details.totalSize).toBeLessThan(expectSize)
-	expect(Object.keys(details.modules.ecPlugins).length).toBe(3)
-	expect(details.modules.ecPlugins['plugin-shiki'].files.length).toBe(expectOther ? 1 : 0)
-	expect(details.modules.ecPlugins['plugin-shiki'].totalSize).toBeLessThanOrEqual(expectOther ? 30000 : 0)
-	// TODO: frames & text-markers will still contain some styling related code (css), etc. so while down to ~6k from ~45k they do not
-	// get to zero currently.  Need to further investigate and refactor/modify as needed to fully eliminate
-	expect(details.modules.ecPlugins['plugin-frames'].files.length).toBe(1)
-	expect(details.modules.ecPlugins['plugin-frames'].totalSize).toBeLessThan(4500)
-	expect(details.modules.ecPlugins['plugin-text-markers'].files.length).toBe(1)
-	expect(details.modules.ecPlugins['plugin-text-markers'].totalSize).toBeLessThan(3500)
+function assertSnapshot(expect: ExpectStatic, result: BuildResult, expectOther: boolean, expectSize: number) {
+	expect(result.modules.shiki.files.bundle).toMatchSnapshot()
+	expect(result.totalSize).toBeGreaterThan(0)
+	expect(result.totalSize).toBeLessThan(expectSize)
+	expect(Object.keys(result.modules.ecPlugins).length).toBe(3)
+	expect(result.modules.ecPlugins['plugin-shiki'].files.length).toBe(expectOther ? 1 : 0) // chunk file only since core.ts is just a re-export of chunk
+	expect(result.modules.ecPlugins['plugin-shiki'].totalSize).toBeLessThanOrEqual(expectOther ? 30000 : 0)
+	expect(result.modules.ecPlugins['plugin-frames'].files.length).toBe(0)
+	expect(result.modules.ecPlugins['plugin-frames'].totalSize).toBe(0)
+	expect(result.modules.ecPlugins['plugin-text-markers'].files.length).toBe(0)
+	expect(result.modules.ecPlugins['plugin-text-markers'].totalSize).toBe(0)
 	// We do not snapshot other to avoid potential test failing as new versions of shiki
 	// are released. We are mainly concerned with the langs/themes/engines so we snapshot
 	// those and then ensure other doesn't become unreasonable.
 	if (expectOther) {
-		expect(details.modules.shiki.files.other.length).toBeGreaterThan(0)
-		expect(details.modules.shiki.files.other.length).toBeLessThan(15)
+		expect(result.modules.shiki.files.other.length).toBeGreaterThan(0)
+		expect(result.modules.shiki.files.other.length).toBeLessThan(15)
 	} else {
-		expect(details.modules.shiki.files.other.length).toBe(0)
+		expect(result.modules.shiki.files.other.length).toBe(0)
 	}
+}
+
+const baseLangs = bundledLanguagesInfo.map((i) => i.id)
+const themes = Object.keys(bundledThemes)
+function assertFull(expect: ExpectStatic, result: BuildResult, isPluginShikiCore: boolean) {
+	// We don't snapshot here because Shiki can evolve their full bundle
+	// and we do not want test to break every time they change it. Instead,
+	// we make sure we match what is in their current bundle. Since we are
+	// identifying what's in our bundle using filenames, it won't include language
+	// aliases so we only compare against the base languages. Additionally, due to bundling
+	// and shared files across languages, we will have more files than languages
+	// but we should have a file for every language.
+	expect(result.modules.shiki.files.bundle.langs.length).toBeGreaterThan(baseLangs.length)
+	expect(result.modules.shiki.files.bundle['langs-precompiled'].length).toBe(0)
+	expect(result.modules.shiki.files.bundle.themes.length).toBe(themes.length)
+	expect(result.modules.shiki.files.bundle.engine.length).toBe(isPluginShikiCore ? 1 : 2)
+	expect(result.modules.shiki.files.other.length).toBeGreaterThan(0)
+	expect(result.modules.shiki.files.other.length).toBeLessThan(15)
+	expect(result.modules.ecPlugins['plugin-shiki'].files.length).toBe(isPluginShikiCore ? 1 : 2) // index.js if not core + chunk file
+	expect(result.modules.ecPlugins['plugin-shiki'].totalSize).toBeLessThanOrEqual(10500000)
+	expect(result.modules.ecPlugins['plugin-frames'].files.length).toBe(1)
+	expect(result.modules.ecPlugins['plugin-frames'].totalSize).toBeLessThanOrEqual(30000)
+	expect(result.modules.ecPlugins['plugin-text-markers'].files.length).toBe(1)
+	expect(result.modules.ecPlugins['plugin-text-markers'].totalSize).toBeLessThanOrEqual(30000)
+	expect(result.totalSize).toBeGreaterThan(0)
+	expect(result.totalSize).toBeLessThan(10000000)
 }

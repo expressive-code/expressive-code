@@ -456,6 +456,15 @@ importers:
 
   packages/rehype-expressive-code:
     dependencies:
+      '@expressive-code/plugin-frames':
+        specifier: workspace:^0.41.2
+        version: link:../@expressive-code/plugin-frames
+      '@expressive-code/plugin-shiki':
+        specifier: workspace:^0.41.2
+        version: link:../@expressive-code/plugin-shiki
+      '@expressive-code/plugin-text-markers':
+        specifier: workspace:^0.41.2
+        version: link:../@expressive-code/plugin-text-markers
       expressive-code:
         specifier: workspace:^0.41.2
         version: link:../expressive-code

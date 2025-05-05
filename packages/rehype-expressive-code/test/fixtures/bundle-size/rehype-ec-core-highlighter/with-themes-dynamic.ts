@@ -1,11 +1,6 @@
-import {
-	loadShikiThemeFromHighlighter,
-	rehypeExpressiveCodeCore,
-	RehypeExpressiveCodeCoreOptions,
-	pluginShikiWithHighlighter,
-	PluginShikiWithHighlighterOptions,
-} from 'rehype-expressive-code'
-import { getSingletonHighlighter, BundledLanguage, BundledTheme } from './highlighter'
+import { rehypeExpressiveCodeCore, type RehypeExpressiveCodeCoreOptions } from 'rehype-expressive-code/core'
+import { loadShikiThemeFromHighlighter, pluginShikiWithHighlighter, type PluginShikiWithHighlighterOptions } from '@expressive-code/plugin-shiki/core'
+import { getSingletonHighlighter, type BundledLanguage, type BundledTheme } from './highlighter'
 
 const shikiOptions: PluginShikiWithHighlighterOptions<BundledLanguage, BundledTheme> = {
 	highlighter: getSingletonHighlighter,

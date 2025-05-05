@@ -15,14 +15,24 @@
     "target": "ESNext",
     "paths": {
       "@expressive-code/core": ["./packages/@expressive-code/core/src"],
+      "@expressive-code/core/hast": ["./packages/@expressive-code/core/src/hast"],
+      "@expressive-code/plugin-collapsible-sections": ["./packages/@expressive-code/plugin-collapsible-sections/src"],
       "@expressive-code/plugin-frames": ["./packages/@expressive-code/plugin-frames/src"],
       "@expressive-code/plugin-line-numbers": ["./packages/@expressive-code/plugin-line-numbers/src"],
       "@expressive-code/plugin-shiki": ["./packages/@expressive-code/plugin-shiki/src"],
+      "@expressive-code/plugin-shiki/core": ["./packages/@expressive-code/plugin-shiki/src/core"],
       "@expressive-code/plugin-text-markers": ["./packages/@expressive-code/plugin-text-markers/src"],
       "astro-expressive-code": ["./packages/astro-expressive-code/src"],
+      "astro-expressive-code/hast": ["./packages/astro-expressive-code/src/hast"],
+      "astro-expressive-code/components": ["./packages/astro-expressive-code/components"],
       "expressive-code": ["./packages/expressive-code/src"],
+      "expressive-code/hast": ["./packages/expressive-code/src/hast"],
+      "expressive-code/core": ["./packages/expressive-code/src/core"],      
       "rehype-expressive-code": ["./packages/rehype-expressive-code/src"],
-      "remark-expressive-code": ["./packages/remark-expressive-code/src"]
+      "rehype-expressive-code/hast": ["./packages/rehype-expressive-code/src/hast"],
+      "rehype-expressive-code/core": ["./packages/rehype-expressive-code/src/core"],
+      "remark-expressive-code": ["./packages/remark-expressive-code/src"],
+      "remark-expressive-code/hast": ["./packages/remark-expressive-code/src/hast"]
     }
   }
 }

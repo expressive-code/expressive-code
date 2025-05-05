@@ -1,4 +1,4 @@
-import { rehypeExpressiveCodeCore, RehypeExpressiveCodeCoreOptions } from 'rehype-expressive-code'
+import { rehypeExpressiveCodeCore, type RehypeExpressiveCodeCoreOptions } from 'rehype-expressive-code/core'
 
 const options: RehypeExpressiveCodeCoreOptions = {
 	themes: [],

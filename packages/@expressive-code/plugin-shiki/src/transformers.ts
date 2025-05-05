@@ -1,5 +1,5 @@
 import { ExpressiveCodeBlock } from '@expressive-code/core'
-import type { PluginShikiCoreOptions } from '.'
+import type { PluginShikiCoreOptions } from './core'
 import type { CodeToHastOptions, ShikiTransformer, ShikiTransformerContextSource, ThemedToken } from 'shiki'
 
 type TransformerOptions = Pick<PluginShikiCoreOptions<never>, 'transformers'>
