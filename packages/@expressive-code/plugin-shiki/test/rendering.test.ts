@@ -4,6 +4,7 @@ import { renderAndOutputHtmlSnapshot, buildThemeFixtures, loadTestThemes, loadBu
 import type { CodeToTokensOptions, ShikiTransformer, ShikiTransformerContextSource, ThemedToken } from 'shiki'
 import { pluginShiki } from '../src'
 import { regexp } from './assets/regexp.tmLanguage.js'
+import type { ExpressiveCodeTheme } from '@expressive-code/core'
 
 const jsTestCode = `
 import { defineConfig } from 'astro/config';
@@ -30,6 +31,8 @@ export default defineConfig({
   }
 });
 `.trim()
+
+const jsTestInlineCode = `const getStringLength = (str) => str.length;`
 
 const cssTestCode = `
 @media (min-width: 50em) {
@@ -131,6 +134,31 @@ describe('Renders syntax highlighting', { timeout: 5 * 1000 }, async () => {
 				language: 'js',
 				meta: '',
 				plugins: [pluginShiki()],
+				blockValidationFn: ({ renderedGroupAst }) => {
+					const html = toHtml(renderedGroupAst)
+
+					// sanity check on some of the expected highlighted contents - see actual snapshot for full manual verification
+					validateHighlighting(html, themes[0], ['import', 'from', 'var'], false)
+				},
+			}),
+		})
+	})
+
+	test('Supports themes in JS inline code', async ({ task: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: jsTestInlineCode,
+				language: 'js',
+				type: 'inline',
+				plugins: [pluginShiki()],
+				blockValidationFn: ({ renderedGroupAst }) => {
+					const html = toHtml(renderedGroupAst)
+
+					// sanity check on some of the expected highlighted contents - see actual snapshot for full manual verification
+					validateHighlighting(html, themes[0], ['const', 'getStringLength', '=>'], false)
+				},
 			}),
 		})
 	})
@@ -718,3 +746,18 @@ describe('Supports a limited subset of Shiki transformers', { timeout: 5 * 1000 
 		}).rejects.toThrow()
 	})
 })
+
+function validateHighlighting(html: string, theme: ExpressiveCodeTheme, expectedContents: string[], exact: boolean) {
+	// Select the contents of all spans that do not have the default
+	// dracula theme foreground color
+	const spansWithColorAndContent = [...html.matchAll(/<span [^>]*?style="--0:([^"]*?)">(.*?)<\/span>/g)]
+	const highlightedSpans = spansWithColorAndContent.filter((match) => match[1].toLowerCase() !== theme.fg.toLowerCase())
+	const highlightedContents = highlightedSpans.map((match) => match[2])
+	if (exact) {
+		expect(highlightedContents).toEqual(expectedContents)
+	} else {
+		expectedContents.forEach((content) => {
+			expect(highlightedContents).toContain(content)
+		})
+	}
+}

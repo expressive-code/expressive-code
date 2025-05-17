@@ -20,4 +20,5 @@ export default defineEcConfig({
 	defaultProps: {
 		showLineNumbers: false,
 	},
+	inline: 'trailing-curly-colon'
 })

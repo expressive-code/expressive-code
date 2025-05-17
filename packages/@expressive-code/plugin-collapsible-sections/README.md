@@ -11,3 +11,7 @@ It allows code sections to be marked as collapsed. The lines in collapsed sectio
 ## Installation
 
 See the [installation instructions](https://expressive-code.com/plugins/collapsible-sections/#installation) for this plugin to learn how to install it on your site.
+
+## Code Block Support
+
+Does not support `inline` code blocks.

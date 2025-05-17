@@ -1,9 +1,17 @@
 import { MetaOptions } from '../helpers/meta-options'
 import { ExpressiveCodeProcessingState, validateExpressiveCodeProcessingState } from '../internal/render-block'
-import { isNumber, isString, newTypeError } from '../internal/type-checks'
+import { isNumber, isString, isValidCodeBlockType, newTypeError } from '../internal/type-checks'
 import { ExpressiveCodeLine } from './line'
 
+export type ExpressiveCodeBlockType = 'block' | 'inline'
+
 export interface ExpressiveCodeBlockOptions {
+	/**
+	 * The type of code block.
+	 *
+	 * @default `block`
+	 */
+	type?: ExpressiveCodeBlockType | undefined
 	/**
 	 * The plaintext contents of the code block.
 	 */
@@ -87,6 +95,8 @@ export interface ExpressiveCodeBlockProps {
 	 * If `false`, lines that exceed the available width will cause a horizontal scrollbar
 	 * to appear.
 	 *
+	 * @note Not supported on `inline` code blocks.
+	 *
 	 * @note This option only affects how the code block is displayed and does not change
 	 * the actual code. When copied to the clipboard, the code will still contain the
 	 * original unwrapped lines.
@@ -102,6 +112,8 @@ export interface ExpressiveCodeBlockProps {
 	 *
 	 * If `false`, wrapped parts of long lines will always start at column 1.
 	 * This can be useful to reproduce terminal output.
+	 *
+	 * @note Not supported on `inline` code blocks.
 	 *
 	 * @note This option only has an effect if `wrap` is `true`. It only affects how the
 	 * code block is displayed and does not change the actual code. When copied to the clipboard,
@@ -119,6 +131,8 @@ export interface ExpressiveCodeBlockProps {
 	 * original line. If `preserveIndent` is `false`, this value is used as the
 	 * indentation for all wrapped lines.
 	 *
+	 * @note Not supported on `inline` code blocks.
+	 *
 	 * @note This option only affects how the code block is displayed
 	 * and does not change the actual code. When copied to the clipboard,
 	 * the code will still contain the original unwrapped lines.
@@ -133,8 +147,8 @@ export interface ExpressiveCodeBlockProps {
  */
 export class ExpressiveCodeBlock {
 	constructor(options: ExpressiveCodeBlockOptions) {
-		const { code, language, meta = '', props, locale, parentDocument } = options
-		if (!isString(code) || !isString(language) || !isString(meta)) throw newTypeError('object of type ExpressiveCodeBlockOptions', options)
+		const { type = 'block', code, language, meta = '', props, locale, parentDocument } = options
+		if (!isString(code) || !isString(language) || !isString(meta) || !isValidCodeBlockType(type)) throw newTypeError('object of type ExpressiveCodeBlockOptions', options)
 		this.#lines = []
 		this.#language = language
 		this.#meta = meta
@@ -142,6 +156,7 @@ export class ExpressiveCodeBlock {
 		this.#props = props || {}
 		this.#locale = locale
 		this.#parentDocument = parentDocument
+		this.#type = type
 
 		// Split the code into lines and remove whitespace from the end of the lines
 		const lines = code.split(/\r?\n/).map((line) => line.trimEnd())
@@ -154,9 +169,9 @@ export class ExpressiveCodeBlock {
 		if (lines.length) this.insertLines(0, lines)
 
 		// Transfer core meta options to props
-		this.props.wrap = this.metaOptions.getBoolean('wrap') ?? this.props.wrap
-		this.props.preserveIndent = this.metaOptions.getBoolean('preserveIndent') ?? this.props.preserveIndent
-		this.props.hangingIndent = this.metaOptions.getInteger('hangingIndent') ?? this.props.hangingIndent
+		this.props.wrap = type === 'inline' ? false : this.metaOptions.getBoolean('wrap') ?? this.props.wrap
+		this.props.preserveIndent = type === 'inline' ? false : this.metaOptions.getBoolean('preserveIndent') ?? this.props.preserveIndent
+		this.props.hangingIndent = type === 'inline' ? 0 : this.metaOptions.getInteger('hangingIndent') ?? this.props.hangingIndent
 	}
 
 	/**
@@ -174,7 +189,14 @@ export class ExpressiveCodeBlock {
 	#locale: ExpressiveCodeBlockOptions['locale']
 	#parentDocument: ExpressiveCodeBlockOptions['parentDocument']
 	#state: ExpressiveCodeProcessingState | undefined
+	#type: ExpressiveCodeBlockType
 
+	/**
+	 * The {@link ExpressiveCodeBlockType} of the code block.
+	 */
+	get type() {
+		return this.#type
+	}
 	/**
 	 * Provides read-only access to the code block's plaintext contents.
 	 */

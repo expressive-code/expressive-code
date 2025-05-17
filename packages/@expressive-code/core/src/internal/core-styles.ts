@@ -1,7 +1,7 @@
 import { lighten, ensureColorContrastOnBackground, setAlpha } from '../helpers/color-transforms'
 import { ResolverContext } from '../common/plugin'
 import { PluginStyleSettings } from '../common/plugin-style-settings'
-import { UnresolvedStyleSettings, codeLineClass } from '../common/style-settings'
+import { UnresolvedStyleSettings, containerBlockClass, containerInlineClass, codeBlockLineClass, inlineCodeLineClass } from '../common/style-settings'
 
 export interface CoreStyleSettings {
 	/**
@@ -232,12 +232,14 @@ export function getCoreBaseStyles({
 	const ifThemedSelectionColors = (css: string) => (useThemedSelectionColors ? css : '')
 
 	return `
-		font-family: ${cssVar('uiFontFamily')};
-		font-size: ${cssVar('uiFontSize')};
-		font-weight: ${cssVar('uiFontWeight')};
-		line-height: ${cssVar('uiLineHeight')};
-		text-size-adjust: none;
-		-webkit-text-size-adjust: none;
+		&.${containerBlockClass}, .${containerBlockClass} {
+			font-family: ${cssVar('uiFontFamily')};
+			font-size: ${cssVar('uiFontSize')};
+			font-weight: ${cssVar('uiFontWeight')};
+			line-height: ${cssVar('uiLineHeight')};
+			text-size-adjust: none;
+			-webkit-text-size-adjust: none;
+		}
 
 		*:not(:is(svg, svg *)) {
 			${useStyleReset ? 'all: revert;' : ''}
@@ -248,6 +250,13 @@ export function getCoreBaseStyles({
 			background: ${cssVar('uiSelectionBackground')};
 			color: ${cssVar('uiSelectionForeground')};
 		}`)}
+
+		&.${containerInlineClass}, .${containerInlineClass} {
+			& > span > code {
+				background: ${cssVar('codeBackground')};
+				color: ${cssVar('codeForeground')};
+			}			
+		}
 
 		pre {
 			display: flex;
@@ -285,7 +294,7 @@ export function getCoreBaseStyles({
 			overflow-x: auto;
 
 			/* Enable word wrapping on demand */
-			&.wrap .${codeLineClass} .code {
+			&.wrap .${codeBlockLineClass} .code {
 				white-space: pre-wrap;
 				overflow-wrap: break-word;
 				min-width: min(20ch, var(--ecMaxLine, 20ch));
@@ -315,7 +324,7 @@ export function getCoreBaseStyles({
 		}
 
 		/* Code lines */
-		.${codeLineClass} {
+		.${codeBlockLineClass} {
 			/* RTL support: Code is always LTR */
 			direction: ltr;
 			unicode-bidi: isolate;
@@ -385,7 +394,7 @@ export function getCoreBaseStyles({
 export function getCoreThemeStyles(styleVariantIndex: number) {
 	return `
 		/* Theme-dependent styles for InlineStyleAnnotation */
-		.${codeLineClass} :where(span[style^='--']:not([class])) {
+		:is(.${codeBlockLineClass}, .${inlineCodeLineClass}) :where(span[style^='--']:not([class])) {
 			color: var(--${styleVariantIndex}, inherit);
 			background-color: var(--${styleVariantIndex}bg, transparent);
 			font-style: var(--${styleVariantIndex}fs, inherit);
