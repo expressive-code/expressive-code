@@ -8,8 +8,10 @@ function updateTabIndex(el: Element) {
 	const needsTabIndex = el.scrollWidth > el.clientWidth
 	if (needsTabIndex && !hasTabIndex) {
 		el.setAttribute('tabindex', '0')
+		el.setAttribute('role', 'region')
 	} else if (!needsTabIndex && hasTabIndex) {
 		el.removeAttribute('tabindex')
+		el.removeAttribute('role')
 	}
 }
 
