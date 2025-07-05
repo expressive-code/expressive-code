@@ -24,6 +24,10 @@ export function isHastElement(node: Node) {
 	return isHastNode(node) && node.type === 'element'
 }
 
+export function isValidCodeBlockType(type: string) {
+	return type === 'inline' || type === 'block'
+}
+
 export function newTypeError(expectedTypeDescription: string, actualValue: unknown, fieldName?: string) {
 	return new Error(`${fieldName ? `Invalid ${fieldName} value: ` : ''}Expected a valid ${expectedTypeDescription}, but got ${JSON.stringify(actualValue)}`)
 }

@@ -2,7 +2,7 @@ import type { Element, Parents } from '../hast'
 import { h } from '../hast'
 import { ExpressiveCodeLine } from '../common/line'
 import { AnnotationRenderPhase, AnnotationRenderPhaseOrder, ExpressiveCodeAnnotation } from '../common/annotation'
-import { codeLineClass } from '../common/style-settings'
+import { inlineCodeLineClass, codeBlockLineClass } from '../common/style-settings'
 import { ExpressiveCodeHookContextBase, RenderEmptyLineFn } from '../common/plugin-hooks'
 import { GutterElement } from '../common/gutter'
 import { isHastElement, newTypeError } from './type-checks'
@@ -57,6 +57,7 @@ export function splitLineAtAnnotationBoundaries(line: ExpressiveCodeLine) {
 }
 
 export function renderLineToAst({
+	codeBlock,
 	line,
 	lineIndex,
 	gutterElements,
@@ -140,32 +141,39 @@ export function renderLineToAst({
 		})
 	})
 
-	// Sort gutter elements by their render phase and render them
-	const sortedGutterElements = [...gutterElements].sort((a, b) => renderPhaseSortFn(a.gutterElement, b.gutterElement))
-	const renderedGutterElements = sortedGutterElements.map(({ pluginName, gutterElement }) => {
-		try {
-			const node = gutterElement.renderLine({ ...restContext, line, lineIndex })
-			if (!isHastElement(node)) throw new Error(`renderLine function did not return a valid HAST Element node: ${JSON.stringify(node)}`)
-			return node
-		} catch (error) {
-			/* c8 ignore next */
-			const msg = error instanceof Error ? error.message : (error as string)
-			throw new Error(`Plugin "${pluginName}" failed to render a gutter element. Error message: ${msg}`, { cause: error })
-		}
-	})
+	const { type } = codeBlock
+	const tagName = type === 'inline' ? 'span' : 'div'
+	const lineClass = type === 'inline' ? inlineCodeLineClass : codeBlockLineClass
+	const codeClass = type === 'inline' ? 'code-inline' : 'code'
 
 	// Create a line node for all rendered parts
-	let lineNode = h(`div.${codeLineClass}`)
+	let lineNode = h(`${tagName}.${lineClass}`)
 
-	// If we have any gutter elements, wrap a gutter container around the elements
-	// and add it to the line's nodes
-	if (renderedGutterElements.length) {
-		lineNode.children.push(h('div.gutter', renderedGutterElements))
+	if (type !== 'inline') {
+		// Sort gutter elements by their render phase and render them
+		const sortedGutterElements = [...gutterElements].sort((a, b) => renderPhaseSortFn(a.gutterElement, b.gutterElement))
+		const renderedGutterElements = sortedGutterElements.map(({ pluginName, gutterElement }) => {
+			try {
+				const node = gutterElement.renderLine({ ...restContext, line, lineIndex, codeBlock })
+				if (!isHastElement(node)) throw new Error(`renderLine function did not return a valid HAST Element node: ${JSON.stringify(node)}`)
+				return node
+			} catch (error) {
+				/* c8 ignore next */
+				const msg = error instanceof Error ? error.message : (error as string)
+				throw new Error(`Plugin "${pluginName}" failed to render a gutter element. Error message: ${msg}`, { cause: error })
+			}
+		})
+
+		// If we have any gutter elements, wrap a gutter container around the elements
+		// and add it to the line's nodes
+		if (renderedGutterElements.length) {
+			lineNode.children.push(h('div.gutter', renderedGutterElements))
+		}
 	}
 
 	// Now also wrap the code in a container and add it to the line's nodes
 	// (in case the line is empty, insert a line break to ensure it still gets rendered)
-	lineNode.children.push(h('div.code', partNodes.length > 0 ? partNodes : h(null, '\n')))
+	lineNode.children.push(h(`${tagName}.${codeClass}`, partNodes.length > 0 ? partNodes : h(null, '\n')))
 
 	// Render line-level annotations
 	annotations.forEach((annotation) => {
@@ -183,32 +191,38 @@ export function renderLineToAst({
 
 export function getRenderEmptyLineFn(context: ExpressiveCodeHookContextBase & { gutterElements: PluginGutterElement[] }): RenderEmptyLineFn {
 	return () => {
-		const { gutterElements } = context
-
-		// Sort gutter elements by their render phase and render placeholders for them
-		const sortedGutterElements = [...gutterElements].sort((a, b) => renderPhaseSortFn(a.gutterElement, b.gutterElement))
-		const renderedGutterElements = sortedGutterElements.map(({ pluginName, gutterElement }) => {
-			try {
-				const node = gutterElement.renderPlaceholder()
-				if (!isHastElement(node)) throw new Error(`renderPlaceholder function did not return a valid HAST Element node: ${JSON.stringify(node)}`)
-				return node
-			} catch (error) {
-				/* c8 ignore next */
-				const msg = error instanceof Error ? error.message : (error as string)
-				throw new Error(`Plugin "${pluginName}" failed to render a gutter element placeholder. Error message: ${msg}`, { cause: error })
-			}
-		})
+		const { gutterElements, codeBlock } = context
+		const tagName = codeBlock.type === 'inline' ? 'span' : 'div'
+		const lineClass = codeBlock.type === 'inline' ? inlineCodeLineClass : codeBlockLineClass
+		const codeClass = codeBlock.type === 'inline' ? 'code-inline' : 'code'
 
 		// Create a line node for all rendered parts
-		const lineAst = h(`div.${codeLineClass}`)
+		const lineAst = h(`${tagName}.${lineClass}`)
+		let gutterWrapper: Element | undefined
 
-		// If we have any gutter elements, wrap a gutter container around the elements
-		// and add it to the line's nodes
-		const gutterWrapper = renderedGutterElements.length ? h('div.gutter', renderedGutterElements) : undefined
-		if (gutterWrapper) lineAst.children.push(gutterWrapper)
+		if (codeBlock.type !== 'inline') {
+			// Sort gutter elements by their render phase and render placeholders for them
+			const sortedGutterElements = [...gutterElements].sort((a, b) => renderPhaseSortFn(a.gutterElement, b.gutterElement))
+			const renderedGutterElements = sortedGutterElements.map(({ pluginName, gutterElement }) => {
+				try {
+					const node = gutterElement.renderPlaceholder()
+					if (!isHastElement(node)) throw new Error(`renderPlaceholder function did not return a valid HAST Element node: ${JSON.stringify(node)}`)
+					return node
+				} catch (error) {
+					/* c8 ignore next */
+					const msg = error instanceof Error ? error.message : (error as string)
+					throw new Error(`Plugin "${pluginName}" failed to render a gutter element placeholder. Error message: ${msg}`, { cause: error })
+				}
+			})
+
+			// If we have any gutter elements, wrap a gutter container around the elements
+			// and add it to the line's nodes
+			gutterWrapper = renderedGutterElements.length ? h(`div.gutter`, renderedGutterElements) : undefined
+			if (gutterWrapper) lineAst.children.push(gutterWrapper)
+		}
 
 		// Now also wrap the code in a container and add it to the line's nodes
-		const codeWrapper = h('div.code')
+		const codeWrapper = h(`${tagName}.${codeClass}`)
 		lineAst.children.push(codeWrapper)
 
 		return {

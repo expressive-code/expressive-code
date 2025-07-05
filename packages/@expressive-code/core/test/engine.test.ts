@@ -4,14 +4,25 @@ import githubLightRaw from 'shiki/themes/github-light.mjs'
 import draculaRaw from 'shiki/themes/dracula.mjs'
 import solarizedLightRaw from 'shiki/themes/solarized-light.mjs'
 import type { ThemeRegistration } from 'shiki'
-import { WrapperAnnotation, getHookTestResult, getMultiPluginTestResult, lineCodeHtml, nonArrayValues, nonObjectValues, toSanitizedHtml, defaultBlockOptions } from './utils'
+import {
+	WrapperAnnotation,
+	getHookTestResult,
+	getMultiPluginTestResult,
+	lineCodeHtml,
+	nonArrayValues,
+	nonObjectValues,
+	toSanitizedHtml,
+	defaultBlockOptions,
+	defaultInlineCodeOptions,
+	inlineCodeHtml,
+} from './utils'
 import { ExpressiveCodeEngine, ExpressiveCodeEngineConfig } from '../src/common/engine'
 import { ExpressiveCodeBlock } from '../src/common/block'
 import { StyleVariant } from '../src/common/style-variants'
 import { findDeclsBySelectorAndProperty, findDeclsByStyleSetting, parseCss, getCoreJsModules } from '../../../../internal/test-utils'
 import { ExpressiveCodeTheme } from '../src/common/theme'
 import { groupWrapperClassName } from '../src/internal/css'
-import { codeLineClass } from '../src/common/style-settings'
+import { codeBlockLineClass, containerBlockClass, containerInlineClass, containerMixedClass, inlineCodeLineClass } from '../src/common/style-settings'
 import { escapeRegExp } from '../src/internal/escaping'
 
 const githubDark = githubDarkRaw as Required<ThemeRegistration>
@@ -61,7 +72,9 @@ describe('ExpressiveCodeEngine', () => {
 			})
 			test('Accepts multiple ExpressiveCodeBlock instances', async () => {
 				const engine = new ExpressiveCodeEngine({ plugins: [] })
-				const codeBlocks = ['test1', 'test2', 'test3'].map((code) => new ExpressiveCodeBlock({ code, language: 'md', meta: '' }))
+				const codeBlocks = ['test1', 'test2', 'test3'].map(
+					(code, idx) => new ExpressiveCodeBlock({ code, language: 'md', meta: '', ...(idx === 0 ? {} : idx === 1 ? { type: 'inline' } : { type: 'block' }) })
+				)
 				const result = await engine.render(codeBlocks)
 				expect(result.renderedGroupContents).toHaveLength(codeBlocks.length)
 				codeBlocks.forEach((codeBlock, i) => {
@@ -70,7 +83,12 @@ describe('ExpressiveCodeEngine', () => {
 			})
 			test('Accepts multiple data objects and creates ExpressiveCodeBlock instances from them', async () => {
 				const engine = new ExpressiveCodeEngine({ plugins: [] })
-				const dataObjects = ['test1', 'test2', 'test3'].map((code) => ({ code, language: 'md', meta: '' }))
+				const dataObjects = ['test1', 'test2', 'test3'].map((code, idx) => ({
+					code,
+					language: 'md',
+					meta: '',
+					...((idx === 0 ? {} : idx === 1 ? { type: 'inline' } : { type: 'block' }) as Pick<ExpressiveCodeBlock, 'type'>),
+				}))
 				const result = await engine.render(dataObjects)
 				expect(result.renderedGroupContents).toHaveLength(dataObjects.length)
 				dataObjects.forEach((dataObject, i) => {
@@ -83,6 +101,32 @@ describe('ExpressiveCodeEngine', () => {
 				const { renderedBlockAst } = await getMultiPluginTestResult({ plugins: [] })
 				const html = toSanitizedHtml(renderedBlockAst)
 				expect(html).toEqual(`<pre><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`)
+			})
+			test('Plain inline code', async () => {
+				const { renderedBlockAst } = await getMultiPluginTestResult({ plugins: [], input: [defaultInlineCodeOptions] })
+				const html = toSanitizedHtml(renderedBlockAst)
+				expect(html).toEqual(`<span><code><span>${inlineCodeHtml}</span></code></span>`)
+			})
+			test('multiple code blocks', async () => {
+				const { renderedGroupAst } = await getMultiPluginTestResult({ plugins: [], input: [defaultBlockOptions, defaultBlockOptions] })
+				const html = toSanitizedHtml(renderedGroupAst, { includeContainerClasses: true })
+				expect(html).toEqual(
+					`<div class="${containerBlockClass}"><pre><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre><pre><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre></div>`
+				)
+			})
+			test('multiple inline code', async () => {
+				const { renderedGroupAst } = await getMultiPluginTestResult({ plugins: [], input: [defaultInlineCodeOptions, defaultInlineCodeOptions] })
+				const html = toSanitizedHtml(renderedGroupAst, { includeContainerClasses: true })
+				expect(html).toEqual(
+					`<span class="${containerInlineClass}"><span><code><span>${inlineCodeHtml}</span></code></span><span><code><span>${inlineCodeHtml}</span></code></span></span>`
+				)
+			})
+			test('code block and inline code', async () => {
+				const { renderedGroupAst } = await getMultiPluginTestResult({ plugins: [], input: [defaultBlockOptions, defaultInlineCodeOptions] })
+				const html = toSanitizedHtml(renderedGroupAst, { includeContainerClasses: true })
+				expect(html).toEqual(
+					`<div class="${containerMixedClass}"><div class="${containerBlockClass}"><pre><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre></div><span class="${containerInlineClass}"><span><code><span>${inlineCodeHtml}</span></code></span></span></div>`
+				)
 			})
 			test('Code block with inline annotation', async () => {
 				const searchTerm = 'two '
@@ -104,16 +148,26 @@ describe('ExpressiveCodeEngine', () => {
 				expect(html).toEqual(`<pre><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1].replace('two ', '<del>two </del>')}</div></code></pre>`)
 			})
 		})
-		describe('<pre> element has a `data-language` property', () => {
-			test('Language "md"', async () => {
+		describe('code parent element has `data-language` and `data-ec-type` properties', () => {
+			test('Language "md" on code block', async () => {
 				const { renderedBlockAst } = await getMultiPluginTestResult({ plugins: [], input: [{ ...defaultBlockOptions }] })
 				const html = toSanitizedHtml(renderedBlockAst, { extraAttributes: ['data*'] })
-				expect(html).toEqual(`<pre data-language="md"><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`)
+				expect(html).toEqual(`<pre data-language="md" data-ec-type="block"><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`)
 			})
-			test('Missing language becomes "plaintext"', async () => {
+			test('Language "md" on inline code', async () => {
+				const { renderedBlockAst } = await getMultiPluginTestResult({ plugins: [], input: [{ ...defaultInlineCodeOptions }] })
+				const html = toSanitizedHtml(renderedBlockAst, { extraAttributes: ['data*'] })
+				expect(html).toEqual(`<span data-language="js" data-ec-type="inline"><code><span>${inlineCodeHtml}</span></code></span>`)
+			})
+			test('Missing language becomes "plaintext" on code block', async () => {
 				const { renderedBlockAst } = await getMultiPluginTestResult({ plugins: [], input: [{ ...defaultBlockOptions, language: '' }] })
 				const html = toSanitizedHtml(renderedBlockAst, { extraAttributes: ['data*'] })
-				expect(html).toEqual(`<pre data-language="plaintext"><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`)
+				expect(html).toEqual(`<pre data-language="plaintext" data-ec-type="block"><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`)
+			})
+			test('Missing language becomes "plaintext" on inline code', async () => {
+				const { renderedBlockAst } = await getMultiPluginTestResult({ plugins: [], input: [{ ...defaultInlineCodeOptions, language: '' }] })
+				const html = toSanitizedHtml(renderedBlockAst, { extraAttributes: ['data*'] })
+				expect(html).toEqual(`<span data-language="plaintext" data-ec-type="inline"><code><span>${inlineCodeHtml}</span></code></span>`)
 			})
 		})
 		describe('Allows plugin hooks to access theme colors', () => {
@@ -161,7 +215,7 @@ describe('ExpressiveCodeEngine', () => {
 		})
 	})
 	describe('getThemeStyles()', () => {
-		const inlineStyleSelector = `.${codeLineClass} :where(span[style^='--']:not([class]))`
+		const inlineStyleSelector = `:is(.${codeBlockLineClass}, .${inlineCodeLineClass}) :where(span[style^='--']:not([class]))`
 		const getBaseVarSelectors = ({ baseThemeName = 'github-dark', themeCssRoot = ':root' }: { baseThemeName?: string | undefined; themeCssRoot?: string | undefined } = {}) => [
 			`${themeCssRoot},${themeCssRoot}:not([data-theme='${baseThemeName}']) .${groupWrapperClassName}[data-theme='${baseThemeName}']`,
 		]

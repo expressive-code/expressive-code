@@ -86,4 +86,11 @@ export function getCssVarName(styleSetting: StyleSettingPath) {
 	return `--ec-${varName}`
 }
 
-export const codeLineClass = 'ec-line'
+export const codeBlockLineClass = 'ec-line'
+export const inlineCodeLineClass = 'ec-line-inline'
+/** @deprecated Use {@link codeBlockLineClass} or {@link inlineCodeLineClass} instead. */
+export const codeLineClass = codeBlockLineClass
+
+export const containerBlockClass = 'ec-container-block'
+export const containerInlineClass = 'ec-container-inline'
+export const containerMixedClass = 'ec-container-mixed'

@@ -11,3 +11,7 @@ It performs syntax highlighting of your code blocks using Shiki, which uses the 
 ## Installation (not required)
 
 No installation is required. This package is **installed by default** by our higher-level packages.
+
+## Code Block Support
+
+Supports both `block` and `inline` code blocks.

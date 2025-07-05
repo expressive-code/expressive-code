@@ -1,5 +1,5 @@
 import type { ResolverContext } from '@expressive-code/core'
-import { PluginStyleSettings, codeLineClass, createInlineSvgUrl, multiplyAlpha, onBackground, setLuminance } from '@expressive-code/core'
+import { PluginStyleSettings, codeBlockLineClass, createInlineSvgUrl, multiplyAlpha, onBackground, setLuminance } from '@expressive-code/core'
 import type { PluginFramesOptions } from '.'
 
 export interface FramesStyleSettings {
@@ -562,7 +562,7 @@ export function getFramesBaseStyles({ cssVar }: ResolverContext, options: Plugin
 	}
 	
 	/* Increase end padding of the first line for the copy button */
-	:nth-child(1 of .${codeLineClass}) .code {
+	:nth-child(1 of .${codeBlockLineClass}) .code {
 		padding-inline-end: calc(2rem + ${cssVar('codePaddingInline')});
 	}`
 
