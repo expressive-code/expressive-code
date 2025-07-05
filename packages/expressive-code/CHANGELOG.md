@@ -1,5 +1,16 @@
 # expressive-code
 
+## 0.41.3
+
+### Patch Changes
+
+- eb82591: Fixes WCAG 4.1.2 compliance issue by dynamically adding `role="region"` to scrollable code blocks. Thank you @ruslanpashkov!
+- Updated dependencies [eb82591]
+  - @expressive-code/core@0.41.3
+  - @expressive-code/plugin-frames@0.41.3
+  - @expressive-code/plugin-shiki@0.41.3
+  - @expressive-code/plugin-text-markers@0.41.3
+
 ## 0.41.2
 
 ### Patch Changes
