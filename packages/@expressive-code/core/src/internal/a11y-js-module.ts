@@ -1,17 +1,49 @@
+import { getStableObjectHash } from '../helpers/objects'
+
 /**
- * Updates the `tabindex` attribute of a code block's `pre` element
- * based on whether the code block is scrollable.
+ * Updates accessibility attributes of a code block's `pre` element
+ * based on whether it's horizontally scrollable.
+ *
+ * Adds keyboard focus and screen reader support when scrollable,
+ * removes them when not scrollable.
  */
-function updateTabIndex(el: Element) {
+function updateAccessibility(el: Element) {
 	if (!el) return
-	const hasTabIndex = el.getAttribute('tabindex') !== null
-	const needsTabIndex = el.scrollWidth > el.clientWidth
-	if (needsTabIndex && !hasTabIndex) {
+
+	const isFocusable = el.getAttribute('tabindex') !== null
+	const isScrollable = el.scrollWidth > el.clientWidth
+
+	if (isScrollable && !isFocusable) {
+		// Generate id for the label
+		const labelId = `ec-label-${getStableObjectHash(el.innerHTML)}`
+
+		// Create a screen reader only label
+		const label = document.createElement('span')
+		label.id = labelId
+		label.className = 'sr-only'
+		label.textContent = 'Horizontally scrollable code'
+		el.appendChild(label)
+
+		// Add label and accessibility attributes
 		el.setAttribute('tabindex', '0')
-		el.setAttribute('role', 'region')
-	} else if (!needsTabIndex && hasTabIndex) {
+		el.setAttribute('role', 'group')
+		el.setAttribute('aria-labelledby', labelId)
+	} else if (!isScrollable && isFocusable) {
+		// Get the label id before removing accessibility attributes
+		const labelId = el.getAttribute('aria-labelledby')
+
+		// Remove accessibility attributes
 		el.removeAttribute('tabindex')
 		el.removeAttribute('role')
+		el.removeAttribute('aria-labelledby')
+
+		// Remove the label element
+		if (labelId) {
+			const existingLabel = el.querySelector(`#${labelId}`)
+			if (existingLabel) {
+				existingLabel.remove()
+			}
+		}
 	}
 }
 
@@ -49,7 +81,7 @@ function debouncedResizeObserver(elementResizedFn: (el: Element) => void) {
 
 /**
  * Searches a node for `pre` elements inside an Expressive Code wrapper,
- * calls `updateTabIndex` on them immediately and observes future resizes.
+ * calls `updateAccessibility` on them immediately and observes future resizes.
  */
 function initCodeBlocks(container: ParentNode | Document, resizeObserver: ResizeObserver) {
 	container.querySelectorAll?.('.expressive-code pre > code').forEach((code) => {
@@ -59,8 +91,8 @@ function initCodeBlocks(container: ParentNode | Document, resizeObserver: Resize
 	})
 }
 
-// Register a debounced resize observer that updates the `tabindex` attribute
-const resizeObserver = debouncedResizeObserver(updateTabIndex)
+// Register a debounced resize observer that updates accessibility attributes
+const resizeObserver = debouncedResizeObserver(updateAccessibility)
 
 // Initialize all code blocks that exist right now
 initCodeBlocks(document, resizeObserver)
