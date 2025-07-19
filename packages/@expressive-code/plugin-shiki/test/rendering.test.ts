@@ -3,7 +3,9 @@ import { getInlineStyles, selectAll, toHtml, toText } from '@expressive-code/cor
 import { renderAndOutputHtmlSnapshot, buildThemeFixtures, loadTestThemes, loadBundledShikiTheme } from '@internal/test-utils'
 import type { CodeToTokensOptions, ShikiTransformer, ShikiTransformerContextSource, ThemedToken } from 'shiki'
 import { pluginShiki } from '../src'
+import { pluginShikiBundle, pluginShikiWithHighlighter } from '../src/core'
 import { regexp } from './assets/regexp.tmLanguage.js'
+import { createHighlighter, createJavaScriptRegexEngine } from 'shiki'
 
 const jsTestCode = `
 import { defineConfig } from 'astro/config';
@@ -131,6 +133,47 @@ describe('Renders syntax highlighting', { timeout: 5 * 1000 }, async () => {
 				language: 'js',
 				meta: '',
 				plugins: [pluginShiki()],
+			}),
+		})
+	})
+
+	test('Supports themes in JS code with shiki bundle', async ({ task: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: jsTestCode,
+				language: 'js',
+				meta: '',
+				plugins: [
+					pluginShikiBundle({
+						langAlias: { js: 'javascript' },
+						engine: createJavaScriptRegexEngine,
+						bundledLangs: {
+							javascript: import('shiki/langs/javascript.mjs'),
+						},
+						bundledThemes: {
+							// themes are loaded via test utils and passed directly in so no need to support any themes within the bundle
+						},
+					}),
+				],
+			}),
+		})
+	})
+
+	test('Supports themes in JS code with shiki highlighter', async ({ task: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: jsTestCode,
+				language: 'js',
+				meta: '',
+				plugins: [
+					pluginShikiWithHighlighter({
+						highlighter: () => createHighlighter({ themes: [], langs: [] }), // this is shiki full highlighter
+					}),
+				],
 			}),
 		})
 	})
@@ -268,6 +311,100 @@ describe('Language handling', { timeout: 5 * 1000 }, async () => {
 		expect(warnings.length).toBe(1)
 		expect(warnings[0]).toContain('unknown-test-language')
 	})
+	test('Falls back to plaintext and logs a warning for unknown languages with shiki bundle', async ({ task: { name: testName } }) => {
+		let colorAssertionExecuted = false
+		const warnings: string[] = []
+
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: [
+				{
+					fixtureName: '',
+					themes,
+					code: astroTestCode,
+					language: 'unknown-test-language',
+					meta: '',
+					plugins: [
+						pluginShikiBundle({
+							engine: createJavaScriptRegexEngine,
+							bundledLangs: {},
+							bundledThemes: {},
+						}),
+					],
+					engineOptions: {
+						logger: {
+							warn: (message) => warnings.push(message),
+						},
+					},
+					blockValidationFn: ({ renderedGroupAst }) => {
+						const html = toHtml(renderedGroupAst)
+
+						// Select all inline colors and expect them to match
+						// the default dracula theme foreground color
+						const colors = [...html.matchAll(/<span [^>]*?style="--0:([^"]*?)">/g)].map((match) => match[1])
+						const colorsNotMatchingDraculaFg = colors.filter((color) => color !== themes[0].fg)
+						expect(colors.length).toBeGreaterThan(0)
+						expect(colorsNotMatchingDraculaFg.length).toBe(0)
+
+						colorAssertionExecuted = true
+					},
+				},
+			],
+		})
+
+		expect(colorAssertionExecuted).toBe(true)
+
+		// Ensure that the logger was called with a warning
+		expect(warnings.length).toBe(1)
+		expect(warnings[0]).toContain('unknown-test-language')
+	})
+	test('Falls back to plaintext and logs a warning for unknown languages with shiki highlighter', async ({ task: { name: testName } }) => {
+		let colorAssertionExecuted = false
+		const warnings: string[] = []
+
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: [
+				{
+					fixtureName: '',
+					themes,
+					code: astroTestCode,
+					language: 'unknown-test-language',
+					meta: '',
+					plugins: [
+						pluginShikiWithHighlighter({
+							highlighter: () => createHighlighter({ themes: [], langs: [] }), // this is shiki full highlighter
+						}),
+					],
+					engineOptions: {
+						logger: {
+							warn: (message) => warnings.push(message),
+						},
+					},
+					blockValidationFn: ({ renderedGroupAst }) => {
+						const html = toHtml(renderedGroupAst)
+
+						// Select all inline colors and expect them to match
+						// the default dracula theme foreground color
+						const colors = [...html.matchAll(/<span [^>]*?style="--0:([^"]*?)">/g)].map((match) => match[1])
+						const colorsNotMatchingDraculaFg = colors.filter((color) => color !== themes[0].fg)
+						expect(colors.length).toBeGreaterThan(0)
+						expect(colorsNotMatchingDraculaFg.length).toBe(0)
+
+						colorAssertionExecuted = true
+					},
+				},
+			],
+		})
+
+		expect(colorAssertionExecuted).toBe(true)
+
+		// Ensure that the logger was called with a warning
+		expect(warnings.length).toBe(1)
+		expect(warnings[0]).toContain('unknown-test-language')
+	})
 	test('Allows adding custom languages', async ({ task: { name: testName } }) => {
 		let colorAssertionExecuted = false
 		const warnings: string[] = []
@@ -363,6 +500,127 @@ describe('Language handling', { timeout: 5 * 1000 }, async () => {
 							"'",
 							'somewhere',
 							"'",
+						])
+
+						colorAssertionExecuted = true
+					},
+				},
+			],
+		})
+
+		expect(colorAssertionExecuted).toBe(true)
+
+		// Ensure that no warnings were logged
+		expect(warnings.join('\n')).toEqual('')
+	})
+	test('Supports alias after adding custom languages', async ({ task: { name: testName } }) => {
+		let colorAssertionExecuted = false
+		const warnings: string[] = []
+
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: [
+				{
+					fixtureName: '',
+					themes,
+					code: astroTestCode,
+					language: 'alias-for-added-test-language',
+					meta: '',
+					plugins: [
+						pluginShiki({
+							langs: [addedTestLanguage],
+							langAlias: {
+								'alias-for-added-test-language': 'added-test-language',
+							},
+						}),
+					],
+					engineOptions: {
+						logger: {
+							warn: (message) => warnings.push(message),
+						},
+					},
+					blockValidationFn: ({ renderedGroupAst }) => {
+						const html = toHtml(renderedGroupAst)
+
+						// Select the contents of all spans that do not have the default
+						// dracula theme foreground color
+						const spansWithColorAndContent = [...html.matchAll(/<span [^>]*?style="--0:([^"]*?)">(.*?)<\/span>/g)]
+						const highlightedSpans = spansWithColorAndContent.filter((match) => match[1].toLowerCase() !== themes[0].fg.toLowerCase())
+						const highlightedContents = highlightedSpans.map((match) => match[2])
+						expect(highlightedContents).toEqual([
+							// Keywords
+							'import',
+							'import',
+							'import',
+							'const',
+							// Strings
+							'"content-wrapper"',
+							'"test"',
+							'"large"',
+						])
+
+						colorAssertionExecuted = true
+					},
+				},
+			],
+		})
+
+		expect(colorAssertionExecuted).toBe(true)
+
+		// Ensure that no warnings were logged
+		expect(warnings.join('\n')).toEqual('')
+	})
+	test('Supports alias after adding custom languages with shiki bundle', async ({ task: { name: testName } }) => {
+		let colorAssertionExecuted = false
+		const warnings: string[] = []
+
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: [
+				{
+					fixtureName: '',
+					themes,
+					code: astroTestCode,
+					language: 'alias-for-added-test-language',
+					meta: '',
+					plugins: [
+						pluginShikiBundle<string, string>({
+							langs: [addedTestLanguage],
+							langAlias: {
+								'alias-for-added-test-language': 'added-test-language',
+							},
+							engine: createJavaScriptRegexEngine,
+							bundledLangs: {},
+							bundledThemes: {
+								// themes are loaded via test utils and passed directly in so no need to support any themes within the bundle
+							},
+						}),
+					],
+					engineOptions: {
+						logger: {
+							warn: (message) => warnings.push(message),
+						},
+					},
+					blockValidationFn: ({ renderedGroupAst }) => {
+						const html = toHtml(renderedGroupAst)
+
+						// Select the contents of all spans that do not have the default
+						// dracula theme foreground color
+						const spansWithColorAndContent = [...html.matchAll(/<span [^>]*?style="--0:([^"]*?)">(.*?)<\/span>/g)]
+						const highlightedSpans = spansWithColorAndContent.filter((match) => match[1].toLowerCase() !== themes[0].fg.toLowerCase())
+						const highlightedContents = highlightedSpans.map((match) => match[2])
+						expect(highlightedContents).toEqual([
+							// Keywords
+							'import',
+							'import',
+							'import',
+							'const',
+							// Strings
+							'"content-wrapper"',
+							'"test"',
+							'"large"',
 						])
 
 						colorAssertionExecuted = true

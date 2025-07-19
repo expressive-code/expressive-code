@@ -1,4 +1,4 @@
-import type { LanguageRegistration as ShikiLanguageRegistration, MaybeGetter, MaybeArray } from 'shiki'
+import type { LanguageRegistration as ShikiLanguageRegistration, MaybeGetter, MaybeArray, StringLiteralUnion } from 'shiki'
 
 // Extract or rebuild non-exported types from Shiki
 type IShikiRawRepository = ShikiLanguageRegistration['repository']
@@ -37,6 +37,8 @@ export interface LanguageRegistration extends Omit<ShikiLanguageRegistration, 'r
 }
 
 export type LanguageInput = MaybeGetter<MaybeArray<LanguageRegistration>>
+
+export type LanguageAlias<L extends string> = Record<string, StringLiteralUnion<L>>
 
 export { ShikiLanguageRegistration }
 

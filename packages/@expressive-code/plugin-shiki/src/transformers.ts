@@ -1,9 +1,11 @@
 import { ExpressiveCodeBlock } from '@expressive-code/core'
-import type { PluginShikiOptions } from '.'
+import type { PluginShikiCoreOptions } from './core'
 import type { CodeToHastOptions, ShikiTransformer, ShikiTransformerContextSource, ThemedToken } from 'shiki'
 
+type TransformerOptions = Pick<PluginShikiCoreOptions<never>, 'transformers'>
+
 export type BaseHookArgs = {
-	options: PluginShikiOptions
+	options: TransformerOptions
 	code: string
 	codeBlock: ExpressiveCodeBlock
 	codeToTokensOptions: CodeToHastOptions
@@ -12,7 +14,7 @@ export type BaseHookArgs = {
 /**
  * Throws an error if any of the configured transformers use unsupported hooks.
  */
-export function validateTransformers(options: PluginShikiOptions) {
+export function validateTransformers(options: TransformerOptions) {
 	if (!options.transformers) return
 	const unsupportedTransformerHooks: (keyof ShikiTransformer)[] = ['code', 'line', 'postprocess', 'pre', 'root', 'span']
 	for (const transformer of coerceTransformers(options.transformers)) {

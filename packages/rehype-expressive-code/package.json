@@ -27,6 +27,10 @@
     "./hast": {
       "types": "./dist/hast.d.ts",
       "default": "./dist/hast.js"
+    },
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "default": "./dist/core.js"      
     }
   },
   "types": "./dist/index.d.ts",
@@ -41,7 +45,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup ./src/index.ts ./src/hast.ts --format esm --dts --sourcemap --clean",
+    "build": "tsup ./src/index.ts ./src/hast.ts ./src/core.ts --format esm --dts --sourcemap --clean",
     "coverage": "vitest run --coverage",
     "test": "vitest run --reporter verbose",
     "test-short": "vitest run --reporter basic",
@@ -49,18 +53,25 @@
     "watch": "pnpm build --watch src"
   },
   "dependencies": {
-    "expressive-code": "workspace:^0.41.3"
+    "expressive-code": "workspace:^0.41.3",
+    "@expressive-code/plugin-frames": "workspace:^0.41.3",
+    "@expressive-code/plugin-shiki": "workspace:^0.41.3",
+    "@expressive-code/plugin-text-markers": "workspace:^0.41.3"
   },
   "devDependencies": {
     "@internal/test-utils": "workspace:^",
+    "@shikijs/langs-precompiled": "^3.3.0",
     "@types/mdast": "^3.0.11",
     "@types/unist": "^2.0.6",
     "mdast-util-mdx-jsx": "^3.1.2",
     "rehype-stringify": "^9.0.3",
     "remark-parse": "^10.0.1",
     "remark-rehype": "^10.1.0",
+    "rollup-plugin-bundle-stats": "^4.19.1",
+    "rollup-plugin-visualizer": "^5.14.0",
     "shiki": "^3.2.2",
     "unified": "^10.1.2",
-    "vfile": "^6.0.1"
+    "vfile": "^6.0.1",
+    "vite": "^6.0.7"
   }
 }

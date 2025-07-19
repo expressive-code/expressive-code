@@ -1,0 +1,190 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`integration with shiki affect on ec bundle size > rehype-ec-core - no-themes.ts 1`] = `
+{
+  "engine": [],
+  "langs": [],
+  "langs-precompiled": [],
+  "themes": [],
+}
+`;
+
+exports[`integration with shiki affect on ec bundle size > rehype-ec-core - with-themes.ts 1`] = `
+{
+  "engine": [],
+  "langs": [],
+  "langs-precompiled": [],
+  "themes": [
+    "dracula",
+  ],
+}
+`;
+
+exports[`integration with shiki affect on ec bundle size > rehype-ec-core - with-themes-dynamic.ts 1`] = `
+{
+  "engine": [],
+  "langs": [],
+  "langs-precompiled": [],
+  "themes": [
+    "dracula",
+  ],
+}
+`;
+
+exports[`integration with shiki affect on ec bundle size > rehype-ec-core-bundle - engine-all.ts 1`] = `
+{
+  "engine": [
+    "javascript:engine-compile",
+    "javascript:engine-raw",
+    "oniguruma",
+  ],
+  "langs": [
+    "javascript",
+  ],
+  "langs-precompiled": [
+    "typescript",
+  ],
+  "themes": [
+    "light-plus",
+  ],
+}
+`;
+
+exports[`integration with shiki affect on ec bundle size > rehype-ec-core-bundle - engine-javascript-compile.ts 1`] = `
+{
+  "engine": [
+    "javascript:engine-compile",
+  ],
+  "langs": [
+    "javascript",
+  ],
+  "langs-precompiled": [],
+  "themes": [
+    "light-plus",
+  ],
+}
+`;
+
+exports[`integration with shiki affect on ec bundle size > rehype-ec-core-bundle - engine-javascript-raw.ts 1`] = `
+{
+  "engine": [
+    "javascript:engine-raw",
+  ],
+  "langs": [],
+  "langs-precompiled": [
+    "javascript",
+  ],
+  "themes": [
+    "light-plus",
+  ],
+}
+`;
+
+exports[`integration with shiki affect on ec bundle size > rehype-ec-core-bundle - engine-oniguruma.ts 1`] = `
+{
+  "engine": [
+    "oniguruma",
+  ],
+  "langs": [
+    "javascript",
+  ],
+  "langs-precompiled": [],
+  "themes": [
+    "light-plus",
+  ],
+}
+`;
+
+exports[`integration with shiki affect on ec bundle size > rehype-ec-core-bundle - no-themes.ts 1`] = `
+{
+  "engine": [
+    "javascript:engine-compile",
+  ],
+  "langs": [
+    "javascript",
+  ],
+  "langs-precompiled": [],
+  "themes": [
+    "light-plus",
+  ],
+}
+`;
+
+exports[`integration with shiki affect on ec bundle size > rehype-ec-core-bundle - with-themes.ts 1`] = `
+{
+  "engine": [
+    "javascript:engine-compile",
+  ],
+  "langs": [
+    "javascript",
+  ],
+  "langs-precompiled": [],
+  "themes": [
+    "dracula",
+    "light-plus",
+  ],
+}
+`;
+
+exports[`integration with shiki affect on ec bundle size > rehype-ec-core-bundle - with-themes-dynamic.ts 1`] = `
+{
+  "engine": [
+    "javascript:engine-compile",
+  ],
+  "langs": [
+    "javascript",
+  ],
+  "langs-precompiled": [],
+  "themes": [
+    "dracula",
+    "light-plus",
+  ],
+}
+`;
+
+exports[`integration with shiki affect on ec bundle size > rehype-ec-core-highlighter - no-themes.ts 1`] = `
+{
+  "engine": [
+    "javascript:engine-compile",
+  ],
+  "langs": [
+    "javascript",
+  ],
+  "langs-precompiled": [],
+  "themes": [
+    "light-plus",
+  ],
+}
+`;
+
+exports[`integration with shiki affect on ec bundle size > rehype-ec-core-highlighter - with-themes.ts 1`] = `
+{
+  "engine": [
+    "javascript:engine-compile",
+  ],
+  "langs": [
+    "javascript",
+  ],
+  "langs-precompiled": [],
+  "themes": [
+    "dracula",
+    "light-plus",
+  ],
+}
+`;
+
+exports[`integration with shiki affect on ec bundle size > rehype-ec-core-highlighter - with-themes-dynamic.ts 1`] = `
+{
+  "engine": [
+    "javascript:engine-compile",
+  ],
+  "langs": [
+    "javascript",
+  ],
+  "langs-precompiled": [],
+  "themes": [
+    "dracula",
+    "light-plus",
+  ],
+}
+`;
