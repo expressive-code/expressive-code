@@ -13,3 +13,11 @@ When you're using markdown / MDX and want to improve the design and functionalit
 ## Installation
 
 Read the [installation instructions](https://expressive-code.com/installation/) to learn how to install Expressive Code.
+
+## Detecting code block type and language
+
+When a code block is detected by Expressive Code, the `<code>` element will be wrapped in a `<pre>` (for `block` code) or `<span>` (for `inline` code) element that will contain the following data attributes which can be helpful for conditional
+handling in downstream processing (e.g., `CSS`, `react-markdown`, etc.):
+
+- `data-language`: syntax highlighting language (e.g., `js`)
+- `data-ec-type`: `block` or `inline`

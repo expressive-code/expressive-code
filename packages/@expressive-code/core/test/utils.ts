@@ -147,10 +147,27 @@ export const defaultBlockOptions = {
 	meta: 'test',
 }
 
-export const lineCodeHtml = ['<div class="code">Example code...</div>', '<div class="code">...with two lines!</div>']
+export const defaultInlineCodeOptions: ExpressiveCodeBlockOptions = {
+	code: `console.log('hello world')`,
+	language: 'js',
+	type: 'inline',
+}
 
-export function toSanitizedHtml(ast: Parents, options?: { extraAttributes?: PropertyDefinition[] | undefined }) {
-	const html = toHtml(sanitize(ast, { attributes: { '*': ['test', 'edited', ['className', /^code$/], ...(options?.extraAttributes ?? [])], a: ['href'] }, tagNames: null }))
+export const lineCodeHtml = ['<div class="code">Example code...</div>', '<div class="code">...with two lines!</div>']
+export const inlineCodeHtml = '<span class="code-inline">console.log(\'hello world\')</span>'
+
+const sanitizedLineClassNames = /^code|code-inline$/
+const sanitizedClassNames = /^code|code-inline|ec-container-block|ec-container-inline|ec-container-mixed$/
+export function toSanitizedHtml(ast: Parents, options?: { extraAttributes?: PropertyDefinition[] | undefined; includeContainerClasses?: boolean | undefined }) {
+	const html = toHtml(
+		sanitize(ast, {
+			attributes: {
+				'*': ['test', 'edited', ['className', options?.includeContainerClasses ? sanitizedClassNames : sanitizedLineClassNames], ...(options?.extraAttributes ?? [])],
+				a: ['href'],
+			},
+			tagNames: null,
+		})
+	)
 	return html.replace(/ class=""/g, '')
 }
 

@@ -1,4 +1,4 @@
-import { PluginStyleSettings, ResolverContext, codeLineClass, createInlineSvgUrl, setAlpha } from '@expressive-code/core'
+import { PluginStyleSettings, ResolverContext, codeBlockLineClass, createInlineSvgUrl, setAlpha } from '@expressive-code/core'
 
 export const collapsibleSectionClass = 'ec-section'
 
@@ -211,7 +211,7 @@ export function getCollapsibleSectionsBaseStyles({ cssVar }: ResolverContext) {
 					margin-left: 1em;
 				}
 
-				.${codeLineClass} .code {
+				.${codeBlockLineClass} .code {
 					padding-block: ${cssVar('collapsibleSections.closedPaddingBlock')};
 					text-indent: 0;
 				}

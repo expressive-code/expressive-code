@@ -2,8 +2,15 @@ import postcss, { Root } from 'postcss'
 import postcssNested from 'postcss-nested'
 import { escapeRegExp } from './escaping'
 
-export const groupWrapperElement = 'div'
+export const groupBlockWrapperElement = 'div'
+export const groupInlineWrapperElement = 'span'
+export const groupMixedWrapperElement = 'div'
+/** @deprecated Use {@link groupBlockWrapperElement}, {@link groupInlineWrapperElement}, or {@link groupMixedWrapperElement} instead. */
+export const groupWrapperElement = groupBlockWrapperElement
 export const groupWrapperClassName = 'expressive-code'
+
+export const containerBlockElement = 'div'
+export const containerInlineElement = 'span'
 
 /**
  * A map of long terms commonly found in style setting paths to shorter alternatives that are

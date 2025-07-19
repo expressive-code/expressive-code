@@ -35,6 +35,7 @@ export async function renderBlock({
 	const runHooksContext = {
 		plugins,
 		config,
+		codeBlockType: codeBlock.type,
 	}
 	const baseContext: Omit<ExpressiveCodeHookContext, 'addStyles' | 'addGutterElement'> = {
 		codeBlock,
@@ -52,6 +53,7 @@ export async function renderBlock({
 				...baseContext,
 				addStyles: (styles: string) => blockStyles.push({ pluginName: plugin.name, styles }),
 				addGutterElement: (gutterElement: GutterElement) => {
+					if (codeBlock.type === 'inline') throw new Error('Gutter is not supported for inline code blocks')
 					if (!gutterElement || typeof gutterElement !== 'object') throw newTypeError('object', gutterElement, 'gutterElement')
 					if (typeof gutterElement.renderLine !== 'function') throw newTypeError('"function" type', typeof gutterElement.renderLine, 'gutterElement.renderLine')
 					if (gutterElement.renderPhase && AnnotationRenderPhaseOrder.indexOf(gutterElement.renderPhase) === -1)
@@ -99,7 +101,7 @@ export async function renderBlock({
 		}
 		// Add indent information if wrapping is enabled and the configuration
 		// either requests preserving indent or rendering a hanging indent
-		if (wrap && (preserveIndent || hangingIndent > 0)) {
+		if (codeBlock.type !== 'inline' && wrap && (preserveIndent || hangingIndent > 0)) {
 			const baseIndent = preserveIndent ? line.text.match(/^\s*/)?.[0].length ?? 0 : 0
 			const indent = baseIndent + hangingIndent
 			if (indent > 0) setInlineStyle(lineRenderData.lineAst, '--ecIndent', `${indent}ch`)
@@ -145,9 +147,10 @@ export async function renderBlock({
 }
 
 function buildCodeBlockAstFromRenderedLines(codeBlock: ExpressiveCodeBlock, renderedLines: Element[]) {
-	const preProperties = { dataLanguage: codeBlock.language || 'plaintext' }
-	const preElement = h('pre', preProperties, h('code', renderedLines))
-	if (codeBlock.props.wrap) {
+	const tagName = codeBlock.type === 'inline' ? 'span' : 'pre'
+	const preProperties = { dataLanguage: codeBlock.language || 'plaintext', dataEcType: codeBlock.type }
+	const preElement = h(`${tagName}`, preProperties, h('code', renderedLines))
+	if (codeBlock.type !== 'inline' && codeBlock.props.wrap) {
 		const maxLineLength = codeBlock.getLines().reduce((max, line) => Math.max(max, line.text.length), 0)
 		addClassName(preElement, 'wrap')
 		setInlineStyle(preElement, '--ecMaxLine', `${maxLineLength}ch`)

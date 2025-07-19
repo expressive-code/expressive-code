@@ -1,7 +1,7 @@
 import type { Element } from '../hast'
 import { PluginStyles } from '../internal/css'
 import { GroupContents, RenderedGroupContents } from '../internal/render-group'
-import { ExpressiveCodeBlock } from './block'
+import { ExpressiveCodeBlock, type ExpressiveCodeBlockType } from './block'
 import { ExpressiveCodeLine } from './line'
 import { ExpressiveCodePlugin, ResolverContext } from './plugin'
 import { ResolvedExpressiveCodeEngineConfig } from './engine'
@@ -48,6 +48,8 @@ export interface ExpressiveCodeHookContext extends ExpressiveCodeHookContextBase
 	 * The engine calls the {@link GutterElement.renderLine `renderLine`} function
 	 * of the gutter elements registered by all plugins for every line of the code block.
 	 * The returned elements are then added as children to the line's gutter container.
+	 *
+	 * @note Not supported on `inline` code blocks.
 	 */
 	addGutterElement: (element: GutterElement) => void
 }
@@ -304,11 +306,13 @@ export async function runHooks<HookType extends keyof ExpressiveCodePluginHooks>
 	context: {
 		plugins: readonly ExpressiveCodePlugin[]
 		config: ResolvedExpressiveCodeEngineConfig
+		codeBlockType?: ExpressiveCodeBlockType | undefined
 	},
 	runner: (hook: { hookName: HookType; hookFn: NonNullable<ExpressiveCodePluginHooks[HookType]>; plugin: ExpressiveCodePlugin }) => void | Promise<void>
 ) {
-	const { plugins, config } = context
+	const { plugins, config, codeBlockType = 'block' } = context
 	for (const plugin of plugins) {
+		if (!(plugin.supportedCodeBlockTypes || ['block']).includes(codeBlockType)) continue
 		const hookFn = plugin.hooks?.[key]
 		if (!hookFn) continue
 
