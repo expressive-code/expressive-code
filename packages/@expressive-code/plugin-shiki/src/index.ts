@@ -105,6 +105,7 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 
 	return {
 		name: 'Shiki',
+		supportedCodeBlockTypes: ['block', 'inline'],
 		hooks: {
 			performSyntaxAnalysis: async ({ codeBlock, styleVariants, config: { logger } }) => {
 				const codeLines = codeBlock.getLines()

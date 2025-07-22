@@ -8,7 +8,8 @@ import { ThemeRegistration } from 'shiki/types.mjs'
 import { toText, selectAll } from 'expressive-code/hast'
 import { fromHtml, getCoreJsModules, outputHtmlSnapshot, showAllThemesInRenderedBlockHtml } from '@internal/test-utils'
 import rehypeExpressiveCode, { ExpressiveCodeTheme, RehypeExpressiveCodeOptions, StyleSettingPath, getCssVarName } from '../src'
-import { buildSampleCodeHtmlRegExp, sampleCodeMarkdown } from './utils'
+import { buildSampleCodeHtmlInlineRegExp, buildSampleCodeHtmlRegExp, sampleCodeMarkdown } from './utils'
+import { escapeRegExp } from '../../@expressive-code/core/src/internal/escaping'
 
 const dracula = draculaRaw as Required<ThemeRegistration>
 const buildCssVarValuesRegex = (setting: StyleSettingPath) => new RegExp(`${getCssVarName(setting)}:(.*?)[;}]`, 'g')
@@ -27,7 +28,7 @@ describe('Usage inside unified/rehype', () => {
 		const processor = createMarkdownProcessor()
 		const result = await processor.process(sampleCodeMarkdown)
 		const html = result.value.toString()
-		const sampleCodeHtmlRegExp = buildSampleCodeHtmlRegExp({
+		const sampleCodeHtmlRegExp = buildSampleCodeHtmlInlineRegExp({
 			title: 'test.js',
 			codeContents: [
 				// Ensure that the Text Markers plugin works by expecting a highlighted code line
@@ -36,6 +37,32 @@ describe('Usage inside unified/rehype', () => {
 				'.*?--0:#.*?',
 				// Expect the code line to be closed
 				'</div>',
+			],
+		})
+		expect(html).toMatch(sampleCodeHtmlRegExp)
+	})
+	test('Uses default settings when created with inline code option', async () => {
+		const processor = createMarkdownProcessor({ inline: 'trailing-curly-colon' })
+		const result = await processor.process(sampleCodeMarkdown)
+		const html = result.value.toString()
+		const sampleCodeHtmlRegExp = buildSampleCodeHtmlInlineRegExp({
+			title: 'test.js',
+			codeContents: [
+				// Ensure that the Text Markers plugin works by expecting a highlighted code line
+				'<div class="ec-line highlight ins">',
+				// Expect Shiki highlighting colors inside
+				'.*?--0:#.*?',
+				// Expect the code line to be closed
+				'</div>',
+			],
+			enabled: true,
+			inlineCodeContents: [
+				// Ensure that the no plugins added any classes
+				'<span class="ec-line-inline">',
+				// Expect Shiki highlighting colors inside
+				'.*?--0:#.*?',
+				// Expect the code line to be closed
+				'</span>',
 			],
 		})
 		expect(html).toMatch(sampleCodeHtmlRegExp)
@@ -315,6 +342,41 @@ function test() {
 			const text = getCodePlaintextFromHtml(html)
 			expect(text).toContain(`\n\ttry {\n`)
 			expect(text).toContain(`\n\t\tconsole.log('It worked!')\n`)
+		})
+	})
+	describe('Detects trailing-curly-colon language tag', () => {
+		const testCases: [
+			string,
+			{
+				ignored: boolean
+				code: string
+				expected: string
+			},
+		][] = [
+			[`Unescaped`, { ignored: false, code: 'const x = 5;{:js}', expected: 'const x = 5;' }],
+			['Escaped', { ignored: true, code: 'const x = 5;\\{:js}', expected: 'const x = 5;{:js}' }],
+			['Unescaped with 1 backslash', { ignored: false, code: 'const x = 5;\\\\{:js}', expected: 'const x = 5;\\' }],
+			['Escaped with 1 backslash', { ignored: true, code: 'const x = 5;\\\\\\{:js}', expected: 'const x = 5;\\{:js}' }],
+			['Unescaped with 2 backslash', { ignored: false, code: 'const x = 5;\\\\\\\\{:js}', expected: 'const x = 5;\\\\' }],
+			['Unescaped with 4 backslash and space', { ignored: false, code: 'const x = 5;\\\\\\\\ {:js}', expected: 'const x = 5;\\\\\\\\' }],
+			['Escaped with 4 backslash and space', { ignored: true, code: 'const x = 5;\\\\\\\\ \\{:js}', expected: 'const x = 5;\\\\\\\\ {:js}' }],
+			['Unscaped with 1 backslash and space', { ignored: false, code: 'const x = 5;\\ {:js}', expected: 'const x = 5;\\' }],
+			['Escaped with 1 backslash and space', { ignored: true, code: 'const x = 5;\\ \\{:js}', expected: 'const x = 5;\\ {:js}' }],
+			['Unescaped unknown lang', { ignored: false, code: 'const x = 5;{:unknownLang}', expected: 'const x = 5;' }],
+			['Escaped unknown lang', { ignored: true, code: 'const x = 5;\\{:unknownLang}', expected: 'const x = 5;{:unknownLang}' }],
+			['No colon', { ignored: true, code: 'const x = 5;{js}', expected: 'const x = 5;{js}' }],
+			['No begin curly', { ignored: true, code: 'const x = 5;:js}', expected: 'const x = 5;:js}' }],
+			['No end curl', { ignored: true, code: 'const x = 5;:js}', expected: 'const x = 5;:js}' }],
+			['Does not end curly', { ignored: true, code: 'const x = 5;{:js', expected: 'const x = 5;{:js' }],
+			['Whitespace before curly', { ignored: false, code: 'const x = 5;      {:js}', expected: 'const x = 5;' }],
+		]
+		test.for(testCases)('%s', async ([_, { ignored, code, expected }], { expect }) => {
+			const processor = createMarkdownProcessor({ textMarkers: false, frames: false, shiki: false, inline: 'trailing-curly-colon' })
+			const result = await processor.process('`' + code + '`')
+			const html = result.value.toString()
+			const re = new RegExp([ignored ? '<code>' : '<span class="code-inline">', escapeRegExp(expected), ignored ? '</code>' : '</span>'].join('\\s*'))
+			const match = html.match(re)
+			expect(match).toBeTruthy()
 		})
 	})
 })

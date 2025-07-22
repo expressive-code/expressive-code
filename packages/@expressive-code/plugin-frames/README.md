@@ -11,3 +11,7 @@ It renders a window frame around every code block. Depending on the code's langu
 ## Installation (not required)
 
 No installation is required. This package is **installed by default** by our higher-level packages.
+
+## Code Block Support
+
+Does not support `inline` code blocks.
