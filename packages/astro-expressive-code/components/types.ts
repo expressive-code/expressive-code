@@ -1,4 +1,4 @@
-import { ExpressiveCodeBlockProps } from 'rehype-expressive-code'
+import type { ExpressiveCodeBlockProps } from 'rehype-expressive-code'
 
 // This type helper is required to support component props in MDX files
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
