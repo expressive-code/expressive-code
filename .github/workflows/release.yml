@@ -14,13 +14,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       
       - name: Setup PNPM
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
       
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 20
           cache: 'pnpm'
@@ -30,7 +30,7 @@ jobs:
       
       - name: Check for unreleased changesets
         id: has-changesets
-        uses: andstor/file-existence-action@v3
+        uses: andstor/file-existence-action@076e0072799f4942c8bc574a82233e1e4d13e9d6 # v3.0.0
         with:
           files: ".changeset/!(README).md"
       
@@ -47,7 +47,7 @@ jobs:
       - name: Create changesets PR or publish to NPM
         id: changesets
         if: steps.has-changesets.outputs.files_exists == 'true' || startsWith(github.event.head_commit.message, '[CI] Release')
-        uses: changesets/action@v1
+        uses: changesets/action@e0145edc7d9d8679003495b11f87bd8ef63c0cba # v1.5.3
         with:
           title: '[CI] Release'
           commit: '[CI] Release'
