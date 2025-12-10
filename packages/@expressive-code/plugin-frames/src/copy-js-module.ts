@@ -65,7 +65,7 @@ async function clickHandler(event: Event) {
 	if (!ok || button.parentNode?.querySelector('.feedback')) return
 
 	// Show feedback tooltip
-	const liveRegion = button.parentElement?.querySelector('[aria-live]') as HTMLDivElement
+	const liveRegion = button.parentElement!.querySelector('[aria-live]') as HTMLDivElement
 	let tooltip: HTMLDivElement | undefined = document.createElement('div')
 	tooltip.classList.add('feedback')
 	tooltip.append(dataset.copied)
