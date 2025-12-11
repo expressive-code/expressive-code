@@ -97,6 +97,18 @@ Result:
 - [9mStrikethrough[0m
 ```
 
+### Inline Syntax Highlighting
+
+To get syntax highlighting for inline code, wrap it in single backticks and ensure that it includes a language identifier that corresponds to the [inline option](/reference/configuration/#inline) specified in the configuration.
+
+```md title="example.md"
+Inline code example `console.log('Hello!'){:js}` for syntax highlighting.
+```
+
+The rendered result looks like this:
+
+Inline code example `console.log('Hello!'){:js}` for syntax highlighting.
+
 ## Supported languages
 
 Out of the box, over 100 languages are supported, including JavaScript, TypeScript, HTML, CSS, Astro, Markdown, MDX, JSON, YAML, and many more. You can find a [list of all language identifiers](https://github.com/antfu/textmate-grammars-themes/blob/main/packages/tm-grammars/README.md) on GitHub.

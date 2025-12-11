@@ -345,6 +345,14 @@ This plugin is enabled by default. Set this to `false` to disable it.
 
 In addition to the options above, the rehype integration also supports the following options:
 
+:::tip[Detecting code block type and language]
+When a code block is detected by Expressive Code, the `<code>` element will be wrapped in a `<pre>` (for `block` code) or `<span>` (for `inline` code) element that will contain the following data attributes which can be helpful for conditional
+handling in downstream processing (e.g., `CSS`, `react-markdown`, etc.):
+
+- `data-language`: syntax highlighting language (e.g., `js`)
+- `data-ec-type`: `block` or `inline`
+:::
+
 ### customCreateBlock
 
 <PropertySignature>
@@ -397,6 +405,26 @@ If the function returns `undefined`, the default locale provided in the Expressi
 
 - **file**: VFileWithOutput\<null\>\
   A `VFile` instance representing the Markdown document.
+
+### inline
+
+<PropertySignature>
+- Type: false \| `'trailing-curly-colon'` \| undefined
+- Default: `false`
+</PropertySignature>
+
+Enable inline code to be processed.
+
+Supported Language Identifier Formats:
+- `trailing-curly-colon`: Append a `\{:lang}` marker at the end of the inline code (e.g., `code\{:lang}`). The 
+   `trailing-curly-colon` can be escaped with `\` to bypass processing and any backslashes intended to be 
+   rendered just prior to the `trailing-curly-colon` should be escaped (e.g., `\\`):
+    - Enabled:
+	      - `doWork()\{:js}` -> `doWork(){:js}`
+	      - `doWork()\\\\\{:js}` -> `doWork()\\{:js}`
+    - Disabled:
+        - `doWork()\\\{:js}` -> `doWork()\{:js}`
+        - `doWork()\\\\\\\{:js}` -> `doWork()\\\{:js}`
 
 ### tabWidth
 

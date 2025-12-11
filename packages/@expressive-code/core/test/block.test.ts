@@ -9,8 +9,10 @@ describe('ExpressiveCodeBlock', () => {
 			const invalidFirstArgContents = nonStringValues.flatMap((value) => [
 				{ code: value, language: '', meta: '' },
 				{ code: '', language: value, meta: '' },
-				// Meta can be undefined, so pass another invalid value in this case
+				// Meta & Type can be undefined, so pass another invalid value in this case
 				{ code: '', language: '', meta: value !== undefined ? value : false },
+				{ code: '', language: '', meta: '', type: value !== undefined ? value : false },
+				{ code: '', language: '', meta: '', type: 'invalid' },
 			])
 			const invalidArgs = [...invalidFirstArgTypes, ...invalidFirstArgContents]
 
@@ -68,15 +70,30 @@ describe('ExpressiveCodeBlock', () => {
 	})
 
 	describe('getLines()', () => {
-		test('Returns no lines if no code was passed to constructor', () => {
+		test('Returns no lines if no code was passed to constructor for code block', () => {
 			const block = new ExpressiveCodeBlock({ code: '', language: '', meta: '' })
 			expect(block.getLines()).toHaveLength(0)
 		})
-		test('Returns the code passed to the constructor split into lines', () => {
+		test('Returns no lines if no code was passed to constructor for inline code', () => {
+			const block = new ExpressiveCodeBlock({ code: '', language: '', meta: '', type: 'inline' })
+			expect(block.getLines()).toHaveLength(0)
+		})
+		test('Returns the code passed to the constructor split into lines for code block', () => {
 			const testLines = ['This is great!', '', 'It seems to work.']
 			const lineEndings = ['\n', '\r\n']
 			lineEndings.forEach((lineEnding) => {
 				const block = new ExpressiveCodeBlock({ code: testLines.join(lineEnding), language: '', meta: '' })
+				expect(
+					block.getLines().map((line) => line.text),
+					`Failed when using line ending ${JSON.stringify(lineEnding)}`
+				).toMatchObject(testLines)
+			})
+		})
+		test('Returns the code passed to the constructor split into lines for inline code', () => {
+			const testLines = ['This is great!', '', 'It seems to work.']
+			const lineEndings = ['\n', '\r\n']
+			lineEndings.forEach((lineEnding) => {
+				const block = new ExpressiveCodeBlock({ code: testLines.join(lineEnding), language: '', meta: '', type: 'inline' })
 				expect(
 					block.getLines().map((line) => line.text),
 					`Failed when using line ending ${JSON.stringify(lineEnding)}`

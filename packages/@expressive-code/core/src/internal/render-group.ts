@@ -4,9 +4,19 @@ import { ExpressiveCodeBlock, ExpressiveCodeBlockOptions } from '../common/block
 import { ExpressiveCodePlugin, ResolverContext } from '../common/plugin'
 import { ResolvedExpressiveCodeEngineConfig } from '../common/engine'
 import { runHooks } from '../common/plugin-hooks'
-import { groupWrapperClassName, groupWrapperElement, PluginStyles, processPluginStyles } from './css'
+import {
+	containerBlockElement,
+	containerInlineElement,
+	groupBlockWrapperElement,
+	groupInlineWrapperElement,
+	groupMixedWrapperElement,
+	groupWrapperClassName,
+	PluginStyles,
+	processPluginStyles,
+} from './css'
 import { renderBlock } from './render-block'
 import { isHastElement, newTypeError } from './type-checks'
+import { containerBlockClass, containerInlineClass, containerMixedClass } from '../common/style-settings'
 
 export type RenderInput = ExpressiveCodeBlockOptions | ExpressiveCodeBlock | (ExpressiveCodeBlockOptions | ExpressiveCodeBlock)[]
 
@@ -86,7 +96,7 @@ export async function renderGroup({
 
 	// Combine rendered blocks into a group AST
 	const groupRenderData = {
-		groupAst: buildGroupAstFromRenderedBlocks(renderedGroupContents.map(({ renderedBlockAst }) => renderedBlockAst)),
+		groupAst: buildGroupAstFromRenderedBlocks(renderedGroupContents),
 	}
 
 	// Run postprocessing hooks
@@ -118,6 +128,20 @@ export async function renderGroup({
  * Creates the group AST wrapper element with a class,
  * allowing us to scope CSS styles that are added by plugins.
  */
-function buildGroupAstFromRenderedBlocks(renderedBlocks: Element[]): Element {
-	return h(`${groupWrapperElement}.${groupWrapperClassName}`, renderedBlocks)
+function buildGroupAstFromRenderedBlocks(renderedGroupContents: RenderedGroupContents): Element {
+	// if all code blocks are of the same type, the wrapper is assigned the corresponding container type class and
+	// individual code blocks are not wrapped in their own containers. This is to support backwards compatibility for
+	// prior to introducing inline code blocks. If the group contains code blocks of different types, the wrapper is assigned
+	// a 'mixed' container type and then each code block wrapped by a container with the corresponding container type class.
+	const wrapInContainer = ({ codeBlock, renderedBlockAst }: RenderedGroupContents[number]) => {
+		const containerTagName = codeBlock.type === 'inline' ? containerInlineElement : containerBlockElement
+		const containerClassName = codeBlock.type === 'inline' ? containerInlineClass : containerBlockClass
+		return h(`${containerTagName}.${containerClassName}`, renderedBlockAst)
+	}
+	const firstBlockType = renderedGroupContents.length === 0 ? 'block' : renderedGroupContents[0].codeBlock.type
+	const blockType = renderedGroupContents.every(({ codeBlock: { type } }) => type === renderedGroupContents[0].codeBlock.type) ? firstBlockType : undefined
+	const containerClassName = blockType === 'inline' ? containerInlineClass : blockType === 'block' ? containerBlockClass : containerMixedClass
+	const groupTagName = blockType === 'inline' ? groupInlineWrapperElement : blockType === 'block' ? groupBlockWrapperElement : groupMixedWrapperElement
+	const renderedBlocks = blockType ? renderedGroupContents.map(({ renderedBlockAst }) => renderedBlockAst) : renderedGroupContents.map(wrapInContainer)
+	return h(`${groupTagName}.${groupWrapperClassName}.${containerClassName}`, renderedBlocks)
 }

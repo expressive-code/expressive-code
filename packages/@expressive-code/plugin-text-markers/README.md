@@ -13,3 +13,7 @@ It also ensures accessible color contrast of the marked code, automatically twea
 ## Installation (not required)
 
 No installation is required. This package is **installed by default** by our higher-level packages.
+
+## Code Block Support
+
+Does not support `inline` code blocks.

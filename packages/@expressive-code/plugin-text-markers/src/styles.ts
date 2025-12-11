@@ -1,4 +1,4 @@
-import { PluginStyleSettings, codeLineClass, toHexColor, StyleSettingPath, ResolverContext, StyleResolverFn } from '@expressive-code/core'
+import { PluginStyleSettings, codeBlockLineClass, toHexColor, StyleSettingPath, ResolverContext, StyleResolverFn } from '@expressive-code/core'
 import { MarkerType } from './marker-types'
 
 export interface TextMarkersStyleSettings {
@@ -239,7 +239,7 @@ export const textMarkersStyleSettings = new PluginStyleSettings({
 
 export function getTextMarkersBaseStyles({ cssVar }: ResolverContext) {
 	const result = `
-		.${codeLineClass} {
+		.${codeBlockLineClass} {
 			/* Support line-level mark/ins/del */
 			&.mark {
 				--tmLineBgCol: ${cssVar('textMarkers.markBackground')};

@@ -1,3 +1,4 @@
+import { type ExpressiveCodeBlockType } from './block'
 import { ExpressiveCodePluginHooks } from './plugin-hooks'
 import { PluginStyleSettings } from './plugin-style-settings'
 import { StyleSettingPath } from './style-settings'
@@ -58,6 +59,15 @@ export interface ExpressiveCodePlugin {
 	 * rendering process. See {@link ExpressiveCodePluginHooks} for a list of available hooks.
 	 */
 	hooks?: ExpressiveCodePluginHooks | undefined
+	/**
+	 * The code block types that are supported by the plugin.
+	 *
+	 * In order for the plugins hooks to be called for a code block with a given type,
+	 * the type must be listed here.
+	 *
+	 * @default [`block`].
+	 */
+	supportedCodeBlockTypes?: ExpressiveCodeBlockType[] | undefined
 }
 
 export type BaseStylesResolverFn = (context: ResolverContext) => string | Promise<string>

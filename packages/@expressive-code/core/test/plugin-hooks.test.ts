@@ -13,7 +13,7 @@ import {
 } from './utils'
 import { ExpressiveCodePluginHookName } from '../src/common/plugin-hooks'
 import { ExpressiveCodeProcessingState } from '../src/internal/render-block'
-import { groupWrapperElement } from '../src/internal/css'
+import { groupBlockWrapperElement } from '../src/internal/css'
 
 describe('Block-level hooks are called with the correct processing state', () => {
 	const baseState: ExpressiveCodeProcessingState = {
@@ -282,12 +282,12 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 			expect(html).toEqual(
 				[
 					// Start of group wrapper
-					`<${groupWrapperElement}>`,
+					`<${groupBlockWrapperElement}>`,
 					'<figure>',
 					`<pre><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`,
 					'</figure>',
 					// End of group wrapper
-					`</${groupWrapperElement}>`,
+					`</${groupBlockWrapperElement}>`,
 				].join('')
 			)
 		})
@@ -310,7 +310,7 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 			expect(html).toEqual(
 				[
 					// Start of group wrapper
-					`<${groupWrapperElement}>`,
+					`<${groupBlockWrapperElement}>`,
 					// Wrapper added by hook around first child
 					'<figure>',
 					`<pre><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`,
@@ -320,7 +320,7 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 					'<pre><code><div><div class="code">Just one line here!</div></div></code></pre>',
 					'</figure>',
 					// End of group wrapper
-					`</${groupWrapperElement}>`,
+					`</${groupBlockWrapperElement}>`,
 				].join('')
 			)
 		})
@@ -355,11 +355,11 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 					// Wrapper added by hook
 					'<details test="1">',
 					// Start of group wrapper
-					`<${groupWrapperElement}>`,
+					`<${groupBlockWrapperElement}>`,
 					// Regular code block HTML
 					`<pre><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`,
 					// End of group wrapper
-					`</${groupWrapperElement}>`,
+					`</${groupBlockWrapperElement}>`,
 					// End of wrapper added by hook
 					'</details>',
 				].join('')
@@ -437,7 +437,7 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 					// Wrapper added by second hook
 					'<details test="2" edited="3">',
 					// Start of group wrapper
-					`<${groupWrapperElement}>`,
+					`<${groupBlockWrapperElement}>`,
 					// Figure added by first hook
 					'<figure test="1">',
 					// Regular code block HTML
@@ -445,7 +445,7 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 					// End of figure added by first hook
 					'</figure>',
 					// End of group wrapper
-					`</${groupWrapperElement}>`,
+					`</${groupBlockWrapperElement}>`,
 					// End of wrapper added by second hook
 					'</details>',
 				].join('')

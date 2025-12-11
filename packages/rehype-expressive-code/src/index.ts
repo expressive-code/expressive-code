@@ -12,7 +12,7 @@ import {
 } from 'expressive-code'
 import type { Root, Parents, Element } from 'expressive-code/hast'
 import { visit } from 'expressive-code/hast'
-import { CodeBlockInfo, createInlineAssetElement, getCodeBlockInfo } from './utils'
+import { type CodeBlockInfo, createInlineAssetElement, getCodeBlockInfo, type InlineCodeHandler } from './utils'
 
 type AnyVFile = VFile | VFileWithOutput<null>
 
@@ -46,6 +46,21 @@ export type RehypeExpressiveCodeOptions = Omit<ExpressiveCodeConfig, 'themes'> &
 	 * If you want to preserve tabs in your code blocks, set this option to 0.
 	 */
 	tabWidth?: number | undefined
+	/**
+	 * Process inline code blocks.
+	 *
+	 * - If set to `false`, disable inline code block processing
+	 * - If set to `'trailing-curly-colon'`, process with `code{:lang}`. The `trailing-curly-colon` can be escaped with `\` to
+	 *   bypass processing and any backslashes intended to be rendered just prior to the `trailing-curly-colon` should be escaped (e.g., `\\`):
+	 *     - Enabled:
+	 *         - `doWork(){:js}` -> `doWork()`
+	 *         - `doWork()\\{:js}` -> `doWork()\`
+	 *     - Disabled:
+	 *         - `doWork()\{:js}` -> `doWork(){:js}`
+	 *         - `doWork()\\\{:js}` -> `doWork()\{:js}`
+	 * @default false
+	 */
+	inline?: false | InlineCodeHandler | undefined
 	/**
 	 * This optional function provides support for multi-language sites by allowing you
 	 * to customize the locale used for a given code block.
@@ -163,7 +178,7 @@ export async function createRenderer(options: RehypeExpressiveCodeOptions = {}):
 }
 
 function rehypeExpressiveCode(options: RehypeExpressiveCodeOptions = {}) {
-	const { tabWidth = 2, getBlockLocale, customCreateRenderer, customCreateBlock } = options
+	const { tabWidth = 2, getBlockLocale, customCreateRenderer, customCreateBlock, inline } = options
 
 	let asyncRenderer: Promise<RehypeExpressiveCodeRenderer> | RehypeExpressiveCodeRenderer | undefined
 
@@ -244,7 +259,7 @@ function rehypeExpressiveCode(options: RehypeExpressiveCodeOptions = {}) {
 
 		visit(tree, 'element', (element, index, parent) => {
 			if (index === null || !parent) return
-			const codeBlockInfo = getCodeBlockInfo(element)
+			const codeBlockInfo = getCodeBlockInfo(inline, element, parent)
 			if (codeBlockInfo) nodesToProcess.push([parent, codeBlockInfo])
 		})
 
@@ -277,6 +292,7 @@ function rehypeExpressiveCode(options: RehypeExpressiveCodeOptions = {}) {
 			// Build the ExpressiveCodeBlockOptions object that we will pass either
 			// to the ExpressiveCodeBlock constructor or the customCreateBlock function
 			const input: ExpressiveCodeBlockOptions = {
+				type: code.type,
 				code: normalizedCode,
 				language: code.lang || '',
 				meta: code.meta || '',
@@ -300,7 +316,7 @@ function rehypeExpressiveCode(options: RehypeExpressiveCodeOptions = {}) {
 
 			// Render the code block and use it to replace the found `<pre>` element
 			const renderedBlock = await renderBlockToHast({ codeBlock, renderer, addedStyles, addedJsModules, useMdxJsx })
-			parent.children.splice(parent.children.indexOf(code.pre), 1, renderedBlock)
+			parent.children.splice(parent.children.indexOf(code.node), 1, renderedBlock)
 		}
 	}
 
