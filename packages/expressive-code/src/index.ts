@@ -1,16 +1,21 @@
-import { ExpressiveCodeEngine, ExpressiveCodeEngineConfig, ExpressiveCodePlugin } from '@expressive-code/core'
+import type { ExpressiveCodePlugin } from '@expressive-code/core'
+import { type ExpressiveCodeCoreConfig, ExpressiveCodeCore } from './core'
 import type { PluginFramesOptions } from '@expressive-code/plugin-frames'
 import { pluginFrames } from '@expressive-code/plugin-frames'
 import type { PluginShikiOptions } from '@expressive-code/plugin-shiki'
 import { pluginShiki } from '@expressive-code/plugin-shiki'
 import { pluginTextMarkers } from '@expressive-code/plugin-text-markers'
 
+// NOTE - tsup code splitting is disabled to avoid re-exports being dropped
+// see https://github.com/evanw/esbuild/issues/1737 & https://github.com/evanw/esbuild/issues/1521
+// TODO: Consider a different bundler in order to support code-splitting to reduce /dist size (e.g., unbuild)
+export * from './common'
 export * from '@expressive-code/core'
 export * from '@expressive-code/plugin-frames'
 export * from '@expressive-code/plugin-shiki'
 export * from '@expressive-code/plugin-text-markers'
 
-export interface ExpressiveCodeConfig extends ExpressiveCodeEngineConfig {
+export interface ExpressiveCodeConfig extends ExpressiveCodeCoreConfig {
 	/**
 	 * The Shiki plugin adds syntax highlighting to code blocks.
 	 *
@@ -35,7 +40,7 @@ export interface ExpressiveCodeConfig extends ExpressiveCodeEngineConfig {
 	frames?: PluginFramesOptions | boolean | undefined
 }
 
-export class ExpressiveCode extends ExpressiveCodeEngine {
+export class ExpressiveCode extends ExpressiveCodeCore {
 	constructor({ shiki, textMarkers, frames, ...baseConfig }: ExpressiveCodeConfig = {}) {
 		// Collect all default plugins with their configuration,
 		// but skip those that were disabled or already added to plugins
