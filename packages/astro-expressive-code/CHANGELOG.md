@@ -1,5 +1,12 @@
 # astro-expressive-code
 
+## 0.41.4
+
+### Patch Changes
+
+- 1c8807c: Fixes an import in component type definitions
+  - rehype-expressive-code@0.41.4
+
 ## 0.41.3
 
 ### Patch Changes
