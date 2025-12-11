@@ -1,5 +1,12 @@
 # @expressive-code/plugin-frames
 
+## 0.41.4
+
+### Patch Changes
+
+- 5430313: Improves accessibility of the code copy button by announcing the “Copied” feedback on click to screen readers
+  - @expressive-code/core@0.41.4
+
 ## 0.41.3
 
 ### Patch Changes
