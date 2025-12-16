@@ -1,5 +1,12 @@
 # @expressive-code/plugin-frames
 
+## 0.41.5
+
+### Patch Changes
+
+- 03bd507: Adds `fish` to the terminal languages group. Thank you @kj!
+  - @expressive-code/core@0.41.5
+
 ## 0.41.4
 
 ### Patch Changes
