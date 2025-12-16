@@ -4,8 +4,7 @@ import { join } from 'path'
 import { execa } from 'execa'
 import type { AstroUserConfig } from 'astro/config'
 import { getInlineStyles, toText, selectAll } from 'rehype-expressive-code/hast'
-import { fromHtml } from '@internal/test-utils'
-import { buildSampleCodeHtmlRegExp } from '../../rehype-expressive-code/test/utils'
+import { fromHtml, buildSampleCodeHtmlRegExp, escapeRegExp, extractTopLevelAssetsFromBlock, extractCodeBlocks } from '@internal/test-utils'
 import { getAssetsBaseHref } from '../src/astro-config'
 
 const isEcosystemCiRun = !!process.env.npm_config_ecosystem_ci
@@ -33,12 +32,12 @@ const multiCodeComponentHtmlRegExp = buildSampleCodeHtmlRegExp({
 	title: '',
 	codeContents: [
 		'.*?',
+		// Expect the text "code block #" followed by the number 1-3
+		'.*?code block #[1-3].*?',
 		// Expect at least one code line that is marked
 		'<div class="ec-line highlight mark">',
 		// Expect Shiki highlighting colors inside
 		'.*?--0:#.*?',
-		// Expect the text "code block #" followed by the number 1-3 inside
-		'.*?code block #[1-3].*?',
 		// Expect all elements to be closed
 		'</div>',
 		'.*?',
@@ -95,7 +94,33 @@ describe.skipIf(isEcosystemCiRun)('Integration into Astro ^3.5.0 with `emitExter
 
 	test('Renders code blocks in MDX files', () => {
 		const html = fixture?.readFile('mdx-page/index.html') ?? ''
-		validateHtml(html, fixture, { emitExternalStylesheet: false })
+		validateHtml(html, fixture, {
+			emitExternalStylesheet: false,
+			expectedElementsBeforeCode: [
+				// Expect the first block to contain a style element with the base styles, a JS link,
+				// and due to the meta attribute "addStyles" triggering our custom addStylesPlugin,
+				// also expect an inline style element adding our test style
+				[expectStyleElement(), expectStyleElement('orange !important'), expectScriptLink()],
+			],
+		})
+	})
+
+	test('When rendering multiple <Code> components on an Astro page, adds styles & scripts to the first one', () => {
+		const html = fixture?.readFile('astro-many-code-components/index.html') ?? ''
+		validateHtml(html, fixture, {
+			expectedHtmlRegExp: multiCodeComponentHtmlRegExp,
+			emitExternalStylesheet: false,
+			expectedCodeBlockCount: 3,
+			expectedElementsBeforeCode: [
+				// Expect the first block to contain a style element with the base styles, a JS link,
+				// and due to the meta attribute "addStyles" triggering our custom addStylesPlugin,
+				// also expect an inline style element adding our test style
+				[expectStyleElement(), expectStyleElement('orange !important'), expectScriptLink()],
+				[],
+				[],
+			],
+		})
+		expect(html).toContain('Code components in Astro files')
 	})
 
 	test('Emits no external stylesheet due to `emitExternalStylesheet: false`', () => {
@@ -147,10 +172,6 @@ describe.skipIf(isEcosystemCiRun)('Integration into Astro ^3.5.0 using custom `b
 			expectedCodeBlockCount: 3,
 		})
 		expect(html).toContain('Many code components in an MDX file')
-		const stylesAndScriptsPerBlock = [...html.matchAll(/<div class="expressive-code(| .*?)">(.*?)<figure/g)].map((match) => match[2])
-		expect(stylesAndScriptsPerBlock).toHaveLength(3)
-		expect(stylesAndScriptsPerBlock[0]).toContain(`/${astroConfig.build.assets}/ec.`)
-		expect(stylesAndScriptsPerBlock.slice(-2)).toEqual(['', ''])
 	})
 
 	test('Renders <Code> components in Astro files', () => {
@@ -213,10 +234,6 @@ describe.skipIf(isEcosystemCiRun)('Integration into Astro ^4.0.0', () => {
 			expectedCodeBlockCount: 3,
 		})
 		expect(html).toContain('Many code components in an MDX file')
-		const stylesAndScriptsPerBlock = [...html.matchAll(/<div class="expressive-code(| .*?)">(.*?)<figure/g)].map((match) => match[2])
-		expect(stylesAndScriptsPerBlock).toHaveLength(3)
-		expect(stylesAndScriptsPerBlock[0]).toContain('/_astro/ec.')
-		expect(stylesAndScriptsPerBlock.slice(-2)).toEqual(['', ''])
 	})
 
 	test('Renders <Code> components in Astro files', () => {
@@ -362,23 +379,38 @@ describe('Integration into Astro ^5.0.0', () => {
 		expect(inlineInsContents).toEqual(['<Header />'])
 	})
 
-	test('When rendering multiple <Code> components on a page, only adds styles & scripts to the first one', () => {
+	test('When rendering multiple <Code> components on an MDX page, only adds styles & scripts to the first one', () => {
 		const html = fixture?.readFile('mdx-many-code-components/index.html') ?? ''
 		validateHtml(html, fixture, {
 			expectedHtmlRegExp: multiCodeComponentHtmlRegExp,
 			expectedCodeBlockCount: 3,
+			expectedElementsBeforeCode: [
+				// Expect the first block to contain CSS & JS links,
+				// and due to the meta attribute "addStyles" triggering our custom addStylesPlugin,
+				// also expect an inline style element adding our test style
+				[expectStyleLink(), expectStyleElement('orange !important'), expectScriptLink()],
+				[],
+				[],
+			],
 		})
 		expect(html).toContain('Many code components in an MDX file')
-		const stylesAndScriptsPerBlock = [...html.matchAll(/<div class="expressive-code(| .*?)">(.*?)<figure/g)].map((match) => match[2])
-		expect(stylesAndScriptsPerBlock).toHaveLength(3)
-		expect(stylesAndScriptsPerBlock[0]).toContain('/_astro/ec.')
-		expect(stylesAndScriptsPerBlock.slice(-2)).toEqual(['', ''])
 	})
 
-	test('Renders <Code> components in Astro files', () => {
-		const html = fixture?.readFile('astro-code-component/index.html') ?? ''
-		validateHtml(html, fixture)
-		expect(html).toContain('Code component in Astro files')
+	test('When rendering multiple <Code> components on an Astro page, only adds styles & scripts to the first one', () => {
+		const html = fixture?.readFile('astro-many-code-components/index.html') ?? ''
+		validateHtml(html, fixture, {
+			expectedHtmlRegExp: multiCodeComponentHtmlRegExp,
+			expectedCodeBlockCount: 3,
+			expectedElementsBeforeCode: [
+				// Expect the first block to contain CSS & JS links,
+				// and due to the meta attribute "addStyles" triggering our custom addStylesPlugin,
+				// also expect an inline style element adding our test style
+				[expectStyleLink(), expectStyleElement('orange !important'), expectScriptLink()],
+				[],
+				[],
+			],
+		})
+		expect(html).toContain('Code components in Astro files')
 	})
 
 	describe('Supports custom languages', () => {
@@ -431,41 +463,53 @@ function validateHtml(
 		astroConfig?: AstroUserConfig | undefined
 		expectedHtmlRegExp?: RegExp | undefined
 		expectedCodeBlockCount?: number | undefined
+		expectedElementsBeforeCode?: unknown[][] | undefined
 	}
 ) {
 	const { emitExternalStylesheet = true, astroConfig, expectedHtmlRegExp = complexHtmlRegExp, expectedCodeBlockCount = 1 } = options ?? {}
 
 	const assetsDir = astroConfig?.build?.assets || '_astro'
 
+	// Expect the HTML to contain the given amount of code blocks
+	const codeBlocks = extractCodeBlocks(html)
+	expect(codeBlocks).toHaveLength(expectedCodeBlockCount)
+
+	// Either use the given array of expected elements before the code blocks,
+	// or define our expectations based on the given options
+	const expectedElementsBeforeCode = options?.expectedElementsBeforeCode ?? []
+	if (!expectedElementsBeforeCode.length) {
+		const expectedFirstBlockElements: unknown[] = []
+		// Depending on the `emitExternalStylesheet` option, either expect an external stylesheet
+		// or an inline style element
+		if (emitExternalStylesheet) {
+			const styleBaseHref = `${getAssetsBaseHref('.css', astroConfig?.build?.assetsPrefix, astroConfig?.base)}/${assetsDir}/`.replace(/\/+/g, '/')
+			const externalStyles = enumerateAssets(fixture, 'css', assetsDir)
+			const expectedStylesheetHref = `${styleBaseHref}${externalStyles[0]}`
+			expectedFirstBlockElements.push(expectStyleLink(expectedStylesheetHref))
+		} else {
+			expectedFirstBlockElements.push(expectStyleElement())
+		}
+		// Expect the `scripts` capture group to contain an external script module
+		const scriptBaseHref = `${getAssetsBaseHref('.js', astroConfig?.build?.assetsPrefix, astroConfig?.base)}/${assetsDir}/`.replace(/\/+/g, '/')
+		const externalScripts = enumerateAssets(fixture, 'js', assetsDir)
+		const expectedScriptSrc = `${scriptBaseHref}${externalScripts[0]}`
+		expectedFirstBlockElements.push(expectScriptLink(expectedScriptSrc))
+
+		// Expect the collected elements for the first block, and none for any additional blocks
+		expectedElementsBeforeCode.push(expectedFirstBlockElements)
+		for (let i = 1; i < expectedCodeBlockCount; i++) {
+			expectedElementsBeforeCode.push([])
+		}
+	}
+
+	// Collect all elements before each code block and require them to match our expectations
+	const actualElementsBeforeCodePerBlock = codeBlocks.map((blockHtml) => extractTopLevelAssetsFromBlock(blockHtml))
+	expect(actualElementsBeforeCodePerBlock).toEqual(expectedElementsBeforeCode)
+
 	// Expect the HTML structure to match our regular expression
 	const matches = html.match(expectedHtmlRegExp)
 	expect(matches).toBeTruthy()
 
-	// Depending on the `emitExternalStylesheet` option, expect the `styles` capture group
-	// to either contain an external stylesheet or an inline style element
-	const styles = matches?.groups?.['styles']
-	if (emitExternalStylesheet) {
-		const styleBaseHref = `${getAssetsBaseHref('.css', astroConfig?.build?.assetsPrefix, astroConfig?.base)}/${assetsDir}/`.replace(/\/+/g, '/')
-		const externalStyles = enumerateAssets(fixture, 'css', assetsDir)
-		const expectedStylesheetHref = `${styleBaseHref}${externalStyles[0]}`
-		const actualStylesheetHrefs = [...(styles?.matchAll(new RegExp(`<link rel="stylesheet" href="(.*?)"\\s*/?>`, 'g')) ?? [])]?.map((match) => match[1])
-		expect(actualStylesheetHrefs, `Expected a single valid external stylesheet link`).toEqual([expectedStylesheetHref])
-	} else {
-		expect(styles).toContain('<style>')
-	}
-
-	// Expect the `scripts` capture group to contain an external script module
-	const scripts = matches?.groups?.['scripts']
-	const scriptBaseHref = `${getAssetsBaseHref('.js', astroConfig?.build?.assetsPrefix, astroConfig?.base)}/${assetsDir}/`.replace(/\/+/g, '/')
-	const externalScripts = enumerateAssets(fixture, 'js', assetsDir)
-	const expectedScriptSrc = `${scriptBaseHref}${externalScripts[0]}`
-	const actualScriptSrcs = [...(scripts?.matchAll(new RegExp(`<script type="module" src="(.*?)"\\s*/?>`, 'g')) ?? [])]?.map((match) => match[1])
-	expect(actualScriptSrcs, `Expected a single valid script module link`).toEqual([expectedScriptSrc])
-
-	// Collect all code blocks
-	const codeBlockClassNames = [...html.matchAll(/<div class="(expressive-code(?:| .*?))">/g)].map((match) => match[1])
-	// Check the number of code blocks
-	expect(codeBlockClassNames).toHaveLength(expectedCodeBlockCount)
 	// TODO: Validate that CSS variables were generated for the configured themes
 	// TODO: Validate automatic theme selection based on the user's system preferences
 	// TODO: Maybe add a second set of pages including two code blocks to test that the styles are deduplicated
@@ -551,4 +595,20 @@ function getCustomLanguageTokenColors(fixture: Awaited<ReturnType<typeof buildFi
 		{ text: 'something', color: '#AEE9F5' },
 	]
 	return { mdWithNestedLangs, customLang, jsLang, customLangTokenColors, jsLangTokenColors }
+}
+
+const ecBaseStylesPattern = escapeRegExp('.expressive-code *:not(:is(svg, svg *))')
+
+export function expectStyleElement(requiredContent = ecBaseStylesPattern) {
+	return expect.stringMatching(new RegExp(`^<style>.*?${requiredContent}.*?</style>$`)) as unknown
+}
+
+function expectStyleLink(expectedHref: string | RegExp = /\/_astro\/ec\.[a-z0-9]*?\.css/) {
+	const hrefPattern = typeof expectedHref === 'string' ? escapeRegExp(expectedHref) : expectedHref.source
+	return expect.stringMatching(new RegExp(`^<link rel="stylesheet" href="${hrefPattern}"`)) as unknown
+}
+
+function expectScriptLink(expectedSrc: string | RegExp = /\/_astro\/ec\.[a-z0-9]*?\.js/) {
+	const srcPattern = typeof expectedSrc === 'string' ? escapeRegExp(expectedSrc) : expectedSrc.source
+	return expect.stringMatching(new RegExp(`^<script type="module" src="${srcPattern}"`)) as unknown
 }

@@ -1,6 +1,7 @@
 ---
 import type { ExpressiveCodeBlockOptions, RehypeExpressiveCodeDocument } from 'rehype-expressive-code'
 import { addClassName, toHtml } from 'rehype-expressive-code/hast'
+import type { Element, ElementContent } from 'rehype-expressive-code/hast'
 import { getPageData } from './page-data'
 import { getRenderer } from './renderer'
 import type { CodeProps as Props } from './types'
@@ -67,13 +68,36 @@ async function renderToHtml() {
 		input.locale = await renderer.getBlockLocale({ input, file })
 	}
 
-	const { renderedGroupAst } = await renderer.ec.render(input)
+	const { renderedGroupAst, styles } = await renderer.ec.render(input)
 
 	if (renderedGroupAst?.type === 'element') {
 		if (className) {
 			const classNames = className.split(' ')
 			classNames.forEach((className) => addClassName(renderedGroupAst, className))
 		}
+	}
+
+	// Output group-level styles (if any) as an inline style element
+	const stylesToPrepend: string[] = []
+	for (const style of styles) {
+		stylesToPrepend.push(style)
+	}
+	if (stylesToPrepend.length) {
+		// Determine where to insert the extra elements based on whether
+		// the first child is a style element or stylesheet link
+		const firstChild = renderedGroupAst.children.length > 0 ? renderedGroupAst.children[0] : undefined
+		const firstChildIsStyle = firstChild?.type === 'element' && ['style', 'link'].includes(firstChild?.tagName)
+		const insertIndex = firstChildIsStyle ? 1 : 0
+		const inlineStyleElement: ElementContent = {
+			type: 'element',
+			tagName: 'style',
+			properties: {},
+			children: [{ type: 'text', value: stylesToPrepend.join('') }],
+		}
+		// Insert the extra element into renderedGroupAst's children,
+		// which keeps it inside the wrapper and reduces the chance of CSS issues
+		// caused by selectors like `* + *` on the parent level
+		renderedGroupAst.children.splice(insertIndex, 0, inlineStyleElement)
 	}
 
 	return toHtml(renderedGroupAst)
