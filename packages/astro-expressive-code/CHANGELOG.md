@@ -1,5 +1,17 @@
 # astro-expressive-code
 
+## 0.41.5
+
+### Patch Changes
+
+- 03bd507: Adds `fish` to the terminal languages group. Thank you @kj!
+- 24cb221: Fixes partially missing styles in the `<Code>` component when using the `addStyles` plugin API function. When custom styles are added to an individual code block group, they are now correctly output after the group's base styles.
+- 24cb221: Fixes missing `<Code>` component styles when using `emitExternalStylesheet: false`. Thank you @delucis!
+- 24cb221: Fixes order of base styles and group-level styles, ensuring that base styles are output first to prevent cascading issues.
+- Updated dependencies [03bd507]
+- Updated dependencies [24cb221]
+  - rehype-expressive-code@0.41.5
+
 ## 0.41.4
 
 ### Patch Changes
