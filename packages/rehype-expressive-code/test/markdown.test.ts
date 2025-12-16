@@ -6,9 +6,8 @@ import toHtml from 'rehype-stringify'
 import draculaRaw from 'shiki/themes/dracula.mjs'
 import { ThemeRegistration } from 'shiki/types.mjs'
 import { toText, selectAll } from 'expressive-code/hast'
-import { fromHtml, getCoreJsModules, outputHtmlSnapshot, showAllThemesInRenderedBlockHtml } from '@internal/test-utils'
+import { buildSampleCodeHtmlRegExp, fromHtml, getCoreJsModules, outputHtmlSnapshot, sampleCodeMarkdown, showAllThemesInRenderedBlockHtml } from '@internal/test-utils'
 import rehypeExpressiveCode, { ExpressiveCodeTheme, RehypeExpressiveCodeOptions, StyleSettingPath, getCssVarName } from '../src'
-import { buildSampleCodeHtmlRegExp, sampleCodeMarkdown } from './utils'
 
 const dracula = draculaRaw as Required<ThemeRegistration>
 const buildCssVarValuesRegex = (setting: StyleSettingPath) => new RegExp(`${getCssVarName(setting)}:(.*?)[;}]`, 'g')
