@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💡 Feature Request
+    url: https://github.com/expressive-code/expressive-code/discussions/new?category=feature-requests
+    about: Suggest an improvement you’d like to see added to Expressive Code
+  - name: ❓ Support Question
+    url: https://github.com/expressive-code/expressive-code/discussions/new?category=q-a
+    about: 'This issue tracker is not for support questions. Ask in GitHub Discussions for assistance!'

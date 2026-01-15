@@ -170,6 +170,7 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 
 					extraElements.push(
 						h('div', { className: 'copy' }, [
+							h('div', { 'aria-live': 'polite' }),
 							h(
 								'button',
 								{

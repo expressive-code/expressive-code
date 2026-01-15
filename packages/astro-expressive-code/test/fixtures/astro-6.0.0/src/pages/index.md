@@ -1,13 +1,16 @@
 ---
-import MainLayout from '../layouts/MainLayout.astro'
-import { Code } from 'astro-expressive-code/components'
+layout: ../layouts/MainLayout.astro
+---
+# Sample code
 
-export const someCode = `
-// src/layouts/BaseLayout.astro\n---
+```astro ins={19} collapse={2-7, 10-14}
+// src/layouts/BaseLayout.astro
+---
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import '../styles/global.css';
-const pageTitle = "Home Page";\n---
+const pageTitle = "Home Page";
+---
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -26,10 +29,4 @@ const pageTitle = "Home Page";\n---
     </script>
   </body>
 </html>
-`
----
-
-<MainLayout>
-	<h1>Code component in Astro files</h1>
-	<Code code={someCode} lang="astro" ins={19} collapse={['2-7', '10-14']} />
-</MainLayout>
+```

@@ -231,10 +231,17 @@ function rehypeExpressiveCode(options: RehypeExpressiveCodeOptions = {}) {
 			)
 		})
 
-		// Prepend any extra elements to the children of the renderedGroupAst wrapper,
-		// which keeps them inside the wrapper and reduces the chance of CSS issues
-		// caused by selectors like `* + *` on the parent level
-		renderedGroupAst.children.unshift(...extraElements)
+		if (extraElements.length) {
+			// Determine where to insert the extra elements based on whether
+			// the first child is a style element or stylesheet link
+			const firstChild = renderedGroupAst.children.length > 0 ? renderedGroupAst.children[0] : undefined
+			const firstChildIsStyle = firstChild?.type === 'element' && ['style', 'link'].includes(firstChild?.tagName)
+			const insertIndex = firstChildIsStyle ? 1 : 0
+			// Insert the extra elements into renderedGroupAst's children,
+			// which keeps them inside the wrapper and reduces the chance of CSS issues
+			// caused by selectors like `* + *` on the parent level
+			renderedGroupAst.children.splice(insertIndex, 0, ...extraElements)
+		}
 
 		return renderedGroupAst
 	}

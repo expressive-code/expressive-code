@@ -1,6 +1,6 @@
 {
   "name": "astro-expressive-code",
-  "version": "0.41.3",
+  "version": "0.41.6",
   "description": "Astro integration for Expressive Code, a modular syntax highlighting & annotation engine for presenting source code on the web. Offers full VS Code theme support, editor & terminal frames, copy to clipboard, text markers, collapsible sections, and more.",
   "keywords": [
     "astro-integration",
@@ -53,10 +53,10 @@
     "watch": "pnpm build --watch src"
   },
   "peerDependencies": {
-    "astro": "^4.0.0-beta || ^5.0.0-beta || ^3.3.0"
+    "astro": "^4.0.0-beta || ^5.0.0-beta || ^3.3.0 || ^6.0.0-beta"
   },
   "dependencies": {
-    "rehype-expressive-code": "workspace:^0.41.3"
+    "rehype-expressive-code": "workspace:^0.41.6"
   },
   "devDependencies": {
     "@internal/test-utils": "workspace:^",

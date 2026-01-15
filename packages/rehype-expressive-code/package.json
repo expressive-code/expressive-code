@@ -1,6 +1,6 @@
 {
   "name": "rehype-expressive-code",
-  "version": "0.41.3",
+  "version": "0.41.6",
   "description": "Rehype plugin for Expressive Code, a modular syntax highlighting & annotation engine for presenting source code on the web. Offers full VS Code theme support, editor & terminal frames, copy to clipboard, text markers, collapsible sections, and more.",
   "keywords": [
     "code-blocks",
@@ -49,7 +49,7 @@
     "watch": "pnpm build --watch src"
   },
   "dependencies": {
-    "expressive-code": "workspace:^0.41.3"
+    "expressive-code": "workspace:^0.41.6"
   },
   "devDependencies": {
     "@internal/test-utils": "workspace:^",

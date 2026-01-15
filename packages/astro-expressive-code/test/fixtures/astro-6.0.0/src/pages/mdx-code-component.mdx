@@ -1,16 +1,14 @@
 ---
 layout: ../layouts/MainLayout.astro
 ---
-# Sample code
+import { Code } from 'astro-expressive-code/components'
 
-```astro ins={19} collapse={2-7, 10-14} addStyles
-// src/layouts/BaseLayout.astro
----
+export const someCode = `
+// src/layouts/BaseLayout.astro\n---
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import '../styles/global.css';
-const pageTitle = "Home Page";
----
+const pageTitle = "Home Page";\n---
 <html lang="en">
   <head>
     <meta charset="utf-8" />
@@ -29,4 +27,8 @@ const pageTitle = "Home Page";
     </script>
   </body>
 </html>
-```
+`
+
+# Code component in MDX files
+
+<Code code={someCode} lang="astro" meta="ins={19} collapse={2-7}" collapse="10-14" ins={[/<Header \/>/g]} />

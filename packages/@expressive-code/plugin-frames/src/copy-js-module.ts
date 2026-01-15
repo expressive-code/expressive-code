@@ -65,10 +65,11 @@ async function clickHandler(event: Event) {
 	if (!ok || button.parentNode?.querySelector('.feedback')) return
 
 	// Show feedback tooltip
+	const liveRegion = button.parentNode?.querySelector('[aria-live]') as HTMLDivElement
 	let tooltip: HTMLDivElement | undefined = document.createElement('div')
 	tooltip.classList.add('feedback')
 	tooltip.append(dataset.copied)
-	button.before(tooltip)
+	liveRegion.append(tooltip)
 
 	// Use offsetWidth and requestAnimationFrame to opt out of DOM batching,
 	// which helps to ensure that the transition on 'show' works

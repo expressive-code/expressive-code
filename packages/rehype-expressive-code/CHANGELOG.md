@@ -1,5 +1,26 @@
 # rehype-expressive-code
 
+## 0.41.6
+
+### Patch Changes
+
+- expressive-code@0.41.6
+
+## 0.41.5
+
+### Patch Changes
+
+- 03bd507: Adds `fish` to the terminal languages group. Thank you @kj!
+- 24cb221: Fixes order of base styles and group-level styles, ensuring that base styles are output first to prevent cascading issues.
+- Updated dependencies [03bd507]
+  - expressive-code@0.41.5
+
+## 0.41.4
+
+### Patch Changes
+
+- expressive-code@0.41.4
+
 ## 0.41.3
 
 ### Patch Changes

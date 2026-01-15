@@ -22,6 +22,7 @@ export async function createAstroRenderer({ ecConfig, astroConfig, logger }: Cre
 
 	// Add a plugin that inserts external references to the styles and scripts
 	// that would normally be inlined into the first code block of every page
+	let inlineStyles = ''
 	const hashedStyles: [string, string][] = []
 	const hashedScripts: [string, string][] = []
 	plugins.push({
@@ -44,6 +45,16 @@ export async function createAstroRenderer({ ecConfig, astroConfig, logger }: Cre
 						children: [],
 					})
 				})
+
+				// Add base inline styles (only present if not emitted as external stylesheet)
+				if (inlineStyles) {
+					extraElements.push({
+						type: 'element',
+						tagName: 'style',
+						properties: {},
+						children: [{ type: 'text', value: inlineStyles }],
+					})
+				}
 
 				// Add hashed script module links for all JS modules
 				hashedScripts.forEach(([hashedRoute]) => {
@@ -80,14 +91,19 @@ export async function createAstroRenderer({ ecConfig, astroConfig, logger }: Cre
 	renderer.hashedStyles = hashedStyles
 	renderer.hashedScripts = hashedScripts
 
-	// Unless disabled, move the base and theme styles from the inline renderer
-	// into an external CSS file that can be cached by browsers
+	// Extract any base and theme styles from the child renderer, as they are handled by this
+	// integration. Our way of handling them depends on the emitExternalStylesheet option:
+	// - If it's true (which is the default), we move all base and theme styles
+	//   into an external CSS file with a hashed filename
+	// - If it's false, we inline them into the first code block of the page
 	if (emitExternalStylesheet) {
 		const combinedStyles = `${renderer.baseStyles}${renderer.themeStyles}`
 		hashedStyles.push(getHashedRouteWithContent(combinedStyles, `/${assetsDir}/ec.{hash}.css`))
-		renderer.baseStyles = ''
-		renderer.themeStyles = ''
+	} else {
+		inlineStyles = `${renderer.baseStyles}${renderer.themeStyles}`
 	}
+	renderer.baseStyles = ''
+	renderer.themeStyles = ''
 
 	// Also move any JS modules into a single external file
 	// (this is always enabled because the alternative using `injectScript`
