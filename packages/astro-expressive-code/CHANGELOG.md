@@ -1,5 +1,12 @@
 # astro-expressive-code
 
+## 0.41.6
+
+### Patch Changes
+
+- 662aa67: Adds support for Astro v6
+  - rehype-expressive-code@0.41.6
+
 ## 0.41.5
 
 ### Patch Changes
