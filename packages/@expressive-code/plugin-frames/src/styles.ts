@@ -566,11 +566,19 @@ export function getFramesBaseStyles({ cssVar }: ResolverContext, options: Plugin
 		padding-inline-end: calc(2rem + ${cssVar('codePaddingInline')});
 	}`
 
+	const removeDeletedTextStyles = `.ec-line.del, .ec-line del {
+	  /* Disallow selection of deleted text */
+		user-select: none;
+		-webkit-user-select: none;
+	}`
+
 	const styles = [
 		// Always add base frame styles
 		frameStyles,
 		// Add copy button styles if enabled
 		options.showCopyToClipboardButton ? copyButtonStyles : '',
+		// Add remove-deleted-text styles if enabled
+		options.removeDeletedTextWhenCopying ? removeDeletedTextStyles : '',
 	]
 
 	return styles.join('\n')
