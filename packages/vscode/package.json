@@ -1,0 +1,92 @@
+{
+  "name": "expressive-code-vscode",
+  "displayName": "Expressive Code LSP",
+  "description": "Language server for Expressive Code text markers in Markdown/MDX",
+  "version": "1.0.0",
+  "publisher": "expressive-code",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/expressive-code/expressive-code",
+    "directory": "packages/vscode"
+  },
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "activationEvents": [
+    "onLanguage:markdown",
+    "onLanguage:mdx"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "Expressive Code LSP",
+      "properties": {
+        "expressiveCodeLsp.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces the communication between VS Code and the language server."
+        }
+      }
+    },
+    "configurationDefaults": {
+      "editor.semanticTokenColorCustomizations": {
+        "[*]": {
+          "enabled": true,
+          "rules": {
+            "mark": {
+              "foreground": "#3b82f6",
+              "fontStyle": ""
+            },
+            "mark.line": {
+            },
+            "mark.inline": {
+              "border": "1px solid #3b82f680"
+            },
+            "inserted": {
+              "foreground": "#10b981",
+              "fontStyle": ""
+            },
+            "inserted.line": {
+            },
+            "inserted.inline": {
+              "border": "1px solid #10b98180"
+            },
+            "deleted": {
+              "foreground": "#ef4444",
+              "fontStyle": ""
+            },
+            "deleted.line": {
+            },
+            "deleted.inline": {
+              "border": "1px solid #ef444480"
+            }
+          }
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "pnpm run build",
+    "build": "tsc -p .",
+    "dev": "tsc -watch -p .",
+    "clean": "rm -rf out",
+    "package": "vsce package"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.9",
+    "@types/vscode": "^1.75.0",
+    "typescript": "^5.9.3"
+  }
+}

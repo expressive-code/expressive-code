@@ -1,0 +1,24 @@
+{
+  "name": "@expressive-code/language-server",
+  "version": "1.0.0",
+  "description": "LSP server for Expressive Code",
+  "main": "out/server.js",
+  "scripts": {
+    "build": "tsc -p .",
+    "dev": "tsc -watch -p ."
+  },
+  "keywords": [
+    "lsp",
+    "language-server",
+    "expressive-code"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "vscode-languageserver": "^9.0.1",
+    "vscode-languageserver-textdocument": "^1.0.12"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.9",
+    "typescript": "^5.9.3"
+  }
+}
