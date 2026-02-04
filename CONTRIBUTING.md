@@ -32,6 +32,12 @@ We use [GitHub Flow](https://guides.github.com/introduction/flow/) for our devel
 
 We use [pnpm](https://pnpm.io/) as our package manager. Please make sure to install pnpm and update it to the latest version before working on this project.
 
+## Node.js Version
+
+Some test fixtures (e.g. Astro 6) require a newer Node.js version than our published packages. The repo therefore pins the development Node.js major version to `22` via `.nvmrc`.
+
+It is recommended to run `nvm i` before running `pnpm i` to ensure that the correct Node.js version is used.
+
 ## Code Style
 
 We use ESLint and Prettier to enforce a consistent code style across all packages. Please make sure that your changes pass the linter before submitting a pull request:
