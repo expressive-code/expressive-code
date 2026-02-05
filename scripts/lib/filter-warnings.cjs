@@ -15,5 +15,6 @@ process.on('warning', (warning) => {
 	if (name === 'ExperimentalWarning' && (message.indexOf('--experimental-loader') > -1 || message.indexOf('Custom ESM Loaders') > -1)) return
 	if (name === 'DeprecationWarning' && message.indexOf('Obsolete loader hook') > -1) return
 
+	// eslint-disable-next-line no-console
 	console.warn(warning)
 })

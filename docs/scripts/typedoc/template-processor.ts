@@ -34,8 +34,9 @@ export function processTemplate({ apiDocsPath, templateFilePath, outputFilePath 
 		if (lines[lines.length - 1]?.trim() === '') lines.pop()
 		// Change heading levels to match the template
 		let headings = collectHeadings(lines)
-		if (headings.length) {
-			const headingLevelOffset = directive.headingLevel - headings[0]!.level
+		const firstHeading = headings[0]
+		if (firstHeading) {
+			const headingLevelOffset = directive.headingLevel - firstHeading.level
 			headings.forEach((heading) => {
 				heading.level = Math.max(1, heading.level + headingLevelOffset)
 				lines[heading.lineIdx] = '#'.repeat(heading.level) + ' ' + heading.text
@@ -48,7 +49,8 @@ export function processTemplate({ apiDocsPath, templateFilePath, outputFilePath 
 			let matches = 0
 			while ((headingIdx = headings.findIndex((h) => h.textPath.match(pathRegExp))) !== -1) {
 				matches++
-				const heading = headings[headingIdx]!
+				const heading = headings[headingIdx]
+				if (!heading) break
 				// Find the end line index of the section
 				const nextSectionHeading = headings.slice(headingIdx + 1).find((h) => h.level <= heading.level)
 				const sectionEndLineIdx = (nextSectionHeading?.lineIdx ?? lines.length) - 1
@@ -208,9 +210,10 @@ function findApiDocsFile(apiDocsPath: string, name: string) {
 		})
 	}
 	const matches = apiDocsIndex.filter((n) => n.endsWith(`/${name}.mdx`))
-	if (matches.length === 0) throw new Error(`No API docs file found for "${name}"`)
 	if (matches.length > 1) throw new Error(`Multiple API docs files found for "${name}": ${matches.join(', ')}`)
-	return path.join(apiDocsPath, matches[0]!)
+	const firstMatch = matches[0]
+	if (!firstMatch) throw new Error(`No API docs file found for "${name}"`)
+	return path.join(apiDocsPath, firstMatch)
 }
 
 export function fixLinks(docsDir: string, templateFileSubpaths: string[]) {

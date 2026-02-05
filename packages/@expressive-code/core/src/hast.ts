@@ -73,7 +73,6 @@ export function getInlineStyles(node: Element): Map<string, string> {
 	if (!styleString) return styles
 
 	// @ts-expect-error PostCSS has incorrect types when using exactOptionalPropertyTypes
-	// eslint-disable-next-line redundant-undefined/redundant-undefined
 	const postCssOptions: { from?: string } = { from: undefined }
 
 	// Attempt to parse the style string and extract its root-level declarations
@@ -84,7 +83,7 @@ export function getInlineStyles(node: Element): Map<string, string> {
 		root.each((node) => {
 			if (node.type === 'decl') styles.set(node.prop, node.value)
 		})
-	} catch (error) {
+	} catch {
 		// Treat invalid inline styles as if they were empty
 	}
 
