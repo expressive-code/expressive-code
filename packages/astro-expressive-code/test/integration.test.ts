@@ -8,6 +8,101 @@ import { fromHtml, buildSampleCodeHtmlRegExp, escapeRegExp, extractTopLevelAsset
 import { getAssetsBaseHref } from '../src/astro-config'
 
 const isEcosystemCiRun = !!process.env.npm_config_ecosystem_ci
+const buildConcurrency = Number(process.env.EC_TEST_BUILD_CONCURRENCY ?? 3)
+
+type FixtureConfig = {
+	fixtureDir: string
+	buildCommand: string
+	buildArgs?: string[] | undefined
+	outputDir: string
+	skipInEcosystemCi?: boolean | undefined
+	hmrPort?: number | undefined
+}
+
+const hmrPortBase = 24700
+const fixtureConfigs: FixtureConfig[] = [
+	{
+		fixtureDir: 'astro-3.3.0',
+		buildCommand: 'pnpm',
+		buildArgs: ['astro', 'build'],
+		outputDir: 'dist',
+		skipInEcosystemCi: true,
+		hmrPort: hmrPortBase + 0,
+	},
+	{
+		fixtureDir: 'astro-3.5.0-no-external-css',
+		buildCommand: 'pnpm',
+		buildArgs: ['astro', 'build'],
+		outputDir: 'dist',
+		skipInEcosystemCi: true,
+		hmrPort: hmrPortBase + 1,
+	},
+	{
+		fixtureDir: 'astro-3.5.0-custom-paths',
+		buildCommand: 'pnpm',
+		buildArgs: ['astro', 'build'],
+		outputDir: 'dist',
+		skipInEcosystemCi: true,
+		hmrPort: hmrPortBase + 2,
+	},
+	{
+		fixtureDir: 'astro-4.0.0',
+		buildCommand: 'pnpm',
+		buildArgs: ['astro', 'build'],
+		outputDir: 'dist',
+		skipInEcosystemCi: true,
+		hmrPort: hmrPortBase + 3,
+	},
+	{
+		fixtureDir: 'astro-4.5.0',
+		buildCommand: 'pnpm',
+		buildArgs: ['astro', 'build'],
+		outputDir: 'dist',
+		hmrPort: hmrPortBase + 4,
+	},
+	{
+		fixtureDir: 'astro-5.0.0',
+		buildCommand: 'pnpm',
+		buildArgs: ['astro', 'build'],
+		outputDir: 'dist',
+		hmrPort: hmrPortBase + 5,
+	},
+	{
+		fixtureDir: 'astro-6.0.0',
+		buildCommand: 'pnpm',
+		buildArgs: ['astro', 'build'],
+		outputDir: 'dist',
+		hmrPort: hmrPortBase + 6,
+	},
+]
+
+const fixtureByDir = new Map<string, Awaited<ReturnType<typeof buildFixture>>>()
+
+async function runWithConcurrencyLimit<T, R>(items: T[], limit: number, worker: (item: T) => Promise<R>) {
+	if (!items.length) return []
+	const results: R[] = []
+	let nextIndex = 0
+	const actualLimit = Math.max(1, Math.min(limit, items.length))
+	const workers = Array.from({ length: actualLimit }, async () => {
+		for (;;) {
+			const currentIndex = nextIndex++
+			if (currentIndex >= items.length) break
+			results[currentIndex] = await worker(items[currentIndex])
+		}
+	})
+	await Promise.all(workers)
+	return results
+}
+
+beforeAll(async () => {
+	const configsToBuild = isEcosystemCiRun ? fixtureConfigs.filter((config) => !config.skipInEcosystemCi) : fixtureConfigs
+	const fixtures = await runWithConcurrencyLimit(configsToBuild, buildConcurrency, async (config) => {
+		return buildFixture(config)
+	})
+	for (const fixture of fixtures) {
+		fixtureByDir.set(fixture.fixtureDir, fixture)
+	}
+}, 60 * 1000)
 
 const complexHtmlRegExp = buildSampleCodeHtmlRegExp({
 	title: 'src/layouts/BaseLayout.astro',
@@ -47,13 +142,8 @@ const multiCodeComponentHtmlRegExp = buildSampleCodeHtmlRegExp({
 describe.skipIf(isEcosystemCiRun)('Integration into Astro 3.3.0', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
-	beforeAll(async () => {
-		fixture = await buildFixture({
-			fixtureDir: 'astro-3.3.0',
-			buildCommand: 'pnpm',
-			buildArgs: ['astro', 'build'],
-			outputDir: 'dist',
-		})
+	beforeAll(() => {
+		fixture = fixtureByDir.get('astro-3.3.0')
 	}, 20 * 1000)
 
 	test('Renders code blocks in Markdown files', () => {
@@ -78,13 +168,8 @@ describe.skipIf(isEcosystemCiRun)('Integration into Astro 3.3.0', () => {
 describe.skipIf(isEcosystemCiRun)('Integration into Astro ^3.5.0 with `emitExternalStylesheet: false`', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
-	beforeAll(async () => {
-		fixture = await buildFixture({
-			fixtureDir: 'astro-3.5.0-no-external-css',
-			buildCommand: 'pnpm',
-			buildArgs: ['astro', 'build'],
-			outputDir: 'dist',
-		})
+	beforeAll(() => {
+		fixture = fixtureByDir.get('astro-3.5.0-no-external-css')
 	}, 20 * 1000)
 
 	test('Renders code blocks in Markdown files', () => {
@@ -139,13 +224,8 @@ describe.skipIf(isEcosystemCiRun)('Integration into Astro ^3.5.0 using custom `b
 	// Provide a copy of the settings defined in `astro.config.mjs` to the tests
 	const astroConfig = { base: '/subpath', build: { assets: '_custom' } }
 
-	beforeAll(async () => {
-		fixture = await buildFixture({
-			fixtureDir: 'astro-3.5.0-custom-paths',
-			buildCommand: 'pnpm',
-			buildArgs: ['astro', 'build'],
-			outputDir: 'dist',
-		})
+	beforeAll(() => {
+		fixture = fixtureByDir.get('astro-3.5.0-custom-paths')
 	}, 20 * 1000)
 
 	test('Renders code blocks in Markdown files', () => {
@@ -202,13 +282,8 @@ describe.skipIf(isEcosystemCiRun)('Integration into Astro ^3.5.0 using custom `b
 describe.skipIf(isEcosystemCiRun)('Integration into Astro ^4.0.0', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
-	beforeAll(async () => {
-		fixture = await buildFixture({
-			fixtureDir: 'astro-4.0.0',
-			buildCommand: 'pnpm',
-			buildArgs: ['astro', 'build'],
-			outputDir: 'dist',
-		})
+	beforeAll(() => {
+		fixture = fixtureByDir.get('astro-4.0.0')
 	}, 20 * 1000)
 
 	test('Renders code blocks in Markdown files', () => {
@@ -273,13 +348,8 @@ describe.skipIf(isEcosystemCiRun)('Integration into Astro ^4.0.0', () => {
 describe('Integration into Astro ^4.5.0 with Cloudflare adapter', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
-	beforeAll(async () => {
-		fixture = await buildFixture({
-			fixtureDir: 'astro-4.5.0',
-			buildCommand: 'pnpm',
-			buildArgs: ['astro', 'build'],
-			outputDir: 'dist',
-		})
+	beforeAll(() => {
+		fixture = fixtureByDir.get('astro-4.5.0')
 	}, 20 * 1000)
 
 	test('Emits an external stylesheet into the Astro assets dir', () => {
@@ -346,13 +416,8 @@ describe('Integration into Astro ^4.5.0 with Cloudflare adapter', () => {
 describe('Integration into Astro ^5.0.0', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
-	beforeAll(async () => {
-		fixture = await buildFixture({
-			fixtureDir: 'astro-5.0.0',
-			buildCommand: 'pnpm',
-			buildArgs: ['astro', 'build'],
-			outputDir: 'dist',
-		})
+	beforeAll(() => {
+		fixture = fixtureByDir.get('astro-5.0.0')
 	}, 20 * 1000)
 
 	test('Renders code blocks in Markdown files', () => {
@@ -458,13 +523,8 @@ describe('Integration into Astro ^5.0.0', () => {
 describe('Integration into Astro ^6.0.0', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
-	beforeAll(async () => {
-		fixture = await buildFixture({
-			fixtureDir: 'astro-6.0.0',
-			buildCommand: 'pnpm',
-			buildArgs: ['astro', 'build'],
-			outputDir: 'dist',
-		})
+	beforeAll(() => {
+		fixture = fixtureByDir.get('astro-6.0.0')
 	}, 20 * 1000)
 
 	test('Renders code blocks in Markdown files', () => {
@@ -633,15 +693,19 @@ async function buildFixture({
 	buildArgs,
 	outputDir,
 	keepPreviousBuild = false,
+	hmrPort,
 }: {
 	fixtureDir: string
 	buildCommand: string
 	buildArgs?: string[] | undefined
 	outputDir: string
 	keepPreviousBuild?: boolean | undefined
+	hmrPort?: number | undefined
 }) {
 	const fixturePath = join(__dirname, 'fixtures', fixtureDir)
 	const outputDirPath = join(fixturePath, outputDir)
+	const shimPath = join(__dirname, 'fixtures', 'astro-build-shim.cjs')
+	const nodeOptions = [process.env.NODE_OPTIONS, `--require ${shimPath}`].filter(Boolean).join(' ')
 
 	if (!keepPreviousBuild) {
 		// Remove the output directory if it exists
@@ -650,7 +714,14 @@ async function buildFixture({
 		}
 
 		// Run the build command
-		const buildCommandResult = await execa(buildCommand, buildArgs ?? [], { cwd: fixturePath })
+		const buildCommandResult = await execa(buildCommand, buildArgs ?? [], {
+			cwd: fixturePath,
+			env: {
+				...process.env,
+				NODE_OPTIONS: nodeOptions,
+				VITE_HMR_PORT: hmrPort ? String(hmrPort) : undefined,
+			},
+		})
 
 		// Throw an error if the build command failed
 		if (buildCommandResult.failed || buildCommandResult.stderr) {
@@ -660,6 +731,7 @@ async function buildFixture({
 
 	// Return an object that contains the output directory path and allows to read files from it
 	return {
+		fixtureDir,
 		path: outputDirPath,
 		readFile: (filePath: string) => readFileSync(join(outputDirPath, filePath), 'utf-8'),
 		readDir: (subPath: string) => readdirSync(join(outputDirPath, subPath), 'utf-8'),
