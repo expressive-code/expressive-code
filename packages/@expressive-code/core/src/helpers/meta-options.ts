@@ -161,7 +161,7 @@ function parseOptions(
 			try {
 				// Try to use regular expressions with capture group indices
 				regExp = new RegExp(value, 'gd')
-			} catch (_error) {
+			} catch {
 				try {
 					// Use fallback if unsupported
 					regExp = new RegExp(value, 'g')

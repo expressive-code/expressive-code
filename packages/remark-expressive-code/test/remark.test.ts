@@ -380,7 +380,7 @@ function createRemarkProcessor(options?: RemarkExpressiveCodeOptions) {
 	const processor = unified()
 		.use(remarkParse)
 		// Add our plugin
-		// eslint-disable-next-line deprecation/deprecation
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		.use(remarkExpressiveCode, options)
 		.use(remarkRehype, { allowDangerousHtml: true })
 		.use(rehypeRaw)

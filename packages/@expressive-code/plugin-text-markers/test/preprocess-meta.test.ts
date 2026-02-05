@@ -109,7 +109,7 @@ const expectMetaResult = async (input: string, partialExpectedResult: ExpectedTe
 const createMarkerRegExp = (input: string) => {
 	try {
 		return new RegExp(input, 'dg')
-	} catch (error) {
+	} catch {
 		return new RegExp(input, 'g')
 	}
 }

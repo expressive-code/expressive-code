@@ -2,7 +2,6 @@ import { CoreStyleSettings } from '../internal/core-styles'
 import { cssVarReplacements } from '../internal/css'
 import { ExpressiveCodeTheme } from './theme'
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface StyleSettings extends CoreStyleSettings {}
 
 /**

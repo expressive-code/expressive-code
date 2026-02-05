@@ -113,7 +113,6 @@ const processor = postcss([
 
 export async function scopeAndMinifyNestedCss(css: string): Promise<string> {
 	// @ts-expect-error PostCSS has incorrect types when using exactOptionalPropertyTypes
-	// eslint-disable-next-line redundant-undefined/redundant-undefined
 	const postCssOptions: { from?: string } = { from: undefined }
 
 	// Scope and parse the styles

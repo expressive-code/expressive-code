@@ -35,7 +35,7 @@ function domCopy(text: string) {
 	let ok = false
 	try {
 		// Although this is a deprecated API, it is still the only way to copy in some browsers
-		// eslint-disable-next-line deprecation/deprecation
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		ok = document.execCommand('copy')
 	} finally {
 		selection.removeAllRanges()
@@ -57,7 +57,7 @@ async function clickHandler(event: Event) {
 	try {
 		await navigator.clipboard.writeText(code)
 		ok = true
-	} catch (err) {
+	} catch (_err) {
 		ok = domCopy(code)
 	}
 
@@ -73,7 +73,7 @@ async function clickHandler(event: Event) {
 
 	// Use offsetWidth and requestAnimationFrame to opt out of DOM batching,
 	// which helps to ensure that the transition on 'show' works
-	tooltip.offsetWidth
+	void tooltip.offsetWidth
 	requestAnimationFrame(() => tooltip?.classList.add('show'))
 
 	// Hide & remove the tooltip again when we no longer need it

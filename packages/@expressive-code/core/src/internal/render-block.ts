@@ -100,7 +100,7 @@ export async function renderBlock({
 		// Add indent information if wrapping is enabled and the configuration
 		// either requests preserving indent or rendering a hanging indent
 		if (wrap && (preserveIndent || hangingIndent > 0)) {
-			const baseIndent = preserveIndent ? line.text.match(/^\s*/)?.[0].length ?? 0 : 0
+			const baseIndent = preserveIndent ? (line.text.match(/^\s*/)?.[0].length ?? 0) : 0
 			const indent = baseIndent + hangingIndent
 			if (indent > 0) setInlineStyle(lineRenderData.lineAst, '--ecIndent', `${indent}ch`)
 		}
