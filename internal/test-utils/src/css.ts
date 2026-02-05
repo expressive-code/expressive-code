@@ -28,7 +28,6 @@ export type SimplifiedDeclaration = {
 
 export function parseCss(css: string): Root {
 	// @ts-expect-error PostCSS has incorrect types when using exactOptionalPropertyTypes
-	// eslint-disable-next-line redundant-undefined/redundant-undefined
 	const postCssOptions: { from?: string } = { from: undefined }
 
 	return postcss.parse(css, postCssOptions)

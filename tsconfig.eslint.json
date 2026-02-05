@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "*.ts",
+    "packages/**/*.ts",
+    "packages/**/*.tsx",
+    "internal/**/*.ts",
+    "internal/**/*.tsx",
+    "docs/**/*.ts",
+    "docs/**/*.tsx",
+    "scripts/**/*.ts",
+    "scripts/**/*.tsx"
+  ],
+  "exclude": ["**/dist/**", "**/node_modules/**"]
+}
