@@ -6,6 +6,9 @@ os.cpus = () => {
 	if (Array.isArray(cpus) && cpus.length > 0) {
 		return cpus
 	}
+	// In some sandboxed/CI-like environments `os.cpus()` can be empty.
+	// Older Astro versions then end up with an invalid concurrency of 0.
+	// Return one synthetic CPU entry to keep build concurrency >= 1.
 	return [
 		{
 			model: 'unknown',
