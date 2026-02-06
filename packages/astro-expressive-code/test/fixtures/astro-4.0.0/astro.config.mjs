@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config'
 import mdx from '@astrojs/mdx'
 import { astroExpressiveCode } from 'astro-expressive-code'
 import testLanguage from './shiki-langs/test-language.mjs'
+import { getTestConfig } from '../astro-test-config.mjs'
 
 // https://astro.build/config
 export default defineConfig({
@@ -17,4 +18,5 @@ export default defineConfig({
 		}),
 		mdx(),
 	],
+	...getTestConfig(),
 })

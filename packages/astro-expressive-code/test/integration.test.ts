@@ -8,6 +8,8 @@ import { fromHtml, buildSampleCodeHtmlRegExp, escapeRegExp, extractTopLevelAsset
 import { getAssetsBaseHref } from '../src/astro-config'
 
 const isEcosystemCiRun = !!process.env.npm_config_ecosystem_ci
+const hmrPortBase = 24700
+const fixtureBuildHookTimeoutMs = process.env.CI ? 90 * 1000 : 20 * 1000
 
 const complexHtmlRegExp = buildSampleCodeHtmlRegExp({
 	title: 'src/layouts/BaseLayout.astro',
@@ -44,7 +46,7 @@ const multiCodeComponentHtmlRegExp = buildSampleCodeHtmlRegExp({
 	],
 })
 
-describe.skipIf(isEcosystemCiRun)('Integration into Astro 3.3.0', () => {
+describe.skipIf(isEcosystemCiRun).concurrent('Integration into Astro 3.3.0', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	beforeAll(async () => {
@@ -53,8 +55,9 @@ describe.skipIf(isEcosystemCiRun)('Integration into Astro 3.3.0', () => {
 			buildCommand: 'pnpm',
 			buildArgs: ['astro', 'build'],
 			outputDir: 'dist',
+			hmrPort: hmrPortBase + 0,
 		})
-	}, 20 * 1000)
+	}, fixtureBuildHookTimeoutMs)
 
 	test('Renders code blocks in Markdown files', () => {
 		const html = fixture?.readFile('index.html') ?? ''
@@ -75,7 +78,7 @@ describe.skipIf(isEcosystemCiRun)('Integration into Astro 3.3.0', () => {
 	})
 })
 
-describe.skipIf(isEcosystemCiRun)('Integration into Astro ^3.5.0 with `emitExternalStylesheet: false`', () => {
+describe.skipIf(isEcosystemCiRun).concurrent('Integration into Astro ^3.5.0 with `emitExternalStylesheet: false`', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	beforeAll(async () => {
@@ -84,8 +87,9 @@ describe.skipIf(isEcosystemCiRun)('Integration into Astro ^3.5.0 with `emitExter
 			buildCommand: 'pnpm',
 			buildArgs: ['astro', 'build'],
 			outputDir: 'dist',
+			hmrPort: hmrPortBase + 1,
 		})
-	}, 20 * 1000)
+	}, fixtureBuildHookTimeoutMs)
 
 	test('Renders code blocks in Markdown files', () => {
 		const html = fixture?.readFile('index.html') ?? ''
@@ -133,7 +137,7 @@ describe.skipIf(isEcosystemCiRun)('Integration into Astro ^3.5.0 with `emitExter
 	})
 })
 
-describe.skipIf(isEcosystemCiRun)('Integration into Astro ^3.5.0 using custom `base` and `build.assets` paths', () => {
+describe.skipIf(isEcosystemCiRun).concurrent('Integration into Astro ^3.5.0 using custom `base` and `build.assets` paths', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	// Provide a copy of the settings defined in `astro.config.mjs` to the tests
@@ -145,8 +149,9 @@ describe.skipIf(isEcosystemCiRun)('Integration into Astro ^3.5.0 using custom `b
 			buildCommand: 'pnpm',
 			buildArgs: ['astro', 'build'],
 			outputDir: 'dist',
+			hmrPort: hmrPortBase + 2,
 		})
-	}, 20 * 1000)
+	}, fixtureBuildHookTimeoutMs)
 
 	test('Renders code blocks in Markdown files', () => {
 		const html = fixture?.readFile('index.html') ?? ''
@@ -199,7 +204,7 @@ describe.skipIf(isEcosystemCiRun)('Integration into Astro ^3.5.0 using custom `b
 	})
 })
 
-describe.skipIf(isEcosystemCiRun)('Integration into Astro ^4.0.0', () => {
+describe.skipIf(isEcosystemCiRun).concurrent('Integration into Astro ^4.0.0', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	beforeAll(async () => {
@@ -208,8 +213,9 @@ describe.skipIf(isEcosystemCiRun)('Integration into Astro ^4.0.0', () => {
 			buildCommand: 'pnpm',
 			buildArgs: ['astro', 'build'],
 			outputDir: 'dist',
+			hmrPort: hmrPortBase + 3,
 		})
-	}, 20 * 1000)
+	}, fixtureBuildHookTimeoutMs)
 
 	test('Renders code blocks in Markdown files', () => {
 		const html = fixture?.readFile('index.html') ?? ''
@@ -270,7 +276,7 @@ describe.skipIf(isEcosystemCiRun)('Integration into Astro ^4.0.0', () => {
 	})
 })
 
-describe('Integration into Astro ^4.5.0 with Cloudflare adapter', () => {
+describe.concurrent('Integration into Astro ^4.5.0 with Cloudflare adapter', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	beforeAll(async () => {
@@ -279,8 +285,9 @@ describe('Integration into Astro ^4.5.0 with Cloudflare adapter', () => {
 			buildCommand: 'pnpm',
 			buildArgs: ['astro', 'build'],
 			outputDir: 'dist',
+			hmrPort: hmrPortBase + 4,
 		})
-	}, 20 * 1000)
+	}, fixtureBuildHookTimeoutMs)
 
 	test('Emits an external stylesheet into the Astro assets dir', () => {
 		const files = fixture?.readDir('_astro') ?? []
@@ -343,7 +350,7 @@ describe('Integration into Astro ^4.5.0 with Cloudflare adapter', () => {
 	})
 })
 
-describe('Integration into Astro ^5.0.0', () => {
+describe.concurrent('Integration into Astro ^5.0.0', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	beforeAll(async () => {
@@ -352,8 +359,9 @@ describe('Integration into Astro ^5.0.0', () => {
 			buildCommand: 'pnpm',
 			buildArgs: ['astro', 'build'],
 			outputDir: 'dist',
+			hmrPort: hmrPortBase + 5,
 		})
-	}, 20 * 1000)
+	}, fixtureBuildHookTimeoutMs)
 
 	test('Renders code blocks in Markdown files', () => {
 		const html = fixture?.readFile('index.html') ?? ''
@@ -455,7 +463,7 @@ describe('Integration into Astro ^5.0.0', () => {
 	})
 })
 
-describe('Integration into Astro ^6.0.0', () => {
+describe.concurrent('Integration into Astro ^6.0.0', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
 
 	beforeAll(async () => {
@@ -464,8 +472,9 @@ describe('Integration into Astro ^6.0.0', () => {
 			buildCommand: 'pnpm',
 			buildArgs: ['astro', 'build'],
 			outputDir: 'dist',
+			hmrPort: hmrPortBase + 6,
 		})
-	}, 20 * 1000)
+	}, fixtureBuildHookTimeoutMs)
 
 	test('Renders code blocks in Markdown files', () => {
 		const html = fixture?.readFile('index.html') ?? ''
@@ -633,15 +642,22 @@ async function buildFixture({
 	buildArgs,
 	outputDir,
 	keepPreviousBuild = false,
+	hmrPort,
 }: {
 	fixtureDir: string
 	buildCommand: string
 	buildArgs?: string[] | undefined
 	outputDir: string
 	keepPreviousBuild?: boolean | undefined
+	hmrPort?: number | undefined
 }) {
 	const fixturePath = join(__dirname, 'fixtures', fixtureDir)
 	const outputDirPath = join(fixturePath, outputDir)
+	const shimPath = join(__dirname, 'fixtures', 'astro-build-shim.cjs')
+	// Some restricted environments report `os.cpus()` as an empty array.
+	// Astro 3.x can derive a build concurrency of 0 from that and crash, so we
+	// always preload a tiny shim that guarantees at least one CPU entry.
+	const nodeOptions = [process.env.NODE_OPTIONS, `--require ${shimPath}`].filter(Boolean).join(' ')
 
 	if (!keepPreviousBuild) {
 		// Remove the output directory if it exists
@@ -650,7 +666,14 @@ async function buildFixture({
 		}
 
 		// Run the build command
-		const buildCommandResult = await execa(buildCommand, buildArgs ?? [], { cwd: fixturePath })
+		const buildCommandResult = await execa(buildCommand, buildArgs ?? [], {
+			cwd: fixturePath,
+			env: {
+				...process.env,
+				NODE_OPTIONS: nodeOptions,
+				VITE_HMR_PORT: hmrPort ? String(hmrPort) : undefined,
+			},
+		})
 
 		// Throw an error if the build command failed
 		if (buildCommandResult.failed || buildCommandResult.stderr) {
@@ -660,6 +683,7 @@ async function buildFixture({
 
 	// Return an object that contains the output directory path and allows to read files from it
 	return {
+		fixtureDir,
 		path: outputDirPath,
 		readFile: (filePath: string) => readFileSync(join(outputDirPath, filePath), 'utf-8'),
 		readDir: (subPath: string) => readdirSync(join(outputDirPath, subPath), 'utf-8'),
