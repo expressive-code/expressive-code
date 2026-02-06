@@ -4,7 +4,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "astro build",
     "preview": "wrangler pages dev ./dist --compatibility-date=2024-12-30"
   },
   "dependencies": {
