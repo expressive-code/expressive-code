@@ -9,6 +9,7 @@ import { getAssetsBaseHref } from '../src/astro-config'
 
 const isEcosystemCiRun = !!process.env.npm_config_ecosystem_ci
 const hmrPortBase = 24700
+const fixtureBuildHookTimeoutMs = process.env.CI ? 90 * 1000 : 20 * 1000
 
 const complexHtmlRegExp = buildSampleCodeHtmlRegExp({
 	title: 'src/layouts/BaseLayout.astro',
@@ -56,7 +57,7 @@ describe.skipIf(isEcosystemCiRun).concurrent('Integration into Astro 3.3.0', () 
 			outputDir: 'dist',
 			hmrPort: hmrPortBase + 0,
 		})
-	}, 20 * 1000)
+	}, fixtureBuildHookTimeoutMs)
 
 	test('Renders code blocks in Markdown files', () => {
 		const html = fixture?.readFile('index.html') ?? ''
@@ -88,7 +89,7 @@ describe.skipIf(isEcosystemCiRun).concurrent('Integration into Astro ^3.5.0 with
 			outputDir: 'dist',
 			hmrPort: hmrPortBase + 1,
 		})
-	}, 20 * 1000)
+	}, fixtureBuildHookTimeoutMs)
 
 	test('Renders code blocks in Markdown files', () => {
 		const html = fixture?.readFile('index.html') ?? ''
@@ -150,7 +151,7 @@ describe.skipIf(isEcosystemCiRun).concurrent('Integration into Astro ^3.5.0 usin
 			outputDir: 'dist',
 			hmrPort: hmrPortBase + 2,
 		})
-	}, 20 * 1000)
+	}, fixtureBuildHookTimeoutMs)
 
 	test('Renders code blocks in Markdown files', () => {
 		const html = fixture?.readFile('index.html') ?? ''
@@ -214,7 +215,7 @@ describe.skipIf(isEcosystemCiRun).concurrent('Integration into Astro ^4.0.0', ()
 			outputDir: 'dist',
 			hmrPort: hmrPortBase + 3,
 		})
-	}, 20 * 1000)
+	}, fixtureBuildHookTimeoutMs)
 
 	test('Renders code blocks in Markdown files', () => {
 		const html = fixture?.readFile('index.html') ?? ''
@@ -286,7 +287,7 @@ describe.concurrent('Integration into Astro ^4.5.0 with Cloudflare adapter', () 
 			outputDir: 'dist',
 			hmrPort: hmrPortBase + 4,
 		})
-	}, 20 * 1000)
+	}, fixtureBuildHookTimeoutMs)
 
 	test('Emits an external stylesheet into the Astro assets dir', () => {
 		const files = fixture?.readDir('_astro') ?? []
@@ -360,7 +361,7 @@ describe.concurrent('Integration into Astro ^5.0.0', () => {
 			outputDir: 'dist',
 			hmrPort: hmrPortBase + 5,
 		})
-	}, 20 * 1000)
+	}, fixtureBuildHookTimeoutMs)
 
 	test('Renders code blocks in Markdown files', () => {
 		const html = fixture?.readFile('index.html') ?? ''
@@ -473,7 +474,7 @@ describe.concurrent('Integration into Astro ^6.0.0', () => {
 			outputDir: 'dist',
 			hmrPort: hmrPortBase + 6,
 		})
-	}, 20 * 1000)
+	}, fixtureBuildHookTimeoutMs)
 
 	test('Renders code blocks in Markdown files', () => {
 		const html = fixture?.readFile('index.html') ?? ''
