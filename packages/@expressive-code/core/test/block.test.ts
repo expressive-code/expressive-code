@@ -298,6 +298,20 @@ describe('ExpressiveCodeBlock', () => {
 			expect(block.code).toEqual(['a', 'c'].join('\n'))
 			expect(block.getCopyText()).toEqual(['a', 'c'].join('\n'))
 		})
+		test('Retains copy insert transforms when fallback resolves to line index 0', () => {
+			const block = prepareTestBlock({ code: ['a', 'b'].join('\n') })
+			block.getLine(1)?.addCopyTransform({
+				type: 'insertLines',
+				lines: ['X'],
+				position: 'after',
+				onDeleteLine: 'stick-prev',
+			})
+			block.getLine(1)?.addCopyTransform({
+				type: 'removeLine',
+			})
+
+			expect(block.getCopyText()).toEqual(['a', 'X'].join('\n'))
+		})
 	})
 
 	describe('insertLine()', () => {

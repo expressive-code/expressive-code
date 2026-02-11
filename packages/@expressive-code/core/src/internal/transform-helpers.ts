@@ -1,5 +1,6 @@
 import type { ExpressiveCodeLine } from '../common/line'
 import type { TransformAnchorFallback } from '../common/transforms'
+import { resolveTransformAnchorFallback } from './transform-anchor-fallback'
 
 /**
  * Retargets line-bound copy and render transform annotations before deleting lines.
@@ -86,7 +87,6 @@ function resolveRetargetAnchor(options: {
 	onDeleteLine: TransformAnchorFallback
 }) {
 	const { lines, deletedLineIndices, deletedLineIndex, onDeleteLine } = options
-	if (onDeleteLine === 'drop') return
 
 	let prevIndex: number | undefined
 	for (let index = deletedLineIndex - 1; index >= 0; index--) {
@@ -102,12 +102,14 @@ function resolveRetargetAnchor(options: {
 		break
 	}
 
-	if (onDeleteLine === 'stick-prev') {
-		if (prevIndex !== undefined) return { targetLineIndex: prevIndex, position: 'after' as const }
-		if (nextIndex !== undefined) return { targetLineIndex: nextIndex, position: 'before' as const }
-		return
+	const resolved = resolveTransformAnchorFallback({
+		onDeleteLine,
+		previous: prevIndex,
+		next: nextIndex,
+	})
+	if (!resolved) return
+	return {
+		targetLineIndex: resolved.anchor,
+		position: resolved.position,
 	}
-
-	if (nextIndex !== undefined) return { targetLineIndex: nextIndex, position: 'before' as const }
-	if (prevIndex !== undefined) return { targetLineIndex: prevIndex, position: 'after' as const }
 }

@@ -11,11 +11,11 @@ export function resolveTransformAnchorFallback<T>(options: { onDeleteLine: Trans
 	if (onDeleteLine === 'drop') return
 
 	if (onDeleteLine === 'stick-prev') {
-		if (previous) return { anchor: previous, position: 'after' as const }
-		if (next) return { anchor: next, position: 'before' as const }
+		if (previous !== undefined) return { anchor: previous, position: 'after' as const }
+		if (next !== undefined) return { anchor: next, position: 'before' as const }
 		return
 	}
 
-	if (next) return { anchor: next, position: 'before' as const }
-	if (previous) return { anchor: previous, position: 'after' as const }
+	if (next !== undefined) return { anchor: next, position: 'before' as const }
+	if (previous !== undefined) return { anchor: previous, position: 'after' as const }
 }
