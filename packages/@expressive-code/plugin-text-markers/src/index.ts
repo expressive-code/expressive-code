@@ -1,5 +1,7 @@
 import {
 	AnnotationRenderPhaseOrder,
+	type AnnotationCommentHandler,
+	type ExpressiveCodeBlock,
 	ExpressiveCodePlugin,
 	InlineStyleAnnotation,
 	ensureColorContrastOnBackground,
@@ -7,16 +9,18 @@ import {
 	isInlineStyleAnnotation,
 	onBackground,
 } from '@expressive-code/core'
+import { addClassName, select, type Element } from '@expressive-code/core/hast'
 import rangeParser from 'parse-numeric-range'
 import type { MarkerType } from './marker-types'
 import { MarkerTypeOrder, markerTypeFromString } from './marker-types'
 import { getTextMarkersBaseStyles, markerBgColorPaths, textMarkersStyleSettings } from './styles'
 import { flattenInlineMarkerRanges, getInlineSearchTermMatches } from './inline-markers'
-import { TextMarkerAnnotation } from './annotations'
+import { createLabelHast, normalizeLabelContent, TextMarkerAnnotation, type TextMarkerCopyCommentSyntax } from './annotations'
 import { toDefinitionsArray } from './utils'
 export type { TextMarkersStyleSettings } from './styles'
 
 export type MarkerLineOrRange = number | { range: string; label?: string | undefined }
+export type DelMarkerCopyBehavior = 'remove' | 'comment' | 'keep'
 
 /**
  * A single text marker definition that can be used in the `mark`, `ins`, and `del` props
@@ -54,6 +58,22 @@ export interface PluginTextMarkersProps {
 	 * inserted or deleted lines.
 	 */
 	useDiffSyntax: boolean
+	/**
+	 * Controls how deleted targets are represented in copied plaintext code.
+	 *
+	 * This applies to all deleted markers, including markers created from annotation
+	 * comments, marker metadata, and diff syntax.
+	 *
+	 * - `remove`: Deleted targets are removed from copied code.
+	 * - `comment`: Full deleted lines are commented out in copied code.
+	 *   Inline deleted targets are still removed.
+	 * - `keep`: Deleted targets remain unchanged in copied code.
+	 *
+	 * This can be configured per block or globally via engine `defaultProps`.
+	 *
+	 * @default 'remove'
+	 */
+	delCopyBehavior: DelMarkerCopyBehavior
 }
 
 declare module '@expressive-code/core' {
@@ -65,6 +85,20 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 		name: 'TextMarkers',
 		styleSettings: textMarkersStyleSettings,
 		baseStyles: (context) => getTextMarkersBaseStyles(context),
+		annotationCommentHandlers: [
+			createTextMarkerAnnotationCommentHandler({
+				markerType: 'mark',
+				tagNames: ['mark'],
+			}),
+			createTextMarkerAnnotationCommentHandler({
+				markerType: 'ins',
+				tagNames: ['ins', 'add', '+'],
+			}),
+			createTextMarkerAnnotationCommentHandler({
+				markerType: 'del',
+				tagNames: ['del', 'rem', '-'],
+			}),
+		],
 		hooks: {
 			preprocessLanguage: ({ codeBlock }) => {
 				// If a "lang" option was given and the code block's language is "diff",
@@ -101,6 +135,7 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 					}
 				})
 				codeBlock.props.useDiffSyntax = codeBlock.metaOptions.getBoolean('useDiffSyntax') ?? codeBlock.props.useDiffSyntax
+				codeBlock.props.delCopyBehavior = parseDelMarkerCopyBehavior(codeBlock.metaOptions.getString('delCopyBehavior')) ?? codeBlock.props.delCopyBehavior
 
 				// Use props to create line-level annotations for full-line highlighting definitions
 				MarkerTypeOrder.forEach((markerType) => {
@@ -111,12 +146,34 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 						const lineNumbers = rangeParser(range)
 						lineNumbers.forEach((lineNumber, idx) => {
 							const lineIndex = lineNumber - 1
-							codeBlock.getLine(lineIndex)?.addAnnotation(
+							const line = codeBlock.getLine(lineIndex)
+							if (!line) return
+							// If a label was given, only show it at the beginning of each range
+							const labelForLine = idx === 0 || lineNumber - lineNumbers[idx - 1] !== 1 ? label : undefined
+							const labelRenderMode = resolveLabelRenderMode({
+								label: labelForLine,
+								hasTargets: true,
+								allowBetweenLinesWithoutTargetLineText: false,
+								targetLineText: line.text,
+							})
+							if (labelRenderMode === 'between-lines' && labelForLine) {
+								line.addRenderTransform({
+									type: 'insert',
+									position: 'before',
+									onDeleteLine: 'stick-next',
+									render: ({ renderEmptyLine }) => {
+										const emptyLine = renderEmptyLine()
+										prepareLabelLine({ lineAst: emptyLine.lineAst, isGeneratedLine: true, markerType })
+										emptyLine.codeWrapper.children.unshift(createLabelHast(labelForLine))
+										return emptyLine.lineAst
+									},
+								})
+							}
+							line.addAnnotation(
 								new TextMarkerAnnotation({
 									markerType,
 									backgroundColor: cssVar(markerBgColorPaths[markerType]),
-									// Add a label to the first line of each consecutive range
-									label: idx === 0 || lineNumber - lineNumbers[idx - 1] !== 1 ? label : undefined,
+									label: labelRenderMode === 'inline' ? labelForLine : undefined,
 								})
 							)
 						})
@@ -202,6 +259,7 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 				})
 			},
 			postprocessAnnotations: ({ codeBlock, styleVariants, config }) => {
+				applyDeletedMarkerCopyTransformsForBlock(codeBlock)
 				if (config.minSyntaxHighlightingColorContrast <= 0) return
 				codeBlock.getLines().forEach((line) => {
 					const annotations = line.getAnnotations()
@@ -275,4 +333,177 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 			},
 		},
 	}
+}
+
+function createTextMarkerAnnotationCommentHandler(options: { markerType: MarkerType; tagNames: string[] }): AnnotationCommentHandler {
+	const { markerType, tagNames } = options
+
+	return {
+		tagNames,
+		content: {
+			displayCode: 'remove',
+			copyCode: 'remove',
+			render: {
+				placement: ({ annotationComment, targets, content }) => {
+					const label = normalizeLabelContent(content.lines)
+					const labelRenderMode = resolveLabelRenderMode({
+						label,
+						hasTargets: targets.length > 0,
+						allowBetweenLinesWithoutTargetLineText: true,
+					})
+					if (labelRenderMode === 'none') return false
+					const targetsAbove = areAnyTargetsAboveAnnotationLine(targets, annotationComment.tag.range.start.line)
+					return {
+						anchor: targets.length ? (targetsAbove ? 'lastTarget' : 'firstTarget') : 'annotation',
+						line: labelRenderMode === 'between-lines' ? (targetsAbove ? 'after' : 'before') : 'current',
+						col: 'lineStart',
+					}
+				},
+				contentWrapper: ({ content }) => createLabelHast(content.lines),
+				parentLine: ({ lineAst, isGeneratedLine }) => {
+					prepareLabelLine({ lineAst, isGeneratedLine, markerType })
+				},
+			},
+		},
+		handle: ({ targets, annotationComment, cssVar }) => {
+			const copyCommentSyntax = markerType === 'del' ? annotationComment.commentSyntax : undefined
+			targets.forEach((target) => {
+				target.line.addAnnotation(
+					new TextMarkerAnnotation({
+						markerType,
+						backgroundColor: cssVar(markerBgColorPaths[markerType]),
+						inlineRange: target.inlineRange,
+						copyCommentSyntax,
+					})
+				)
+			})
+		},
+	}
+}
+
+function prepareLabelLine(options: { lineAst: Element; isGeneratedLine: boolean; markerType: MarkerType }) {
+	const { lineAst, isGeneratedLine, markerType } = options
+	addClassName(lineAst, 'has-label')
+	if (!isGeneratedLine) return
+
+	addClassName(lineAst, 'highlight')
+	addClassName(lineAst, 'tm-between')
+	addClassName(lineAst, markerType)
+
+	// To ensure the line height is correct even if the label is the only content in the line,
+	// we add a newline text node to the code wrapper if it was generated as an empty line
+	select('.code', lineAst)?.children.push({ type: 'text', value: '\n' })
+}
+
+function shouldRenderLabelBetweenLines(label = ''): label is string {
+	return label.trim().length > 2
+}
+
+function areAnyTargetsAboveAnnotationLine(targets: { lineIndex: number }[], annotationLineIndex: number) {
+	return targets.some((target) => target.lineIndex < annotationLineIndex)
+}
+
+function resolveLabelRenderMode(options: { label: string | undefined; hasTargets: boolean; allowBetweenLinesWithoutTargetLineText: boolean; targetLineText?: string | undefined }) {
+	const { label, hasTargets, allowBetweenLinesWithoutTargetLineText, targetLineText } = options
+	if (!label) return 'none' as const
+	if (!hasTargets) return 'between-lines' as const
+	if (!shouldRenderLabelBetweenLines(label)) return 'inline' as const
+	// Before the release of annotation comment support, rendering labels
+	// between lines was not possible. Authors had to insert empty lines
+	// into the code plaintext and assign a label to them.
+	// To avoid breaking the layout of sites using this old approach,
+	// we only allow between-line rendering if the line is not empty.
+	if (allowBetweenLinesWithoutTargetLineText) return 'between-lines' as const
+	return targetLineText?.trim() ? ('between-lines' as const) : ('inline' as const)
+}
+
+function parseDelMarkerCopyBehavior(rawValue: string | undefined): DelMarkerCopyBehavior | undefined {
+	const normalizedValue = rawValue?.trim().toLowerCase()
+	if (!normalizedValue) return undefined
+	if (normalizedValue === 'remove' || normalizedValue === 'comment' || normalizedValue === 'keep') return normalizedValue
+	return undefined
+}
+
+function getDelMarkerCopyBehavior(codeBlock: ExpressiveCodeBlock): DelMarkerCopyBehavior {
+	return parseDelMarkerCopyBehavior(codeBlock.props.delCopyBehavior as string | undefined) ?? 'remove'
+}
+
+function applyDeletedMarkerCopyTransformsForBlock(codeBlock: ExpressiveCodeBlock) {
+	const copyBehavior = getDelMarkerCopyBehavior(codeBlock)
+	if (copyBehavior === 'keep') return
+
+	codeBlock.getLines().forEach((line) => {
+		const deletedMarkers = line
+			.getAnnotations()
+			.filter((annotation): annotation is TextMarkerAnnotation => annotation instanceof TextMarkerAnnotation && annotation.markerType === 'del')
+		if (!deletedMarkers.length) return
+
+		const fullLineMarkers = deletedMarkers.filter((marker) => !marker.inlineRange)
+		if (fullLineMarkers.length > 0) {
+			if (copyBehavior === 'remove') {
+				line.addCopyTransform({
+					type: 'removeLine',
+				})
+				return
+			}
+			const commentSyntax = fullLineMarkers.find((marker) => marker.copyCommentSyntax)?.copyCommentSyntax ?? defaultCopyCommentSyntax
+			line.addCopyTransform({
+				type: 'editText',
+				newText: commentOutLine(line.text, commentSyntax),
+			})
+			return
+		}
+
+		const mergedInlineRanges = mergeInlineRanges(deletedMarkers.flatMap((marker) => (marker.inlineRange ? [marker.inlineRange] : [])))
+		mergedInlineRanges.forEach((inlineRange) => {
+			line.addCopyTransform({
+				type: 'editText',
+				inlineRange,
+				newText: '',
+			})
+		})
+	})
+}
+
+function mergeInlineRanges(ranges: { columnStart: number; columnEnd: number }[]) {
+	if (!ranges.length) return []
+	const normalizedRanges = ranges
+		.map(({ columnStart, columnEnd }) => ({
+			columnStart: Math.min(columnStart, columnEnd),
+			columnEnd: Math.max(columnStart, columnEnd),
+		}))
+		.filter(({ columnStart, columnEnd }) => columnEnd > columnStart)
+		.sort((a, b) => {
+			if (a.columnStart !== b.columnStart) return a.columnStart - b.columnStart
+			return a.columnEnd - b.columnEnd
+		})
+	if (!normalizedRanges.length) return []
+
+	const mergedRanges = [normalizedRanges[0]]
+	for (const range of normalizedRanges.slice(1)) {
+		const previousRange = mergedRanges[mergedRanges.length - 1]
+		if (range.columnStart <= previousRange.columnEnd) {
+			previousRange.columnEnd = Math.max(previousRange.columnEnd, range.columnEnd)
+			continue
+		}
+		mergedRanges.push({ ...range })
+	}
+	return mergedRanges
+}
+
+const defaultCopyCommentSyntax: TextMarkerCopyCommentSyntax = {
+	opening: '//',
+}
+
+function commentOutLine(lineText: string, commentSyntax: TextMarkerCopyCommentSyntax) {
+	const { opening, closing } = commentSyntax
+	const lineMatch = lineText.match(/^(\s*)(.*)$/)
+	const indentation = lineMatch?.[1] ?? ''
+	const content = lineMatch?.[2] ?? ''
+	const trimmedContent = content.trim()
+
+	if (!closing) {
+		return `${indentation}${opening}${trimmedContent ? ` ${trimmedContent}` : ''}`
+	}
+	return `${indentation}${opening}${trimmedContent ? ` ${trimmedContent} ` : ' '}${closing}`.trimEnd()
 }

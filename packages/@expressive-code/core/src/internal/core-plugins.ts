@@ -1,6 +1,7 @@
 import { AnnotationRenderOptions, ExpressiveCodeAnnotation, isInlineStyleAnnotation } from '../common/annotation'
 import { ExpressiveCodePlugin } from '../common/plugin'
 import { h } from '../hast'
+import { getLeadingWhitespaceColumns } from './indentation'
 import tabindexJsModule from './tabindex-js-module.min'
 
 export const corePlugins: ExpressiveCodePlugin[] = [
@@ -9,7 +10,7 @@ export const corePlugins: ExpressiveCodePlugin[] = [
 		hooks: {
 			postprocessAnnotations: ({ codeBlock }) => {
 				codeBlock.getLines().forEach((line) => {
-					const indent = line.text.match(/^\s+/)?.[0].length ?? 0
+					const indent = getLeadingWhitespaceColumns(line.text)
 					if (indent > 0) {
 						// Remove any unnecessary inline styles inside the indent
 						line.getAnnotations().forEach((annotation) => {

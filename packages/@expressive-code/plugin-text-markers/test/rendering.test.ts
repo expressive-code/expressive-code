@@ -1,6 +1,6 @@
 import { describe, test, expect, afterEach } from 'vitest'
 import { AnnotationRenderPhase, ExpressiveCodePlugin, GutterRenderContext, InlineStyleAnnotation } from '@expressive-code/core'
-import { getClassNames, getInlineStyles, h, select, selectAll, setInlineStyle, toText } from '@expressive-code/core/hast'
+import { getClassNames, h, select, selectAll, setInlineStyle, toText } from '@expressive-code/core/hast'
 import { pluginShiki } from '@expressive-code/plugin-shiki'
 import { renderAndOutputHtmlSnapshot, buildThemeFixtures, TestFixture, loadTestThemes, validateColorContrast } from '@internal/test-utils'
 import { pluginTextMarkers } from '../src'
@@ -505,9 +505,9 @@ import MyAstroComponent from '../components/MyAstroComponent.astro';
 		{ fullLine: true, markerType: 'del', text: `layout: ../../layouts/BaseLayout.astro` },
 		// Expect the diff prefix `+` to have been converted to a line-level ins marker
 		{ fullLine: true, markerType: 'ins', text: `publishDate: '21 September 2022'` },
-		// Expect the labels to be escaped
-		{ fullLine: true, markerType: 'ins', text: `import BaseLayout from '../../layouts/BaseLayout.astro';`, label: '\\\\' },
-		{ fullLine: true, markerType: 'mark', text: `export function fancyJsHelper() {`, label: "\\'" },
+		// Labels are rendered as plaintext in dedicated label elements
+		{ fullLine: true, markerType: 'ins', text: `import BaseLayout from '../../layouts/BaseLayout.astro';`, label: '\\' },
+		{ fullLine: true, markerType: 'mark', text: `export function fancyJsHelper() {`, label: "'" },
 		{ fullLine: true, markerType: 'mark', text: `  return "Try doing that with YAML!";` },
 		{ fullLine: true, markerType: 'mark', text: `}` },
 		{ markerType: 'mark', text: `<BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>` },
@@ -750,9 +750,15 @@ function buildMarkerValidationFn(
 		const allMarkersSelector = [...lineMarkerSelectors, ...inlineMarkerSelectors].join(',')
 		const matchingElements = selectAll(allMarkersSelector, renderedGroupAst)
 		const actualMarkers = matchingElements.map((marker) => {
-			let text = toText(select('.code', marker) || marker, { whitespace: 'pre' })
+			const codeWrapper = select('.code', marker)
+			const codeWithoutLabels =
+				codeWrapper && codeWrapper.type === 'element'
+					? { ...codeWrapper, children: codeWrapper.children.filter((child) => child.type !== 'element' || !getClassNames(child).includes('tm-label')) }
+					: undefined
+			let text = toText(codeWithoutLabels || codeWrapper || marker, { whitespace: 'pre' })
 			if (text === '\n') text = ''
-			const label = getInlineStyles(marker).get('--tmLabel')?.replace(/^'|'$/g, '')
+			const labelElement = select('.tm-label', marker)
+			const label = labelElement ? toText(labelElement, { whitespace: 'pre' }) : undefined
 			const classNames = getClassNames(marker)
 			if (MarkerTypeOrder.includes(marker.tagName as MarkerType)) {
 				return {

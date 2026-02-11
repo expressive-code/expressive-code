@@ -1,26 +1,26 @@
-import { Node } from '../hast'
+import type { Element, Node } from '../hast'
 
-export function isNumber(input: number) {
+export function isNumber(input: unknown): input is number {
 	return typeof input === 'number' && !isNaN(input)
 }
 
-export function isString(input: string) {
+export function isString(input: unknown): input is string {
 	return typeof input === 'string'
 }
 
-export function isBoolean(input: boolean) {
+export function isBoolean(input: unknown): input is boolean {
 	return typeof input === 'boolean'
 }
 
-export function isFunction<Type>(input: Type) {
+export function isFunction<Type>(input: unknown): input is Type {
 	return typeof input === 'function'
 }
 
-function isHastNode(node: { type: string }) {
-	return node?.type ? typeof node.type === 'string' : false
+function isHastNode(node: unknown): node is Node {
+	return !!node && typeof node === 'object' && typeof (node as { type?: unknown }).type === 'string'
 }
 
-export function isHastElement(node: Node) {
+export function isHastElement(node: unknown): node is Element {
 	return isHastNode(node) && node.type === 'element'
 }
 

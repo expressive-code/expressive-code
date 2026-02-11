@@ -156,7 +156,7 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 
 				// If enabled, create a button to copy the code to the clipboard
 				if (options.showCopyToClipboardButton) {
-					let codeToCopy = codeBlock.code
+					let codeToCopy = codeBlock.getCopyText()
 
 					// If enabled, remove comment lines starting with `#` from terminal frames
 					if (options.removeCommentsWhenCopyingTerminalFrames && isTerminal) {

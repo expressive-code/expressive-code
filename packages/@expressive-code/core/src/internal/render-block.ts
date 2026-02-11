@@ -1,13 +1,16 @@
 import type { Element } from '../hast'
 import { addClassName, setInlineStyle, h } from '../hast'
 import { ExpressiveCodePlugin } from '../common/plugin'
-import { ExpressiveCodeHookContext, ExpressiveCodeHookContextBase, ExpressiveCodePluginHooks_BeforeRendering, runHooks } from '../common/plugin-hooks'
+import { ExpressiveCodeHookContextBase, ExpressiveCodePluginHooks_BeforeRendering, runHooks } from '../common/plugin-hooks'
 import { PluginStyles } from './css'
 import { PluginGutterElement, getRenderEmptyLineFn, renderLineToAst } from './render-line'
 import { isBoolean, isHastElement, newTypeError } from './type-checks'
 import { AnnotationRenderPhaseOrder } from '../common/annotation'
 import { ExpressiveCodeBlock } from '../common/block'
 import { GutterElement } from '../common/gutter'
+import { processAnnotationComments } from './integrations/annotation-comments'
+import { applyRenderTransforms } from './render-transforms'
+import { getLeadingWhitespaceColumns } from './indentation'
 
 export async function renderBlock({
 	codeBlock,
@@ -36,7 +39,7 @@ export async function renderBlock({
 		plugins,
 		config,
 	}
-	const baseContext: Omit<ExpressiveCodeHookContext, 'addStyles' | 'addGutterElement'> = {
+	const baseContext: ExpressiveCodeHookContextBase = {
 		codeBlock,
 		groupContents,
 		locale,
@@ -72,6 +75,7 @@ export async function renderBlock({
 	await runBeforeRenderingHooks('preprocessMetadata')
 	state.canEditCode = true
 	await runBeforeRenderingHooks('preprocessCode')
+	await processAnnotationComments(baseContext)
 
 	// Run hooks for processing & finalizing the code
 	await runBeforeRenderingHooks('performSyntaxAnalysis')
@@ -100,7 +104,7 @@ export async function renderBlock({
 		// Add indent information if wrapping is enabled and the configuration
 		// either requests preserving indent or rendering a hanging indent
 		if (wrap && (preserveIndent || hangingIndent > 0)) {
-			const baseIndent = preserveIndent ? (line.text.match(/^\s*/)?.[0].length ?? 0) : 0
+			const baseIndent = preserveIndent ? getLeadingWhitespaceColumns(line.text) : 0
 			const indent = baseIndent + hangingIndent
 			if (indent > 0) setInlineStyle(lineRenderData.lineAst, '--ecIndent', `${indent}ch`)
 		}
@@ -121,10 +125,16 @@ export async function renderBlock({
 		renderedAstLines.push(lineRenderData.lineAst)
 	}
 
+	const renderedAstLinesWithTransforms = await applyRenderTransforms({
+		lines,
+		renderedAstLines,
+		renderEmptyLine,
+	})
+
 	// Combine rendered lines into a block AST and wrap it in an object that can be passed
 	// through all hooks, allowing plugins to edit or completely replace the AST
 	const blockRenderData = {
-		blockAst: buildCodeBlockAstFromRenderedLines(codeBlock, renderedAstLines),
+		blockAst: buildCodeBlockAstFromRenderedLines(codeBlock, renderedAstLinesWithTransforms),
 	}
 	await runHooks('postprocessRenderedBlock', runHooksContext, async ({ hookFn, plugin }) => {
 		await hookFn({

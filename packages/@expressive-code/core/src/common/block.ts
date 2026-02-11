@@ -1,4 +1,6 @@
 import { MetaOptions } from '../helpers/meta-options'
+import { retargetTransformsOnDeletedLines } from '../internal/transform-helpers'
+import { applyCopyTransforms } from '../internal/copy-transforms'
 import { ExpressiveCodeProcessingState, validateExpressiveCodeProcessingState } from '../internal/render-block'
 import { isNumber, isString, newTypeError } from '../internal/type-checks'
 import { ExpressiveCodeLine } from './line'
@@ -304,6 +306,16 @@ export class ExpressiveCodeBlock {
 	}
 
 	/**
+	 * Returns the plaintext code that should be copied to the clipboard for this block.
+	 *
+	 * By default, this is the block's current plaintext code. If plugins registered
+	 * copy transforms, these transforms are applied before returning the text.
+	 */
+	getCopyText() {
+		return applyCopyTransforms({ lines: this.#lines })
+	}
+
+	/**
 	 * Deletes the line at the given index.
 	 *
 	 * May throw an error if not allowed in the current {@link state}.
@@ -325,8 +337,9 @@ export class ExpressiveCodeBlock {
 		if (!Array.isArray(indices) || indices.length === 0 || indices.some((index) => !isNumber(index) || index < 0)) throw newTypeError('non-empty non-negative number[]', indices)
 		if (this.#state?.canEditCode === false) throw new Error('Cannot delete code block lines in the current state.')
 
-		// Sort line indices in reverse order and delete them
+		// Sort line indices in reverse order, validate them, then delete them
 		const sorted = [...indices].sort((a, b) => b - a)
+		const deletedLineIndices = new Set<number>()
 		let lastIndex: number
 		sorted.forEach((index) => {
 			if (lastIndex === index) throw new Error(`A batch of lines to delete cannot contain the same index twice. Given indices: ${JSON.stringify(indices)}`)
@@ -334,6 +347,15 @@ export class ExpressiveCodeBlock {
 			const isValidIndex = index >= 0 && index < this.#lines.length
 			if (!isValidIndex)
 				throw new Error(`Cannot delete invalid index ${JSON.stringify(index)} from line array (length=${this.#lines.length}). Given indices: ${JSON.stringify(indices)}`)
+			deletedLineIndices.add(index)
+		})
+
+		retargetTransformsOnDeletedLines({
+			lines: this.#lines,
+			deletedLineIndices,
+		})
+
+		sorted.forEach((index) => {
 			this.#lines.splice(index, 1)
 		})
 	}

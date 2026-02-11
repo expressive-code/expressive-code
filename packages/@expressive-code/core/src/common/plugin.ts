@@ -2,6 +2,7 @@ import { ExpressiveCodePluginHooks } from './plugin-hooks'
 import { PluginStyleSettings } from './plugin-style-settings'
 import { StyleSettingPath } from './style-settings'
 import { StyleVariant } from './style-variants'
+import type { AnnotationCommentHandler } from './annotation-comments'
 
 /**
  * An interface that defines an Expressive Code plugin. To add a custom plugin,
@@ -58,6 +59,13 @@ export interface ExpressiveCodePlugin {
 	 * rendering process. See {@link ExpressiveCodePluginHooks} for a list of available hooks.
 	 */
 	hooks?: ExpressiveCodePluginHooks | undefined
+	/**
+	 * Optional annotation comment handlers provided by this plugin.
+	 *
+	 * Handlers can map parsed annotation comments (e.g. `// [!note] ...`) to regular
+	 * {@link ExpressiveCodeAnnotation} instances and copy transforms.
+	 */
+	annotationCommentHandlers?: AnnotationCommentHandler[] | undefined
 }
 
 export type BaseStylesResolverFn = (context: ResolverContext) => string | Promise<string>

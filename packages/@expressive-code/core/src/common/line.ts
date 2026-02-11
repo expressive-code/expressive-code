@@ -1,5 +1,7 @@
 import type { ExpressiveCodeAnnotation, ExpressiveCodeInlineRange } from './annotation'
 import { ExpressiveCodeBlock } from './block'
+import { CopyTransformAnnotation, isCopyTransformAnnotation, type CopyTransformOptions } from './copy-transforms'
+import { RenderTransformAnnotation, isRenderTransformAnnotation, type RenderTransform } from './render-transforms'
 import { getAbsoluteRange } from '../internal/ranges'
 import { isNumber, isString, newTypeError } from '../internal/type-checks'
 
@@ -112,6 +114,40 @@ export class ExpressiveCodeLine {
 		this.#text = this.text.slice(0, editStart) + newText + this.text.slice(editEnd)
 
 		return this.text
+	}
+
+	/**
+	 * Registers a copy transform on this line.
+	 *
+	 * Copy transforms only affect the plaintext returned by {@link ExpressiveCodeBlock.getCopyText}
+	 * and never change the rendered output.
+	 */
+	addCopyTransform(copyTransform: CopyTransformOptions) {
+		this.addAnnotation(new CopyTransformAnnotation(copyTransform))
+	}
+
+	/**
+	 * Registers a render transform on this line.
+	 *
+	 * Render transforms only affect the rendered output and never change the
+	 * code block's plaintext.
+	 */
+	addRenderTransform(renderTransform: RenderTransform) {
+		this.addAnnotation(new RenderTransformAnnotation(renderTransform))
+	}
+
+	/**
+	 * Returns all copy transforms attached to this line.
+	 */
+	getCopyTransforms(): readonly CopyTransformAnnotation[] {
+		return Object.freeze(this.#annotations.filter((annotation) => isCopyTransformAnnotation(annotation)))
+	}
+
+	/**
+	 * Returns all render transforms attached to this line.
+	 */
+	getRenderTransforms(): readonly RenderTransformAnnotation[] {
+		return Object.freeze(this.#annotations.filter((annotation) => isRenderTransformAnnotation(annotation)))
 	}
 }
 

@@ -69,6 +69,15 @@ export abstract class ExpressiveCodeAnnotation {
 	 * The default phase is `normal`.
 	 */
 	readonly renderPhase?: AnnotationRenderPhase | undefined
+
+	/**
+	 * If set to `true`, this annotation is treated as processing metadata only and will not
+	 * participate in rendering.
+	 *
+	 * This is useful for annotations that need to stay attached to code ranges while the code
+	 * is being edited, but should not affect the rendered output.
+	 */
+	readonly processingOnly?: boolean | undefined
 }
 
 export type InlineStyleAnnotationOptions = AnnotationBaseOptions & {

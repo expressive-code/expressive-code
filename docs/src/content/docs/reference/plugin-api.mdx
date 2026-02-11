@@ -20,6 +20,17 @@ An interface that defines an Expressive Code plugin. To add a custom plugin, you
 
 The display name of the plugin. This is the only required property. It is used by the engine to display messages concerning the plugin, e.g. when it encounters an error.
 
+#### annotationCommentHandlers?
+
+<PropertySignature>
+- Type: `AnnotationCommentHandler`[]
+</PropertySignature>
+
+Optional annotation comment handlers provided by this plugin.
+
+Handlers can map parsed annotation comments (e.g. `// [!note] ...`) to regular
+[ExpressiveCodeAnnotation](/reference/core-api/#expressivecodeannotation) instances and copy transforms.
+
 #### baseStyles?
 
 <PropertySignature>

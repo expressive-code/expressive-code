@@ -275,7 +275,12 @@ export function getTextMarkersBaseStyles({ cssVar }: ResolverContext) {
 				& .code {
 					--ecGtrBrdWd: ${cssVar('textMarkers.lineMarkerAccentWidth')};
 				}
-				& .code::before {
+			}
+
+			/* Render line-level ins/del indicators before lines without a label */
+			&.ins,
+			&.del {
+			    &:not(.has-label) .code::before {
 					display: block;
 					position: absolute;
 					left: 0;
@@ -283,17 +288,25 @@ export function getTextMarkersBaseStyles({ cssVar }: ResolverContext) {
 					content: var(--tmLabel, ' ');
 					padding-inline-start: ${cssVar('textMarkers.lineDiffIndicatorMarginLeft')};
 					text-align: center;
-					/* Prevent long labels from wrapping to avoid overlapping the code */
-					white-space: pre;
 				}
+			}
 
-				&.tm-label {
-					& .code::before {
-						background: var(--ecLineBrdCol);
-						padding: 0 calc(${cssVar('textMarkers.lineMarkerLabelPaddingInline')} + ${cssVar('textMarkers.lineMarkerAccentWidth')}) 0 ${cssVar('textMarkers.lineMarkerLabelPaddingInline')};
-						color: ${cssVar('textMarkers.lineMarkerLabelColor')};
-					}
-				}
+			/* Prevent labels and generated lines from being selectable or interactable */
+			&.tm-between .code,
+			& .tm-label {
+				pointer-events: none;
+				user-select: none;
+			}
+
+			/* Format line labels */
+			& .tm-label {
+				display: inline-block;
+				position: absolute;
+				left: 0;
+				top: 0;
+				padding: 0 calc(${cssVar('textMarkers.lineMarkerLabelPaddingInline')} + ${cssVar('textMarkers.lineMarkerAccentWidth')}) 0 ${cssVar('textMarkers.lineMarkerLabelPaddingInline')};
+				background: var(--ecLineBrdCol);
+				color: ${cssVar('textMarkers.lineMarkerLabelColor')};
 			}
 
 			/* Support inline mark/ins/del */

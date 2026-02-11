@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { getClassNames, getInlineStyles, toText } from '@expressive-code/core/hast'
+import { getClassNames, toText } from '@expressive-code/core/hast'
 import { pluginShiki } from '@expressive-code/plugin-shiki'
 import { pluginTextMarkers } from '@expressive-code/plugin-text-markers'
 import { pluginFrames } from '@expressive-code/plugin-frames'
@@ -51,8 +51,8 @@ describe('Renders line numbers', async () => {
 					// be marked as inserted, and have the label "A"
 					const sixthLine = selectSingle(`code > div.ec-line:nth-of-type(6)`, actual.renderedGroupAst)
 					expect(toText(selectSingle(`.gutter .ln`, sixthLine))).toEqual('6')
-					expect(getClassNames(sixthLine)).toEqual(expect.arrayContaining(['ins', 'tm-label']))
-					expect(getInlineStyles(sixthLine).get('--tmLabel')).toEqual("'A'")
+					expect(getClassNames(sixthLine)).toEqual(expect.arrayContaining(['ins', 'has-label']))
+					expect(toText(selectSingle(`.tm-label`, sixthLine))).toEqual('A')
 
 					// Expect collapsible section summary to contain empty space
 					// for a line number
@@ -63,8 +63,8 @@ describe('Renders line numbers', async () => {
 					// be marked, and have the label "B"
 					const ninthLine = selectSingle(`code > details > div.ec-line:nth-of-type(1)`, actual.renderedGroupAst)
 					expect(toText(selectSingle(`.gutter .ln`, ninthLine))).toEqual('9')
-					expect(getClassNames(ninthLine)).toEqual(expect.arrayContaining(['mark', 'tm-label']))
-					expect(getInlineStyles(ninthLine).get('--tmLabel')).toEqual("'B'")
+					expect(getClassNames(ninthLine)).toEqual(expect.arrayContaining(['mark', 'has-label']))
+					expect(toText(selectSingle(`.tm-label`, ninthLine))).toEqual('B')
 				},
 			}),
 		})

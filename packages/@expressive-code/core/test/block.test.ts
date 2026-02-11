@@ -229,6 +229,75 @@ describe('ExpressiveCodeBlock', () => {
 				).toEqual(testCase.expected)
 			})
 		})
+		test('Retargets insert copy transforms on deleted lines', () => {
+			const block = prepareTestBlock({ code: ['a', 'b', 'c', 'd'].join('\n') })
+			block.getLine(1)?.addCopyTransform({
+				type: 'insertLines',
+				lines: ['X'],
+				position: 'after',
+				onDeleteLine: 'stick-next',
+			})
+
+			block.deleteLine(1)
+
+			expect(block.code).toEqual(['a', 'c', 'd'].join('\n'))
+			expect(block.getCopyText()).toEqual(['a', 'X', 'c', 'd'].join('\n'))
+
+			const copyTransforms = block.getLine(1)?.getCopyTransforms() ?? []
+			expect(copyTransforms).toHaveLength(1)
+			expect(copyTransforms[0]).toMatchObject({
+				type: 'insertLines',
+				position: 'before',
+				lines: ['X'],
+			})
+		})
+		test('Drops line-bound copy transforms when the host line gets deleted', () => {
+			const block = prepareTestBlock({ code: ['a', 'b', 'c'].join('\n') })
+			block.getLine(1)?.addCopyTransform({
+				type: 'removeLine',
+			})
+			block.getLine(1)?.addCopyTransform({
+				type: 'editText',
+				newText: 'B',
+			})
+
+			block.deleteLine(1)
+
+			expect(block.code).toEqual(['a', 'c'].join('\n'))
+			expect(block.getLines().flatMap((line) => line.getCopyTransforms()).length).toEqual(0)
+		})
+		test('Retargets render transforms on deleted lines', () => {
+			const block = prepareTestBlock({ code: ['a', 'b', 'c', 'd'].join('\n') })
+			block.getLine(1)?.addRenderTransform({
+				type: 'insert',
+				position: 'after',
+				onDeleteLine: 'stick-next',
+				render: () => null,
+			})
+
+			block.deleteLine(1)
+
+			expect(block.code).toEqual(['a', 'c', 'd'].join('\n'))
+			const renderTransforms = block.getLine(1)?.getRenderTransforms() ?? []
+			expect(renderTransforms).toHaveLength(1)
+			expect(renderTransforms[0]).toMatchObject({
+				type: 'insert',
+				position: 'before',
+			})
+		})
+		test('Drops insert copy transforms if their anchor line gets deleted and onDeleteLine="drop"', () => {
+			const block = prepareTestBlock({ code: ['a', 'b', 'c'].join('\n') })
+			block.getLine(1)?.addCopyTransform({
+				type: 'insertLines',
+				lines: ['X'],
+				position: 'after',
+				onDeleteLine: 'drop',
+			})
+
+			block.deleteLine(1)
+			expect(block.code).toEqual(['a', 'c'].join('\n'))
+			expect(block.getCopyText()).toEqual(['a', 'c'].join('\n'))
+		})
 	})
 
 	describe('insertLine()', () => {

@@ -128,3 +128,19 @@ export function setInlineStyle(node: Element, cssProperty: string, value: string
 	}
 	setInlineStyles(node, styles)
 }
+
+/**
+ * Converts a string with limited inline markdown formatting to HAST nodes.
+ *
+ * @remarks
+ * This is currently a placeholder implementation that preserves the input as plaintext.
+ * A full parser can be added later without changing the API.
+ *
+ * Used by annotation comment content rendering convenience in
+ * `internal/integrations/annotation-comments/content-rendering.ts` when handlers configure
+ * `content.render.contentRenderer = 'inline-markdown'`.
+ */
+export function fromInlineMarkdown(markdown: string): ElementContent[] {
+	if (!markdown) return []
+	return [{ type: 'text', value: markdown }]
+}

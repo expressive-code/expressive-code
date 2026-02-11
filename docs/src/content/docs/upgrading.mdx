@@ -57,7 +57,7 @@ This is an advanced strategy that might lead to incompatibilities, and we recomm
 
 1. Add the following `overrides` section to your `package.json`:
 
-    ```json title="package.json" collapse={11-18} ins={20-22}
+    ```json title="package.json" collapse={11-18}
     {
       "name": "my-starlight-site",
       "version": "0.0.1",
@@ -77,6 +77,7 @@ This is an advanced strategy that might lead to incompatibilities, and we recomm
         "tsm": "^2.3.0",
         "unist-util-visit": "^4.1.2"
       },
+      // [!ins:3]
       "overrides": {
         "astro-expressive-code": "latest"
       }

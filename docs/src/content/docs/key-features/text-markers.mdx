@@ -381,6 +381,23 @@ Defines the code block's text & line markers of the "deleted" type.
 
 You can either pass a single marker definition or an array of them.
 
+#### delCopyBehavior
+
+<PropertySignature>
+- Type: `DelMarkerCopyBehavior`
+- Default: ``'remove'``
+</PropertySignature>
+
+Controls how deleted targets are represented in copied plaintext code.
+
+This applies to all deleted markers, including markers created from annotation comments, marker metadata, and diff syntax.
+
+- `remove`: Deleted targets are removed from copied code.
+- `comment`: Full deleted lines are commented out in copied code. Inline deleted targets are still removed.
+- `keep`: Deleted targets remain unchanged in copied code.
+
+This can be configured per block or globally via engine `defaultProps`.
+
 #### ins
 
 <PropertySignature>

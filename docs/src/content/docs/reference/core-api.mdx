@@ -196,6 +196,14 @@ May throw an error if not allowed in the current [state](/reference/core-api/#st
 | :------ | :------ |
 | `indices` | `number`[] |
 
+##### getCopyText()
+
+- <code class="function-signature">**getCopyText**(): string</code>
+
+Returns the plaintext code that should be copied to the clipboard for this block.
+
+By default, this is the block's current plaintext code. If plugins registered copy transforms, these transforms are applied before returning the text.
+
 ##### getLine()
 
 - <code class="function-signature">**getLine**(index): undefined \| [ExpressiveCodeLine](/reference/core-api/#expressivecodeline)</code>
@@ -461,6 +469,34 @@ Plugins can add their own props to this type. To allow users to set these props 
 | :------ | :------ |
 | `annotation` | [`ExpressiveCodeAnnotation`](/reference/core-api/#expressivecodeannotation) |
 
+##### addCopyTransform()
+
+- <code class="function-signature">**addCopyTransform**(copyTransform): void</code>
+
+Registers a copy transform on this line.
+
+Copy transforms only affect the plaintext returned by [ExpressiveCodeBlock.getCopyText](/reference/core-api/#getcopytext) and never change the rendered output.
+
+###### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `copyTransform` | `CopyTransformOptions` |
+
+##### addRenderTransform()
+
+- <code class="function-signature">**addRenderTransform**(renderTransform): void</code>
+
+Registers a render transform on this line.
+
+Render transforms only affect the rendered output and never change the code block's plaintext.
+
+###### Arguments
+
+| Parameter | Type |
+| :------ | :------ |
+| `renderTransform` | `RenderTransform` |
+
 ##### deleteAnnotation()
 
 - <code class="function-signature">**deleteAnnotation**(annotation): void</code>
@@ -486,6 +522,18 @@ Plugins can add their own props to this type. To allow users to set these props 
 ##### getAnnotations()
 
 - <code class="function-signature">**getAnnotations**(): readonly [ExpressiveCodeAnnotation](/reference/core-api/#expressivecodeannotation)[]</code>
+
+##### getCopyTransforms()
+
+- <code class="function-signature">**getCopyTransforms**(): readonly CopyTransformAnnotation[]</code>
+
+Returns all copy transforms attached to this line.
+
+##### getRenderTransforms()
+
+- <code class="function-signature">**getRenderTransforms**(): readonly RenderTransformAnnotation[]</code>
+
+Returns all render transforms attached to this line.
 
 #### Accessors
 

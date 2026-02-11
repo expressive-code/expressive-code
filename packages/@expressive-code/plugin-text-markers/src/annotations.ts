@@ -1,17 +1,30 @@
 import { ExpressiveCodeAnnotation, AnnotationBaseOptions, AnnotationRenderOptions } from '@expressive-code/core'
-import { addClassName, h, setInlineStyle } from '@expressive-code/core/hast'
+import { addClassName, h, select } from '@expressive-code/core/hast'
 import { MarkerType } from './marker-types'
+
+export type TextMarkerCopyCommentSyntax = {
+	opening: string
+	closing?: string | undefined
+}
 
 export class TextMarkerAnnotation extends ExpressiveCodeAnnotation {
 	markerType: MarkerType
 	backgroundColor: string
 	label: string | undefined
+	copyCommentSyntax: TextMarkerCopyCommentSyntax | undefined
 
-	constructor({ markerType, backgroundColor, label, ...baseOptions }: { markerType: MarkerType; backgroundColor: string; label?: string | undefined } & AnnotationBaseOptions) {
+	constructor({
+		markerType,
+		backgroundColor,
+		label,
+		copyCommentSyntax,
+		...baseOptions
+	}: { markerType: MarkerType; backgroundColor: string; label?: string | undefined; copyCommentSyntax?: TextMarkerCopyCommentSyntax | undefined } & AnnotationBaseOptions) {
 		super(baseOptions)
 		this.markerType = markerType
 		this.backgroundColor = backgroundColor
 		this.label = label
+		this.copyCommentSyntax = copyCommentSyntax
 	}
 
 	render(options: AnnotationRenderOptions) {
@@ -25,8 +38,8 @@ export class TextMarkerAnnotation extends ExpressiveCodeAnnotation {
 				addClassName(node, 'highlight')
 				addClassName(node, this.markerType)
 				if (this.label) {
-					addClassName(node, 'tm-label')
-					setInlineStyle(node, '--tmLabel', this.label, 'string')
+					addClassName(node, 'has-label')
+					select('.code', node)?.children.unshift(createLabelHast(this.label))
 				}
 			}
 			return node
@@ -46,4 +59,20 @@ export class TextMarkerAnnotation extends ExpressiveCodeAnnotation {
 			return transformedNode
 		})
 	}
+}
+
+export function createLabelHast(input: string | string[]) {
+	const lines = Array.isArray(input) ? input : [input]
+	const label = normalizeLabelContent(lines) ?? ''
+	return h('div.tm-label', label)
+}
+
+export function normalizeLabelContent(lines: string[]) {
+	if (!lines.length) return undefined
+	const label = lines
+		.map((line) => line.trim())
+		.filter(Boolean)
+		.join(' ')
+		.trim()
+	return label.length > 0 ? label : undefined
 }

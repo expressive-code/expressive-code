@@ -11,7 +11,7 @@ export function splitLineAtAnnotationBoundaries(line: ExpressiveCodeLine) {
 	const textParts: string[] = []
 	const partIndicesByAnnotation = new Map<ExpressiveCodeAnnotation, number[]>()
 	const fullText = line.text
-	const annotations = line.getAnnotations()
+	const annotations = line.getAnnotations().filter((annotation) => annotation.processingOnly !== true)
 
 	// Create an array of unique boundaries
 	const annotationBoundaries = [
@@ -70,7 +70,7 @@ export function renderLineToAst({
 	const partNodes: Parents[] = textParts.map((textPart) => h(null, [textPart]))
 
 	// Sort all annotations based on their render phase
-	const annotations = [...line.getAnnotations()].sort(renderPhaseSortFn)
+	const annotations = [...line.getAnnotations()].filter((annotation) => annotation.processingOnly !== true).sort(renderPhaseSortFn)
 
 	// Render inline annotations
 	annotations.forEach((annotation, annotationIndex) => {
