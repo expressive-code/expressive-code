@@ -22,6 +22,7 @@ export * from './helpers/color-transforms'
 export * from './helpers/i18n'
 export * from './helpers/meta-options'
 export * from './helpers/objects'
+export * from './helpers/types'
 
 import { cssVarReplacements as internalCssVarReplacements } from './internal/css'
 

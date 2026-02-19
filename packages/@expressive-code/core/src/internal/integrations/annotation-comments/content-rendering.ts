@@ -1,80 +1,68 @@
-import type { AnnotationComment } from 'annotation-comments'
 import type { Element, ElementContent, Parents } from '../../../hast'
 import type { AnnotationBaseOptions, AnnotationRenderOptions } from '../../../common/annotation'
 import type {
+	AnnotationCommentContentContext,
+	AnnotationCommentContentPlacementContext,
+	AnnotationCommentContentRenderContext,
 	AnnotationCommentContentRenderPlacement,
-	AnnotationCommentContentRenderPlacementInput,
 	AnnotationCommentContentRenderer,
-	AnnotationCommentContentWrapperFn,
-	AnnotationCommentContentParentLineFn,
 	AnnotationCommentHandler,
 } from '../../../common/annotation-comments'
-import type { ExpressiveCodeLogger } from '../../../common/logger'
 import type { TransformTarget } from '../../../common/transforms'
-import { fromInlineMarkdown, getClassNames, h, setInlineStyle } from '../../../hast'
+import { fromInlineMarkdown, h, select, setInlineStyle } from '../../../hast'
 import { ExpressiveCodeAnnotation } from '../../../common/annotation'
 import { getLeadingWhitespaceColumns } from '../../indentation'
 import { isHastElement } from '../../type-checks'
 import { getDefaultInsertOnDeleteLine } from './target-resolving'
-import type { AnnotationCommentContextBase } from './types'
 
-type ResolvedContentRenderPlacement = {
-	placement: AnnotationCommentContentRenderPlacement
-	target: TransformTarget
+type ResolvedAnnotationCommentContentPlacement = AnnotationCommentContentPlacementContext & {
 	anchorStart: number
 	anchorEnd: number
-	contentColumn: number
 }
 
+/**
+ * Annotation that injects pre-rendered annotation comment content into a rendered line AST.
+ */
 class AnnotationCommentContentAnnotation extends ExpressiveCodeAnnotation {
 	name = 'Annotation comment rendered content'
-	readonly contentWrapperTemplate: Element
+	readonly contentWrapper: Element
 	readonly insertAtStart: boolean
 	readonly parentLine: ((options: { lineAst: Element; contentWrapper: Element }) => Element | undefined) | undefined
 
 	constructor(
 		options: {
-			contentWrapperTemplate: Element
+			contentWrapper: Element
 			insertAtStart: boolean
 			parentLine?: ((options: { lineAst: Element; contentWrapper: Element }) => Element | undefined) | undefined
 		} & AnnotationBaseOptions
 	) {
 		super(options)
-		this.contentWrapperTemplate = options.contentWrapperTemplate
+		this.contentWrapper = options.contentWrapper
 		this.insertAtStart = options.insertAtStart
 		this.parentLine = options.parentLine
 	}
 
+	/**
+	 * Inserts the prepared content wrapper into each target line and runs the optional line hook.
+	 */
 	render({ nodesToTransform }: AnnotationRenderOptions): Parents[] {
 		return nodesToTransform.map((node) => {
 			if (node.type !== 'element') return node
 
-			const rootLineNode = node
-			const contentElement = cloneContentNode(this.contentWrapperTemplate)
-
-			const codeContainer = rootLineNode.children.find((child) => child.type === 'element' && getClassNames(child).includes('code'))
-			if (codeContainer?.type === 'element') {
-				if (this.insertAtStart) {
-					codeContainer.children.unshift(contentElement)
-				} else {
-					codeContainer.children.push(contentElement)
-				}
+			const target = select('.code', node) ?? node
+			if (this.insertAtStart) {
+				target.children.unshift(this.contentWrapper)
 			} else {
-				rootLineNode.children.push(contentElement)
+				target.children.push(this.contentWrapper)
 			}
 			return (
 				this.parentLine?.({
-					lineAst: rootLineNode,
-					contentWrapper: contentElement,
-				}) ?? rootLineNode
+					lineAst: node,
+					contentWrapper: this.contentWrapper,
+				}) ?? node
 			)
 		})
 	}
-}
-
-function cloneContentNode<NodeType>(node: NodeType): NodeType {
-	if (typeof structuredClone === 'function') return structuredClone(node)
-	return JSON.parse(JSON.stringify(node)) as NodeType
 }
 
 /**
@@ -83,287 +71,223 @@ function cloneContentNode<NodeType>(node: NodeType): NodeType {
  * It resolves render placements, renders content, and injects the result either inline
  * or via generated lines depending on the resolved placement.
  */
-export async function applyContentRenderConvenience(options: {
-	handler: AnnotationCommentHandler
-	pluginName: string
-	context: AnnotationCommentContextBase
-	logger: ExpressiveCodeLogger
-}) {
-	const { handler, pluginName, context, logger } = options
+export async function applyContentRenderConvenience(options: { handler: AnnotationCommentHandler; context: AnnotationCommentContentContext }) {
+	const { handler, context } = options
 	const renderOptions = handler.content?.render
 	if (!renderOptions) return
 	if (!context.content.lines.length) return
 
-	try {
-		const renderPlacements = await resolveContentRenderPlacements({
-			context,
-			placementOption: renderOptions.placement,
+	const renderPlacements = await getContentRenderPlacements({
+		context,
+		placementOption: renderOptions.placement,
+	})
+	if (!renderPlacements.length) return
+
+	for (const renderPlacement of renderPlacements) {
+		const renderContext: AnnotationCommentContentRenderContext = {
+			...context,
+			placement: renderPlacement.placement,
+			annotationTarget: renderPlacement.annotationTarget,
+			contentRenderLine: renderPlacement.contentRenderLine,
+			contentRenderColumn: renderPlacement.contentRenderColumn,
+		}
+		const renderedContent = await renderContentNodes({
+			context: renderContext,
+			renderer: renderOptions.contentRenderer,
 		})
-		if (!renderPlacements.length) return
 
-		for (const renderPlacement of renderPlacements) {
-			const renderedContent = await resolveRenderedContentNodes({
-				context,
-				placement: renderPlacement.placement,
-				target: renderPlacement.target,
-				renderer: renderOptions.contentRenderer,
-			})
-			let contentWrapperTemplate = createRenderedContentElement({
-				placement: renderPlacement.placement,
-				anchorStart: renderPlacement.anchorStart,
-				anchorEnd: renderPlacement.anchorEnd,
-				contentColumn: renderPlacement.contentColumn,
-			})
-			if (renderedContent.length) {
-				contentWrapperTemplate.children.push(...renderedContent)
-			}
-			contentWrapperTemplate = await resolveContentWrapper({
-				context,
-				placement: renderPlacement.placement,
-				target: renderPlacement.target,
+		// Create default content wrapper with placement classes and CSS variables for anchor positions
+		let contentWrapper = renderContentWrapperElement({
+			placement: renderPlacement.placement,
+			anchorStart: renderPlacement.anchorStart,
+			anchorEnd: renderPlacement.anchorEnd,
+			contentRenderColumn: renderPlacement.contentRenderColumn,
+		})
+		contentWrapper.children.push(...renderedContent)
+
+		// Run `content.render.contentWrapper` hook (if any), allowing it to modify or replace
+		// the generated wrapper before it's injected into the host line
+		if (renderOptions.contentWrapper) {
+			const transformedWrapper = await renderOptions.contentWrapper({
+				...renderContext,
 				renderedContent,
-				contentWrapper: contentWrapperTemplate,
-				contentWrapperTransform: renderOptions.contentWrapper,
+				contentWrapper,
 			})
+			if (transformedWrapper) {
+				if (!isHastElement(transformedWrapper)) {
+					throw new Error('content.render.contentWrapper must return a valid HAST element')
+				}
+				contentWrapper = transformedWrapper
+			}
+		}
 
-			if (renderPlacement.placement.line !== 'current') {
-				renderPlacement.target.line.addRenderTransform({
-					type: 'insert',
-					position: renderPlacement.placement.line === 'before' ? 'before' : 'after',
-					onDeleteLine: getDefaultInsertOnDeleteLine(context.annotationComment),
-					render: ({ renderEmptyLine }) => {
-						const emptyLine = renderEmptyLine()
-						if (shouldPreserveIndent(renderPlacement.placement)) {
-							const indent = getLineIndentColumns(renderPlacement.target)
-							if (indent > 0) setInlineStyle(emptyLine.lineAst, '--ecIndent', `${indent}ch`)
-						}
-						const contentWrapper = cloneContentNode(contentWrapperTemplate)
-						emptyLine.codeWrapper.children.push(contentWrapper)
-						return applyParentLine(renderOptions.parentLine, {
-							...context,
-							placement: renderPlacement.placement,
-							target: renderPlacement.target,
+		if (renderPlacement.placement.line !== 'current') {
+			renderPlacement.contentRenderLine.addRenderTransform({
+				type: 'insert',
+				position: renderPlacement.placement.line === 'before' ? 'before' : 'after',
+				onDeleteLine: getDefaultInsertOnDeleteLine(context.annotationComment),
+				render: ({ renderEmptyLine }) => {
+					const emptyLine = renderEmptyLine()
+					const preserveIndent = renderPlacement.placement.preserveIndent ?? true
+					if (preserveIndent) {
+						const indent = getLeadingWhitespaceColumns(renderPlacement.contentRenderLine.text)
+						if (indent > 0) setInlineStyle(emptyLine.lineAst, '--ecIndent', `${indent}ch`)
+					}
+					emptyLine.codeWrapper.children.push(contentWrapper)
+					// Run `content.render.parentLine` hook (if any) on generated lines
+					return (
+						renderOptions.parentLine?.({
+							...renderContext,
 							contentWrapper,
 							lineAst: emptyLine.lineAst,
 							isGeneratedLine: true,
-						})
-					},
-				})
-				continue
+						}) ?? emptyLine.lineAst
+					)
+				},
+			})
+			continue
+		}
+
+		renderPlacement.contentRenderLine.addAnnotation(
+			new AnnotationCommentContentAnnotation({
+				contentWrapper,
+				insertAtStart: renderPlacement.contentRenderColumn === 0,
+				parentLine: ({ lineAst, contentWrapper }) =>
+					// Run `content.render.parentLine` hook (if any) on existing lines
+					renderOptions.parentLine?.({
+						...renderContext,
+						contentWrapper,
+						lineAst,
+						isGeneratedLine: false,
+					}) ?? lineAst,
+				renderPhase: 'latest',
+			})
+		)
+	}
+}
+
+/**
+ * Resolves and normalizes all configured content placements for one annotation comment.
+ */
+async function getContentRenderPlacements(options: {
+	context: AnnotationCommentContentContext
+	placementOption: NonNullable<NonNullable<AnnotationCommentHandler['content']>['render']>['placement']
+}): Promise<ResolvedAnnotationCommentContentPlacement[]> {
+	const { context, placementOption } = options
+	const { annotationComment, codeBlock, targets } = context
+
+	const annotationLineIndex = annotationComment.commentRange.start.line
+	const annotationLine = codeBlock.getLine(annotationLineIndex)
+	if (!annotationLine) return []
+
+	// Run `content.render.placement` hook (if any) or use the given input(s),
+	// with a single default placement as fallback
+	const placementInputOrInputs = (typeof placementOption === 'function' ? await placementOption(context) : placementOption) ?? [undefined]
+	const placementInputs = Array.isArray(placementInputOrInputs) ? placementInputOrInputs : [placementInputOrInputs]
+	if (!placementInputs.length) return []
+
+	// Convert the placement inputs into fully resolved placements ready for rendering and injection
+	const renderPlacements: ResolvedAnnotationCommentContentPlacement[] = []
+	placementInputs.forEach((placementInput) => {
+		// Apply defaults to placement properties
+		const line = placementInput?.line ?? 'current'
+		const placement: AnnotationCommentContentRenderPlacement = {
+			anchor: placementInput?.anchor ?? 'annotation',
+			line,
+			col: placementInput?.col ?? 'anchorEnd',
+			preserveIndent: line === 'current' ? false : (placementInput?.preserveIndent ?? true),
+		}
+
+		// Based on the given `placement.anchor`, get the relevant ranges targeted by the annotation
+		// to be used as anchors for positioning the rendered content
+		let placementAnchors: Array<TransformTarget | undefined> = []
+		switch (placement.anchor) {
+			case 'annotation':
+				// If the content should be rendered at the location of the annotation itself,
+				// use `undefined`, which will use the annotation line in the downstream code
+				placementAnchors = [undefined]
+				break
+			case 'firstTarget':
+				placementAnchors = targets.length ? [targets[0]] : []
+				break
+			case 'lastTarget':
+				placementAnchors = targets.length ? [targets[targets.length - 1]] : []
+				break
+			case 'allTargets':
+				placementAnchors = targets
+				break
+		}
+		if (!placementAnchors.length) return
+
+		// Now go through all placement anchors and determine the final line and column
+		// for the rendered content
+		placementAnchors.forEach((anchor) => {
+			const referenceLine = anchor?.line ?? annotationLine
+			const referenceLineLength = referenceLine.text.length
+
+			// Determine the inline range that powers placement classes and CSS variables -
+			// by default, this is the placement anchor's inline range,
+			// or the full line in case of an undefined anchor or range
+			let anchorStart = anchor?.inlineRange?.columnStart ?? 0
+			let anchorEnd = anchor?.inlineRange?.columnEnd ?? referenceLineLength
+
+			// If the placement anchor is supposed to be the annotation itself, we visually align
+			// the rendered content to the annotation comment including its content:
+			// - anchorStart is set to the start column of the annotation comment
+			// - anchorEnd is set to the length of the longest annotation content line
+			if (placement.anchor === 'annotation') {
+				// Resolve start from the parent comment's outer range:
+				// start at its column (or 0), then move to the first non-whitespace character
+				const commentStartLine = context.codeBlock.getLine(annotationComment.commentRange.start.line)
+				const commentStartLineText = commentStartLine?.text ?? referenceLine.text
+				const commentStartColumn = annotationComment.commentRange.start.column ?? 0
+				const nonWhitespaceOffset = commentStartLineText.slice(commentStartColumn).search(/\S/)
+				anchorStart = nonWhitespaceOffset >= 0 ? commentStartColumn + nonWhitespaceOffset : commentStartColumn
+
+				// Extend the end to the longest non-whitespace content of the annotation comment
+				anchorEnd = anchorStart
+				for (let lineIndex = annotationComment.annotationRange.start.line; lineIndex <= annotationComment.annotationRange.end.line; lineIndex++) {
+					const lineText = context.codeBlock.getLine(lineIndex)?.text
+					if (lineText === undefined) continue
+
+					// On the final annotation line, only consider text up to annotationRange.end.column
+					// to ignore any code that appears after an inline closing comment
+					const lineEndLimit = lineIndex === annotationComment.annotationRange.end.line ? (annotationComment.annotationRange.end.column ?? lineText.length) : lineText.length
+
+					const contentLength = lineText.slice(0, lineEndLimit).trimEnd().length
+					if (contentLength > anchorEnd) anchorEnd = contentLength
+				}
 			}
 
-			renderPlacement.target.line.addAnnotation(
-				new AnnotationCommentContentAnnotation({
-					contentWrapperTemplate,
-					insertAtStart: renderPlacement.contentColumn === 0,
-					parentLine: ({ lineAst, contentWrapper }) =>
-						applyParentLine(renderOptions.parentLine, {
-							...context,
-							placement: renderPlacement.placement,
-							target: renderPlacement.target,
-							contentWrapper,
-							lineAst,
-							isGeneratedLine: false,
-						}),
-					renderPhase: 'latest',
-				})
-			)
-		}
-	} catch (error) {
-		const message = error instanceof Error ? error.message : String(error)
-		logger.warn(`Annotation comments: Failed to render content convenience for plugin "${pluginName}" and tag "${context.annotationComment.tag.name}": ${message}`)
-	}
-}
+			// Resolve the final placement column for the rendered content node
+			const contentRenderColumn =
+				placement.col === 'anchorStart' ? anchorStart : placement.col === 'anchorEnd' ? anchorEnd : placement.col === 'lineStart' ? 0 : referenceLineLength
 
-function applyParentLine(
-	parentLine: AnnotationCommentContentParentLineFn | undefined,
-	context: AnnotationCommentContextBase & {
-		placement: AnnotationCommentContentRenderPlacement
-		target: TransformTarget
-		contentWrapper: Element
-		lineAst: Element
-		isGeneratedLine: boolean
-	}
-) {
-	return parentLine?.(context) ?? context.lineAst
-}
-
-async function resolveContentRenderPlacements(options: {
-	context: AnnotationCommentContextBase
-	placementOption: NonNullable<NonNullable<AnnotationCommentHandler['content']>['render']>['placement']
-}): Promise<ResolvedContentRenderPlacement[]> {
-	const { context, placementOption } = options
-	const placements = await resolveContentPlacementOptions(placementOption, context)
-	if (!placements.length) return []
-	const normalizedPlacements = placements.map((placement) => normalizeContentPlacement(placement))
-
-	const renderPlacements: ResolvedContentRenderPlacement[] = []
-	normalizedPlacements.forEach((placement) => {
-		resolveContentPlacementTargets({ context, placement }).forEach((target) => {
-			const { anchorStart, anchorEnd } = resolvePlacementAnchorColumns({
-				annotationComment: context.annotationComment,
-				placement,
-				target,
-			})
-			const contentColumn = resolveContentColumn({
-				placement,
-				target,
-				anchorStart,
-				anchorEnd,
-			})
 			renderPlacements.push({
 				placement,
-				target,
+				annotationTarget: anchor,
+				contentRenderLine: referenceLine,
+				contentRenderColumn,
 				anchorStart,
 				anchorEnd,
-				contentColumn,
 			})
 		})
 	})
 	return renderPlacements
 }
 
-async function resolveContentPlacementOptions(
-	placementOption: NonNullable<NonNullable<AnnotationCommentHandler['content']>['render']>['placement'],
-	context: AnnotationCommentContextBase
-) {
-	if (placementOption === undefined) {
-		return [undefined]
-	}
-	if (typeof placementOption === 'function') {
-		const resolved = await placementOption(context)
-		if (!resolved) return []
-		return (Array.isArray(resolved) ? resolved : [resolved]).filter((placement): placement is AnnotationCommentContentRenderPlacementInput => !!placement)
-	}
-	return (Array.isArray(placementOption) ? placementOption : [placementOption]).filter((placement): placement is AnnotationCommentContentRenderPlacementInput => !!placement)
-}
-
-function normalizeContentPlacement(placement: AnnotationCommentContentRenderPlacementInput | undefined) {
-	const line = placement?.line ?? 'current'
-	return {
-		anchor: placement?.anchor ?? 'annotation',
-		line,
-		col: placement?.col ?? 'anchorEnd',
-		preserveIndent: line === 'current' ? false : (placement?.preserveIndent ?? true),
-	} satisfies AnnotationCommentContentRenderPlacement
-}
-
-function resolveContentPlacementTargets(options: { context: AnnotationCommentContextBase; placement: AnnotationCommentContentRenderPlacement }): TransformTarget[] {
-	const { context, placement } = options
-	const { annotationComment, targets, codeBlock } = context
-	const annotationLineIndex = annotationComment.commentRange.start.line
-	const annotationLine = codeBlock.getLine(annotationLineIndex)
-	let annotationTarget: TransformTarget | undefined
-	if (annotationLine) {
-		annotationTarget = {
-			line: annotationLine,
-			lineIndex: annotationLineIndex,
-		}
-	}
-
-	if (placement.anchor === 'annotation') return annotationTarget ? [annotationTarget] : []
-	if (placement.anchor === 'firstTarget') return targets.length ? [targets[0]] : []
-	if (placement.anchor === 'lastTarget') return targets.length ? [targets[targets.length - 1]] : []
-	return targets
-}
-
-function resolvePlacementAnchorColumns(options: { annotationComment: AnnotationComment; placement: AnnotationCommentContentRenderPlacement; target: TransformTarget }) {
-	const { annotationComment, placement, target } = options
-	if (placement.anchor !== 'annotation') return getTargetAnchorColumns(target)
-	return getAnnotationAnchorColumns({
-		annotationComment,
-		target,
-	})
-}
-
-function resolveContentColumn(options: { placement: AnnotationCommentContentRenderPlacement; target: TransformTarget; anchorStart: number; anchorEnd: number }) {
-	const { placement, target, anchorStart, anchorEnd } = options
-	if (placement.col === 'anchorStart') return anchorStart
-	if (placement.col === 'anchorEnd') return anchorEnd
-	if (placement.col === 'lineStart') return 0
-	return target.line.text.length
-}
-
-function shouldPreserveIndent(placement: AnnotationCommentContentRenderPlacement) {
-	if (placement.line === 'current') return false
-	return placement.preserveIndent ?? true
-}
-
-function getLineIndentColumns(target: TransformTarget) {
-	return getLeadingWhitespaceColumns(target.line.text)
-}
-
-function getTargetAnchorColumns(target: TransformTarget) {
-	if (target.inlineRange) {
-		return {
-			anchorStart: target.inlineRange.columnStart,
-			anchorEnd: target.inlineRange.columnEnd,
-		}
-	}
-	return {
-		anchorStart: 0,
-		anchorEnd: target.line.text.length,
-	}
-}
-
-function getAnnotationAnchorColumns(options: { annotationComment: AnnotationComment; target: TransformTarget }) {
-	const { annotationComment, target } = options
-	const lineLength = target.line.text.length
-	const anchorStart = clamp(resolveAnnotationAnchorStartColumn(annotationComment, target), 0, lineLength)
-	const anchorEnd = clamp(resolveAnnotationAnchorEndColumn(annotationComment, target, lineLength), anchorStart, lineLength)
-	return {
-		anchorStart,
-		anchorEnd,
-	}
-}
-
-function resolveAnnotationAnchorStartColumn(annotationComment: AnnotationComment, target: TransformTarget) {
-	const rangeStartColumn = annotationComment.commentRange.start.column ?? annotationComment.annotationRange.start.column
-	if (rangeStartColumn !== undefined) return rangeStartColumn
-
-	// Some parser ranges are line-only without column details
-	// In that case, resolve the start column from the comment opening on the anchor line
-	const searchEndColumn = annotationComment.commentInnerRange.start.column ?? annotationComment.tag.range.start.column ?? target.line.text.length
-	const searchArea = target.line.text.slice(0, clamp(searchEndColumn, 0, target.line.text.length))
-	const openingColumn = searchArea.lastIndexOf(annotationComment.commentSyntax.opening)
-	if (openingColumn >= 0) return openingColumn
-
-	return annotationComment.tag.range.start.column ?? 0
-}
-
-function resolveAnnotationAnchorEndColumn(annotationComment: AnnotationComment, target: TransformTarget, lineLength: number) {
-	if (annotationComment.commentRange.end.line === target.lineIndex) {
-		const commentEndColumn = annotationComment.commentRange.end.column
-		if (commentEndColumn !== undefined) return commentEndColumn
-	}
-	if (annotationComment.annotationRange.end.line === target.lineIndex) {
-		const annotationEndColumn = annotationComment.annotationRange.end.column
-		if (annotationEndColumn !== undefined) return annotationEndColumn
-	}
-	if (annotationComment.tag.range.end.line === target.lineIndex) {
-		const tagEndColumn = annotationComment.tag.range.end.column
-		if (tagEndColumn !== undefined) return tagEndColumn
-	}
-	return lineLength
-}
-
-function clamp(value: number, min: number, max: number) {
-	return Math.max(min, Math.min(max, value))
-}
-
-async function resolveRenderedContentNodes(options: {
-	context: AnnotationCommentContextBase
-	placement: AnnotationCommentContentRenderPlacement
-	target: TransformTarget
-	renderer: AnnotationCommentContentRenderer | undefined
-}): Promise<ElementContent[]> {
-	const { context, placement, target, renderer } = options
+/**
+ * Renders raw annotation content using the configured renderer mode or renderer hook.
+ */
+async function renderContentNodes(options: { context: AnnotationCommentContentRenderContext; renderer: AnnotationCommentContentRenderer | undefined }): Promise<ElementContent[]> {
+	const { context, renderer } = options
+	const { placement } = context
 	const sourceText = placement.line === 'current' ? context.content.lines.join(' ') : context.content.text
 	if (!sourceText.trim()) return []
 
 	if (typeof renderer === 'function') {
-		const rendererContext = { ...context, placement, target }
-		return (await renderer(rendererContext)) ?? []
+		// Run `content.render.contentRenderer` hook (if any)
+		return (await renderer(context)) ?? []
 	}
 
 	if (renderer === 'inline-markdown') {
@@ -373,52 +297,17 @@ async function resolveRenderedContentNodes(options: {
 	return [{ type: 'text', value: sourceText } satisfies ElementContent]
 }
 
-async function resolveContentWrapper(options: {
-	context: AnnotationCommentContextBase
-	placement: AnnotationCommentContentRenderPlacement
-	target: TransformTarget
-	renderedContent: ElementContent[]
-	contentWrapper: Element
-	contentWrapperTransform: AnnotationCommentContentWrapperFn | undefined
-}) {
-	const { context, placement, target, renderedContent, contentWrapper, contentWrapperTransform } = options
-	if (!contentWrapperTransform) return contentWrapper
-
-	const transformedWrapper = await contentWrapperTransform({
-		...context,
-		placement,
-		target,
-		renderedContent,
-		contentWrapper,
-	})
-	if (transformedWrapper === undefined) return contentWrapper
-	if (!isHastElement(transformedWrapper)) {
-		throw new Error('content.render.contentWrapper must return a valid HAST element')
-	}
-	return transformedWrapper
-}
-
-function createRenderedContentElement(options: { placement: AnnotationCommentContentRenderPlacement; anchorStart: number; anchorEnd: number; contentColumn: number }) {
-	const { placement, anchorStart, anchorEnd, contentColumn } = options
-	const lineClass = getPlacementLineClassName(placement.line)
-	const columnClass = getPlacementColumnClassName(placement.col)
+/**
+ * Builds the default placement wrapper element with class names and CSS anchor variables.
+ */
+function renderContentWrapperElement(options: { placement: AnnotationCommentContentRenderPlacement; anchorStart: number; anchorEnd: number; contentRenderColumn: number }) {
+	const { placement, anchorStart, anchorEnd, contentRenderColumn } = options
+	const lineClass = placement.line === 'before' ? 'line-before' : placement.line === 'after' ? 'line-after' : 'inline'
+	const columnClass = placement.col === 'anchorStart' ? 'anchor-start' : placement.col === 'anchorEnd' ? 'anchor-end' : placement.col === 'lineStart' ? 'start' : 'end'
 	const tagName = placement.line === 'current' ? 'span' : 'div'
 	const element = h(tagName, { className: ['ac-content', lineClass, columnClass] })
 	setInlineStyle(element, '--ecAnchorStart', `${anchorStart}`)
 	setInlineStyle(element, '--ecAnchorEnd', `${anchorEnd}`)
-	setInlineStyle(element, '--ecContentCol', `${contentColumn}`)
+	setInlineStyle(element, '--ecContentCol', `${contentRenderColumn}`)
 	return element
-}
-
-function getPlacementLineClassName(line: AnnotationCommentContentRenderPlacement['line']) {
-	if (line === 'before') return 'line-before'
-	if (line === 'after') return 'line-after'
-	return 'inline'
-}
-
-function getPlacementColumnClassName(col: AnnotationCommentContentRenderPlacement['col']) {
-	if (col === 'anchorStart') return 'anchor-start'
-	if (col === 'anchorEnd') return 'anchor-end'
-	if (col === 'lineStart') return 'start'
-	return 'end'
 }

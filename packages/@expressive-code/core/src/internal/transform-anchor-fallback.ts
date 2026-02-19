@@ -1,12 +1,12 @@
 import type { TransformAnchorFallback } from '../common/transforms'
 
 /**
- * Resolves a deleted-anchor fallback target from previous/next candidates.
+ * Picks a deleted-anchor fallback target from previous/next candidates.
  *
  * Used by copy and render transform processing to keep `onDeleteLine` behavior
  * consistent across code and render paths.
  */
-export function resolveTransformAnchorFallback<T>(options: { onDeleteLine: TransformAnchorFallback; previous: T | undefined; next: T | undefined }) {
+export function pickTransformAnchorFallback<T>(options: { onDeleteLine: TransformAnchorFallback; previous: T | undefined; next: T | undefined }) {
 	const { onDeleteLine, previous, next } = options
 	if (onDeleteLine === 'drop') return
 

@@ -1,10 +1,11 @@
 import { describe, expect, test } from 'vitest'
+import { ExpressiveCodeEngine } from '../src/common/engine'
 import { ExpressiveCodePlugin } from '../src/common/plugin'
 import { addClassName, h, setProperty, toHtml, type ElementContent } from '../src/hast'
 import { WrapperAnnotation, getMultiPluginTestResult, toSanitizedHtml } from './utils'
 
 describe('Annotation comment handlers', () => {
-	test('run before syntax analysis and clean annotation tags from display code', async () => {
+	test('Runs before syntax analysis and cleans annotation tags from display code', async () => {
 		let codeBeforeSyntaxAnalysis = ''
 		const plugin: ExpressiveCodePlugin = {
 			name: 'Annotation comments',
@@ -29,7 +30,12 @@ describe('Annotation comment handlers', () => {
 			plugins: [plugin],
 			input: [
 				{
-					code: ['const one = 1', '// [!note]', 'const two = 2'].join('\n'),
+					code: [
+						// Note tag line should be removed before syntax highlighting
+						'const one = 1',
+						'// [!note]',
+						'const two = 2',
+					].join('\n'),
 					language: 'js',
 					meta: '',
 				},
@@ -42,13 +48,17 @@ describe('Annotation comment handlers', () => {
 		expect(html).toContain('const two = 2')
 	})
 
-	test('throws if two handlers register the same tag without override', async () => {
+	test('Keeps the first handler and logs a warning if two handlers register the same tag without override', async () => {
 		const pluginA: ExpressiveCodePlugin = {
 			name: 'A',
 			annotationCommentHandlers: [
 				{
 					tagNames: ['note'],
-					handle: () => undefined,
+					handle: ({ targets }) => {
+						targets.forEach((target) => {
+							target.line.addAnnotation(new WrapperAnnotation({ selector: 'mark' }))
+						})
+					},
 				},
 			],
 		}
@@ -57,26 +67,44 @@ describe('Annotation comment handlers', () => {
 			annotationCommentHandlers: [
 				{
 					tagNames: ['note'],
-					handle: () => undefined,
+					handle: ({ targets }) => {
+						targets.forEach((target) => {
+							target.line.addAnnotation(new WrapperAnnotation({ selector: 'ins' }))
+						})
+					},
 				},
 			],
 		}
+		const warnings: string[] = []
+		const engine = new ExpressiveCodeEngine({
+			plugins: [pluginA, pluginB],
+			logger: {
+				warn: (message) => warnings.push(message),
+				error: () => undefined,
+			},
+		})
 
-		await expect(
-			getMultiPluginTestResult({
-				plugins: [pluginA, pluginB],
-				input: [
-					{
-						code: ['const one = 1', '// [!note]', 'const two = 2'].join('\n'),
-						language: 'js',
-						meta: '',
-					},
-				],
-			})
-		).rejects.toThrow('already handled by plugin "A"')
+		const { renderedGroupContents } = await engine.render([
+			{
+				code: [
+					// Duplicate tag registration should keep the first plugin handler
+					'const one = 1',
+					'// [!note]',
+					'const two = 2',
+				].join('\n'),
+				language: 'js',
+				meta: '',
+			},
+		])
+		const html = toSanitizedHtml(renderedGroupContents[0].renderedBlockAst)
+		expect(html).toContain('<mark>')
+		expect(html).not.toContain('<ins>')
+		expect(warnings).toHaveLength(1)
+		expect(warnings[0]).toContain('already handled by plugin "A"')
+		expect(warnings[0]).toContain('- Plugin "B" tried to register annotation comment tag "note"')
 	})
 
-	test('allows overriding an existing tag when overrideExisting is set', async () => {
+	test('Allows overriding an existing tag when overrideExisting is set', async () => {
 		const pluginA: ExpressiveCodePlugin = {
 			name: 'A',
 			annotationCommentHandlers: [
@@ -109,7 +137,12 @@ describe('Annotation comment handlers', () => {
 			plugins: [pluginA, pluginB],
 			input: [
 				{
-					code: ['const one = 1', '// [!note]', 'const two = 2'].join('\n'),
+					code: [
+						// Override should let plugin B replace plugin A's handler
+						'const one = 1',
+						'// [!note]',
+						'const two = 2',
+					].join('\n'),
 					language: 'js',
 					meta: '',
 				},
@@ -121,7 +154,7 @@ describe('Annotation comment handlers', () => {
 		expect(html).not.toContain('<mark>')
 	})
 
-	test('supports content.render convenience annotations', async () => {
+	test('Supports content.render convenience annotations', async () => {
 		const plugin: ExpressiveCodePlugin = {
 			name: 'Rendered comment content',
 			annotationCommentHandlers: [
@@ -129,6 +162,7 @@ describe('Annotation comment handlers', () => {
 					tagNames: ['note'],
 					content: {
 						displayCode: 'remove',
+						copyCode: 'remove',
 						render: {
 							placement: {
 								anchor: 'firstTarget',
@@ -147,7 +181,12 @@ describe('Annotation comment handlers', () => {
 			plugins: [plugin],
 			input: [
 				{
-					code: ['const one = 1', '// [!note] Hello docs', 'const two = 2'].join('\n'),
+					code: [
+						// Note content should render while the annotation line is removed
+						'const one = 1',
+						'// [!note] Hello docs',
+						'const two = 2',
+					].join('\n'),
 					language: 'js',
 					meta: '',
 				},
@@ -160,7 +199,7 @@ describe('Annotation comment handlers', () => {
 		expect(html).toContain('const two = 2')
 	})
 
-	test('provides same-line content text for non-note tags', async () => {
+	test('Provides same-line content text for non-note tags', async () => {
 		let resolvedContentLines: string[] | undefined
 
 		const plugin: ExpressiveCodePlugin = {
@@ -170,6 +209,7 @@ describe('Annotation comment handlers', () => {
 					tagNames: ['ins'],
 					content: {
 						displayCode: 'remove',
+						copyCode: 'remove',
 						render: {
 							placement: ({ content }) => {
 								resolvedContentLines = content.lines
@@ -191,7 +231,12 @@ describe('Annotation comment handlers', () => {
 			plugins: [plugin],
 			input: [
 				{
-					code: ['const one = 1', '// [!ins] X', 'const two = 2'].join('\n'),
+					code: [
+						// Ins tag content should reach the placement resolver unchanged
+						'const one = 1',
+						'// [!ins] X',
+						'const two = 2',
+					].join('\n'),
 					language: 'js',
 					meta: '',
 				},
@@ -201,7 +246,7 @@ describe('Annotation comment handlers', () => {
 		expect(resolvedContentLines).toEqual(['X'])
 	})
 
-	test('supports rendering current-line content at line start', async () => {
+	test('Supports rendering current-line content at line start', async () => {
 		const plugin: ExpressiveCodePlugin = {
 			name: 'Rendered content line start',
 			annotationCommentHandlers: [
@@ -209,6 +254,7 @@ describe('Annotation comment handlers', () => {
 					tagNames: ['note'],
 					content: {
 						displayCode: 'remove',
+						copyCode: 'remove',
 						render: {
 							placement: {
 								anchor: 'firstTarget',
@@ -227,7 +273,12 @@ describe('Annotation comment handlers', () => {
 			plugins: [plugin],
 			input: [
 				{
-					code: ['const one = 1', '// [!note] Hello docs', 'const two = 2'].join('\n'),
+					code: [
+						// Current-line placement should prepend content at line start
+						'const one = 1',
+						'// [!note] Hello docs',
+						'const two = 2',
+					].join('\n'),
 					language: 'js',
 					meta: '',
 				},
@@ -239,7 +290,7 @@ describe('Annotation comment handlers', () => {
 		expect(html).toContain('Hello docs</span>')
 	})
 
-	test('anchors inline target placements to the matched inline range', async () => {
+	test('Anchors inline target placements to the matched inline range', async () => {
 		const plugin: ExpressiveCodePlugin = {
 			name: 'Rendered inline target anchoring',
 			annotationCommentHandlers: [
@@ -247,6 +298,7 @@ describe('Annotation comment handlers', () => {
 					tagNames: ['note'],
 					content: {
 						displayCode: 'remove',
+						copyCode: 'remove',
 						render: {
 							placement: {
 								anchor: 'firstTarget',
@@ -265,7 +317,12 @@ describe('Annotation comment handlers', () => {
 			plugins: [plugin],
 			input: [
 				{
-					code: ['const one = 1', '// [!note:"children"] Hello docs', '  {children &&'].join('\n'),
+					code: [
+						// Inline search target should define anchor start and end columns
+						'const one = 1',
+						'// [!note:"children"] Hello docs',
+						'  {children &&',
+					].join('\n'),
 					language: 'js',
 					meta: '',
 				},
@@ -277,7 +334,7 @@ describe('Annotation comment handlers', () => {
 		expect(html).toContain('--ecAnchorStart:3;--ecAnchorEnd:11;--ecContentCol:3')
 	})
 
-	test('anchors annotation placements to the annotation column for standalone comments', async () => {
+	test('Anchors annotation placements to the annotation column for standalone comments', async () => {
 		const plugin: ExpressiveCodePlugin = {
 			name: 'Rendered annotation anchoring',
 			annotationCommentHandlers: [
@@ -285,6 +342,7 @@ describe('Annotation comment handlers', () => {
 					tagNames: ['note'],
 					content: {
 						displayCode: 'remove',
+						copyCode: 'remove',
 						render: {
 							placement: {
 								anchor: 'annotation',
@@ -303,7 +361,15 @@ describe('Annotation comment handlers', () => {
 			plugins: [plugin],
 			input: [
 				{
-					code: ['<button', '  role="button"', '  {...props}', '        // [!note:0] Some label', '  value={value}', '>'].join('\n'),
+					code: [
+						// Standalone indented comment should anchor to its own column
+						'<button',
+						'  role="button"',
+						'  {...props}',
+						'        // [!note:0] Some label',
+						'  value={value}',
+						'>',
+					].join('\n'),
 					language: 'jsx',
 					meta: '',
 				},
@@ -317,7 +383,55 @@ describe('Annotation comment handlers', () => {
 		expect(html).toContain('Some label')
 	})
 
-	test('provides targets to content.render.placement resolver', async () => {
+	test('Limits annotation anchor end to annotationRange.end.column on inline closing comments', async () => {
+		const codeLine = `/* [!note:0] A */ console.log('This line will be marked as inserted');`
+
+		const plugin: ExpressiveCodePlugin = {
+			name: 'Rendered annotation end anchoring',
+			annotationCommentHandlers: [
+				{
+					tagNames: ['note'],
+					content: {
+						displayCode: 'remove',
+						copyCode: 'remove',
+						render: {
+							placement: {
+								anchor: 'annotation',
+								line: 'before',
+								col: 'anchorEnd',
+							},
+							contentRenderer: 'plaintext',
+						},
+					},
+					handle: () => undefined,
+				},
+			],
+		}
+
+		const { renderedBlockAst } = await getMultiPluginTestResult({
+			plugins: [plugin],
+			input: [
+				{
+					code: codeLine,
+					language: 'js',
+					meta: '',
+				},
+			],
+		})
+
+		const html = toHtml(renderedBlockAst)
+		expect(html).toContain('ac-content line-before anchor-end')
+		const anchorEndMatch = html.match(/--ecAnchorEnd:(\d+);/)
+		const contentColumnMatch = html.match(/--ecContentCol:(\d+)/)
+		expect(anchorEndMatch).toBeTruthy()
+		expect(contentColumnMatch).toBeTruthy()
+		const anchorEnd = Number(anchorEndMatch?.[1])
+		const contentColumn = Number(contentColumnMatch?.[1])
+		expect(anchorEnd).toBe(contentColumn)
+		expect(anchorEnd).toBeLessThan(codeLine.length)
+	})
+
+	test('Provides targets to content.render.placement resolver', async () => {
 		let resolvedPrimaryTarget: { lineIndex: number; start: number; end: number } | undefined
 
 		const plugin: ExpressiveCodePlugin = {
@@ -327,6 +441,7 @@ describe('Annotation comment handlers', () => {
 					tagNames: ['note'],
 					content: {
 						displayCode: 'remove',
+						copyCode: 'remove',
 						render: {
 							placement: ({ targets }) => {
 								const firstTarget = targets[0]
@@ -355,7 +470,12 @@ describe('Annotation comment handlers', () => {
 			plugins: [plugin],
 			input: [
 				{
-					code: ['const one = 1', '// [!note:"children"] Hello docs', '  {children &&'].join('\n'),
+					code: [
+						// Placement resolver should receive inline target coordinates
+						'const one = 1',
+						'// [!note:"children"] Hello docs',
+						'  {children &&',
+					].join('\n'),
 					language: 'js',
 					meta: '',
 				},
@@ -369,7 +489,7 @@ describe('Annotation comment handlers', () => {
 		})
 	})
 
-	test('provides annotationLine to handler context', async () => {
+	test('Provides annotationLine to handler context', async () => {
 		let annotationLineText: string | undefined
 
 		const plugin: ExpressiveCodePlugin = {
@@ -388,7 +508,12 @@ describe('Annotation comment handlers', () => {
 			plugins: [plugin],
 			input: [
 				{
-					code: ['const one = 1', '        // [!note:0] no targets', 'const two = 2'].join('\n'),
+					code: [
+						// Verify render context values for a standalone annotation without targets
+						'const one = 1',
+						'        // [!note:0] no targets',
+						'const two = 2',
+					].join('\n'),
 					language: 'js',
 					meta: '',
 				},
@@ -398,7 +523,68 @@ describe('Annotation comment handlers', () => {
 		expect(annotationLineText).toBe('        // [!note:0] no targets')
 	})
 
-	test('allows custom content.render.contentWrapper functions to enrich content wrappers', async () => {
+	test('Provides optional annotationTarget and resolved content render line/column to content renderer', async () => {
+		let renderContextSummary:
+			| {
+					annotationTargetLine: number | undefined
+					contentRenderLineText: string
+					contentRenderColumn: number
+			  }
+			| undefined
+
+		const plugin: ExpressiveCodePlugin = {
+			name: 'Content render context',
+			annotationCommentHandlers: [
+				{
+					tagNames: ['note'],
+					content: {
+						displayCode: 'remove',
+						copyCode: 'remove',
+						render: {
+							placement: {
+								anchor: 'annotation',
+								line: 'before',
+								col: 'anchorStart',
+							},
+							contentRenderer: (context) => {
+								renderContextSummary = {
+									annotationTargetLine: context.annotationTarget?.lineIndex,
+									contentRenderLineText: context.contentRenderLine.text,
+									contentRenderColumn: context.contentRenderColumn,
+								}
+								return [{ type: 'text', value: context.content.text }]
+							},
+						},
+					},
+					handle: () => undefined,
+				},
+			],
+		}
+
+		await getMultiPluginTestResult({
+			plugins: [plugin],
+			input: [
+				{
+					code: [
+						// Standalone annotation should expose undefined annotationTarget
+						'const one = 1',
+						'        // [!note:0] no targets',
+						'const two = 2',
+					].join('\n'),
+					language: 'js',
+					meta: '',
+				},
+			],
+		})
+
+		expect(renderContextSummary).toEqual({
+			annotationTargetLine: undefined,
+			contentRenderLineText: '        // [!note:0] no targets',
+			contentRenderColumn: 8,
+		})
+	})
+
+	test('Allows custom content.render.contentWrapper functions to enrich content wrappers', async () => {
 		const plugin: ExpressiveCodePlugin = {
 			name: 'Rendered content wrapper enrichment',
 			annotationCommentHandlers: [
@@ -406,6 +592,7 @@ describe('Annotation comment handlers', () => {
 					tagNames: ['note'],
 					content: {
 						displayCode: 'remove',
+						copyCode: 'remove',
 						render: {
 							placement: {
 								anchor: 'firstTarget',
@@ -429,7 +616,12 @@ describe('Annotation comment handlers', () => {
 			plugins: [plugin],
 			input: [
 				{
-					code: ['const one = 1', '// [!note] 2', 'const two = 2'].join('\n'),
+					code: [
+						// Wrapper hook should enrich classes and flatten content text
+						'const one = 1',
+						'// [!note] 2',
+						'const two = 2',
+					].join('\n'),
 					language: 'js',
 					meta: '',
 				},
@@ -442,7 +634,7 @@ describe('Annotation comment handlers', () => {
 		expect(html).not.toContain('<span class="tm-ac-label')
 	})
 
-	test('allows custom content.render.contentWrapper functions to fully control wrapper children', async () => {
+	test('Allows custom content.render.contentWrapper functions to fully control wrapper children', async () => {
 		const plugin: ExpressiveCodePlugin = {
 			name: 'Rendered content wrapper replacement',
 			annotationCommentHandlers: [
@@ -450,6 +642,7 @@ describe('Annotation comment handlers', () => {
 					tagNames: ['note'],
 					content: {
 						displayCode: 'remove',
+						copyCode: 'remove',
 						render: {
 							placement: {
 								anchor: 'firstTarget',
@@ -471,7 +664,12 @@ describe('Annotation comment handlers', () => {
 			plugins: [plugin],
 			input: [
 				{
-					code: ['const one = 1', '// [!note] X', 'const two = 2'].join('\n'),
+					code: [
+						// Wrapper hook should append custom children to default wrapper
+						'const one = 1',
+						'// [!note] X',
+						'const two = 2',
+					].join('\n'),
 					language: 'js',
 					meta: '',
 				},
@@ -483,7 +681,7 @@ describe('Annotation comment handlers', () => {
 		expect(html).toContain('<span class="ac-content inline start"')
 	})
 
-	test('allows custom content.render.contentWrapper functions to replace the wrapper element', async () => {
+	test('Allows custom content.render.contentWrapper functions to replace the wrapper element', async () => {
 		const plugin: ExpressiveCodePlugin = {
 			name: 'Rendered content wrapper reassignment',
 			annotationCommentHandlers: [
@@ -491,6 +689,7 @@ describe('Annotation comment handlers', () => {
 					tagNames: ['note'],
 					content: {
 						displayCode: 'remove',
+						copyCode: 'remove',
 						render: {
 							placement: {
 								anchor: 'firstTarget',
@@ -510,7 +709,12 @@ describe('Annotation comment handlers', () => {
 			plugins: [plugin],
 			input: [
 				{
-					code: ['const one = 1', '// [!note] X', 'const two = 2'].join('\n'),
+					code: [
+						// Wrapper hook should replace the default wrapper element
+						'const one = 1',
+						'// [!note] X',
+						'const two = 2',
+					].join('\n'),
 					language: 'js',
 					meta: '',
 				},
@@ -522,7 +726,7 @@ describe('Annotation comment handlers', () => {
 		expect(html).not.toContain('ac-content inline start')
 	})
 
-	test('allows custom content.render.contentWrapper functions to retag and restyle the wrapper', async () => {
+	test('Allows custom content.render.contentWrapper functions to retag and restyle the wrapper', async () => {
 		const plugin: ExpressiveCodePlugin = {
 			name: 'Rendered content wrapper retag',
 			annotationCommentHandlers: [
@@ -530,6 +734,7 @@ describe('Annotation comment handlers', () => {
 					tagNames: ['note'],
 					content: {
 						displayCode: 'remove',
+						copyCode: 'remove',
 						render: {
 							placement: {
 								anchor: 'firstTarget',
@@ -554,7 +759,12 @@ describe('Annotation comment handlers', () => {
 			plugins: [plugin],
 			input: [
 				{
-					code: ['const one = 1', '// [!note] X', 'const two = 2'].join('\n'),
+					code: [
+						// Wrapper hook should retag wrapper and remove built-in style
+						'const one = 1',
+						'// [!note] X',
+						'const two = 2',
+					].join('\n'),
 					language: 'js',
 					meta: '',
 				},
@@ -566,7 +776,7 @@ describe('Annotation comment handlers', () => {
 		expect(html).not.toContain('ac-content inline start')
 	})
 
-	test('supports content.render.parentLine for generated between-lines hosts', async () => {
+	test('Supports content.render.parentLine for generated between-lines hosts', async () => {
 		const plugin: ExpressiveCodePlugin = {
 			name: 'Rendered content line hook',
 			annotationCommentHandlers: [
@@ -574,6 +784,7 @@ describe('Annotation comment handlers', () => {
 					tagNames: ['note'],
 					content: {
 						displayCode: 'remove',
+						copyCode: 'remove',
 						render: {
 							placement: {
 								anchor: 'firstTarget',
@@ -596,7 +807,12 @@ describe('Annotation comment handlers', () => {
 			plugins: [plugin],
 			input: [
 				{
-					code: ['const one = 1', '// [!note] Hello docs', 'const two = 2'].join('\n'),
+					code: [
+						// Parent-line hook should mark generated between-lines host rows
+						'const one = 1',
+						'// [!note] Hello docs',
+						'const two = 2',
+					].join('\n'),
 					language: 'js',
 					meta: '',
 				},
@@ -608,7 +824,7 @@ describe('Annotation comment handlers', () => {
 		expect(html).toContain('<div class="code"><div class="ac-content line-before start"')
 	})
 
-	test('supports all anchor x line x col placement combinations', async () => {
+	test('Supports all anchor x line x col placement combinations', async () => {
 		const anchors = ['annotation', 'firstTarget', 'lastTarget', 'allTargets'] as const
 		const lines = ['current', 'before', 'after'] as const
 		const cols = ['anchorStart', 'anchorEnd', 'lineStart', 'lineEnd'] as const
@@ -620,6 +836,7 @@ describe('Annotation comment handlers', () => {
 				tagNames: [`case${index}`],
 				content: {
 					displayCode: 'remove',
+					copyCode: 'remove',
 					render: {
 						placement: {
 							anchor: combination.anchor,
@@ -656,7 +873,7 @@ describe('Annotation comment handlers', () => {
 		expect(contentCols.some((column) => column > 0)).toBe(true)
 	})
 
-	test('supports render transforms that insert rendered lines', async () => {
+	test('Supports render transforms that insert rendered lines', async () => {
 		const plugin: ExpressiveCodePlugin = {
 			name: 'Render transforms',
 			annotationCommentHandlers: [
@@ -684,7 +901,12 @@ describe('Annotation comment handlers', () => {
 			plugins: [plugin],
 			input: [
 				{
-					code: ['const one = 1', '// [!note]', 'const two = 2'].join('\n'),
+					code: [
+						// Render transform should inject a generated line before target
+						'const one = 1',
+						'// [!note]',
+						'const two = 2',
+					].join('\n'),
 					language: 'js',
 					meta: '',
 				},
@@ -697,7 +919,7 @@ describe('Annotation comment handlers', () => {
 		expect(html).toMatch(/Inserted note[\s\S]*const two = 2/)
 	})
 
-	test('resolves render transform anchors by source line when mixed before and after inserts are registered', async () => {
+	test('Resolves render transform anchors by source line when mixed before and after inserts are registered', async () => {
 		const plugin: ExpressiveCodePlugin = {
 			name: 'Render transform anchor order',
 			annotationCommentHandlers: [
@@ -735,7 +957,14 @@ describe('Annotation comment handlers', () => {
 			plugins: [plugin],
 			input: [
 				{
-					code: ['const one = 1', '// [!note]', 'const two = 2', '// [!note]', 'const three = 3'].join('\n'),
+					code: [
+						// Before and after inserts should stay attached to each target line
+						'const one = 1',
+						'// [!note]',
+						'const two = 2',
+						'// [!note]',
+						'const three = 3',
+					].join('\n'),
 					language: 'js',
 					meta: '',
 				},
@@ -747,10 +976,109 @@ describe('Annotation comment handlers', () => {
 		expect(html).toMatch(/before const two = 2[\s\S]*const two = 2[\s\S]*after const two = 2/)
 		expect(html).toMatch(/before const three = 3[\s\S]*const three = 3[\s\S]*after const three = 3/)
 	})
+
+	test('Logs annotation comment handler errors once per unique message with document context', async () => {
+		const plugin: ExpressiveCodePlugin = {
+			name: 'Failing handler',
+			annotationCommentHandlers: [
+				{
+					tagNames: ['note'],
+					handle: () => {
+						throw new Error('Expected failure')
+					},
+				},
+			],
+		}
+		const warnings: string[] = []
+		const engine = new ExpressiveCodeEngine({
+			plugins: [plugin],
+			logger: {
+				warn: (message) => warnings.push(message),
+				error: () => undefined,
+			},
+		})
+
+		await expect(
+			engine.render([
+				{
+					code: [
+						// Repeated handler failures should be logged once per message
+						'const one = 1',
+						'// [!note] First',
+						'const two = 2',
+						'// [!note] Second',
+						'const three = 3',
+					].join('\n'),
+					language: 'js',
+					meta: '',
+					parentDocument: {
+						sourceFilePath: '/docs/example.mdx',
+						positionInDocument: {
+							groupIndex: 1,
+							totalGroups: 4,
+						},
+					},
+				},
+			])
+		).resolves.not.toThrow()
+
+		expect(warnings).toHaveLength(1)
+		expect(warnings[0]).toContain('document "/docs/example.mdx", code block 2/4')
+		expect(warnings[0]).toContain('Failed to process annotation comment tag "note" handled by plugin "Failing handler": Expected failure')
+		expect((warnings[0].match(/Failed to process annotation comment/g) || []).length).toBe(1)
+	})
+
+	test('Treats displayCode=remove with copyCode=keep as an invalid handler configuration', async () => {
+		const plugin: ExpressiveCodePlugin = {
+			name: 'Invalid copy cleanup',
+			annotationCommentHandlers: [
+				{
+					tagNames: ['note'],
+					content: {
+						displayCode: 'remove',
+						copyCode: 'keep',
+					},
+					handle: ({ targets }) => {
+						targets.forEach((target) => {
+							target.line.addAnnotation(new WrapperAnnotation({ selector: 'mark' }))
+						})
+					},
+				},
+			],
+		}
+		const warnings: string[] = []
+		const engine = new ExpressiveCodeEngine({
+			plugins: [plugin],
+			logger: {
+				warn: (message) => warnings.push(message),
+				error: () => undefined,
+			},
+		})
+
+		const { renderedGroupContents } = await engine.render([
+			{
+				code: [
+					// Invalid cleanup configuration should warn and keep original line
+					'const one = 1',
+					'// [!note] invalid config',
+					'const two = 2',
+				].join('\n'),
+				language: 'js',
+				meta: '',
+			},
+		])
+
+		expect(warnings).toHaveLength(1)
+		expect(warnings[0]).toContain('Failed to process annotation comment tag "note" handled by plugin "Invalid copy cleanup"')
+		expect(warnings[0]).toContain('content.copyCode="keep" with content.displayCode="remove"')
+		expect(renderedGroupContents[0].codeBlock.code).toContain('// [!note] invalid config')
+		const html = toSanitizedHtml(renderedGroupContents[0].renderedBlockAst)
+		expect(html).not.toContain('<mark>')
+	})
 })
 
 describe('Annotation comment copy transforms', () => {
-	test('are applied by codeBlock.getCopyText', async () => {
+	test('Are applied by codeBlock.getCopyText', async () => {
 		const plugin: ExpressiveCodePlugin = {
 			name: 'Copy transforms',
 			annotationCommentHandlers: [
@@ -779,7 +1107,12 @@ describe('Annotation comment copy transforms', () => {
 			plugins: [plugin],
 			input: [
 				{
-					code: ['const keep = 1', '// [!del]', 'const remove = 2'].join('\n'),
+					code: [
+						// Del tag should remove the targeted source line from copy text
+						'const keep = 1',
+						'// [!del]',
+						'const remove = 2',
+					].join('\n'),
 					language: 'js',
 					meta: '',
 				},
@@ -790,7 +1123,7 @@ describe('Annotation comment copy transforms', () => {
 		expect(codeBlock.getCopyText()).toEqual('const keep = 1')
 	})
 
-	test('discards edit transforms after the same source line was removed', async () => {
+	test('Discards edit transforms after the same source line was removed', async () => {
 		const plugin: ExpressiveCodePlugin = {
 			name: 'Copy transform operation ordering',
 			annotationCommentHandlers: [
@@ -816,7 +1149,12 @@ describe('Annotation comment copy transforms', () => {
 			plugins: [plugin],
 			input: [
 				{
-					code: ['const keep = 1', '// [!del]', 'const remove = 2'].join('\n'),
+					code: [
+						// Edit transforms should be discarded after removing their line
+						'const keep = 1',
+						'// [!del]',
+						'const remove = 2',
+					].join('\n'),
 					language: 'js',
 					meta: '',
 				},
@@ -826,7 +1164,7 @@ describe('Annotation comment copy transforms', () => {
 		expect(codeBlock.getCopyText()).toEqual('const keep = 1')
 	})
 
-	test('supports content.copyCode convenience cleanup', async () => {
+	test('Supports content.copyCode convenience cleanup', async () => {
 		const plugin: ExpressiveCodePlugin = {
 			name: 'Copy content cleanup',
 			annotationCommentHandlers: [
@@ -845,7 +1183,12 @@ describe('Annotation comment copy transforms', () => {
 			plugins: [plugin],
 			input: [
 				{
-					code: ['const keep = 1', '// [!note] Remove me from copied text', 'const stay = 2'].join('\n'),
+					code: [
+						// Copy cleanup should drop note content while display code stays
+						'const keep = 1',
+						'// [!note] Remove me from copied text',
+						'const stay = 2',
+					].join('\n'),
 					language: 'js',
 					meta: '',
 				},

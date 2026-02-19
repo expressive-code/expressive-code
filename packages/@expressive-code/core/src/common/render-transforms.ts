@@ -2,6 +2,7 @@ import type { Element, Parents } from '../hast'
 import { AnnotationRenderOptions, ExpressiveCodeAnnotation } from './annotation'
 import type { RenderEmptyLineFn } from './plugin-hooks'
 import type { TransformAnchorFallback } from './transforms'
+import type { Awaitable, MaybeArray } from '../helpers/types'
 
 export type RenderTransformOptions = {
 	type: 'insert'
@@ -10,7 +11,7 @@ export type RenderTransformOptions = {
 }
 
 export type RenderTransform = RenderTransformOptions & {
-	render: (context: { renderEmptyLine: RenderEmptyLineFn }) => Element | Element[] | null | undefined | Promise<Element | Element[] | null | undefined>
+	render: (context: { renderEmptyLine: RenderEmptyLineFn }) => Awaitable<MaybeArray<Element> | null | undefined>
 }
 
 /**

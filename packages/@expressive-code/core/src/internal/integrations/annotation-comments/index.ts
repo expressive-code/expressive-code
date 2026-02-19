@@ -1,13 +1,17 @@
 import type { AnnotationComment } from 'annotation-comments'
-import type { AnnotationCommentContentCleanup, AnnotationCommentContentCleanupResolver } from '../../../common/annotation-comments'
+import type { AnnotationCommentContentCleanup, AnnotationCommentContentContext, AnnotationCommentHandler } from '../../../common/annotation-comments'
 import type { ExpressiveCodeHookContextBase } from '../../../common/plugin-hooks'
 import type { ExpressiveCodeLogger } from '../../../common/logger'
 import type { ExpressiveCodePlugin } from '../../../common/plugin'
 import type { RenderTransform } from '../../../common/render-transforms'
 import { cleanCode, parseAnnotationComments } from 'annotation-comments'
 import { applyContentRenderConvenience } from './content-rendering'
-import { getDefaultInsertOnDeleteLine, getDefaultInsertPosition, resolveTargets } from './target-resolving'
-import type { AnnotationCommentContextBase, RegisteredAnnotationCommentHandler } from './types'
+import { getAnnotationCommentTargets, getDefaultInsertOnDeleteLine, getDefaultInsertPosition } from './target-resolving'
+
+type RegisteredAnnotationCommentHandler = {
+	pluginName: string
+	handler: AnnotationCommentHandler
+}
 
 /**
  * Parses and processes annotation comments for a code block.
@@ -20,114 +24,167 @@ import type { AnnotationCommentContextBase, RegisteredAnnotationCommentHandler }
  */
 export async function processAnnotationComments(options: ExpressiveCodeHookContextBase) {
 	const { codeBlock, config } = options
-	const logger = config.logger
-	const handlersByTag = resolveAnnotationCommentHandlers(config.plugins)
-
-	// If no handlers were registered, there is nothing to process
-	if (!handlersByTag.size) return
+	const uniqueIssues = new Set<string>()
+	const reportIssue = (message: string) => uniqueIssues.add(message)
+	const handlersByTag = collectAnnotationCommentHandlers({
+		plugins: config.plugins,
+		reportIssue,
+	})
 
 	const parseResult = parseAnnotationComments({
 		codeLines: codeBlock.getLines().map((line) => line.text),
 	})
 
 	parseResult.errorMessages.forEach((errorMessage) => {
-		logger.warn(`Annotation comments: ${errorMessage}`)
+		reportIssue(`Parsing error: ${errorMessage}`)
 	})
-
-	if (!parseResult.annotationComments.length) return
 
 	const commentsToClean = new Set<AnnotationComment>()
 	const removeDisplayContent = new Map<AnnotationComment, boolean>()
 
 	for (const annotationComment of parseResult.annotationComments) {
-		// Always clean parser-level control comments from display code
-		if (annotationComment.tag.name === 'ignore-tags') {
-			commentsToClean.add(annotationComment)
-			removeDisplayContent.set(annotationComment, true)
-			continue
-		}
-
-		const registeredHandler = handlersByTag.get(annotationComment.tag.name)
-		if (!registeredHandler) continue
-
-		const annotationLine = codeBlock.getLine(annotationComment.commentRange.start.line)
-		if (!annotationLine) continue
-		const targets = resolveTargets(annotationComment, codeBlock)
-		const contentLines = [...annotationComment.contents]
-		const content = {
-			lines: contentLines,
-			text: contentLines.join('\n'),
-		}
-		const baseContext: AnnotationCommentContextBase = {
-			...options,
-			annotationComment,
-			targets,
-			content,
-		}
-		const defaultInsertPosition = getDefaultInsertPosition(annotationComment)
-		const defaultInsertOnDeleteLine = getDefaultInsertOnDeleteLine(annotationComment)
-		const addRenderTransform = (renderTransform: RenderTransform) => {
-			annotationLine.addRenderTransform({
-				...renderTransform,
-				position: renderTransform.position ?? defaultInsertPosition,
-				onDeleteLine: renderTransform.onDeleteLine ?? defaultInsertOnDeleteLine,
-			})
-		}
-
-		const displayCleanup = await resolveContentCleanup(registeredHandler.handler.content?.displayCode, baseContext)
-		const copyCleanup = await resolveContentCleanup(registeredHandler.handler.content?.copyCode, baseContext)
-		commentsToClean.add(annotationComment)
-		removeDisplayContent.set(annotationComment, displayCleanup === 'remove')
-
-		await applyContentRenderConvenience({
-			...registeredHandler,
-			context: baseContext,
-			logger,
-		})
-
-		applyContentCopyConvenience({
-			...registeredHandler,
-			context: baseContext,
-			displayCleanup,
-			logger,
-			copyCleanup,
-			annotationComments: parseResult.annotationComments,
-		})
-
 		try {
-			await registeredHandler.handler.handle({
-				...baseContext,
-				annotationLine,
-				addRenderTransform,
+			const resolvedComment = await processAnnotationComment({
+				baseContext: options,
+				annotationComment,
+				annotationComments: parseResult.annotationComments,
+				handlersByTag,
 			})
+			if (!resolvedComment) continue
+			commentsToClean.add(annotationComment)
+			removeDisplayContent.set(annotationComment, resolvedComment.removeDisplayContent)
 		} catch (error) {
-			const message = error instanceof Error ? error.message : String(error)
-			throw new Error(`Plugin "${registeredHandler.pluginName}" failed to handle annotation comment tag "${annotationComment.tag.name}". Error message: ${message}`, {
-				cause: error,
-			})
+			const registeredHandler = handlersByTag.get(annotationComment.tag.name)
+			const byPlugin = registeredHandler ? ` handled by plugin "${registeredHandler.pluginName}"` : ''
+			reportIssue(`Failed to process annotation comment tag "${annotationComment.tag.name}"${byPlugin}: ${toErrorMessage(error)}`)
 		}
 	}
 
-	if (!commentsToClean.size) return
+	if (commentsToClean.size) {
+		const cleanedCodeLines = codeBlock.getLines().map((line) => line.text)
+		try {
+			cleanCode({
+				codeLines: cleanedCodeLines,
+				annotationComments: parseResult.annotationComments,
+				allowCleaning: ({ comment }) => commentsToClean.has(comment),
+				removeAnnotationContents: ({ comment }) => removeDisplayContent.get(comment) ?? false,
+				handleRemoveLine: ({ lineIndex }) => {
+					codeBlock.deleteLine(lineIndex)
+					return false
+				},
+				handleEditLine: ({ lineIndex, startColumn, endColumn, newText }) => {
+					codeBlock.getLine(lineIndex)?.editText(startColumn, endColumn, newText ?? '')
+					return false
+				},
+			})
+		} catch (error) {
+			reportIssue(`Failed to clean annotation comments from display code: ${toErrorMessage(error)}`)
+		}
+	}
 
-	const cleanedCodeLines = codeBlock.getLines().map((line) => line.text)
-	cleanCode({
-		codeLines: cleanedCodeLines,
-		annotationComments: parseResult.annotationComments,
-		allowCleaning: ({ comment }) => commentsToClean.has(comment),
-		removeAnnotationContents: ({ comment }) => removeDisplayContent.get(comment) ?? false,
-		handleRemoveLine: ({ lineIndex }) => {
-			codeBlock.deleteLine(lineIndex)
-			return false
-		},
-		handleEditLine: ({ lineIndex, startColumn, endColumn, newText }) => {
-			codeBlock.getLine(lineIndex)?.editText(startColumn, endColumn, newText ?? '')
-			return false
-		},
+	logAnnotationCommentIssues({
+		logger: config.logger,
+		codeBlock,
+		uniqueIssues,
 	})
 }
 
-function resolveAnnotationCommentHandlers(plugins: readonly ExpressiveCodePlugin[]) {
+/**
+ * Processes a single annotation comment and resolves to content cleanup instructions.
+ */
+async function processAnnotationComment(options: {
+	baseContext: ExpressiveCodeHookContextBase
+	annotationComment: AnnotationComment
+	annotationComments: AnnotationComment[]
+	handlersByTag: Map<string, RegisteredAnnotationCommentHandler>
+}): Promise<{ removeDisplayContent: boolean } | undefined> {
+	const { baseContext, annotationComment, annotationComments, handlersByTag } = options
+
+	// Always clean parser-level control comments from display code
+	if (annotationComment.tag.name === 'ignore-tags') {
+		return { removeDisplayContent: true }
+	}
+
+	const registeredHandler = handlersByTag.get(annotationComment.tag.name)
+	if (!registeredHandler) return
+
+	const { codeBlock } = baseContext
+	const annotationLine = codeBlock.getLine(annotationComment.commentRange.start.line)
+	if (!annotationLine) {
+		throw new Error(`Cannot resolve annotation line ${annotationComment.commentRange.start.line}`)
+	}
+
+	const targets = getAnnotationCommentTargets(annotationComment, codeBlock)
+	const contentLines = [...annotationComment.contents]
+	const content = {
+		lines: contentLines,
+		text: contentLines.join('\n'),
+	}
+	const context: AnnotationCommentContentContext = {
+		...baseContext,
+		annotationComment,
+		targets,
+		content,
+	}
+
+	let displayCleanup: AnnotationCommentContentCleanup = 'keep'
+	const displayCleanupOption = registeredHandler.handler.content?.displayCode
+	if (typeof displayCleanupOption === 'function') {
+		// Run `content.displayCode` hook (if any)
+		displayCleanup = (await displayCleanupOption(context)) ?? 'keep'
+	} else if (displayCleanupOption) {
+		displayCleanup = displayCleanupOption
+	}
+
+	let copyCleanup: AnnotationCommentContentCleanup = 'keep'
+	const copyCleanupOption = registeredHandler.handler.content?.copyCode
+	if (typeof copyCleanupOption === 'function') {
+		// Run `content.copyCode` hook (if any)
+		copyCleanup = (await copyCleanupOption(context)) ?? 'keep'
+	} else if (copyCleanupOption) {
+		copyCleanup = copyCleanupOption
+	}
+
+	await applyContentRenderConvenience({
+		handler: registeredHandler.handler,
+		context,
+	})
+
+	applyContentCopyConvenience({
+		...registeredHandler,
+		context,
+		displayCleanup,
+		copyCleanup,
+		annotationComments,
+	})
+
+	const defaultInsertPosition = getDefaultInsertPosition(annotationComment)
+	const defaultInsertOnDeleteLine = getDefaultInsertOnDeleteLine(annotationComment)
+	const addRenderTransform = (renderTransform: RenderTransform) => {
+		annotationLine.addRenderTransform({
+			...renderTransform,
+			position: renderTransform.position ?? defaultInsertPosition,
+			onDeleteLine: renderTransform.onDeleteLine ?? defaultInsertOnDeleteLine,
+		})
+	}
+
+	// Run annotation comment handler hook provided by the plugin
+	await registeredHandler.handler.handle({
+		...context,
+		annotationLine,
+		addRenderTransform,
+	})
+
+	return {
+		removeDisplayContent: displayCleanup === 'remove',
+	}
+}
+
+/**
+ * Collects annotation comment handlers from all plugins and resolves tag conflicts.
+ */
+function collectAnnotationCommentHandlers(options: { plugins: readonly ExpressiveCodePlugin[]; reportIssue: (message: string) => void }) {
+	const { plugins, reportIssue } = options
 	const handlersByTag = new Map<string, RegisteredAnnotationCommentHandler>()
 	plugins.forEach((plugin) => {
 		plugin.annotationCommentHandlers?.forEach((handler) => {
@@ -137,9 +194,10 @@ function resolveAnnotationCommentHandlers(plugins: readonly ExpressiveCodePlugin
 
 				const existingHandler = handlersByTag.get(tagName)
 				if (existingHandler && !handler.overrideExisting) {
-					throw new Error(
+					reportIssue(
 						`Plugin "${plugin.name}" tried to register annotation comment tag "${tagName}", but it is already handled by plugin "${existingHandler.pluginName}". Set overrideExisting=true to replace it explicitly.`
 					)
+					return
 				}
 
 				handlersByTag.set(tagName, {
@@ -152,13 +210,15 @@ function resolveAnnotationCommentHandlers(plugins: readonly ExpressiveCodePlugin
 	return handlersByTag
 }
 
+/**
+ * Applies copy-only content cleanup behavior by translating cleaned ranges into copy transforms.
+ */
 function applyContentCopyConvenience(options: {
 	pluginName: string
 	displayCleanup: AnnotationCommentContentCleanup
 	copyCleanup: AnnotationCommentContentCleanup
-	context: AnnotationCommentContextBase
+	context: AnnotationCommentContentContext
 	annotationComments: AnnotationComment[]
-	logger: ExpressiveCodeLogger
 }) {
 	const {
 		pluginName,
@@ -166,16 +226,12 @@ function applyContentCopyConvenience(options: {
 		copyCleanup,
 		context: { codeBlock, annotationComment },
 		annotationComments,
-		logger,
 	} = options
 
 	// We currently don't support removing code during rendering
-	// while keeping it for copying
+	// while keeping it for copying, so this is treated as an invalid handler configuration
 	if (displayCleanup === 'remove' && copyCleanup === 'keep') {
-		logger.warn(
-			`Annotation comments: Plugin "${pluginName}" tag "${annotationComment.tag.name}" uses content.copyCode="keep" with content.displayCode="remove". This combination is not supported yet; copied code will follow display cleanup.`
-		)
-		return
+		throw new Error(`Plugin "${pluginName}" tag "${annotationComment.tag.name}" uses content.copyCode="keep" with content.displayCode="remove". This combination is not supported.`)
 	}
 
 	// Allow removing content from the copied code while still displaying it
@@ -208,7 +264,34 @@ function applyContentCopyConvenience(options: {
 	}
 }
 
-async function resolveContentCleanup(cleanupOption: AnnotationCommentContentCleanup | AnnotationCommentContentCleanupResolver | undefined, context: AnnotationCommentContextBase) {
-	if (typeof cleanupOption === 'function') return await cleanupOption(context)
-	return cleanupOption ?? 'keep'
+/**
+ * Normalizes unknown thrown values into a readable error message string.
+ */
+function toErrorMessage(error: unknown) {
+	return error instanceof Error ? error.message : String(error)
+}
+
+/**
+ * Logs all collected annotation comment issues once per code block with location context.
+ */
+function logAnnotationCommentIssues(options: { logger: ExpressiveCodeLogger; codeBlock: ExpressiveCodeHookContextBase['codeBlock']; uniqueIssues: Set<string> }) {
+	const { logger, codeBlock, uniqueIssues } = options
+	if (!uniqueIssues.size) return
+	const location = getIssueLogLocation(codeBlock)
+	const entries = [...uniqueIssues].map((message) => `- ${message}`).join('\n')
+	logger.warn(`Annotation comments: Encountered issues in ${location}:\n${entries}`)
+}
+
+/**
+ * Builds a human-readable location label for warning logs.
+ */
+function getIssueLogLocation(codeBlock: ExpressiveCodeHookContextBase['codeBlock']) {
+	const { parentDocument } = codeBlock
+	const locationParts = [parentDocument?.sourceFilePath ? `document "${parentDocument.sourceFilePath}"` : 'the current document']
+	if (parentDocument?.positionInDocument) {
+		const index = parentDocument.positionInDocument.groupIndex + 1
+		const { totalGroups } = parentDocument.positionInDocument
+		locationParts.push(totalGroups ? `code block ${index}/${totalGroups}` : `code block ${index}`)
+	}
+	return locationParts.join(', ')
 }

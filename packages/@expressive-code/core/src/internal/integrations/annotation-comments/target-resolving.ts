@@ -2,7 +2,10 @@ import type { AnnotationComment } from 'annotation-comments'
 import type { ExpressiveCodeBlock } from '../../../common/block'
 import type { TransformAnchorFallback, TransformTarget } from '../../../common/transforms'
 
-export function resolveTargets(annotationComment: AnnotationComment, codeBlock: ExpressiveCodeBlock): TransformTarget[] {
+/**
+ * Resolves parser target ranges into concrete block line/inline targets.
+ */
+export function getAnnotationCommentTargets(annotationComment: AnnotationComment, codeBlock: ExpressiveCodeBlock): TransformTarget[] {
 	const targets: TransformTarget[] = []
 	const codeLines = codeBlock.getLines()
 
@@ -15,8 +18,8 @@ export function resolveTargets(annotationComment: AnnotationComment, codeBlock: 
 			const line = codeLines[startLineIndex]
 			if (!line) return
 			const lineLength = line.text.length
-			const columnStart = clamp(targetRange.start.column ?? 0, 0, lineLength)
-			const columnEnd = clamp(targetRange.end.column ?? lineLength, columnStart, lineLength)
+			const columnStart = Math.max(0, Math.min(lineLength, targetRange.start.column ?? 0))
+			const columnEnd = Math.max(columnStart, Math.min(lineLength, targetRange.end.column ?? lineLength))
 			if (columnEnd <= columnStart) return
 			targets.push({
 				line,
@@ -44,18 +47,27 @@ export function resolveTargets(annotationComment: AnnotationComment, codeBlock: 
 	return dedupeTargets(targets)
 }
 
+/**
+ * Derives the default insert direction from the relative target range sign.
+ */
 export function getDefaultInsertPosition(annotationComment: AnnotationComment): 'before' | 'after' {
 	const { relativeTargetRange } = annotationComment.tag
 	if (typeof relativeTargetRange === 'number' && relativeTargetRange < 0) return 'before'
 	return 'after'
 }
 
+/**
+ * Derives the default deleted-anchor fallback from the relative target range sign.
+ */
 export function getDefaultInsertOnDeleteLine(annotationComment: AnnotationComment): TransformAnchorFallback {
 	const { relativeTargetRange } = annotationComment.tag
 	if (typeof relativeTargetRange === 'number' && relativeTargetRange < 0) return 'stick-prev'
 	return 'stick-next'
 }
 
+/**
+ * Removes duplicate line/inline targets while keeping first-seen order.
+ */
 function dedupeTargets(targets: TransformTarget[]) {
 	const seenTargets = new Set<string>()
 	return targets.filter((target) => {
@@ -64,8 +76,4 @@ function dedupeTargets(targets: TransformTarget[]) {
 		seenTargets.add(targetKey)
 		return true
 	})
-}
-
-function clamp(value: number, min: number, max: number) {
-	return Math.max(min, Math.min(max, value))
 }

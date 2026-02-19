@@ -150,7 +150,7 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 							if (!line) return
 							// If a label was given, only show it at the beginning of each range
 							const labelForLine = idx === 0 || lineNumber - lineNumbers[idx - 1] !== 1 ? label : undefined
-							const labelRenderMode = resolveLabelRenderMode({
+							const labelRenderMode = getLabelRenderMode({
 								label: labelForLine,
 								hasTargets: true,
 								allowBetweenLinesWithoutTargetLineText: false,
@@ -335,6 +335,9 @@ export function pluginTextMarkers(): ExpressiveCodePlugin {
 	}
 }
 
+/**
+ * Creates an annotation comment handler config for a specific marker type.
+ */
 function createTextMarkerAnnotationCommentHandler(options: { markerType: MarkerType; tagNames: string[] }): AnnotationCommentHandler {
 	const { markerType, tagNames } = options
 
@@ -346,12 +349,12 @@ function createTextMarkerAnnotationCommentHandler(options: { markerType: MarkerT
 			render: {
 				placement: ({ annotationComment, targets, content }) => {
 					const label = normalizeLabelContent(content.lines)
-					const labelRenderMode = resolveLabelRenderMode({
+					const labelRenderMode = getLabelRenderMode({
 						label,
 						hasTargets: targets.length > 0,
 						allowBetweenLinesWithoutTargetLineText: true,
 					})
-					if (labelRenderMode === 'none') return false
+					if (labelRenderMode === 'none') return []
 					const targetsAbove = areAnyTargetsAboveAnnotationLine(targets, annotationComment.tag.range.start.line)
 					return {
 						anchor: targets.length ? (targetsAbove ? 'lastTarget' : 'firstTarget') : 'annotation',
@@ -381,6 +384,9 @@ function createTextMarkerAnnotationCommentHandler(options: { markerType: MarkerT
 	}
 }
 
+/**
+ * Applies common marker-label classes to the host line and initializes generated empty lines.
+ */
 function prepareLabelLine(options: { lineAst: Element; isGeneratedLine: boolean; markerType: MarkerType }) {
 	const { lineAst, isGeneratedLine, markerType } = options
 	addClassName(lineAst, 'has-label')
@@ -403,7 +409,10 @@ function areAnyTargetsAboveAnnotationLine(targets: { lineIndex: number }[], anno
 	return targets.some((target) => target.lineIndex < annotationLineIndex)
 }
 
-function resolveLabelRenderMode(options: { label: string | undefined; hasTargets: boolean; allowBetweenLinesWithoutTargetLineText: boolean; targetLineText?: string | undefined }) {
+/**
+ * Chooses inline vs. between-line label rendering while keeping backward-compatible behavior.
+ */
+function getLabelRenderMode(options: { label: string | undefined; hasTargets: boolean; allowBetweenLinesWithoutTargetLineText: boolean; targetLineText?: string | undefined }) {
 	const { label, hasTargets, allowBetweenLinesWithoutTargetLineText, targetLineText } = options
 	if (!label) return 'none' as const
 	if (!hasTargets) return 'between-lines' as const
@@ -417,6 +426,9 @@ function resolveLabelRenderMode(options: { label: string | undefined; hasTargets
 	return targetLineText?.trim() ? ('between-lines' as const) : ('inline' as const)
 }
 
+/**
+ * Parses a metadata value to one of the supported deleted-marker copy behavior modes.
+ */
 function parseDelMarkerCopyBehavior(rawValue: string | undefined): DelMarkerCopyBehavior | undefined {
 	const normalizedValue = rawValue?.trim().toLowerCase()
 	if (!normalizedValue) return undefined
@@ -424,12 +436,11 @@ function parseDelMarkerCopyBehavior(rawValue: string | undefined): DelMarkerCopy
 	return undefined
 }
 
-function getDelMarkerCopyBehavior(codeBlock: ExpressiveCodeBlock): DelMarkerCopyBehavior {
-	return parseDelMarkerCopyBehavior(codeBlock.props.delCopyBehavior as string | undefined) ?? 'remove'
-}
-
+/**
+ * Adds copy transforms for deleted markers according to the configured copy behavior.
+ */
 function applyDeletedMarkerCopyTransformsForBlock(codeBlock: ExpressiveCodeBlock) {
-	const copyBehavior = getDelMarkerCopyBehavior(codeBlock)
+	const copyBehavior = parseDelMarkerCopyBehavior(codeBlock.props.delCopyBehavior) ?? 'remove'
 	if (copyBehavior === 'keep') return
 
 	codeBlock.getLines().forEach((line) => {
@@ -465,6 +476,9 @@ function applyDeletedMarkerCopyTransformsForBlock(codeBlock: ExpressiveCodeBlock
 	})
 }
 
+/**
+ * Merges overlapping inline ranges into a minimal set of non-overlapping ranges.
+ */
 function mergeInlineRanges(ranges: { columnStart: number; columnEnd: number }[]) {
 	if (!ranges.length) return []
 	const normalizedRanges = ranges
@@ -495,6 +509,9 @@ const defaultCopyCommentSyntax: TextMarkerCopyCommentSyntax = {
 	opening: '//',
 }
 
+/**
+ * Converts one source line to a commented line using the given comment syntax.
+ */
 function commentOutLine(lineText: string, commentSyntax: TextMarkerCopyCommentSyntax) {
 	const { opening, closing } = commentSyntax
 	const lineMatch = lineText.match(/^(\s*)(.*)$/)

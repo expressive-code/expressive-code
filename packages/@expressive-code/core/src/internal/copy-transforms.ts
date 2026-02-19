@@ -1,6 +1,6 @@
 import type { ExpressiveCodeLine } from '../common/line'
 import type { TransformAnchorFallback } from '../common/transforms'
-import { resolveTransformAnchorFallback } from './transform-anchor-fallback'
+import { pickTransformAnchorFallback } from './transform-anchor-fallback'
 
 type CopyLineOperation =
 	| {
@@ -25,7 +25,6 @@ type CopyInsertOperation = {
 	anchorLine: ExpressiveCodeLine
 	anchorOriginalLineIndex: number
 	onDeleteLine: TransformAnchorFallback
-	order: number
 }
 
 /**
@@ -60,7 +59,6 @@ export function applyCopyTransforms(options: { lines: readonly ExpressiveCodeLin
 					lines: transform.lines ? [...transform.lines] : [],
 					anchorLine: line,
 					anchorOriginalLineIndex: lineIndex,
-					order: transformOrder,
 				})
 				return
 			}
@@ -143,13 +141,13 @@ export function applyCopyTransforms(options: { lines: readonly ExpressiveCodeLin
 	// Keep insert operations in registration order
 	insertOperations.forEach((operation) => {
 		if (!operation.lines.length) return
-		const resolvedInsertTarget = resolveLineCopyInsertAnchor({
+		const insertTarget = getLineCopyInsertAnchor({
 			copiedLines,
 			lineIndices,
 			operation,
 		})
-		if (!resolvedInsertTarget) return
-		const insertIndex = resolvedInsertTarget.position === 'before' ? resolvedInsertTarget.anchor : resolvedInsertTarget.anchor + 1
+		if (!insertTarget) return
+		const insertIndex = insertTarget.position === 'before' ? insertTarget.anchor : insertTarget.anchor + 1
 		copiedLines.splice(
 			insertIndex,
 			0,
@@ -163,12 +161,18 @@ export function applyCopyTransforms(options: { lines: readonly ExpressiveCodeLin
 	return copiedLines.map((line) => line.text).join('\n')
 }
 
+/**
+ * Normalizes transform newText input into an explicit line array representation.
+ */
 function normalizeNewTextLines(newText: string | string[]) {
 	if (Array.isArray(newText)) return [...newText]
 	return [newText]
 }
 
-function resolveLineCopyInsertAnchor(options: {
+/**
+ * Resolves the current insert anchor for one insert operation after prior edits/removals.
+ */
+function getLineCopyInsertAnchor(options: {
 	copiedLines: Array<{ text: string; sourceLine: ExpressiveCodeLine | undefined }>
 	lineIndices: Map<ExpressiveCodeLine, number>
 	operation: CopyInsertOperation
@@ -182,23 +186,26 @@ function resolveLineCopyInsertAnchor(options: {
 		}
 	}
 
-	const sourceLineIndices = copiedLines
-		.map((line, currentIndex) => {
-			if (!line.sourceLine) return
-			const sourceLineIndex = lineIndices.get(line.sourceLine)
-			if (sourceLineIndex === undefined) return
-			return {
-				currentIndex,
-				sourceLineIndex,
+	let previousLine: { currentIndex: number; sourceLineIndex: number } | undefined
+	let nextLine: { currentIndex: number; sourceLineIndex: number } | undefined
+	copiedLines.forEach((line, currentIndex) => {
+		if (!line.sourceLine) return
+		const sourceLineIndex = lineIndices.get(line.sourceLine)
+		if (sourceLineIndex === undefined) return
+		if (sourceLineIndex < operation.anchorOriginalLineIndex) {
+			if (!previousLine || sourceLineIndex > previousLine.sourceLineIndex) {
+				previousLine = { currentIndex, sourceLineIndex }
 			}
-		})
-		.filter((lineIndex): lineIndex is { currentIndex: number; sourceLineIndex: number } => !!lineIndex)
-	const nextLine = sourceLineIndices.filter((lineIndex) => lineIndex.sourceLineIndex > operation.anchorOriginalLineIndex).sort((a, b) => a.sourceLineIndex - b.sourceLineIndex)[0]
-	const previousLine = sourceLineIndices
-		.filter((lineIndex) => lineIndex.sourceLineIndex < operation.anchorOriginalLineIndex)
-		.sort((a, b) => b.sourceLineIndex - a.sourceLineIndex)[0]
+			return
+		}
+		if (sourceLineIndex > operation.anchorOriginalLineIndex) {
+			if (!nextLine || sourceLineIndex < nextLine.sourceLineIndex) {
+				nextLine = { currentIndex, sourceLineIndex }
+			}
+		}
+	})
 
-	return resolveTransformAnchorFallback({
+	return pickTransformAnchorFallback({
 		onDeleteLine: operation.onDeleteLine,
 		previous: previousLine?.currentIndex,
 		next: nextLine?.currentIndex,

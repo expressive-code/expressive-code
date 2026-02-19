@@ -4,13 +4,15 @@ import type { ExpressiveCodeLine } from './line'
 import type { ExpressiveCodeHookContextBase } from './plugin-hooks'
 import type { RenderTransform } from './render-transforms'
 import type { TransformTarget } from './transforms'
+import type { Awaitable, MaybeArray, MaybeGetter } from '../helpers/types'
 
 export type AnnotationCommentHandler = {
 	/**
 	 * The annotation tag names that this handler should process.
 	 *
 	 * By default, tag names must be unique across all annotation comment handlers,
-	 * and attempting to register a handler for an existing tag name will throw an error.
+	 * and attempting to register a handler for an existing tag name logs a warning
+	 * and keeps the first registered handler.
 	 * To change this, set `overrideExisting` to `true`.
 	 */
 	tagNames: string[]
@@ -30,7 +32,7 @@ export type AnnotationCommentHandler = {
 	handle: AnnotationCommentHandlerFn
 }
 
-export type AnnotationCommentHandlerFn = (context: AnnotationCommentHandlerContext) => void | Promise<void>
+export type AnnotationCommentHandlerFn = (context: AnnotationCommentHandlerContext) => Awaitable<void>
 
 export type AnnotationCommentHandlerContext = AnnotationCommentContentContext & {
 	/**
@@ -49,14 +51,14 @@ export type AnnotationCommentContentOptions = {
 	 *
 	 * @default 'keep'
 	 */
-	copyCode?: AnnotationCommentContentCleanup | AnnotationCommentContentCleanupResolver | undefined
+	copyCode?: MaybeGetter<AnnotationCommentContentCleanup, AnnotationCommentContentContext> | undefined
 	/**
 	 * Controls whether annotation content should stay in display code plaintext
 	 * after tag cleanup.
 	 *
 	 * @default 'keep'
 	 */
-	displayCode?: AnnotationCommentContentCleanup | AnnotationCommentContentCleanupResolver | undefined
+	displayCode?: MaybeGetter<AnnotationCommentContentCleanup, AnnotationCommentContentContext> | undefined
 	/**
 	 * Optional convenience rendering for comment content.
 	 *
@@ -68,8 +70,6 @@ export type AnnotationCommentContentOptions = {
 }
 
 export type AnnotationCommentContentCleanup = 'keep' | 'remove'
-
-export type AnnotationCommentContentCleanupResolver = (context: AnnotationCommentContentContext) => AnnotationCommentContentCleanup | Promise<AnnotationCommentContentCleanup>
 
 export type AnnotationCommentContentRenderOptions = {
 	/**
@@ -86,10 +86,10 @@ export type AnnotationCommentContentRenderOptions = {
 	 * - `col: 'anchorEnd'`
 	 * - `preserveIndent: true` for generated lines (`line: 'before' | 'after'`)
 	 *
-	 * Returning `undefined`, `null`, `false`, or an empty array from a resolver
-	 * skips rendering for the current annotation comment.
+	 * Returning `undefined` uses the default placement.
+	 * Returning an empty array skips rendering for the current annotation comment.
 	 */
-	placement?: AnnotationCommentContentRenderPlacementInput | readonly AnnotationCommentContentRenderPlacementInput[] | AnnotationCommentContentRenderPlacementResolver | undefined
+	placement?: MaybeGetter<MaybeArray<AnnotationCommentContentRenderPlacementInput>, AnnotationCommentContentContext> | undefined
 	/**
 	 * Converts annotation comment content to rendered HAST nodes.
 	 *
@@ -168,37 +168,44 @@ export type AnnotationCommentContentRenderPlacement = {
 
 export type AnnotationCommentContentRenderPlacementInput = Partial<AnnotationCommentContentRenderPlacement>
 
-export type AnnotationCommentContentRenderPlacementResolver = (
-	context: AnnotationCommentContentContext
-) =>
-	| AnnotationCommentContentRenderPlacementInput
-	| readonly AnnotationCommentContentRenderPlacementInput[]
-	| undefined
-	| null
-	| false
-	| Promise<AnnotationCommentContentRenderPlacementInput | readonly AnnotationCommentContentRenderPlacementInput[] | undefined | null | false>
-
-export type AnnotationCommentContentRenderContext = AnnotationCommentContentContext & {
+export type AnnotationCommentContentPlacementContext = {
 	placement: AnnotationCommentContentRenderPlacement
-	target: TransformTarget
+	/**
+	 * The resolved target that this placement is associated with.
+	 *
+	 * This is `undefined` for placements anchored to the annotation itself.
+	 */
+	annotationTarget: TransformTarget | undefined
+	/**
+	 * The code line used to host the rendered content for this placement.
+	 */
+	contentRenderLine: ExpressiveCodeLine
+	/**
+	 * The resolved render column used for this placement on `contentRenderLine`.
+	 */
+	contentRenderColumn: number
 }
 
-export type AnnotationCommentContentWrapperContext = AnnotationCommentContentRenderContext & {
+export type AnnotationCommentContentRenderContext = AnnotationCommentContentContext & AnnotationCommentContentPlacementContext
+
+export type AnnotationCommentContentWrapperBaseContext = AnnotationCommentContentRenderContext & {
+	contentWrapper: Element
+}
+
+export type AnnotationCommentContentWrapperContext = AnnotationCommentContentWrapperBaseContext & {
 	renderedContent: ElementContent[]
-	contentWrapper: Element
 }
 
-export type AnnotationCommentContentParentLineContext = AnnotationCommentContentRenderContext & {
+export type AnnotationCommentContentParentLineContext = AnnotationCommentContentWrapperBaseContext & {
 	lineAst: Element
-	contentWrapper: Element
 	isGeneratedLine: boolean
 }
 
-export type AnnotationCommentContentWrapperFn = (context: AnnotationCommentContentWrapperContext) => Element | void | Promise<Element | void>
+export type AnnotationCommentContentWrapperFn = (context: AnnotationCommentContentWrapperContext) => Awaitable<Element | void>
 
 export type AnnotationCommentContentParentLineFn = (context: AnnotationCommentContentParentLineContext) => Element | void
 
-export type AnnotationCommentContentRendererFn = (context: AnnotationCommentContentRenderContext) => ElementContent[] | Promise<ElementContent[]>
+export type AnnotationCommentContentRendererFn = (context: AnnotationCommentContentRenderContext) => Awaitable<ElementContent[]>
 
 export type AnnotationCommentContentRenderer = 'plaintext' | 'inline-markdown' | AnnotationCommentContentRendererFn
 
