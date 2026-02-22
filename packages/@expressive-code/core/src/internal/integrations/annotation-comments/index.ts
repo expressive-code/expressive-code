@@ -6,6 +6,7 @@ import type { ExpressiveCodePlugin } from '../../../common/plugin'
 import type { RenderTransform } from '../../../common/render-transforms'
 import { cleanCode, parseAnnotationComments } from 'annotation-comments'
 import { applyContentRenderConvenience } from './content-rendering'
+import { AnnotationCommentIgnores } from './ignores'
 import { getAnnotationCommentTargets, getDefaultInsertOnDeleteLine, getDefaultInsertPosition } from './target-resolving'
 
 type RegisteredAnnotationCommentHandler = {
@@ -41,6 +42,7 @@ export async function processAnnotationComments(options: ExpressiveCodeHookConte
 
 	const commentsToClean = new Set<AnnotationComment>()
 	const removeDisplayContent = new Map<AnnotationComment, boolean>()
+	const ignores = new AnnotationCommentIgnores(codeBlock)
 
 	for (const annotationComment of parseResult.annotationComments) {
 		try {
@@ -48,6 +50,7 @@ export async function processAnnotationComments(options: ExpressiveCodeHookConte
 				baseContext: options,
 				annotationComment,
 				annotationComments: parseResult.annotationComments,
+				ignores,
 				handlersByTag,
 			})
 			if (!resolvedComment) continue
@@ -96,9 +99,14 @@ async function processAnnotationComment(options: {
 	baseContext: ExpressiveCodeHookContextBase
 	annotationComment: AnnotationComment
 	annotationComments: AnnotationComment[]
+	ignores: AnnotationCommentIgnores
 	handlersByTag: Map<string, RegisteredAnnotationCommentHandler>
 }): Promise<{ removeDisplayContent: boolean } | undefined> {
-	const { baseContext, annotationComment, annotationComments, handlersByTag } = options
+	const { baseContext, annotationComment, annotationComments, ignores, handlersByTag } = options
+
+	if (ignores.shouldIgnoreTag(annotationComment.tag)) {
+		return
+	}
 
 	// Always clean parser-level control comments from display code
 	if (annotationComment.tag.name === 'ignore-tags') {
@@ -148,6 +156,7 @@ async function processAnnotationComment(options: {
 	await applyContentRenderConvenience({
 		handler: registeredHandler.handler,
 		context,
+		annotationComments,
 	})
 
 	applyContentCopyConvenience({

@@ -1,3 +1,4 @@
+import type { MaybeArray, PartialAllowUndefined } from '../helpers/types'
 import { MetaOptions } from '../helpers/meta-options'
 import { retargetTransformsOnDeletedLines } from '../internal/transform-helpers'
 import { applyCopyTransforms } from '../internal/copy-transforms'
@@ -76,10 +77,6 @@ export interface ExpressiveCodeBlockOptions {
 		| undefined
 }
 
-export type PartialAllowUndefined<T> = {
-	[Key in keyof T]?: T[Key] | undefined
-}
-
 export interface ExpressiveCodeBlockProps {
 	/**
 	 * If `true`, word wrapping will be enabled for the code block, causing lines that exceed
@@ -128,7 +125,23 @@ export interface ExpressiveCodeBlockProps {
 	 * @default 0
 	 */
 	hangingIndent: number
+	/**
+	 * Defines which annotation comment tags should be ignored during processing.
+	 *
+	 * You can pass a single definition or an array of definitions.
+	 * Supported definition types:
+	 *
+	 * - `boolean`: `true` ignores all annotation comments in the block.
+	 * - `string`: comma-separated tag names (e.g. `"note,warn"`), with optional `:<count>`
+	 *   suffix to limit the number of ignored matches (e.g. `"note:2"`).
+	 *   The special tag name `*` matches any tag.
+	 * - `range`: `{ range: "1-3,5" }` ignores comments whose tag source range overlaps
+	 *   any listed zero-based line indices.
+	 */
+	ignoreTags: MaybeArray<AnnotationCommentIgnoreDefinition>
 }
+
+export type AnnotationCommentIgnoreDefinition = boolean | string | { range: string }
 
 /**
  * Represents a single code block that can be rendered by the Expressive Code engine.

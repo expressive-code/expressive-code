@@ -48,6 +48,230 @@ describe('Annotation comment handlers', () => {
 		expect(html).toContain('const two = 2')
 	})
 
+	test('Supports ignoreTags meta options as booleans to skip all annotation processing', async () => {
+		const processedTags: string[] = []
+		const plugin: ExpressiveCodePlugin = {
+			name: 'Ignore meta boolean',
+			annotationCommentHandlers: [
+				{
+					tagNames: ['note', 'warn'],
+					handle: ({ annotationComment, targets }) => {
+						processedTags.push(annotationComment.tag.name)
+						targets.forEach((target) => {
+							target.line.addAnnotation(new WrapperAnnotation({ selector: 'mark' }))
+						})
+					},
+				},
+			],
+		}
+
+		const { codeBlock, renderedBlockAst } = await getMultiPluginTestResult({
+			plugins: [plugin],
+			input: [
+				{
+					code: ['const one = 1', '// [!note]', 'const two = 2', '// [!warn]', 'const three = 3'].join('\n'),
+					language: 'js',
+					meta: 'ignoreTags',
+				},
+			],
+		})
+
+		expect(processedTags).toEqual([])
+		expect(codeBlock.code).toContain('// [!note]')
+		expect(codeBlock.code).toContain('// [!warn]')
+		const html = toSanitizedHtml(renderedBlockAst)
+		expect(html).not.toContain('<mark>')
+	})
+
+	test('Supports ignore-tags meta option strings with comma-separated tag names and optional counts', async () => {
+		const processedTags: string[] = []
+		const plugin: ExpressiveCodePlugin = {
+			name: 'Ignore meta strings',
+			annotationCommentHandlers: [
+				{
+					tagNames: ['note', 'warn'],
+					handle: ({ annotationComment, targets }) => {
+						processedTags.push(annotationComment.tag.name)
+						targets.forEach((target) => {
+							target.line.addAnnotation(new WrapperAnnotation({ selector: 'mark' }))
+						})
+					},
+				},
+			],
+		}
+
+		const { codeBlock } = await getMultiPluginTestResult({
+			plugins: [plugin],
+			input: [
+				{
+					code: ['const one = 1', '// [!note]', 'const two = 2', '// [!warn]', 'const three = 3', '// [!note]', 'const four = 4'].join('\n'),
+					language: 'js',
+					meta: 'ignore-tags=note:1',
+				},
+			],
+		})
+
+		expect(processedTags).toEqual(['warn', 'note'])
+		expect(codeBlock.code).toContain('// [!note]')
+		expect(codeBlock.code).not.toContain('// [!warn]')
+		expect((codeBlock.code.match(/\[!note\]/g) || []).length).toBe(1)
+	})
+
+	test('Supports ignore-tags meta option strings with wildcard matching', async () => {
+		const processedTags: string[] = []
+		const plugin: ExpressiveCodePlugin = {
+			name: 'Ignore meta wildcard',
+			annotationCommentHandlers: [
+				{
+					tagNames: ['note', 'warn'],
+					handle: ({ annotationComment, targets }) => {
+						processedTags.push(annotationComment.tag.name)
+						targets.forEach((target) => {
+							target.line.addAnnotation(new WrapperAnnotation({ selector: 'mark' }))
+						})
+					},
+				},
+			],
+		}
+
+		const { codeBlock } = await getMultiPluginTestResult({
+			plugins: [plugin],
+			input: [
+				{
+					code: ['const one = 1', '// [!note]', 'const two = 2', '// [!warn]', 'const three = 3'].join('\n'),
+					language: 'js',
+					meta: 'ignore-tags=*:1',
+				},
+			],
+		})
+
+		expect(processedTags).toEqual(['warn'])
+		expect(codeBlock.code).toContain('// [!note]')
+		expect(codeBlock.code).not.toContain('// [!warn]')
+	})
+
+	test('Supports ignore-tags meta option ranges based on annotation source line indices', async () => {
+		const processedTags: string[] = []
+		const plugin: ExpressiveCodePlugin = {
+			name: 'Ignore meta ranges',
+			annotationCommentHandlers: [
+				{
+					tagNames: ['note'],
+					handle: ({ annotationComment, targets }) => {
+						processedTags.push(annotationComment.tag.name)
+						targets.forEach((target) => {
+							target.line.addAnnotation(new WrapperAnnotation({ selector: 'mark' }))
+						})
+					},
+				},
+			],
+		}
+
+		const { codeBlock } = await getMultiPluginTestResult({
+			plugins: [plugin],
+			input: [
+				{
+					code: ['const one = 1', '// [!note]', 'const two = 2', '// [!note]', 'const three = 3'].join('\n'),
+					language: 'js',
+					meta: 'ignore-tags={1-2}',
+				},
+			],
+		})
+
+		expect(processedTags).toEqual(['note'])
+		expect((codeBlock.code.match(/\[!note\]/g) || []).length).toBe(1)
+		expect(codeBlock.code).toContain('const three = 3')
+	})
+
+	test('Applies multiple ignore-tags meta option kinds in a single block', async () => {
+		const processedTags: string[] = []
+		const plugin: ExpressiveCodePlugin = {
+			name: 'Ignore meta mixed kinds',
+			annotationCommentHandlers: [
+				{
+					tagNames: ['note', 'warn'],
+					handle: ({ annotationComment, targets }) => {
+						processedTags.push(annotationComment.tag.name)
+						targets.forEach((target) => {
+							target.line.addAnnotation(new WrapperAnnotation({ selector: 'mark' }))
+						})
+					},
+				},
+			],
+		}
+
+		const { codeBlock } = await getMultiPluginTestResult({
+			plugins: [plugin],
+			input: [
+				{
+					code: ['const one = 1', '// [!note]', 'const two = 2', '// [!warn]', 'const three = 3', '// [!note]', 'const four = 4'].join('\n'),
+					language: 'js',
+					meta: 'ignore-tags=note:1 ignore-tags={3-3}',
+				},
+			],
+		})
+
+		expect(processedTags).toEqual(['note'])
+		expect(codeBlock.code).toContain('// [!warn]')
+		expect((codeBlock.code.match(/\[!note\]/g) || []).length).toBe(1)
+		expect(codeBlock.code).toContain('const four = 4')
+	})
+
+	test('Supports ignoreTags block props with mixed definition types', async () => {
+		const processedTags: string[] = []
+		const plugin: ExpressiveCodePlugin = {
+			name: 'Ignore props mixed kinds',
+			annotationCommentHandlers: [
+				{
+					tagNames: ['note', 'warn'],
+					handle: ({ annotationComment, targets }) => {
+						processedTags.push(annotationComment.tag.name)
+						targets.forEach((target) => {
+							target.line.addAnnotation(new WrapperAnnotation({ selector: 'mark' }))
+						})
+					},
+				},
+			],
+		}
+
+		const { codeBlock } = await getMultiPluginTestResult({
+			plugins: [plugin],
+			input: [
+				{
+					code: ['const one = 1', '// [!note]', 'const two = 2', '// [!warn]', 'const three = 3', '// [!note]', 'const four = 4'].join('\n'),
+					language: 'js',
+					meta: '',
+					props: {
+						ignoreTags: ['note:1', { range: '3-3' }],
+					},
+				},
+			],
+		})
+
+		expect(processedTags).toEqual(['note'])
+		expect(codeBlock.code).toContain('// [!warn]')
+		expect((codeBlock.code.match(/\[!note\]/g) || []).length).toBe(1)
+		expect(codeBlock.code).toContain('const four = 4')
+	})
+
+	test('Transfers ignore-tags metadata into code block ignoreTags props', async () => {
+		const { codeBlock } = await getMultiPluginTestResult({
+			plugins: [{ name: 'Ignore props transfer' }],
+			input: [
+				{
+					code: ['const one = 1', 'const two = 2'].join('\n'),
+					language: 'js',
+					meta: 'ignore-tags=note ignoreTags={1-1}',
+					props: {
+						ignoreTags: 'warn',
+					},
+				},
+			],
+		})
+
+		expect(codeBlock.props.ignoreTags).toEqual(['warn', 'note', { range: '1-1' }])
+	})
+
 	test('Keeps the first handler and logs a warning if two handlers register the same tag without override', async () => {
 		const pluginA: ExpressiveCodePlugin = {
 			name: 'A',
@@ -331,7 +555,7 @@ describe('Annotation comment handlers', () => {
 
 		const html = toHtml(renderedBlockAst)
 		expect(html).toContain('ac-content line-before anchor-start')
-		expect(html).toContain('--ecAnchorStart:3;--ecAnchorEnd:11;--ecContentCol:3')
+		expect(html).toContain('--ecAnchorStart:3;--ecAnchorEnd:10;--ecContentCol:3')
 	})
 
 	test('Anchors annotation placements to the annotation column for standalone comments', async () => {
@@ -383,7 +607,7 @@ describe('Annotation comment handlers', () => {
 		expect(html).toContain('Some label')
 	})
 
-	test('Limits annotation anchor end to annotationRange.end.column on inline closing comments', async () => {
+	test('Keeps annotation anchor end below full line length on inline closing comments', async () => {
 		const codeLine = `/* [!note:0] A */ console.log('This line will be marked as inserted');`
 
 		const plugin: ExpressiveCodePlugin = {
@@ -429,6 +653,51 @@ describe('Annotation comment handlers', () => {
 		const contentColumn = Number(contentColumnMatch?.[1])
 		expect(anchorEnd).toBe(contentColumn)
 		expect(anchorEnd).toBeLessThan(codeLine.length)
+	})
+
+	test('Excludes annotation comment text when resolving anchor end for line targets', async () => {
+		const codeLine = "const code = 'Test: // [!demo-note] This looks like an annotation comment to the parser, but removing it would break the code';"
+		const expectedAnchorEnd = Math.max(0, codeLine.slice(0, codeLine.indexOf('// [!demo-note]')).trimEnd().length - 1)
+		expect(expectedAnchorEnd).toBeGreaterThan(0)
+
+		const plugin: ExpressiveCodePlugin = {
+			name: 'Rendered annotation false-positive anchoring',
+			annotationCommentHandlers: [
+				{
+					tagNames: ['demo-note'],
+					content: {
+						displayCode: 'remove',
+						copyCode: 'remove',
+						render: {
+							placement: ({ targets }) => ({
+								anchor: targets.length ? 'firstTarget' : 'annotation',
+								line: 'before',
+								col: 'anchorEnd',
+							}),
+							contentRenderer: 'plaintext',
+						},
+					},
+					handle: () => undefined,
+				},
+			],
+		}
+
+		const { renderedBlockAst } = await getMultiPluginTestResult({
+			plugins: [plugin],
+			input: [
+				{
+					code: codeLine,
+					language: 'js',
+					meta: '',
+				},
+			],
+		})
+
+		const html = toHtml(renderedBlockAst)
+		const anchorEndMatch = html.match(/--ecAnchorEnd:(\d+);/)
+		expect(anchorEndMatch).toBeTruthy()
+		const anchorEnd = Number(anchorEndMatch?.[1])
+		expect(anchorEnd).toBe(expectedAnchorEnd)
 	})
 
 	test('Provides targets to content.render.placement resolver', async () => {

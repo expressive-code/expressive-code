@@ -481,6 +481,20 @@ If `preserveIndent` is `true`, this value is added to the indentation of the ori
 This option only affects how the code block is displayed and does not change the actual code. When copied to the clipboard, the code will still contain the original unwrapped lines.
 :::
 
+##### ignoreTags
+
+<PropertySignature>
+- Type: `AnnotationCommentIgnoreDefinition` \| `AnnotationCommentIgnoreDefinition`[]
+</PropertySignature>
+
+Defines which annotation comment tags should be ignored during processing.
+
+You can pass a single definition or an array of definitions. Supported definition types:
+
+- `boolean`: `true` ignores all annotation comments in the block.
+- `string`: comma-separated tag names (e.g. `"note,warn"`), with optional `:<count>` suffix to limit the number of ignored matches (e.g. `"note:2"`). The special tag name `*` matches any tag.
+- `range`: `{ range: "1-3,5" }` ignores comments whose tag source range overlaps any listed zero-based line indices.
+
 ##### preserveIndent
 
 <PropertySignature>

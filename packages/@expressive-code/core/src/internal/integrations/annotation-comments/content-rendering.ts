@@ -1,3 +1,4 @@
+import type { AnnotationComment } from 'annotation-comments'
 import type { Element, ElementContent, Parents } from '../../../hast'
 import type { AnnotationBaseOptions, AnnotationRenderOptions } from '../../../common/annotation'
 import type {
@@ -9,6 +10,7 @@ import type {
 	AnnotationCommentHandler,
 } from '../../../common/annotation-comments'
 import type { TransformTarget } from '../../../common/transforms'
+import { cleanCode } from 'annotation-comments'
 import { fromInlineMarkdown, h, select, setInlineStyle } from '../../../hast'
 import { ExpressiveCodeAnnotation } from '../../../common/annotation'
 import { getLeadingWhitespaceColumns } from '../../indentation'
@@ -71,14 +73,19 @@ class AnnotationCommentContentAnnotation extends ExpressiveCodeAnnotation {
  * It resolves render placements, renders content, and injects the result either inline
  * or via generated lines depending on the resolved placement.
  */
-export async function applyContentRenderConvenience(options: { handler: AnnotationCommentHandler; context: AnnotationCommentContentContext }) {
-	const { handler, context } = options
+export async function applyContentRenderConvenience(options: {
+	handler: AnnotationCommentHandler
+	context: AnnotationCommentContentContext
+	annotationComments: AnnotationComment[]
+}) {
+	const { handler, context, annotationComments } = options
 	const renderOptions = handler.content?.render
 	if (!renderOptions) return
 	if (!context.content.lines.length) return
 
 	const renderPlacements = await getContentRenderPlacements({
 		context,
+		annotationComments,
 		placementOption: renderOptions.placement,
 	})
 	if (!renderPlacements.length) return
@@ -171,14 +178,19 @@ export async function applyContentRenderConvenience(options: { handler: Annotati
  */
 async function getContentRenderPlacements(options: {
 	context: AnnotationCommentContentContext
+	annotationComments: AnnotationComment[]
 	placementOption: NonNullable<NonNullable<AnnotationCommentHandler['content']>['render']>['placement']
 }): Promise<ResolvedAnnotationCommentContentPlacement[]> {
-	const { context, placementOption } = options
+	const { context, annotationComments, placementOption } = options
 	const { annotationComment, codeBlock, targets } = context
 
 	const annotationLineIndex = annotationComment.commentRange.start.line
 	const annotationLine = codeBlock.getLine(annotationLineIndex)
 	if (!annotationLine) return []
+	const lineLengthsWithoutComments = getLineLengthsWithoutAnnotationComments({
+		annotationComments,
+		codeBlock,
+	})
 
 	// Run `content.render.placement` hook (if any) or use the given input(s),
 	// with a single default placement as fallback
@@ -223,13 +235,15 @@ async function getContentRenderPlacements(options: {
 		// for the rendered content
 		placementAnchors.forEach((anchor) => {
 			const referenceLine = anchor?.line ?? annotationLine
+			const referenceLineIndex = anchor?.lineIndex ?? annotationLineIndex
 			const referenceLineLength = referenceLine.text.length
+			const referenceLineLengthWithoutComments = lineLengthsWithoutComments[referenceLineIndex] ?? referenceLineLength
 
 			// Determine the inline range that powers placement classes and CSS variables -
 			// by default, this is the placement anchor's inline range,
 			// or the full line in case of an undefined anchor or range
 			let anchorStart = anchor?.inlineRange?.columnStart ?? 0
-			let anchorEnd = anchor?.inlineRange?.columnEnd ?? referenceLineLength
+			let anchorEnd = anchor?.inlineRange ? Math.max(anchor.inlineRange.columnStart, anchor.inlineRange.columnEnd - 1) : Math.max(0, referenceLineLengthWithoutComments - 1)
 
 			// If the placement anchor is supposed to be the annotation itself, we visually align
 			// the rendered content to the annotation comment including its content:
@@ -244,18 +258,15 @@ async function getContentRenderPlacements(options: {
 				const nonWhitespaceOffset = commentStartLineText.slice(commentStartColumn).search(/\S/)
 				anchorStart = nonWhitespaceOffset >= 0 ? commentStartColumn + nonWhitespaceOffset : commentStartColumn
 
-				// Extend the end to the longest non-whitespace content of the annotation comment
+				// Extend the end to the longest non-whitespace content of annotation lines after
+				// removing annotation comments. This avoids oversized anchors if parser-level
+				// false positives accidentally treat code text as annotations.
 				anchorEnd = anchorStart
 				for (let lineIndex = annotationComment.annotationRange.start.line; lineIndex <= annotationComment.annotationRange.end.line; lineIndex++) {
-					const lineText = context.codeBlock.getLine(lineIndex)?.text
-					if (lineText === undefined) continue
-
-					// On the final annotation line, only consider text up to annotationRange.end.column
-					// to ignore any code that appears after an inline closing comment
-					const lineEndLimit = lineIndex === annotationComment.annotationRange.end.line ? (annotationComment.annotationRange.end.column ?? lineText.length) : lineText.length
-
-					const contentLength = lineText.slice(0, lineEndLimit).trimEnd().length
-					if (contentLength > anchorEnd) anchorEnd = contentLength
+					const contentLength = lineLengthsWithoutComments[lineIndex]
+					if (contentLength === undefined) continue
+					const contentEndColumn = Math.max(0, contentLength - 1)
+					if (contentEndColumn > anchorEnd) anchorEnd = contentEndColumn
 				}
 			}
 
@@ -274,6 +285,37 @@ async function getContentRenderPlacements(options: {
 		})
 	})
 	return renderPlacements
+}
+
+function getLineLengthsWithoutAnnotationComments(options: { annotationComments: AnnotationComment[]; codeBlock: AnnotationCommentContentContext['codeBlock'] }) {
+	const { annotationComments, codeBlock } = options
+	const codeLines = codeBlock.getLines().map((line) => line.text)
+	const cleanedLineTexts = [...codeLines]
+
+	try {
+		cleanCode({
+			codeLines,
+			annotationComments,
+			allowCleaning: () => true,
+			removeAnnotationContents: true,
+			// Anchor calculation must not mutate parser ranges used by later processing steps.
+			updateCodeRanges: false,
+			// Keep source line indices stable while still applying cleanup text edits.
+			handleRemoveLine: ({ lineIndex }) => {
+				cleanedLineTexts[lineIndex] = ''
+				return true
+			},
+			handleEditLine: ({ lineIndex, startColumn, endColumn, newText }) => {
+				const lineText = cleanedLineTexts[lineIndex] ?? ''
+				cleanedLineTexts[lineIndex] = `${lineText.slice(0, startColumn)}${newText ?? ''}${lineText.slice(endColumn)}`
+				return true
+			},
+		})
+	} catch {
+		// Fall back to the original line texts if cleanup fails.
+	}
+
+	return cleanedLineTexts.map((lineText) => lineText.trimEnd().length)
 }
 
 /**

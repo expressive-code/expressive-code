@@ -3,3 +3,7 @@ export type Awaitable<T> = T | Promise<T>
 export type MaybeArray<T> = T | T[]
 
 export type MaybeGetter<T, C = void> = T | ((context: C) => Awaitable<T>)
+
+export type PartialAllowUndefined<T> = {
+	[Key in keyof T]?: T[Key] | undefined
+}
