@@ -302,6 +302,24 @@ npm install expressive-code
 })
 
 describe('Leaves comments unlikely to be file names untouched', () => {
+	test('Twoslash virtual file directives', async () => {
+		const code = `
+// @filename: module.ts
+export const testValue = 'ok'
+
+// @filename: index.ts
+import { testValue } from "module"
+		`
+		await expectCodeResult({
+			code,
+			language: 'ts',
+			expected: {
+				title: undefined,
+				code: code.trim(),
+			},
+		})
+	})
+
 	test('Comments after line 4', async () => {
 		const code = `
 Line 1

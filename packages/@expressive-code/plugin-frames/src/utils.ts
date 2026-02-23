@@ -117,6 +117,9 @@ export function getFileNameFromComment(line: string, lang: string): string | und
 	const possibleFileName = matches?.[2]
 	if (!possibleFileName) return
 
+	// Keep Twoslash VFS directives in place so downstream plugins can process them.
+	if (textBeforeFileName.trim().toLowerCase() === '@filename') return
+
 	// Ignore strings that only consist of special characters (dots, path separators, etc.)
 	if (!possibleFileName.match(/[^.:/\\~]/)) return
 
