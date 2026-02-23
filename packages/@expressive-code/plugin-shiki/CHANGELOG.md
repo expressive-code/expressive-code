@@ -1,5 +1,11 @@
 # @expressive-code/plugin-shiki
 
+## 0.41.7
+
+### Patch Changes
+
+- @expressive-code/core@0.41.7
+
 ## 0.41.6
 
 ### Patch Changes
@@ -359,7 +365,6 @@
 ### Patch Changes
 
 - a9bbb5c: Fixes unexpected `InlineStyleAnnotation` behaviors to improve DX for plugin authors.
-
   - Inline styles now use `:where()` in selectors to reduce specificity and make them easier to override.
   - When applying multiple overlapping inline styles to the same line, render phases are now properly respected and later styles override earlier ones.
   - The `styleVariantIndex` property is no longer required. Inline styles without an index now apply to all style variants.
@@ -378,7 +383,6 @@
 - c3758cd: Fixes parallel execution of multiple syntax highlighter creations and tasks.
 
   The Shiki plugin now ensures that async tasks like creating syntax highlighters, loading themes or languages are never started multiple times in parallel. This improves performance, reduces memory usage and prevents build errors on large sites.
-
   - @expressive-code/core@0.30.1
 
 ## 0.30.0

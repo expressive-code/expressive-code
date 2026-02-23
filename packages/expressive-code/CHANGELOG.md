@@ -1,5 +1,16 @@
 # expressive-code
 
+## 0.41.7
+
+### Patch Changes
+
+- 0599626: Prevents the frames plugin from treating Twoslash `// @filename` directives as filename comments. This keeps multi-file Twoslash code blocks intact. Thank you for the report, @Adammatthiesen!
+- Updated dependencies [0599626]
+  - @expressive-code/plugin-frames@0.41.7
+  - @expressive-code/core@0.41.7
+  - @expressive-code/plugin-shiki@0.41.7
+  - @expressive-code/plugin-text-markers@0.41.7
+
 ## 0.41.6
 
 ### Patch Changes
@@ -87,7 +98,6 @@
 
 - 0f33477: Extends ANSI formatting support to allow background colors and strikethrough text. Thank you @dhruvkb!
 - 380bfcc: Adds the following new `styleOverrides` settings:
-
   - `frames.copyIcon`: Allows overriding the SVG icon used for the copy button. Thank you @louisescher!
   - `frames.terminalIcon`: Allows overriding the SVG icon used for the terminal window frame. Defaults to three dots in the top left corner.
 
@@ -528,7 +538,6 @@
   Expressive Code differentiates between your base theme (= the first theme in `themes`) and your alternate themes (= any other entries in `themes`). Previously, as soon as an alternate theme was selected on the page level, e.g. by using `<html data-theme="some-theme-name">`, it wasn't possible to switch individual code blocks to the base theme anymore because of selector specificity issues. This has been resolved and block-level overrides should work as expected now.
 
 - a9bbb5c: Fixes unexpected `InlineStyleAnnotation` behaviors to improve DX for plugin authors.
-
   - Inline styles now use `:where()` in selectors to reduce specificity and make them easier to override.
   - When applying multiple overlapping inline styles to the same line, render phases are now properly respected and later styles override earlier ones.
   - The `styleVariantIndex` property is no longer required. Inline styles without an index now apply to all style variants.
@@ -634,7 +643,6 @@
 - e020b64: Cleans up frontmatter after file name comment extraction.
 
   If a file name comment gets extracted from a code block without a `title` attribute, additional cleanup work is now performed on the surrounding lines:
-
   - If the code block's language supports frontmatter, and the comment was located in a frontmatter block that has now become empty, the empty frontmatter block gets removed.
   - If the line following the removed comment (or removed frontmatter block) is empty, it gets removed as well.
 
@@ -1021,7 +1029,6 @@
 ### Minor Changes
 
 - 07012f7: Improves file type support when extracting file names from comments. Thanks @fflaten!
-
   - Adds more file types to the `LanguageGroups` object
   - Exports `LanguageGroups` to allow external modification
   - Extends automatic detection of frame type to differentiate between shell scripts and terminal sessions based on file name and/or shebang (if any)

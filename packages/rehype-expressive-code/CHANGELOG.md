@@ -1,5 +1,13 @@
 # rehype-expressive-code
 
+## 0.41.7
+
+### Patch Changes
+
+- 0599626: Prevents the frames plugin from treating Twoslash `// @filename` directives as filename comments. This keeps multi-file Twoslash code blocks intact. Thank you for the report, @Adammatthiesen!
+- Updated dependencies [0599626]
+  - expressive-code@0.41.7
+
 ## 0.41.6
 
 ### Patch Changes
@@ -69,7 +77,6 @@
 
 - 0f33477: Extends ANSI formatting support to allow background colors and strikethrough text. Thank you @dhruvkb!
 - 380bfcc: Adds the following new `styleOverrides` settings:
-
   - `frames.copyIcon`: Allows overriding the SVG icon used for the copy button. Thank you @louisescher!
   - `frames.terminalIcon`: Allows overriding the SVG icon used for the terminal window frame. Defaults to three dots in the top left corner.
 
@@ -136,7 +143,6 @@
   As the parent document's source file path is not available from an Astro component, the `file` property passed to the `getBlockLocale` callback function now contains an additional `url` property that will be set to the value of `Astro.url` in this case.
 
   When determining the locale of a code block, it is recommended to use this new property first, and only fall back to the existing `path` and `cwd` properties if `url` is undefined.
-
   - expressive-code@0.38.2
 
 ## 0.38.1
@@ -240,7 +246,6 @@
   The MDX processing chain used by current Next.js versions caused unwanted escaping of the Expressive Code inline assets, which resulted in hydration issues and prevented features that depend on JS modules like the copy button from working.
 
   In these cases, Expressive Code now uses a different approach to inject the inline assets to ensure that no unwanted escaping occurs.
-
   - expressive-code@0.35.1
 
 ## 0.35.0
