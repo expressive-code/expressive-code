@@ -1,5 +1,11 @@
 # @expressive-code/plugin-text-markers
 
+## 0.41.7
+
+### Patch Changes
+
+- @expressive-code/core@0.41.7
+
 ## 0.41.6
 
 ### Patch Changes
@@ -328,7 +334,6 @@
 ### Patch Changes
 
 - a9bbb5c: Fixes unexpected `InlineStyleAnnotation` behaviors to improve DX for plugin authors.
-
   - Inline styles now use `:where()` in selectors to reduce specificity and make them easier to override.
   - When applying multiple overlapping inline styles to the same line, render phases are now properly respected and later styles override earlier ones.
   - The `styleVariantIndex` property is no longer required. Inline styles without an index now apply to all style variants.
@@ -492,7 +497,6 @@
 - f2e6b81: Fixes multiple different inline marker types on the same line. Thanks @7c78!
 
   The logic inside `flattenInlineMarkerRanges` had a flaw that caused various combinations of `mark`, `ins` and `del` inline markers on the same line to fail. This was fixed and more tests were added.
-
   - @expressive-code/core@0.26.2
 
 ## 0.26.1

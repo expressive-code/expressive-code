@@ -1,5 +1,12 @@
 # @expressive-code/plugin-frames
 
+## 0.41.7
+
+### Patch Changes
+
+- 0599626: Prevents the frames plugin from treating Twoslash `// @filename` directives as filename comments. This keeps multi-file Twoslash code blocks intact. Thank you for the report, @Adammatthiesen!
+  - @expressive-code/core@0.41.7
+
 ## 0.41.6
 
 ### Patch Changes
@@ -50,7 +57,6 @@
 
 - 6497f09: Uses the new `preventUnitlessValues` property of `PluginStyleSettings` to make style calculations in the plugins "Collapsible Sections", "Frames" and "Text Markers" more robust.
 - 380bfcc: Adds the following new `styleOverrides` settings:
-
   - `frames.copyIcon`: Allows overriding the SVG icon used for the copy button. Thank you @louisescher!
   - `frames.terminalIcon`: Allows overriding the SVG icon used for the terminal window frame. Defaults to three dots in the top left corner.
 
@@ -366,7 +372,6 @@
 - e020b64: Cleans up frontmatter after file name comment extraction.
 
   If a file name comment gets extracted from a code block without a `title` attribute, additional cleanup work is now performed on the surrounding lines:
-
   - If the code block's language supports frontmatter, and the comment was located in a frontmatter block that has now become empty, the empty frontmatter block gets removed.
   - If the line following the removed comment (or removed frontmatter block) is empty, it gets removed as well.
 
@@ -596,7 +601,6 @@
 ### Minor Changes
 
 - 07012f7: Improves file type support when extracting file names from comments. Thanks @fflaten!
-
   - Adds more file types to the `LanguageGroups` object
   - Exports `LanguageGroups` to allow external modification
   - Extends automatic detection of frame type to differentiate between shell scripts and terminal sessions based on file name and/or shebang (if any)

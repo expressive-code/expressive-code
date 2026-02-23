@@ -1,5 +1,7 @@
 # @expressive-code/core
 
+## 0.41.7
+
 ## 0.41.6
 
 ## 0.41.5
@@ -276,7 +278,6 @@
   Expressive Code differentiates between your base theme (= the first theme in `themes`) and your alternate themes (= any other entries in `themes`). Previously, as soon as an alternate theme was selected on the page level, e.g. by using `<html data-theme="some-theme-name">`, it wasn't possible to switch individual code blocks to the base theme anymore because of selector specificity issues. This has been resolved and block-level overrides should work as expected now.
 
 - a9bbb5c: Fixes unexpected `InlineStyleAnnotation` behaviors to improve DX for plugin authors.
-
   - Inline styles now use `:where()` in selectors to reduce specificity and make them easier to override.
   - When applying multiple overlapping inline styles to the same line, render phases are now properly respected and later styles override earlier ones.
   - The `styleVariantIndex` property is no longer required. Inline styles without an index now apply to all style variants.
@@ -433,7 +434,6 @@
 - 126563e: Improves theme loading by allowing to pass more theme types directly.
 
   The `theme` config option now supports the following value types:
-
   - any theme object compatible with VS Code or Shiki (e.g. imported from an NPM theme package)
   - any ExpressiveCodeTheme instance (e.g. using `ExpressiveCodeTheme.fromJSONString(...)`
     to load a custom JSON/JSONC theme file yourself)
@@ -472,7 +472,6 @@
   This optional function is called once per theme during engine initialization with the loaded theme as its only argument.
 
   It allows customizing the loaded theme and can be used for various purposes:
-
   - You can change a theme's `name` property to influence its generated CSS class name (e.g. `theme.name = 'dark'` will result in code blocks having the class `ec-theme-dark`).
   - You can create color variations of themes by using `theme.applyHueAndChromaAdjustments()`.
 

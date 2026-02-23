@@ -1,5 +1,13 @@
 # astro-expressive-code
 
+## 0.41.7
+
+### Patch Changes
+
+- 0599626: Prevents the frames plugin from treating Twoslash `// @filename` directives as filename comments. This keeps multi-file Twoslash code blocks intact. Thank you for the report, @Adammatthiesen!
+- Updated dependencies [0599626]
+  - rehype-expressive-code@0.41.7
+
 ## 0.41.6
 
 ### Patch Changes
@@ -76,7 +84,6 @@
 
 - 0f33477: Extends ANSI formatting support to allow background colors and strikethrough text. Thank you @dhruvkb!
 - 380bfcc: Adds the following new `styleOverrides` settings:
-
   - `frames.copyIcon`: Allows overriding the SVG icon used for the copy button. Thank you @louisescher!
   - `frames.terminalIcon`: Allows overriding the SVG icon used for the terminal window frame. Defaults to three dots in the top left corner.
 
@@ -122,7 +129,6 @@
 - dc05ddc: Adds new config option `shiki.engine`.
 
   Allows selecting the Shiki RegExp engine to be used for syntax highlighting. The following options are available:
-
   - `'oniguruma'`: The default engine that supports all grammars, but requires a target environment with WebAssembly (WASM) support.
   - `'javascript'`: A pure JavaScript engine that does not require WASM. The Shiki team is continuously improving this engine and aims for full compatibility with the Oniguruma engine. Use this engine if your target environment does not support WASM.
 
@@ -193,14 +199,12 @@
   Options defined in `ec.config.mjs` have the highest priority and will override any corresponding values coming from other configuration sources.
 
   For the following object options, a deep merge is performed instead of a simple override:
-
   - `defaultProps`
   - `frames`
   - `shiki`
   - `styleOverrides`
 
   The following array options are concatenated instead of being replaced:
-
   - `shiki.langs`
 
 ### Patch Changes
@@ -268,7 +272,6 @@
 - 7f9b29e: Fixes a Vite warning about `emitFile()` usage. Thank you @evadecker and @alexanderniebuhr!
 
   To avoid this warning from being incorrectly triggered, the Vite plugin internally used by `astro-expressive-code` has now been split into two separate plugins, making sure that `emitFile` is only seen by Vite during build.
-
   - rehype-expressive-code@0.35.5
 
 ## 0.35.4
@@ -557,7 +560,6 @@
   Expressive Code differentiates between your base theme (= the first theme in `themes`) and your alternate themes (= any other entries in `themes`). Previously, as soon as an alternate theme was selected on the page level, e.g. by using `<html data-theme="some-theme-name">`, it wasn't possible to switch individual code blocks to the base theme anymore because of selector specificity issues. This has been resolved and block-level overrides should work as expected now.
 
 - a9bbb5c: Fixes unexpected `InlineStyleAnnotation` behaviors to improve DX for plugin authors.
-
   - Inline styles now use `:where()` in selectors to reduce specificity and make them easier to override.
   - When applying multiple overlapping inline styles to the same line, render phases are now properly respected and later styles override earlier ones.
   - The `styleVariantIndex` property is no longer required. Inline styles without an index now apply to all style variants.
@@ -646,7 +648,6 @@
 - e020b64: Cleans up frontmatter after file name comment extraction.
 
   If a file name comment gets extracted from a code block without a `title` attribute, additional cleanup work is now performed on the surrounding lines:
-
   - If the code block's language supports frontmatter, and the comment was located in a frontmatter block that has now become empty, the empty frontmatter block gets removed.
   - If the line following the removed comment (or removed frontmatter block) is empty, it gets removed as well.
 
@@ -670,7 +671,6 @@
 - 3425d97: Adds missing `files` entry to make `emitExternalStylesheet` option work.
 
   Sadly, this bug didn't occur before actually publishing the package - it worked fine when linking the package locally. Sorry about that!
-
   - remark-expressive-code@0.28.1
 
 ## 0.28.0
@@ -845,7 +845,6 @@
 - 126563e: Improves theme loading by allowing to pass more theme types directly.
 
   The `theme` config option now supports the following value types:
-
   - any theme object compatible with VS Code or Shiki (e.g. imported from an NPM theme package)
   - any ExpressiveCodeTheme instance (e.g. using `ExpressiveCodeTheme.fromJSONString(...)`
     to load a custom JSON/JSONC theme file yourself)
@@ -892,7 +891,6 @@
   This optional function is called once per theme during engine initialization with the loaded theme as its only argument.
 
   It allows customizing the loaded theme and can be used for various purposes:
-
   - You can change a theme's `name` property to influence its generated CSS class name (e.g. `theme.name = 'dark'` will result in code blocks having the class `ec-theme-dark`).
   - You can create color variations of themes by using `theme.applyHueAndChromaAdjustments()`.
 
@@ -1037,7 +1035,6 @@
 ### Minor Changes
 
 - 07012f7: Improves file type support when extracting file names from comments. Thanks @fflaten!
-
   - Adds more file types to the `LanguageGroups` object
   - Exports `LanguageGroups` to allow external modification
   - Extends automatic detection of frame type to differentiate between shell scripts and terminal sessions based on file name and/or shebang (if any)

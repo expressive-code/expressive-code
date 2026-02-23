@@ -1,5 +1,11 @@
 # @expressive-code/plugin-collapsible-sections
 
+## 0.41.7
+
+### Patch Changes
+
+- @expressive-code/core@0.41.7
+
 ## 0.41.6
 
 ### Patch Changes
@@ -47,7 +53,6 @@
   You can use it to embed SVG images directly into a plugin's styles or HAST, or pass it to an existing `styleOverrides` icon setting.
 
 - 380bfcc: Adds the following new `styleOverrides` settings:
-
   - `collapsibleSections.expandIcon` and `collapsibleSections.collapseIcon`: Allows overriding the SVG icons used for the expand/collapse buttons.
 
 - 6497f09: Uses the new `preventUnitlessValues` property of `PluginStyleSettings` to make style calculations in the plugins "Collapsible Sections", "Frames" and "Text Markers" more robust.
@@ -83,7 +88,6 @@
 - 4eed5d0: Adds new `collapseStyle` prop to `@expressive-code/plugin-collapsible-sections`. Thank you @nerdymomocat!
 
   The new prop allows selecting one of the following collapsible section styles:
-
   - `github`: The default style, similar to the one used by GitHub. A summary line with an expand icon and the default text `X collapsed lines` is shown. When expanded, the summary line is replaced by the section's code lines. It is not possible to re-collapse the section.
   - `collapsible-start`: When collapsed, the summary line looks like the `github` style. However, when expanded, it remains visible above the expanded code lines, making it possible to re-collapse the section.
   - `collapsible-end`: Same as `collapsible-start`, but the summary line remains visible below the expanded code lines.
