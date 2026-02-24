@@ -717,4 +717,72 @@ describe('Supports a limited subset of Shiki transformers', { timeout: 5 * 1000 
 			})
 		}).rejects.toThrow()
 	})
+
+	test('Appends transformers defined locally to global transformers', async ({ task: { name: testName } }) => {
+		// This transformer modifies both the bg and fg colors
+		const stableRedBgImportTransformer: ShikiTransformer = {
+			tokens(tokens: ThemedToken[][]) {
+				return tokens.map((line) => line.map((token) => (token.content === 'import' ? { ...token, color: 'white', bgColor: 'red' } : token)))
+			},
+		}
+
+		// This transformer modifies the fg color.
+		const stableBlueImportTransformer: ShikiTransformer = {
+			tokens(tokens: ThemedToken[][]) {
+				return tokens.map((line) => line.map((token) => (token.content === 'import' ? { ...token, color: 'blue' } : token)))
+			},
+		}
+
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: jsTestCode,
+				language: 'js',
+				meta: '',
+				props: {
+					transformers: [stableBlueImportTransformer],
+				},
+				plugins: [pluginShiki({ transformers: [stableRedBgImportTransformer] })],
+				blockValidationFn: ({ renderedGroupAst }) => {
+					const tokens = selectAll('span[style]', renderedGroupAst)
+					const importTokens = tokens.filter((element) => toText(element) === 'import')
+					expect(importTokens).toHaveLength(1)
+					const inlineStyles = getInlineStyles(importTokens[0])
+					expect(inlineStyles).toMatchObject(
+						new Map([
+							['--0', 'blue'],
+							['--0bg', 'red'],
+							['--1', 'blue'],
+							['--1bg', 'red'],
+						])
+					)
+				},
+			}),
+		})
+	})
+
+	test('Throws an error if local transformers include unsupported hooks', async ({ task: { name: testName } }) => {
+		const spanTransformer: ShikiTransformer = {
+			span() {
+				// Do nothing, just the existence of this hook should cause an error
+			},
+		}
+		// Just test that this doesn't throw
+		await expect(async () => {
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code: jsTestCode,
+					language: 'js',
+					meta: '',
+					props: {
+						transformers: [spanTransformer],
+					},
+					plugins: [pluginShiki()],
+				}),
+			})
+		}).rejects.toThrow()
+	})
 })
