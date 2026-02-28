@@ -3108,6 +3108,9 @@ const lang = {
 			while: '(^|\\G)(?=\\|)',
 		},
 	},
+	// Ensure nested JS fences are deterministic during parallel builds by preloading
+	// the bundled JavaScript grammar required by this markdown grammar
+	embeddedLangsLazy: ['javascript'],
 	scopeName: 'text.html.markdown',
 }
 
