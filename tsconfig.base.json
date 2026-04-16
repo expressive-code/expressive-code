@@ -22,7 +22,8 @@
       "astro-expressive-code": ["./packages/astro-expressive-code/src"],
       "expressive-code": ["./packages/expressive-code/src"],
       "rehype-expressive-code": ["./packages/rehype-expressive-code/src"],
-      "remark-expressive-code": ["./packages/remark-expressive-code/src"]
+      "remark-expressive-code": ["./packages/remark-expressive-code/src"],
+      "satteri-expressive-code": ["./packages/satteri-expressive-code/src"]
     }
   }
 }
