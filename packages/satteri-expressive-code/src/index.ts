@@ -1,4 +1,4 @@
-import type { HastPluginDefinition, HastVisitorContext, HastNode } from 'satteri'
+import type { HastPluginDefinition } from 'satteri'
 import {
 	type BundledShikiTheme,
 	loadShikiTheme,
@@ -140,34 +140,37 @@ export async function createRenderer(options: SatteriExpressiveCodeOptions = {})
  * import { markdownToHtml } from 'satteri'
  * import { satteriExpressiveCode } from 'satteri-expressive-code'
  *
- * const plugin = await satteriExpressiveCode({ themes: ['github-dark'] })
- * const html = await markdownToHtml(source, { hastPlugins: [plugin] })
+ * const html = await markdownToHtml(source, {
+ *   hastPlugins: [satteriExpressiveCode({ themes: ['github-dark'] })],
+ * })
  * ```
  */
-export async function satteriExpressiveCode(options: SatteriExpressiveCodeOptions = {}): Promise<HastPluginDefinition> {
+function satteriExpressiveCode(options: SatteriExpressiveCodeOptions = {}): HastPluginDefinition {
 	const { tabWidth = 2, getBlockLocale, customCreateRenderer, customCreateBlock } = options
 
-	const renderer = await (customCreateRenderer ?? createRenderer)(options)
-	const { ec, baseStyles, themeStyles, jsModules } = renderer
+	let asyncRenderer: Promise<SatteriExpressiveCodeRenderer> | SatteriExpressiveCodeRenderer | undefined
 
-	// Satteri dispatches all matched visitor calls synchronously before resolving
-	// any async results. This means Set-based deduplication won't work across
-	// concurrent async visitors. Instead, we use a synchronous counter (incremented
-	// before the first await) to ensure only the first code block gets base assets.
+	// Satteri dispatches matched async visitors concurrently rather than sequentially,
+	// so Set-based deduplication of base assets would race. We claim each block's index
+	// synchronously (before the first await) instead — only the first block prepends
+	// base styles and JS modules.
 	let blockIndex = 0
 
 	return {
 		name: 'satteri-expressive-code',
 		element: {
 			filter: ['pre'],
-			async visit(node: Readonly<HastNode>, ctx: HastVisitorContext): Promise<HastNode | void> {
-				const element = node as unknown as Element
-				const codeBlockInfo = getCodeBlockInfo(element)
+			async visit(node, ctx) {
+				const codeBlockInfo = getCodeBlockInfo(node)
 				if (!codeBlockInfo) return
 
-				// Claim this block's index synchronously before any await
 				const isFirstBlock = blockIndex === 0
 				blockIndex++
+
+				if (asyncRenderer === undefined) {
+					asyncRenderer = (customCreateRenderer ?? createRenderer)(options)
+				}
+				const { ec, baseStyles, themeStyles, jsModules } = await asyncRenderer
 
 				let normalizedCode = codeBlockInfo.text
 				if (tabWidth > 0) normalizedCode = normalizedCode.replace(/\t/g, ' '.repeat(tabWidth))
@@ -179,8 +182,8 @@ export async function satteriExpressiveCode(options: SatteriExpressiveCodeOption
 
 				const input: ExpressiveCodeBlockOptions = {
 					code: normalizedCode,
-					language: codeBlockInfo.lang || '',
-					meta: codeBlockInfo.meta || '',
+					language: codeBlockInfo.lang,
+					meta: codeBlockInfo.meta,
 					parentDocument: {
 						sourceFilePath: ctx.filename,
 					},
@@ -197,16 +200,11 @@ export async function satteriExpressiveCode(options: SatteriExpressiveCodeOption
 				const extraElements: Element['children'] = []
 				const stylesToPrepend: string[] = []
 
-				// Base styles and JS modules are only injected on the first block
 				if (isFirstBlock) {
 					if (baseStyles) stylesToPrepend.push(baseStyles)
 					if (themeStyles) stylesToPrepend.push(themeStyles)
 				}
-
-				// Per-block styles are always included
-				for (const style of styles) {
-					stylesToPrepend.push(style)
-				}
+				stylesToPrepend.push(...styles)
 
 				if (stylesToPrepend.length) {
 					extraElements.push({
@@ -235,7 +233,7 @@ export async function satteriExpressiveCode(options: SatteriExpressiveCodeOption
 					renderedGroupAst.children.splice(insertIndex, 0, ...extraElements)
 				}
 
-				return renderedGroupAst as unknown as HastNode
+				return renderedGroupAst
 			},
 		},
 	}

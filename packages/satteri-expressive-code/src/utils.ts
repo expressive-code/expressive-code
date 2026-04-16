@@ -1,5 +1,4 @@
 import type { Element } from 'expressive-code/hast'
-import { getClassNames } from 'expressive-code/hast'
 
 export type CodeBlockInfo = NonNullable<ReturnType<typeof getCodeBlockInfo>>
 
@@ -9,15 +8,12 @@ export function getCodeBlockInfo(pre: Element) {
 	if (code.type !== 'element' || code.tagName !== 'code') return
 	const text = code.children[0]
 	if (text.type !== 'text') return
-	const langClass = getClassNames(code).find((c) => c.startsWith('language-')) ?? ''
-	const lang = langClass.replace('language-', '')
-	const data = code.data as Record<string, string> | null | undefined
-	const meta = (data?.meta ?? (code.properties?.metastring as string | undefined) ?? '') as string
+	const data = code.data as { lang?: string; meta?: string } | null | undefined
 	return {
 		pre,
 		code,
-		lang: data?.lang || lang,
+		lang: data?.lang ?? '',
 		text: text.value,
-		meta,
+		meta: data?.meta ?? '',
 	}
 }

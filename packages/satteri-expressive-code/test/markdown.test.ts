@@ -11,7 +11,7 @@ const regexCodeBg = buildCssVarValuesRegex('codeBackground')
 const regexCodeColor = buildCssVarValuesRegex('codeForeground')
 
 async function processMarkdown(markdown: string, options?: SatteriExpressiveCodeOptions): Promise<string> {
-	const plugin = await satteriExpressiveCode(options)
+	const plugin = satteriExpressiveCode(options)
 	const result = await markdownToHtml(markdown, { hastPlugins: [plugin] })
 	return result
 }
@@ -35,8 +35,8 @@ describe('Usage inside satteri', () => {
 		// Expect Shiki syntax highlighting colors
 		expect(html).toMatch(/--0:#/)
 	})
-	test('Provides access to styleOverrides settings contributed by default plugins', async () => {
-		await satteriExpressiveCode({
+	test('Provides access to styleOverrides settings contributed by default plugins', () => {
+		satteriExpressiveCode({
 			styleOverrides: {
 				frames: {
 					editorBackground: 'blue',
