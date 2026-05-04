@@ -1,5 +1,11 @@
 # astro-expressive-code
 
+## 0.42.0
+
+### Patch Changes
+
+- rehype-expressive-code@0.42.0
+
 ## 0.41.7
 
 ### Patch Changes

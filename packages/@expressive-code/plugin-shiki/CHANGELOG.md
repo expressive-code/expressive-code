@@ -1,5 +1,17 @@
 # @expressive-code/plugin-shiki
 
+## 0.42.0
+
+### Minor Changes
+
+- 1ff2c57: Updates Shiki to the latest version (4.0.2)
+
+  This release drops support for Node 18. [Shiki v4](https://shiki.style/blog/v4#node-js-18-dropped) requires Node.js ≥ 20.
+
+### Patch Changes
+
+- @expressive-code/core@0.42.0
+
 ## 0.41.7
 
 ### Patch Changes
