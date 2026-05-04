@@ -65,6 +65,7 @@ export function vitePluginAstroExpressiveCode({
 	const effectiveThemes = Array.isArray(effectiveThemesOrTheme) ? effectiveThemesOrTheme : [effectiveThemesOrTheme]
 	const configuredBundledThemes = effectiveThemes.filter((theme) => typeof theme === 'string')
 	const shikiAssetRegExp = /(?<=\n)\s*\{[\s\S]*?"id": "(.*?)",[\s\S]*?\n\s*\},?\s*\n/g
+	const shikiBundledLanguagesModuleRegExp = /\/shiki\/dist\/langs(?:-bundle-full-[^/]+)?\.m?js$/
 
 	const noQuery = (source: string) => source.split('?')[0]
 
@@ -134,7 +135,7 @@ export function vitePluginAstroExpressiveCode({
 				}
 
 				// If an allow list was given, trim the bundled Shiki languages to those in the list
-				if (shikiConfig.bundledLangs && id.match(/\/shiki\/dist\/langs\.m?js$/)) {
+				if (shikiConfig.bundledLangs && id.match(shikiBundledLanguagesModuleRegExp)) {
 					return code.replace(shikiAssetRegExp, (match, bundledLang) => {
 						if (shikiConfig.bundledLangs!.includes(bundledLang as BundledShikiLanguage)) return match
 						return ''

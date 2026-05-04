@@ -1,6 +1,6 @@
 import { ExpressiveCodeLine, ExpressiveCodePlugin, ExpressiveCodeTheme, InlineStyleAnnotation } from '@expressive-code/core'
 import type { ThemedToken, ShikiTransformer } from 'shiki'
-import { bundledThemes } from 'shiki'
+import { bundledThemes } from 'shiki/themes'
 import { ensureLanguagesAreLoaded, ensureThemeIsLoaded, getCachedHighlighter, runHighlighterTask } from './highlighter'
 import type { LanguageInput } from './languages'
 import { runPreprocessHook, runTokensHook, validateTransformers } from './transformers'
@@ -76,7 +76,7 @@ export type BundledShikiTheme = Exclude<keyof typeof bundledThemes, 'css-variabl
 /**
  * A list of all languages bundled with Shiki.
  */
-export type { BundledLanguage as BundledShikiLanguage } from 'shiki'
+export type { BundledLanguage as BundledShikiLanguage } from 'shiki/langs'
 
 /**
  * Loads a theme bundled with Shiki for use with Expressive Code.
