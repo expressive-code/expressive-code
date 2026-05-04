@@ -8,7 +8,7 @@ const collectionEntries = await getCollection('docs')
 // to { 'post.md': { title: 'Example', description: '' } }
 const pages = Object.fromEntries(collectionEntries.map(({ slug, data }) => [slug, data]))
 
-export const { getStaticPaths, GET } = OGImageRoute({
+export const { getStaticPaths, GET } = await OGImageRoute({
 	param: 'route',
 	pages: pages,
 
