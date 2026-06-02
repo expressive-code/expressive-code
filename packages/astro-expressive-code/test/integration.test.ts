@@ -576,6 +576,86 @@ describe.concurrent('Integration into Astro ^6.0.0', () => {
 	})
 })
 
+describe.concurrent('Integration into Astro ^6.4.0 using the Sätteri Markdown processor', () => {
+	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
+
+	beforeAll(async () => {
+		fixture = await buildFixture({
+			fixtureDir: 'astro-6.4.0',
+			buildCommand: 'pnpm',
+			buildArgs: ['astro', 'build'],
+			outputDir: 'dist',
+			hmrPort: hmrPortBase + 7,
+		})
+	}, fixtureBuildHookTimeoutMs)
+
+	test('Renders code blocks in Markdown files', () => {
+		const html = fixture?.readFile('index.html') ?? ''
+		validateHtml(html, fixture)
+	})
+
+	test('Renders code blocks in MDX files', () => {
+		const html = fixture?.readFile('mdx-page/index.html') ?? ''
+		validateHtml(html, fixture)
+	})
+
+	test('Renders <Code> components in MDX files', () => {
+		const html = fixture?.readFile('mdx-code-component/index.html') ?? ''
+		validateHtml(html, fixture)
+		expect(html).toContain('Code component in MDX files')
+	})
+
+	test('When rendering multiple <Code> components on an Astro page, only adds styles & scripts to the first one', () => {
+		const html = fixture?.readFile('astro-many-code-components/index.html') ?? ''
+		validateHtml(html, fixture, {
+			expectedHtmlRegExp: multiCodeComponentHtmlRegExp,
+			expectedCodeBlockCount: 3,
+			expectedElementsBeforeCode: [
+				// Expect the first block to contain CSS & JS links,
+				// and due to the meta attribute "addStyles" triggering our custom addStylesPlugin,
+				// also expect an inline style element adding our test style
+				[expectStyleLink(), expectStyleElement('orange !important'), expectScriptLink()],
+				[],
+				[],
+			],
+		})
+		expect(html).toContain('Code components in Astro files')
+	})
+
+	describe('Supports custom languages', () => {
+		test('Highlights custom language nested in markdown code block', () => {
+			const { mdWithNestedLangs, customLangTokenColors } = getCustomLanguageTokenColors(fixture)
+			expect(mdWithNestedLangs).toEqual(expect.arrayContaining(customLangTokenColors))
+		})
+		test('Highlights fenced code block using custom language', () => {
+			const { customLang, customLangTokenColors } = getCustomLanguageTokenColors(fixture)
+			expect(customLang).toEqual(expect.arrayContaining(customLangTokenColors))
+		})
+	})
+
+	test('Emits an external stylesheet into the Astro assets dir', () => {
+		expectExternalAssetsToBeEmitted(fixture, 'css')
+	})
+
+	test('Emits an external script into the Astro assets dir', () => {
+		expectExternalAssetsToBeEmitted(fixture, 'js')
+	})
+
+	test('Config options from `ec.config.mjs` are merged with integration options', () => {
+		const matchingAssets = enumerateAssets(fixture, 'css')
+		const cssContents = fixture?.readFile(`_astro/${matchingAssets[0]}`) ?? ''
+		expect(cssContents, 'Expected themes array to be fully replaced by the one in ec.config.mjs').to.not.contain('catppuccin')
+		expect(
+			cssContents.match(/--ec-tm-inlMarkerBrdWd:(.*?);/)?.[1],
+			'Expected styleOverrides value for textMarkers.inlineMarkerBorderWidth to be overwritten by ec.config.mjs'
+		).toEqual('3px')
+		expect(
+			cssContents.match(/--ec-tm-lineMarkerAccentWd:(.*?);/)?.[1],
+			'Expected styleOverrides value for textMarkers.lineMarkerAccentWidth value to be retained in merged config'
+		).toEqual('0.3rem')
+	})
+})
+
 function validateHtml(
 	html: string,
 	fixture: Awaited<ReturnType<typeof buildFixture>> | undefined,

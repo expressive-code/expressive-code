@@ -36,6 +36,29 @@ export function serializePartialAstroConfig(config: PartialAstroConfig): string 
 	return JSON.stringify(partialConfig)
 }
 
+/**
+ * The minimal shape of the Sätteri Markdown processor (Astro 6.4+) that this integration needs.
+ *
+ * Astro 6.4 lets users replace the default unified pipeline with `markdown.processor: satteri()`.
+ * Integrations register Sätteri HAST plugins by pushing onto `processor.options.hastPlugins`.
+ */
+export type SatteriMarkdownProcessor = {
+	name: string
+	options: { hastPlugins: unknown[] }
+}
+
+/**
+ * Detects whether the given Astro Markdown processor is the Sätteri processor.
+ *
+ * Sätteri does not run rehype plugins, so when it is active we register an equivalent
+ * Sätteri HAST plugin instead of our rehype plugin.
+ */
+export function isSatteriProcessor(processor: unknown): processor is SatteriMarkdownProcessor {
+	if (typeof processor !== 'object' || processor === null) return false
+	const candidate = processor as { name?: unknown; options?: { hastPlugins?: unknown } }
+	return candidate.name === 'satteri' && Array.isArray(candidate.options?.hastPlugins)
+}
+
 function getAssetsPrefix(fileExtension: string, assetsPrefix?: AssetsPrefix): string {
 	if (!assetsPrefix) return ''
 	if (typeof assetsPrefix === 'string') return assetsPrefix

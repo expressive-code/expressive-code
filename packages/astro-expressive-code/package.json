@@ -56,11 +56,13 @@
     "astro": "^4.0.0-beta || ^5.0.0-beta || ^3.3.0 || ^6.0.0-beta"
   },
   "dependencies": {
-    "rehype-expressive-code": "workspace:^0.42.0"
+    "rehype-expressive-code": "workspace:^0.42.0",
+    "satteri-expressive-code": "^0.1.8"
   },
   "devDependencies": {
     "@internal/test-utils": "workspace:^",
     "astro": "^4.16.18",
-    "execa": "^7.1.1"
+    "execa": "^7.1.1",
+    "satteri": "^0.6.3"
   }
 }

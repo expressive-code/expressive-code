@@ -1,7 +1,7 @@
 import type { AstroIntegration } from 'astro'
-import type { BundledShikiLanguage, RehypeExpressiveCodeOptions } from 'rehype-expressive-code'
-import rehypeExpressiveCode from 'rehype-expressive-code'
-import { ConfigSetupHookArgs, PartialAstroConfig } from './astro-config'
+import type { BundledShikiLanguage, RehypeExpressiveCodeOptions, ExpressiveCodeBlockOptions } from 'rehype-expressive-code'
+import rehypeExpressiveCode, { ExpressiveCodeBlock } from 'rehype-expressive-code'
+import { ConfigSetupHookArgs, PartialAstroConfig, isSatteriProcessor } from './astro-config'
 import { AstroExpressiveCodeOptions, CustomConfigPreprocessors, ConfigPreprocessorFn, getEcConfigFileUrl, loadEcConfigFile, mergeEcConfigOptions } from './ec-config'
 import { createAstroRenderer } from './renderer'
 import { vitePluginAstroExpressiveCode } from './vite-plugin'
@@ -26,6 +26,26 @@ export * from 'rehype-expressive-code'
 export type { AstroExpressiveCodeOptions, PartialAstroConfig, CustomConfigPreprocessors, ConfigPreprocessorFn }
 export * from './renderer'
 export { mergeEcConfigOptions }
+
+/**
+ * Wraps an optional user `customCreateBlock` so that every code block created by the Sätteri plugin
+ * receives a `positionInDocument.groupIndex`. Sätteri visits code blocks without tracking their order
+ * within a document, but our renderer uses this index to inject the page-wide styles & scripts exactly
+ * once per document (before the first block it processes for each source file).
+ */
+function createSatteriBlockFactory(userCreateBlock: RehypeExpressiveCodeOptions['customCreateBlock']) {
+	const groupIndexByDocument = new Map<string, number>()
+	return async ({ input, document }: { input: ExpressiveCodeBlockOptions; document: { source: string; filename: string } }) => {
+		const documentKey = input.parentDocument?.sourceFilePath || document.filename || ''
+		const groupIndex = groupIndexByDocument.get(documentKey) ?? 0
+		groupIndexByDocument.set(documentKey, groupIndex + 1)
+		input.parentDocument = { ...input.parentDocument, positionInDocument: { groupIndex } }
+		// The user's `customCreateBlock` is typed for the rehype pipeline (which provides a `file`),
+		// but under Sätteri the only document info available is its source & filename.
+		if (userCreateBlock) return userCreateBlock({ input, file: document as never })
+		return new ExpressiveCodeBlock(input)
+	}
+}
 
 /**
  * Astro integration that adds Expressive Code support to code blocks in Markdown & MDX documents.
@@ -75,24 +95,44 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 					customCreateRenderer: () => renderer,
 				}
 
-				updateConfig({
-					vite: {
-						plugins: [
-							vitePluginAstroExpressiveCode({
-								styles: hashedStyles,
-								scripts: hashedScripts,
-								ecIntegrationOptions: integrationOptions,
-								processedEcConfig,
-								astroConfig,
-								command,
-							}),
-						],
-					},
-					markdown: {
-						syntaxHighlight: false,
-						rehypePlugins: [[rehypeExpressiveCode, rehypeExpressiveCodeOptions]],
-					},
-				})
+				const vite = {
+					plugins: [
+						vitePluginAstroExpressiveCode({
+							styles: hashedStyles,
+							scripts: hashedScripts,
+							ecIntegrationOptions: integrationOptions,
+							processedEcConfig,
+							astroConfig,
+							command,
+						}),
+					],
+				}
+
+				// Astro 6.4+ lets users replace the default unified Markdown pipeline with the Sätteri
+				// processor. Sätteri does not run rehype plugins, so when it is active we register an
+				// equivalent Sätteri HAST plugin instead of injecting our rehype plugin.
+				const markdownProcessor = (astroConfig.markdown as { processor?: unknown } | undefined)?.processor
+				if (isSatteriProcessor(markdownProcessor)) {
+					const { default: satteriExpressiveCode } = (await import('satteri-expressive-code')) as { default: (options?: unknown) => unknown }
+					markdownProcessor.options.hastPlugins.push(
+						satteriExpressiveCode({
+							...rehypeExpressiveCodeOptions,
+							// Sätteri's plugin does not assign a position to each code block, but our renderer
+							// relies on `positionInDocument.groupIndex` to inject the page-wide styles & scripts
+							// exactly once per document, so we assign it here.
+							customCreateBlock: createSatteriBlockFactory(rehypeExpressiveCodeOptions.customCreateBlock),
+						})
+					)
+					updateConfig({ vite, markdown: { syntaxHighlight: false } })
+				} else {
+					updateConfig({
+						vite,
+						markdown: {
+							syntaxHighlight: false,
+							rehypePlugins: [[rehypeExpressiveCode, rehypeExpressiveCodeOptions]],
+						},
+					})
+				}
 			},
 		},
 	} satisfies AstroIntegration
