@@ -1,0 +1,18 @@
+---
+import MainLayout from '../layouts/MainLayout.astro'
+import { Code } from 'astro-expressive-code/components'
+
+export const getCode = (no: number) => `
+// I'm code block #${no}
+console.log('I ${no === 1 ? `should` : `should NOT`} have styles and scripts added');
+`
+export let blockNumber = 1
+
+---
+
+<MainLayout>
+	<h1>Code components in Astro files</h1>
+	<Code code={getCode(blockNumber++)} lang="js" mark={2} meta="addStyles" />
+	<Code code={getCode(blockNumber++)} lang="js" mark={2} />
+	<Code code={getCode(blockNumber++)} lang="js" mark={2} />
+</MainLayout>

@@ -1,9 +1,10 @@
 import type { AstroIntegration } from 'astro'
 import type { BundledShikiLanguage, RehypeExpressiveCodeOptions } from 'rehype-expressive-code'
 import rehypeExpressiveCode from 'rehype-expressive-code'
-import { ConfigSetupHookArgs, PartialAstroConfig } from './astro-config'
+import { ConfigSetupHookArgs, PartialAstroConfig, isSatteriProcessor } from './astro-config'
 import { AstroExpressiveCodeOptions, CustomConfigPreprocessors, ConfigPreprocessorFn, getEcConfigFileUrl, loadEcConfigFile, mergeEcConfigOptions } from './ec-config'
 import { createAstroRenderer } from './renderer'
+import { addSatteriExpressiveCodePlugin } from './satteri'
 import { vitePluginAstroExpressiveCode } from './vite-plugin'
 
 declare module 'rehype-expressive-code' {
@@ -75,24 +76,35 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 					customCreateRenderer: () => renderer,
 				}
 
-				updateConfig({
-					vite: {
-						plugins: [
-							vitePluginAstroExpressiveCode({
-								styles: hashedStyles,
-								scripts: hashedScripts,
-								ecIntegrationOptions: integrationOptions,
-								processedEcConfig,
-								astroConfig,
-								command,
-							}),
-						],
-					},
-					markdown: {
-						syntaxHighlight: false,
-						rehypePlugins: [[rehypeExpressiveCode, rehypeExpressiveCodeOptions]],
-					},
-				})
+				const vite = {
+					plugins: [
+						vitePluginAstroExpressiveCode({
+							styles: hashedStyles,
+							scripts: hashedScripts,
+							ecIntegrationOptions: integrationOptions,
+							processedEcConfig,
+							astroConfig,
+							command,
+						}),
+					],
+				}
+
+				// Astro 6.4+ lets users replace the default unified Markdown pipeline with the Sätteri
+				// processor. Sätteri does not run rehype plugins, so when it is active we register an
+				// equivalent Sätteri HAST plugin instead of injecting our rehype plugin.
+				const markdownProcessor = (astroConfig.markdown as { processor?: unknown } | undefined)?.processor
+				if (isSatteriProcessor(markdownProcessor)) {
+					await addSatteriExpressiveCodePlugin(markdownProcessor, rehypeExpressiveCodeOptions)
+					updateConfig({ vite, markdown: { syntaxHighlight: false } })
+				} else {
+					updateConfig({
+						vite,
+						markdown: {
+							syntaxHighlight: false,
+							rehypePlugins: [[rehypeExpressiveCode, rehypeExpressiveCodeOptions]],
+						},
+					})
+				}
 			},
 		},
 	} satisfies AstroIntegration
