@@ -597,12 +597,37 @@ describe.concurrent('Integration into Astro ^6.4.0 using the Sätteri Markdown p
 	test('Renders code blocks in MDX files', () => {
 		const html = fixture?.readFile('mdx-page/index.html') ?? ''
 		validateHtml(html, fixture)
+		const hast = fromHtml(html, { fragment: true })
+		// Expect the inline ins marker to be applied
+		const inlineInsContents = selectAll('ins', hast).map((token) => toText(token))
+		expect(inlineInsContents).toEqual(['<Header />'])
 	})
 
 	test('Renders <Code> components in MDX files', () => {
 		const html = fixture?.readFile('mdx-code-component/index.html') ?? ''
 		validateHtml(html, fixture)
 		expect(html).toContain('Code component in MDX files')
+		const hast = fromHtml(html, { fragment: true })
+		// Expect the inline ins marker to be applied
+		const inlineInsContents = selectAll('ins', hast).map((token) => toText(token))
+		expect(inlineInsContents).toEqual(['<Header />'])
+	})
+
+	test('When rendering multiple <Code> components on an MDX page, only adds styles & scripts to the first one', () => {
+		const html = fixture?.readFile('mdx-many-code-components/index.html') ?? ''
+		validateHtml(html, fixture, {
+			expectedHtmlRegExp: multiCodeComponentHtmlRegExp,
+			expectedCodeBlockCount: 3,
+			expectedElementsBeforeCode: [
+				// Expect the first block to contain CSS & JS links,
+				// and due to the meta attribute "addStyles" triggering our custom addStylesPlugin,
+				// also expect an inline style element adding our test style
+				[expectStyleLink(), expectStyleElement('orange !important'), expectScriptLink()],
+				[],
+				[],
+			],
+		})
+		expect(html).toContain('Many code components in an MDX file')
 	})
 
 	test('When rendering multiple <Code> components on an Astro page, only adds styles & scripts to the first one', () => {
@@ -627,9 +652,17 @@ describe.concurrent('Integration into Astro ^6.4.0 using the Sätteri Markdown p
 			const { mdWithNestedLangs, customLangTokenColors } = getCustomLanguageTokenColors(fixture)
 			expect(mdWithNestedLangs).toEqual(expect.arrayContaining(customLangTokenColors))
 		})
+		test('Highlights JS language nested in markdown code block after adding custom language', () => {
+			const { mdWithNestedLangs, jsLangTokenColors } = getCustomLanguageTokenColors(fixture)
+			expect(mdWithNestedLangs).toEqual(expect.arrayContaining(jsLangTokenColors))
+		})
 		test('Highlights fenced code block using custom language', () => {
 			const { customLang, customLangTokenColors } = getCustomLanguageTokenColors(fixture)
 			expect(customLang).toEqual(expect.arrayContaining(customLangTokenColors))
+		})
+		test('Highlights fenced code block using JS language after adding custom language', () => {
+			const { jsLang, jsLangTokenColors } = getCustomLanguageTokenColors(fixture)
+			expect(jsLang).toEqual(expect.arrayContaining(jsLangTokenColors))
 		})
 	})
 
