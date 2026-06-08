@@ -166,7 +166,7 @@ importers:
   internal/test-utils:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.42.0
+        specifier: workspace:^0.43.0
         version: link:../../packages/@expressive-code/core
     devDependencies:
       '@types/node':
@@ -240,14 +240,14 @@ importers:
   packages/@expressive-code/plugin-collapsible-sections:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.42.0
+        specifier: workspace:^0.43.0
         version: link:../core
     devDependencies:
       '@expressive-code/plugin-shiki':
-        specifier: workspace:^0.42.0
+        specifier: workspace:^0.43.0
         version: link:../plugin-shiki
       '@expressive-code/plugin-text-markers':
-        specifier: workspace:^0.42.0
+        specifier: workspace:^0.43.0
         version: link:../plugin-text-markers
       '@internal/test-utils':
         specifier: workspace:^
@@ -256,7 +256,7 @@ importers:
   packages/@expressive-code/plugin-frames:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.42.0
+        specifier: workspace:^0.43.0
         version: link:../core
     devDependencies:
       '@expressive-code/plugin-shiki':
@@ -269,20 +269,20 @@ importers:
   packages/@expressive-code/plugin-line-numbers:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.42.0
+        specifier: workspace:^0.43.0
         version: link:../core
     devDependencies:
       '@expressive-code/plugin-collapsible-sections':
-        specifier: workspace:^0.42.0
+        specifier: workspace:^0.43.0
         version: link:../plugin-collapsible-sections
       '@expressive-code/plugin-frames':
-        specifier: workspace:^0.42.0
+        specifier: workspace:^0.43.0
         version: link:../plugin-frames
       '@expressive-code/plugin-shiki':
-        specifier: workspace:^0.42.0
+        specifier: workspace:^0.43.0
         version: link:../plugin-shiki
       '@expressive-code/plugin-text-markers':
-        specifier: workspace:^0.42.0
+        specifier: workspace:^0.43.0
         version: link:../plugin-text-markers
       '@internal/test-utils':
         specifier: workspace:^
@@ -291,7 +291,7 @@ importers:
   packages/@expressive-code/plugin-shiki:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.42.0
+        specifier: workspace:^0.43.0
         version: link:../core
       shiki:
         specifier: ^4.0.2
@@ -304,11 +304,11 @@ importers:
   packages/@expressive-code/plugin-text-markers:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.42.0
+        specifier: workspace:^0.43.0
         version: link:../core
     devDependencies:
       '@expressive-code/plugin-shiki':
-        specifier: workspace:^0.42.0
+        specifier: workspace:^0.43.0
         version: link:../plugin-shiki
       '@internal/test-utils':
         specifier: workspace:^
@@ -320,7 +320,7 @@ importers:
   packages/astro-expressive-code:
     dependencies:
       rehype-expressive-code:
-        specifier: workspace:^0.42.0
+        specifier: workspace:^0.43.0
         version: link:../rehype-expressive-code
     devDependencies:
       '@internal/test-utils':
@@ -504,22 +504,22 @@ importers:
   packages/expressive-code:
     dependencies:
       '@expressive-code/core':
-        specifier: workspace:^0.42.0
+        specifier: workspace:^0.43.0
         version: link:../@expressive-code/core
       '@expressive-code/plugin-frames':
-        specifier: workspace:^0.42.0
+        specifier: workspace:^0.43.0
         version: link:../@expressive-code/plugin-frames
       '@expressive-code/plugin-shiki':
-        specifier: workspace:^0.42.0
+        specifier: workspace:^0.43.0
         version: link:../@expressive-code/plugin-shiki
       '@expressive-code/plugin-text-markers':
-        specifier: workspace:^0.42.0
+        specifier: workspace:^0.43.0
         version: link:../@expressive-code/plugin-text-markers
 
   packages/rehype-expressive-code:
     dependencies:
       expressive-code:
-        specifier: workspace:^0.42.0
+        specifier: workspace:^0.43.0
         version: link:../expressive-code
     devDependencies:
       '@internal/test-utils':
@@ -611,7 +611,7 @@ importers:
   packages/remark-expressive-code:
     dependencies:
       expressive-code:
-        specifier: workspace:^0.42.0
+        specifier: workspace:^0.43.0
         version: link:../expressive-code
     devDependencies:
       '@internal/test-utils':
@@ -13537,8 +13537,8 @@ snapshots:
       '@typescript-eslint/parser': 6.11.0(eslint@8.53.0)(typescript@5.9.3)
       eslint: 8.53.0
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.6.1(@typescript-eslint/parser@6.11.0(eslint@8.53.0)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@8.54.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3))(eslint@8.53.0))(eslint@8.53.0)
-      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@6.11.0(eslint@8.53.0)(typescript@5.9.3))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@6.11.0(eslint@8.53.0)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@8.54.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3))(eslint@8.53.0))(eslint@8.53.0))(eslint@8.53.0)
+      eslint-import-resolver-typescript: 3.6.1(@typescript-eslint/parser@6.11.0(eslint@8.53.0)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1)(eslint@8.53.0)
+      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@8.54.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3))(eslint@8.53.0)
       eslint-plugin-jsx-a11y: 6.8.0(eslint@8.53.0)
       eslint-plugin-react: 7.34.1(eslint@8.53.0)
       eslint-plugin-react-hooks: 4.6.0(eslint@8.53.0)
@@ -13560,13 +13560,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@6.11.0(eslint@8.53.0)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@8.54.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3))(eslint@8.53.0))(eslint@8.53.0):
+  eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@6.11.0(eslint@8.53.0)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1)(eslint@8.53.0):
     dependencies:
       debug: 4.4.3
       enhanced-resolve: 5.16.0
       eslint: 8.53.0
-      eslint-module-utils: 2.8.1(@typescript-eslint/parser@6.11.0(eslint@8.53.0)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@6.11.0(eslint@8.53.0)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@8.54.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3))(eslint@8.53.0))(eslint@8.53.0))(eslint@8.53.0)
-      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@6.11.0(eslint@8.53.0)(typescript@5.9.3))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@6.11.0(eslint@8.53.0)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@8.54.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3))(eslint@8.53.0))(eslint@8.53.0))(eslint@8.53.0)
+      eslint-module-utils: 2.8.1(@typescript-eslint/parser@6.11.0(eslint@8.53.0)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1)(eslint@8.53.0)
+      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@8.54.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3))(eslint@8.53.0)
       fast-glob: 3.3.2
       get-tsconfig: 4.7.3
       is-core-module: 2.13.1
@@ -13577,18 +13577,28 @@ snapshots:
       - eslint-import-resolver-webpack
       - supports-color
 
-  eslint-module-utils@2.8.1(@typescript-eslint/parser@6.11.0(eslint@8.53.0)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@6.11.0(eslint@8.53.0)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@8.54.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3))(eslint@8.53.0))(eslint@8.53.0))(eslint@8.53.0):
+  eslint-module-utils@2.8.1(@typescript-eslint/parser@6.11.0(eslint@8.53.0)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1)(eslint@8.53.0):
     dependencies:
       debug: 3.2.7
     optionalDependencies:
       '@typescript-eslint/parser': 6.11.0(eslint@8.53.0)(typescript@5.9.3)
       eslint: 8.53.0
       eslint-import-resolver-node: 0.3.9
-      eslint-import-resolver-typescript: 3.6.1(@typescript-eslint/parser@6.11.0(eslint@8.53.0)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@8.54.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3))(eslint@8.53.0))(eslint@8.53.0)
+      eslint-import-resolver-typescript: 3.6.1(@typescript-eslint/parser@6.11.0(eslint@8.53.0)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1)(eslint@8.53.0)
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.29.1(@typescript-eslint/parser@6.11.0(eslint@8.53.0)(typescript@5.9.3))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@6.11.0(eslint@8.53.0)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@8.54.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3))(eslint@8.53.0))(eslint@8.53.0))(eslint@8.53.0):
+  eslint-module-utils@2.8.1(@typescript-eslint/parser@8.54.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint@8.53.0):
+    dependencies:
+      debug: 3.2.7
+    optionalDependencies:
+      '@typescript-eslint/parser': 8.54.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3)
+      eslint: 8.53.0
+      eslint-import-resolver-node: 0.3.9
+    transitivePeerDependencies:
+      - supports-color
+
+  eslint-plugin-import@2.29.1(@typescript-eslint/parser@8.54.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3))(eslint@8.53.0):
     dependencies:
       array-includes: 3.1.8
       array.prototype.findlastindex: 1.2.5
@@ -13598,7 +13608,7 @@ snapshots:
       doctrine: 2.1.0
       eslint: 8.53.0
       eslint-import-resolver-node: 0.3.9
-      eslint-module-utils: 2.8.1(@typescript-eslint/parser@6.11.0(eslint@8.53.0)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@6.11.0(eslint@8.53.0)(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(@typescript-eslint/parser@8.54.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3))(eslint@8.53.0))(eslint@8.53.0))(eslint@8.53.0)
+      eslint-module-utils: 2.8.1(@typescript-eslint/parser@8.54.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3))(eslint-import-resolver-node@0.3.9)(eslint@8.53.0)
       hasown: 2.0.0
       is-core-module: 2.13.1
       is-glob: 4.0.3
@@ -13609,7 +13619,7 @@ snapshots:
       semver: 6.3.1
       tsconfig-paths: 3.15.0
     optionalDependencies:
-      '@typescript-eslint/parser': 6.11.0(eslint@8.53.0)(typescript@5.9.3)
+      '@typescript-eslint/parser': 8.54.0(eslint@9.39.2(jiti@1.21.7))(typescript@5.9.3)
     transitivePeerDependencies:
       - eslint-import-resolver-typescript
       - eslint-import-resolver-webpack
