@@ -1,5 +1,11 @@
 # @expressive-code/plugin-text-markers
 
+## 0.43.0
+
+### Patch Changes
+
+- @expressive-code/core@0.43.0
+
 ## 0.42.0
 
 ### Patch Changes
