@@ -1,42 +1,106 @@
-import type { RehypeExpressiveCodeDocument, RehypeExpressiveCodeOptions } from 'rehype-expressive-code'
-import { ExpressiveCodeBlock } from 'rehype-expressive-code'
-import type { SatteriExpressiveCodeDocument, SatteriExpressiveCodeOptions, SatteriExpressiveCodeRenderer } from 'satteri-expressive-code'
-import type { SatteriMarkdownProcessor } from './astro-config'
+import type { HastPluginDefinition, HastVisitorContext } from 'satteri'
+import type { Element } from 'rehype-expressive-code/hast'
+import type { ExpressiveCodeBlockOptions, RehypeExpressiveCodeDocument, RehypeExpressiveCodeOptions, RehypeExpressiveCodeRenderer } from 'rehype-expressive-code'
+import { createRenderer, ExpressiveCodeBlock } from 'rehype-expressive-code'
 
-export async function addSatteriExpressiveCodePlugin(markdownProcessor: SatteriMarkdownProcessor, options: RehypeExpressiveCodeOptions) {
-	const { default: satteriExpressiveCode } = await import('satteri-expressive-code')
-	markdownProcessor.options.hastPlugins.push(() => satteriExpressiveCode(createSatteriOptions(options))())
+type CodeBlockInfo = {
+	lang: string
+	text: string
+	meta: string
 }
 
-/**
- * Creates options for the Sätteri plugin based on the given rehype-expressive-code options,
- * allowing Astro users to switch between rehype and Sätteri without EC config changes.
- */
-function createSatteriOptions(options: RehypeExpressiveCodeOptions): SatteriExpressiveCodeOptions {
-	const { getBlockLocale, customCreateBlock, customCreateRenderer, ...ecOptions } = options
+export function satteriExpressiveCodePlugin(options: RehypeExpressiveCodeOptions): HastPluginDefinition {
+	const { tabWidth = 2, getBlockLocale, customCreateRenderer } = options
+	const customCreateBlock = createSatteriBlockFactory(options.customCreateBlock)
+	let asyncRenderer: Promise<RehypeExpressiveCodeRenderer> | RehypeExpressiveCodeRenderer | undefined
+	let firstBlockClaimed = false
+
 	return {
-		...(ecOptions as Omit<SatteriExpressiveCodeOptions, 'getBlockLocale' | 'customCreateBlock' | 'customCreateRenderer'>),
-		getBlockLocale: getBlockLocale ? ({ input, document }) => getBlockLocale({ input, file: createSatteriDocumentFile(document) }) : undefined,
-		customCreateRenderer: customCreateRenderer ? () => customCreateRenderer(options) as SatteriExpressiveCodeRenderer | Promise<SatteriExpressiveCodeRenderer> : undefined,
-		// Sätteri calls HAST plugin factories once per compile, so creating the block factory
-		// here keeps the per-document group index state from leaking into later renders
-		// that reuse the same Astro Markdown processor.
-		customCreateBlock: createSatteriBlockFactory(customCreateBlock),
+		name: 'astro-expressive-code-satteri',
+		element: {
+			filter: ['pre'],
+			async visit(node, ctx) {
+				const codeBlockInfo = getCodeBlockInfo(node as Element)
+				if (!codeBlockInfo) return
+
+				const isFirstBlock = !firstBlockClaimed
+				firstBlockClaimed = true
+
+				if (asyncRenderer === undefined) {
+					asyncRenderer = (customCreateRenderer ?? createRenderer)(options)
+				}
+				const { ec, baseStyles, themeStyles, jsModules } = await asyncRenderer
+
+				let normalizedCode = codeBlockInfo.text
+				if (tabWidth > 0) normalizedCode = normalizedCode.replace(/\t/g, ' '.repeat(tabWidth))
+
+				const file = createSatteriDocumentFile(ctx)
+				const input: ExpressiveCodeBlockOptions = {
+					code: normalizedCode,
+					language: codeBlockInfo.lang,
+					meta: codeBlockInfo.meta,
+					parentDocument: {
+						sourceFilePath: ctx.filename,
+					},
+				}
+				if (getBlockLocale) {
+					input.locale = await getBlockLocale({ input, file })
+				}
+
+				const codeBlock = await customCreateBlock({ input, file })
+				const { renderedGroupAst, styles } = await ec.render(codeBlock)
+				const extraElements: Element[] = []
+				const stylesToPrepend: string[] = []
+
+				if (isFirstBlock) {
+					if (baseStyles) stylesToPrepend.push(baseStyles)
+					if (themeStyles) stylesToPrepend.push(themeStyles)
+				}
+				stylesToPrepend.push(...styles)
+				if (stylesToPrepend.length) {
+					extraElements.push({
+						type: 'element',
+						tagName: 'style',
+						properties: {},
+						children: [{ type: 'text', value: stylesToPrepend.join('') }],
+					})
+				}
+				if (isFirstBlock) {
+					jsModules.forEach((moduleCode) => {
+						extraElements.push({
+							type: 'element',
+							tagName: 'script',
+							properties: { type: 'module' },
+							children: [{ type: 'text', value: moduleCode }],
+						})
+					})
+				}
+				if (extraElements.length) {
+					const firstChild = renderedGroupAst.children.length > 0 ? renderedGroupAst.children[0] : undefined
+					const firstChildIsStyle = firstChild?.type === 'element' && ['style', 'link'].includes(firstChild.tagName)
+					const insertIndex = firstChildIsStyle ? 1 : 0
+					renderedGroupAst.children.splice(insertIndex, 0, ...extraElements)
+				}
+
+				return renderedGroupAst
+			},
+		},
 	}
 }
 
 /**
- * Creates a rehype-compatible `file` object from the given Sätteri document.
- * The resulting object includes the Sätteri document under the `data.satteri` key,
- * but also provides `path` and `cwd` properties expected by existing plugins and integrations
- * in the EC ecosystem.
+ * Creates a rehype-compatible `file` object as expected by existing EC plugins,
+ * but also includes the original data provided by Sätteri's visitor as `data.satteri`.
  */
-function createSatteriDocumentFile(document: SatteriExpressiveCodeDocument): RehypeExpressiveCodeDocument {
+function createSatteriDocumentFile(ctx: HastVisitorContext): RehypeExpressiveCodeDocument {
 	return {
-		path: document.filename,
+		path: ctx.filename,
 		cwd: typeof process !== 'undefined' ? process.cwd() : '/',
 		data: {
-			satteri: document,
+			satteri: {
+				source: ctx.source,
+				filename: ctx.filename,
+			},
 		},
 	}
 }
@@ -47,14 +111,28 @@ function createSatteriDocumentFile(document: SatteriExpressiveCodeDocument): Reh
  * order within a document, but our renderer uses this index to inject page-wide styles & scripts
  * exactly once per document (before the first block it processes for each source file).
  */
-function createSatteriBlockFactory(userCreateBlock: RehypeExpressiveCodeOptions['customCreateBlock']): NonNullable<SatteriExpressiveCodeOptions['customCreateBlock']> {
+function createSatteriBlockFactory(userCreateBlock: RehypeExpressiveCodeOptions['customCreateBlock']): NonNullable<RehypeExpressiveCodeOptions['customCreateBlock']> {
 	const groupIndexByDocument = new Map<string, number>()
-	return async ({ input, document }) => {
-		const documentKey = input.parentDocument?.sourceFilePath || document.filename || ''
+	return async ({ input, file }) => {
+		const documentKey = input.parentDocument?.sourceFilePath || file.path || ''
 		const groupIndex = groupIndexByDocument.get(documentKey) ?? 0
 		groupIndexByDocument.set(documentKey, groupIndex + 1)
 		input.parentDocument = { ...input.parentDocument, positionInDocument: { groupIndex } }
-		if (userCreateBlock) return userCreateBlock({ input, file: createSatteriDocumentFile(document) })
+		if (userCreateBlock) return userCreateBlock({ input, file })
 		return new ExpressiveCodeBlock(input)
+	}
+}
+
+function getCodeBlockInfo(pre: Element): CodeBlockInfo | undefined {
+	if (pre.tagName !== 'pre') return
+	const [code, ...rest] = pre.children
+	if (rest.length || !code || code.type !== 'element' || code.tagName !== 'code') return
+	const [text] = code.children
+	if (!text || text.type !== 'text') return
+	const data = code.data as { lang?: string; meta?: string } | undefined
+	return {
+		lang: data?.lang ?? '',
+		text: text.value,
+		meta: data?.meta ?? '',
 	}
 }
