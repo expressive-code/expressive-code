@@ -1,5 +1,12 @@
 # astro-expressive-code
 
+## 0.43.1
+
+### Patch Changes
+
+- d9a3942: Avoids Astro 6.4 deprecation warnings by registering Expressive Code with the Unified Markdown processor when available.
+  - rehype-expressive-code@0.43.1
+
 ## 0.43.0
 
 ### Minor Changes
