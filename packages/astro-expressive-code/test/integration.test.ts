@@ -581,7 +581,7 @@ describe.concurrent('Integration into Astro ^6.4.0 using the Sätteri Markdown p
 
 	beforeAll(async () => {
 		fixture = await buildFixture({
-			fixtureDir: 'astro-6.4.0',
+			fixtureDir: 'astro-6.4.0-satteri',
 			buildCommand: 'pnpm',
 			buildArgs: ['astro', 'build'],
 			outputDir: 'dist',
@@ -672,6 +672,58 @@ describe.concurrent('Integration into Astro ^6.4.0 using the Sätteri Markdown p
 
 	test('Emits an external script into the Astro assets dir', () => {
 		expectExternalAssetsToBeEmitted(fixture, 'js')
+	})
+
+	test('Config options from `ec.config.mjs` are merged with integration options', () => {
+		const matchingAssets = enumerateAssets(fixture, 'css')
+		const cssContents = fixture?.readFile(`_astro/${matchingAssets[0]}`) ?? ''
+		expect(cssContents, 'Expected themes array to be fully replaced by the one in ec.config.mjs').to.not.contain('catppuccin')
+		expect(
+			cssContents.match(/--ec-tm-inlMarkerBrdWd:(.*?);/)?.[1],
+			'Expected styleOverrides value for textMarkers.inlineMarkerBorderWidth to be overwritten by ec.config.mjs'
+		).toEqual('3px')
+		expect(
+			cssContents.match(/--ec-tm-lineMarkerAccentWd:(.*?);/)?.[1],
+			'Expected styleOverrides value for textMarkers.lineMarkerAccentWidth value to be retained in merged config'
+		).toEqual('0.3rem')
+	})
+})
+
+describe.concurrent('Integration into Astro ^6.4.0 using the Unified Markdown processor', () => {
+	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
+
+	beforeAll(async () => {
+		fixture = await buildFixture({
+			fixtureDir: 'astro-6.4.0-unified',
+			buildCommand: 'pnpm',
+			buildArgs: ['astro', 'build'],
+			outputDir: 'dist',
+			hmrPort: hmrPortBase + 8,
+		})
+	}, fixtureBuildHookTimeoutMs)
+
+	test('Renders code blocks in Markdown files', () => {
+		const html = fixture?.readFile('index.html') ?? ''
+		validateHtml(html, fixture)
+	})
+
+	test('Renders code blocks in MDX files', () => {
+		const html = fixture?.readFile('mdx-page/index.html') ?? ''
+		validateHtml(html, fixture)
+		const hast = fromHtml(html, { fragment: true })
+		// Expect the inline ins marker to be applied
+		const inlineInsContents = selectAll('ins', hast).map((token) => toText(token))
+		expect(inlineInsContents).toEqual(['<Header />'])
+	})
+
+	test('Renders <Code> components in MDX files', () => {
+		const html = fixture?.readFile('mdx-code-component/index.html') ?? ''
+		validateHtml(html, fixture)
+		expect(html).toContain('Code component in MDX files')
+		const hast = fromHtml(html, { fragment: true })
+		// Expect the inline ins marker to be applied
+		const inlineInsContents = selectAll('ins', hast).map((token) => toText(token))
+		expect(inlineInsContents).toEqual(['<Header />'])
 	})
 
 	test('Config options from `ec.config.mjs` are merged with integration options', () => {

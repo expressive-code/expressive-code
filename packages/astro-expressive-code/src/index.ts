@@ -1,7 +1,7 @@
 import type { AstroIntegration } from 'astro'
 import type { BundledShikiLanguage, RehypeExpressiveCodeOptions } from 'rehype-expressive-code'
 import rehypeExpressiveCode from 'rehype-expressive-code'
-import { ConfigSetupHookArgs, PartialAstroConfig, isSatteriProcessor } from './astro-config'
+import { ConfigSetupHookArgs, PartialAstroConfig, isSatteriProcessor, isUnifiedProcessor } from './astro-config'
 import { AstroExpressiveCodeOptions, CustomConfigPreprocessors, ConfigPreprocessorFn, getEcConfigFileUrl, loadEcConfigFile, mergeEcConfigOptions } from './ec-config'
 import { createAstroRenderer } from './renderer'
 import { satteriExpressiveCodePlugin } from './satteri'
@@ -96,7 +96,21 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 				if (isSatteriProcessor(markdownProcessor)) {
 					markdownProcessor.options.hastPlugins.push(() => satteriExpressiveCodePlugin(rehypeExpressiveCodeOptions))
 					updateConfig({ vite, markdown: { syntaxHighlight: false } })
+				} else if (isUnifiedProcessor(markdownProcessor)) {
+					// When using the Unified processor (Astro 6.4+ without Sätteri), we push our rehype plugin onto
+					// `processor.options.rehypePlugins`.
+					markdownProcessor.options.rehypePlugins.push(() => rehypeExpressiveCode(rehypeExpressiveCodeOptions))
+					updateConfig({ vite, markdown: { syntaxHighlight: false } })
+				} else if (markdownProcessor) {
+					// If the user is using a custom Markdown processor (Astro 6.4+), but it's not Sätteri or
+					// Unified, warn that it's not supported.
+					logger.warn(
+						`The configured \`markdown.processor\` is not supported by Expressive Code. ` +
+							"Expressive Code won't run on your content. Switch to `unified()` from `@astrojs/markdown-remark` or `satteri()` from `@astrojs/markdown-satteri`."
+					)
+					updateConfig({ vite })
 				} else {
+					// For Astro versions before 6.4, fall back to injecting the rehype plugin directly into the Astro config.
 					updateConfig({
 						vite,
 						markdown: {
