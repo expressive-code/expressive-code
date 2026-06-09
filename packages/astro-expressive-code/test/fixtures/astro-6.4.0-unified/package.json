@@ -1,10 +1,9 @@
 {
-  "name": "astro-6.4.0-fixture",
+  "name": "astro-6.4.0-unified-fixture",
   "version": "0.0.1",
   "private": true,
   "type": "module",
   "dependencies": {
-    "@astrojs/markdown-satteri": "0.2.1",
     "@astrojs/mdx": "^6.0.1",
     "@expressive-code/plugin-collapsible-sections": "workspace:^",
     "astro": "^6.4.2",

@@ -476,11 +476,33 @@ importers:
         specifier: ^22.12.0
         version: 22.19.9
 
-  packages/astro-expressive-code/test/fixtures/astro-6.4.0:
+  packages/astro-expressive-code/test/fixtures/astro-6.4.0-satteri:
     dependencies:
       '@astrojs/markdown-satteri':
         specifier: 0.2.1
         version: 0.2.1
+      '@astrojs/mdx':
+        specifier: ^6.0.1
+        version: 6.0.1(@astrojs/markdown-satteri@0.2.1)(astro@6.4.2(@types/node@22.19.9)(jiti@1.21.7)(rollup@4.55.1)(yaml@2.8.2))
+      '@expressive-code/plugin-collapsible-sections':
+        specifier: workspace:^
+        version: link:../../../../@expressive-code/plugin-collapsible-sections
+      astro:
+        specifier: ^6.4.2
+        version: 6.4.2(@types/node@22.19.9)(jiti@1.21.7)(rollup@4.55.1)(yaml@2.8.2)
+      astro-expressive-code:
+        specifier: workspace:^
+        version: link:../../..
+      summer-time:
+        specifier: ^3.1.7
+        version: 3.1.7
+    devDependencies:
+      '@types/node':
+        specifier: ^22.12.0
+        version: 22.19.9
+
+  packages/astro-expressive-code/test/fixtures/astro-6.4.0-unified:
+    dependencies:
       '@astrojs/mdx':
         specifier: ^6.0.1
         version: 6.0.1(@astrojs/markdown-satteri@0.2.1)(astro@6.4.2(@types/node@22.19.9)(jiti@1.21.7)(rollup@4.55.1)(yaml@2.8.2))

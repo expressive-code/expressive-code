@@ -48,6 +48,16 @@ export type SatteriMarkdownProcessor = {
 }
 
 /**
+ * The minimal shape of the Unified Markdown processor (Astro 6.4+) that this integration needs.
+ *
+ * Integrations register Unified rehype plugins by pushing onto `processor.options.rehypePlugins`.
+ */
+export type UnifiedMarkdownProcessor = {
+	name: string
+	options: { rehypePlugins: unknown[] }
+}
+
+/**
  * Detects whether the given Astro Markdown processor is the Sätteri processor.
  *
  * Sätteri does not run rehype plugins, so when it is active we register an equivalent
@@ -57,6 +67,15 @@ export function isSatteriProcessor(processor: unknown): processor is SatteriMark
 	if (typeof processor !== 'object' || processor === null) return false
 	const candidate = processor as { name?: unknown; options?: { hastPlugins?: unknown } }
 	return candidate.name === 'satteri' && Array.isArray(candidate.options?.hastPlugins)
+}
+
+/**
+ * Detects whether the given Astro Markdown processor is the Unified processor.
+ */
+export function isUnifiedProcessor(processor: unknown): processor is UnifiedMarkdownProcessor {
+	if (typeof processor !== 'object' || processor === null) return false
+	const candidate = processor as { name?: unknown; options?: { rehypePlugins?: unknown } }
+	return candidate.name === 'unified' && Array.isArray(candidate.options?.rehypePlugins)
 }
 
 function getAssetsPrefix(fileExtension: string, assetsPrefix?: AssetsPrefix): string {
