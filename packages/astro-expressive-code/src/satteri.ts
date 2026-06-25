@@ -94,8 +94,9 @@ export function satteriExpressiveCodePlugin(options: RehypeExpressiveCodeOptions
  */
 function createSatteriDocumentFile(ctx: HastVisitorContext): RehypeExpressiveCodeDocument {
 	return {
-		path: ctx.fileURL?.href,
+		path: ctx.fileURL?.href || '',
 		cwd: typeof process !== 'undefined' ? process.cwd() : '/',
+		url: ctx.fileURL,
 		data: {
 			satteri: {
 				source: ctx.source,
