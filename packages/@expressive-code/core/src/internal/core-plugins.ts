@@ -1,7 +1,7 @@
 import { AnnotationRenderOptions, ExpressiveCodeAnnotation, isInlineStyleAnnotation } from '../common/annotation'
 import { ExpressiveCodePlugin } from '../common/plugin'
 import { h } from '../hast'
-import tabindexJsModule from './tabindex-js-module.min'
+import a11yJsModule from './a11y-js-module.min'
 
 export const corePlugins: ExpressiveCodePlugin[] = [
 	{
@@ -32,8 +32,8 @@ export const corePlugins: ExpressiveCodePlugin[] = [
 		},
 	},
 	{
-		name: 'Scrollable block tabindex',
-		jsModules: [tabindexJsModule],
+		name: 'Scrollable block accessibility',
+		jsModules: [a11yJsModule],
 	},
 ]
 
