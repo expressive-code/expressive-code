@@ -94,9 +94,14 @@ export function satteriExpressiveCodePlugin(options: RehypeExpressiveCodeOptions
  */
 function createSatteriDocumentFile(ctx: HastVisitorContext): RehypeExpressiveCodeDocument {
 	return {
-		path: ctx.fileURL?.href || '',
-		cwd: typeof process !== 'undefined' ? process.cwd() : '/',
-		url: ctx.fileURL,
+		// `url` is the canonical document location and is preferred over `path` and `cwd`.
+    url: ctx.fileURL,
+
+    // `path` and `cwd` are required by the type but we already have `url`, so we leave
+    // them empty as default values.
+    path: '',
+		cwd: '/',
+    
 		data: {
 			satteri: {
 				source: ctx.source,
