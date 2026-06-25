@@ -2,7 +2,6 @@ import type { HastPluginDefinition, HastVisitorContext } from 'satteri'
 import type { Element } from 'rehype-expressive-code/hast'
 import type { ExpressiveCodeBlockOptions, RehypeExpressiveCodeDocument, RehypeExpressiveCodeOptions, RehypeExpressiveCodeRenderer } from 'rehype-expressive-code'
 import { createRenderer, ExpressiveCodeBlock } from 'rehype-expressive-code'
-import { fileURLToPath } from 'node:url'
 
 type CodeBlockInfo = {
 	lang: string
@@ -41,7 +40,7 @@ export function satteriExpressiveCodePlugin(options: RehypeExpressiveCodeOptions
 					language: codeBlockInfo.lang,
 					meta: codeBlockInfo.meta,
 					parentDocument: {
-						sourceFilePath: fileURLToPath(ctx.fileURL),
+						sourceFilePath: ctx.fileURL?.href,
 					},
 				}
 				if (getBlockLocale) {
@@ -95,7 +94,7 @@ export function satteriExpressiveCodePlugin(options: RehypeExpressiveCodeOptions
  */
 function createSatteriDocumentFile(ctx: HastVisitorContext): RehypeExpressiveCodeDocument {
 	return {
-		path: fileURLToPath(ctx.fileURL),
+		path: ctx.fileURL?.href,
 		cwd: typeof process !== 'undefined' ? process.cwd() : '/',
 		data: {
 			satteri: {
