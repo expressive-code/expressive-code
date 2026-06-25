@@ -1,5 +1,15 @@
 # astro-expressive-code
 
+## 0.44.0
+
+### Minor Changes
+
+- 9169010: Adds support for Astro v7 and Sätteri v0.9
+
+### Patch Changes
+
+- rehype-expressive-code@0.44.0
+
 ## 0.43.1
 
 ### Patch Changes
