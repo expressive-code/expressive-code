@@ -109,10 +109,10 @@ function getFilePath(fileURL: URL): string | undefined {
 function createSatteriDocumentFile(ctx: HastVisitorContext): RehypeExpressiveCodeDocument {
 	const fileURL = ctx.fileURL
 	const filePath = fileURL ? getFilePath(fileURL) : undefined
-	
+
 	return {
 		url: fileURL,
-		path: filePath || "",
+		path: filePath || '',
 		cwd: typeof process !== 'undefined' ? process.cwd() : '/',
 		data: {
 			satteri: {
