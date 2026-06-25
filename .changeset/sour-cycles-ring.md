@@ -1,5 +1,5 @@
 ---
-'astro-expressive-code': patch
+'astro-expressive-code': minor
 ---
 
-Supports Astro v7 and Sätteri v0.9
+Adds support for Astro v7 and Sätteri v0.9
