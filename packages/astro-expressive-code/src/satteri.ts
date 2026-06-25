@@ -2,6 +2,7 @@ import type { HastPluginDefinition, HastVisitorContext } from 'satteri'
 import type { Element } from 'rehype-expressive-code/hast'
 import type { ExpressiveCodeBlockOptions, RehypeExpressiveCodeDocument, RehypeExpressiveCodeOptions, RehypeExpressiveCodeRenderer } from 'rehype-expressive-code'
 import { createRenderer, ExpressiveCodeBlock } from 'rehype-expressive-code'
+import { fileURLToPath } from 'url-extras'
 
 type CodeBlockInfo = {
 	lang: string
@@ -40,7 +41,7 @@ export function satteriExpressiveCodePlugin(options: RehypeExpressiveCodeOptions
 					language: codeBlockInfo.lang,
 					meta: codeBlockInfo.meta,
 					parentDocument: {
-						sourceFilePath: ctx.filename,
+						sourceFilePath: file.path,
 					},
 				}
 				if (getBlockLocale) {
@@ -89,17 +90,34 @@ export function satteriExpressiveCodePlugin(options: RehypeExpressiveCodeOptions
 }
 
 /**
+ * Converts a file URL into a regular filesystem path. Returns undefined for non-file URLs.
+ *
+ * We use the `url-extras` polyfill instead of `node:url`'s `fileURLToPath()` so that the code
+ * keeps working in non-Node environments like Cloudflare.
+ */
+function getFilePath(fileURL: URL): string | undefined {
+	if (fileURL.protocol !== 'file:') {
+		return undefined
+	}
+	return fileURLToPath(fileURL)
+}
+
+/**
  * Creates a rehype-compatible `file` object as expected by existing EC plugins,
  * but also includes the original data provided by Sätteri's visitor as `data.satteri`.
  */
 function createSatteriDocumentFile(ctx: HastVisitorContext): RehypeExpressiveCodeDocument {
+	const fileURL = ctx.fileURL
+	const filePath = fileURL ? getFilePath(fileURL) : undefined
+
 	return {
-		path: ctx.filename,
+		url: fileURL,
+		path: filePath || '',
 		cwd: typeof process !== 'undefined' ? process.cwd() : '/',
 		data: {
 			satteri: {
 				source: ctx.source,
-				filename: ctx.filename,
+				fileURL,
 			},
 		},
 	}

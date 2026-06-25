@@ -53,15 +53,16 @@
     "watch": "pnpm build --watch src"
   },
   "peerDependencies": {
-    "astro": "^4.0.0-beta || ^5.0.0-beta || ^3.3.0 || ^6.0.0-beta"
+    "astro": "^4.0.0-beta || ^5.0.0-beta || ^3.3.0 || ^6.0.0-beta || ^7.0.0"
   },
   "dependencies": {
-    "rehype-expressive-code": "workspace:^0.43.1"
+    "rehype-expressive-code": "workspace:^0.43.1",
+    "url-extras": "^0.1.0"
   },
   "devDependencies": {
     "@internal/test-utils": "workspace:^",
     "astro": "^4.16.18",
     "execa": "^7.1.1",
-    "satteri": "^0.6.3"
+    "satteri": "^0.9.0"
   }
 }
