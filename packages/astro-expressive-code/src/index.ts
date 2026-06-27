@@ -65,7 +65,7 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 				delete processedEcConfig.customCreateAstroRenderer
 				delete processedEcConfig.customConfigPreprocessors
 
-				const { hashedStyles, hashedScripts, ...renderer } = await (customCreateAstroRenderer ?? createAstroRenderer)({ astroConfig, ecConfig: processedEcConfig, logger })
+				const { styles, hashedScripts, ...renderer } = await (customCreateAstroRenderer ?? createAstroRenderer)({ astroConfig, ecConfig: processedEcConfig, logger })
 
 				const rehypeExpressiveCodeOptions: RehypeExpressiveCodeOptions = {
 					// Even though we have created a custom renderer, some options are used
@@ -79,7 +79,7 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 				const vite = {
 					plugins: [
 						vitePluginAstroExpressiveCode({
-							styles: hashedStyles,
+							styles,
 							scripts: hashedScripts,
 							ecIntegrationOptions: integrationOptions,
 							processedEcConfig,
