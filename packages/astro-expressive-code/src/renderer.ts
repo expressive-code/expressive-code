@@ -9,7 +9,7 @@ export type CreateAstroRendererArgs = {
 }
 
 export type AstroExpressiveCodeRenderer = RehypeExpressiveCodeRenderer & {
-	hashedStyles: [string, string][]
+	styles: string
 	hashedScripts: [string, string][]
 }
 
@@ -22,8 +22,7 @@ export async function createAstroRenderer({ ecConfig, astroConfig, logger }: Cre
 
 	// Add a plugin that inserts external references to the styles and scripts
 	// that would normally be inlined into the first code block of every page
-	let inlineStyles = ''
-	const hashedStyles: [string, string][] = []
+	let styles: string = ''
 	const hashedScripts: [string, string][] = []
 	plugins.push({
 		name: 'astro-expressive-code',
@@ -36,23 +35,13 @@ export async function createAstroRenderer({ ecConfig, astroConfig, logger }: Cre
 				type HastElement = Extract<(typeof renderData.groupAst.children)[number], { type: 'element' }>
 				const extraElements: HastElement[] = []
 
-				// Add hashed stylesheet links
-				hashedStyles.forEach(([hashedRoute]) => {
-					extraElements.push({
-						type: 'element',
-						tagName: 'link',
-						properties: { rel: 'stylesheet', href: `${getAssetsBaseHref('.css', astroConfig.build?.assetsPrefix, astroConfig.base)}${hashedRoute}` },
-						children: [],
-					})
-				})
-
 				// Add base inline styles (only present if not emitted as external stylesheet)
-				if (inlineStyles) {
+				if (!emitExternalStylesheet) {
 					extraElements.push({
 						type: 'element',
 						tagName: 'style',
 						properties: {},
-						children: [{ type: 'text', value: inlineStyles }],
+						children: [{ type: 'text', value: styles }],
 					})
 				}
 
@@ -88,20 +77,14 @@ export async function createAstroRenderer({ ecConfig, astroConfig, logger }: Cre
 		shiki: mergedShikiConfig,
 		...rest,
 	})) as AstroExpressiveCodeRenderer
-	renderer.hashedStyles = hashedStyles
-	renderer.hashedScripts = hashedScripts
 
 	// Extract any base and theme styles from the child renderer, as they are handled by this
 	// integration. Our way of handling them depends on the emitExternalStylesheet option:
 	// - If it's true (which is the default), we move all base and theme styles
 	//   into an external CSS file with a hashed filename
 	// - If it's false, we inline them into the first code block of the page
-	if (emitExternalStylesheet) {
-		const combinedStyles = `${renderer.baseStyles}${renderer.themeStyles}`
-		hashedStyles.push(getHashedRouteWithContent(combinedStyles, `/${assetsDir}/ec.{hash}.css`))
-	} else {
-		inlineStyles = `${renderer.baseStyles}${renderer.themeStyles}`
-	}
+	const combinedStyles = `${renderer.baseStyles}${renderer.themeStyles}`
+	styles = combinedStyles
 	renderer.baseStyles = ''
 	renderer.themeStyles = ''
 
@@ -112,6 +95,9 @@ export async function createAstroRenderer({ ecConfig, astroConfig, logger }: Cre
 	const mergedJsCode = uniqueJsModules.join('\n')
 	renderer.jsModules = []
 	hashedScripts.push(getHashedRouteWithContent(mergedJsCode, `/${assetsDir}/ec.{hash}.js`))
+
+	renderer.styles = styles
+	renderer.hashedScripts = hashedScripts
 
 	return renderer
 }
