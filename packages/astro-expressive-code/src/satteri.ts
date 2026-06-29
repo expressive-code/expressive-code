@@ -37,17 +37,13 @@ export function satteriExpressiveCodePlugin(options: RehypeExpressiveCodeOptions
 						sourceFilePath: file.path,
 					},
 				}
-				const codeProps: CodeProps = {
+				const locale = await getBlockLocale?.({ input, file })
+				const codeProps = {
 					code: input.code,
 					lang: input.language,
 					meta: input.meta,
-				}
-				if (getBlockLocale) {
-					const locale = await getBlockLocale({ input, file })
-					if (locale) {
-						codeProps.locale = locale
-					}
-				}
+					locale,
+				} satisfies CodeProps
 
 				if (isFirstBlock) {
 					ctx.insertBefore(node, {
@@ -59,12 +55,13 @@ export function satteriExpressiveCodePlugin(options: RehypeExpressiveCodeOptions
 				return {
 					type: 'mdxJsxFlowElement',
 					name: 'ExpressiveCodeInternal',
-					attributes: Object.entries(codeProps).map(([key, value]) => ({
-						type: 'mdxJsxAttribute',
-						name: key,
-						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-						value,
-					})),
+					attributes: Object.entries(codeProps)
+						.filter(([_, value]) => value)
+						.map(([key, value]) => ({
+							type: 'mdxJsxAttribute',
+							name: key,
+							value,
+						})),
 					children: [],
 				}
 			},
