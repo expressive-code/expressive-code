@@ -20,7 +20,7 @@ export function vitePluginAstroExpressiveCode({
 	astroConfig,
 	command,
 }: {
-	styles: string
+	styles: { route: string; content: string }
 	scripts: { route: string; content: string }
 	ecIntegrationOptions: AstroExpressiveCodeOptions
 	processedEcConfig: AstroExpressiveCodeOptions
@@ -29,7 +29,7 @@ export function vitePluginAstroExpressiveCode({
 }): NonNullable<ViteUserConfig['plugins']>[number] {
 	// Map virtual module names to their code contents as strings
 	const modules: Record<string, string> = {
-		'virtual:astro-expressive-code/styles.css': styles,
+		'virtual:astro-expressive-code/styles.css': styles.content,
 		'virtual:astro-expressive-code/scripts.js': scripts.content,
 	}
 
@@ -71,12 +71,17 @@ export function vitePluginAstroExpressiveCode({
 	const shikiAssetRegExp = /(?<=\n)\s*\{[\s\S]*?"id": "(.*?)",[\s\S]*?\n\s*\},?\s*\n/g
 	const shikiBundledLanguagesModuleRegExp = /\/shiki\/dist\/langs(?:-bundle-full-[^/]+)?\.m?js$/
 
+	const injectCssAndJs = processedEcConfig.injectCssAndJs ?? 'inline'
+	const injectCssAndJsInline = injectCssAndJs === 'inline'
+
 	const noQuery = (source: string) => source.split('?')[0]
 
 	const getVirtualModuleContents = (source: string) => {
 		// In dev mode, serve the extracted styles & scripts as virtual modules
 		if (command === 'dev') {
-			if (noQuery(scripts.route) === noQuery(source)) return scripts.content
+			for (const resource of [styles, scripts]) {
+				if (noQuery(resource.route) === noQuery(source)) return resource.content
+			}
 		}
 		return source in modules ? modules[source] : undefined
 	}
@@ -145,17 +150,19 @@ export function vitePluginAstroExpressiveCode({
 			},
 		},
 		// Add a second plugin that only runs in build mode (to avoid Vite warnings about emitFile)
-		// which emits the extracted scripts as static assets
-		{
+		// which emits the extracted styles & scripts as static assets
+		injectCssAndJsInline && {
 			name: 'vite-plugin-astro-expressive-code-build',
 			apply: 'build',
 			buildEnd() {
-				this.emitFile({
-					type: 'asset',
-					// Remove leading slash and any query params
-					fileName: noQuery(scripts.route.slice(1)),
-					source: scripts.content,
-				})
+				for (const resource of [styles, scripts]) {
+					this.emitFile({
+						type: 'asset',
+						// Remove leading slash and any query params
+						fileName: noQuery(resource.route.slice(1)),
+						source: resource.content,
+					})
+				}
 			},
 		},
 	]

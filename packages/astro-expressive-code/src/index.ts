@@ -63,7 +63,7 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 				delete processedEcConfig.customCreateAstroRenderer
 				delete processedEcConfig.customConfigPreprocessors
 
-				const { styles, hashedScripts, ...renderer } = await (customCreateAstroRenderer ?? createAstroRenderer)({ astroConfig, ecConfig: processedEcConfig, logger })
+				const { hashedStyles, hashedScripts, ...renderer } = await (customCreateAstroRenderer ?? createAstroRenderer)({ astroConfig, ecConfig: processedEcConfig, logger })
 
 				if (processedEcConfig.injectCssAndJs === 'head') {
 					injectScript('page-ssr', 'import "virtual:astro-expressive-code/styles.css"')
@@ -82,7 +82,7 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 				const vite = {
 					plugins: [
 						vitePluginAstroExpressiveCode({
-							styles,
+							styles: hashedStyles,
 							scripts: hashedScripts,
 							ecIntegrationOptions: integrationOptions,
 							processedEcConfig,
