@@ -21,7 +21,7 @@ export function vitePluginAstroExpressiveCode({
 	command,
 }: {
 	styles: string
-	scripts: [string, string][]
+	scripts: { route: string; content: string }
 	ecIntegrationOptions: AstroExpressiveCodeOptions
 	processedEcConfig: AstroExpressiveCodeOptions
 	astroConfig: PartialAstroConfig
@@ -29,7 +29,8 @@ export function vitePluginAstroExpressiveCode({
 }): NonNullable<ViteUserConfig['plugins']>[number] {
 	// Map virtual module names to their code contents as strings
 	const modules: Record<string, string> = {
-		'virtual:astro-expressive-code/styles.css': processedEcConfig.emitExternalStylesheet === false ? '' : styles,
+		'virtual:astro-expressive-code/styles.css': styles,
+		'virtual:astro-expressive-code/scripts.js': scripts.content,
 	}
 
 	// Create virtual config module
@@ -75,10 +76,7 @@ export function vitePluginAstroExpressiveCode({
 	const getVirtualModuleContents = (source: string) => {
 		// In dev mode, serve the extracted styles & scripts as virtual modules
 		if (command === 'dev') {
-			for (const file of scripts) {
-				const [fileName, contents] = file
-				if (noQuery(fileName) === noQuery(source)) return contents
-			}
+			if (noQuery(scripts.route) === noQuery(source)) return scripts.content
 		}
 		return source in modules ? modules[source] : undefined
 	}
@@ -152,15 +150,12 @@ export function vitePluginAstroExpressiveCode({
 			name: 'vite-plugin-astro-expressive-code-build',
 			apply: 'build',
 			buildEnd() {
-				for (const file of scripts) {
-					const [fileName, source] = file
-					this.emitFile({
-						type: 'asset',
-						// Remove leading slash and any query params
-						fileName: noQuery(fileName.slice(1)),
-						source,
-					})
-				}
+				this.emitFile({
+					type: 'asset',
+					// Remove leading slash and any query params
+					fileName: noQuery(scripts.route.slice(1)),
+					source: scripts.content,
+				})
 			},
 		},
 	]

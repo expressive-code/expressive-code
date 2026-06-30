@@ -17,3 +17,5 @@ declare module 'virtual:astro-expressive-code/api' {
 }
 
 declare module 'virtual:astro-expressive-code/styles.css'
+
+declare module 'virtual:astro-expressive-code/scripts.js'

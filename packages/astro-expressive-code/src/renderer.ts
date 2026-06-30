@@ -10,7 +10,7 @@ export type CreateAstroRendererArgs = {
 
 export type AstroExpressiveCodeRenderer = RehypeExpressiveCodeRenderer & {
 	styles: string
-	hashedScripts: [string, string][]
+	hashedScripts: { route: string; content: string }
 }
 
 export async function createAstroRenderer({ ecConfig, astroConfig, logger }: CreateAstroRendererArgs): Promise<AstroExpressiveCodeRenderer> {
@@ -94,10 +94,9 @@ export async function createAstroRenderer({ ecConfig, astroConfig, logger }: Cre
 	const uniqueJsModules = [...new Set<string>(renderer.jsModules)]
 	const mergedJsCode = uniqueJsModules.join('\n')
 	renderer.jsModules = []
-	hashedScripts.push(getHashedRouteWithContent(mergedJsCode, `/${assetsDir}/ec.{hash}.js`))
 
 	renderer.styles = styles
-	renderer.hashedScripts = hashedScripts
+	renderer.hashedScripts = getHashedRouteWithContent(mergedJsCode, `/${assetsDir}/ec.{hash}.js`)
 
 	return renderer
 }
@@ -105,7 +104,7 @@ export async function createAstroRenderer({ ecConfig, astroConfig, logger }: Cre
 /**
  * Generates a hashed route and content tuple for a given content string.
  */
-function getHashedRouteWithContent(content: string, routeTemplate: string): [string, string] {
+function getHashedRouteWithContent(content: string, routeTemplate: string): { route: string; content: string } {
 	const contentHash = getStableObjectHash(content, { hashLength: 5 })
-	return [routeTemplate.replace('{hash}', contentHash), content]
+	return { route: routeTemplate.replace('{hash}', contentHash), content }
 }
