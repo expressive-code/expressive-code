@@ -6,9 +6,6 @@ import { getPageData } from './page-data'
 import { getRenderer } from './renderer'
 import type { CodeProps as Props } from './types'
 
-// Note: the content in this import will be empty if `emitExternalStylesheet` is set to false
-import 'virtual:astro-expressive-code/styles.css'
-
 function formatMessage(...messageParts: string[]) {
 	return messageParts.map((part) => part.replace(/\s+/g, ' ')).join('\n\n')
 }
