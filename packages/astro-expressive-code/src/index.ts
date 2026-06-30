@@ -35,9 +35,7 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 	const integration = {
 		name: 'astro-expressive-code',
 		hooks: {
-			'astro:config:setup': async (args: unknown) => {
-				const { command, config: astroConfig, updateConfig, logger, addWatchFile } = args as ConfigSetupHookArgs
-
+			'astro:config:setup': async ({ command, config: astroConfig, updateConfig, logger, addWatchFile, injectScript }: ConfigSetupHookArgs) => {
 				// Validate Astro configuration
 				const ownPosition = astroConfig.integrations.findIndex((integration) => integration.name === 'astro-expressive-code')
 				const mdxPosition = astroConfig.integrations.findIndex((integration) => integration.name === '@astrojs/mdx')
@@ -66,6 +64,11 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 				delete processedEcConfig.customConfigPreprocessors
 
 				const { styles, hashedScripts, ...renderer } = await (customCreateAstroRenderer ?? createAstroRenderer)({ astroConfig, ecConfig: processedEcConfig, logger })
+
+				if (processedEcConfig.injectCssAndJs === 'head') {
+					injectScript('page-ssr', 'import "virtual:astro-expressive-code/styles.css"')
+					injectScript('page', hashedScripts.content)
+				}
 
 				const rehypeExpressiveCodeOptions: RehypeExpressiveCodeOptions = {
 					// Even though we have created a custom renderer, some options are used

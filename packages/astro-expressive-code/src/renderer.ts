@@ -20,46 +20,52 @@ export async function createAstroRenderer({ ecConfig, astroConfig, logger }: Cre
 	// Determine the assets directory and href prefix from the Astro config
 	const assetsDir = astroConfig.build?.assets || '_astro'
 
-	// Add a plugin that inserts external references to the styles and scripts
-	// that would normally be inlined into the first code block of every page
+	const injectCssAndJs = ecConfig.injectCssAndJs ?? 'inline'
+	const injectCssAndJsInline = injectCssAndJs === 'inline'
+
 	let styles: string = ''
 	const hashedScripts: [string, string][] = []
-	plugins.push({
-		name: 'astro-expressive-code',
-		hooks: {
-			postprocessRenderedBlockGroup: ({ renderData, renderedGroupContents }) => {
-				// Only continue if this is the first code block group of the page
-				const isFirstGroupInDocument = renderedGroupContents[0]?.codeBlock.parentDocument?.positionInDocument?.groupIndex === 0
-				if (!isFirstGroupInDocument) return
 
-				type HastElement = Extract<(typeof renderData.groupAst.children)[number], { type: 'element' }>
-				const extraElements: HastElement[] = []
+	if (injectCssAndJsInline) {
+		// Add a plugin that inserts external references to the styles and scripts
+		// that would normally be inlined into the first code block of every page
+		plugins.push({
+			name: 'astro-expressive-code',
+			hooks: {
+				postprocessRenderedBlockGroup: ({ renderData, renderedGroupContents }) => {
+					// Only continue if this is the first code block group of the page
+					const isFirstGroupInDocument = renderedGroupContents[0]?.codeBlock.parentDocument?.positionInDocument?.groupIndex === 0
+					if (!isFirstGroupInDocument) return
 
-				// Add base inline styles (only present if not emitted as external stylesheet)
-				if (!emitExternalStylesheet) {
-					extraElements.push({
-						type: 'element',
-						tagName: 'style',
-						properties: {},
-						children: [{ type: 'text', value: styles }],
+					type HastElement = Extract<(typeof renderData.groupAst.children)[number], { type: 'element' }>
+					const extraElements: HastElement[] = []
+
+					// Add base inline styles (only present if not emitted as external stylesheet)
+					if (!emitExternalStylesheet) {
+						extraElements.push({
+							type: 'element',
+							tagName: 'style',
+							properties: {},
+							children: [{ type: 'text', value: styles }],
+						})
+					}
+
+					// Add hashed script module links for all JS modules
+					hashedScripts.forEach(([hashedRoute]) => {
+						extraElements.push({
+							type: 'element',
+							tagName: 'script',
+							properties: { type: 'module', src: `${getAssetsBaseHref('.js', astroConfig.build?.assetsPrefix, astroConfig.base)}${hashedRoute}` },
+							children: [],
+						})
 					})
-				}
 
-				// Add hashed script module links for all JS modules
-				hashedScripts.forEach(([hashedRoute]) => {
-					extraElements.push({
-						type: 'element',
-						tagName: 'script',
-						properties: { type: 'module', src: `${getAssetsBaseHref('.js', astroConfig.build?.assetsPrefix, astroConfig.base)}${hashedRoute}` },
-						children: [],
-					})
-				})
-
-				if (!extraElements.length) return
-				renderData.groupAst.children.unshift(...extraElements)
+					if (!extraElements.length) return
+					renderData.groupAst.children.unshift(...extraElements)
+				},
 			},
-		},
-	})
+		})
+	}
 
 	// Unless Shiki was disabled, merge any supported Shiki settings
 	// from the Astro config into the plugin options
