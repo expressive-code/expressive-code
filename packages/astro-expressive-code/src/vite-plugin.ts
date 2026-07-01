@@ -20,14 +20,18 @@ export function vitePluginAstroExpressiveCode({
 	astroConfig,
 	command,
 }: {
-	styles: [string, string][]
-	scripts: [string, string][]
+	styles: { route: string; content: string }
+	scripts: { route: string; content: string }
 	ecIntegrationOptions: AstroExpressiveCodeOptions
 	processedEcConfig: AstroExpressiveCodeOptions
 	astroConfig: PartialAstroConfig
 	command: HookParameters<'astro:config:setup'>['command']
 }): NonNullable<ViteUserConfig['plugins']>[number] {
-	const modules: Record<string, string> = {}
+	// Map virtual module names to their code contents as strings
+	const modules: Record<string, string> = {
+		'virtual:astro-expressive-code/styles.css': styles.content,
+		'virtual:astro-expressive-code/scripts.js': scripts.content,
+	}
 
 	// Create virtual config module
 	const configModuleContents: string[] = []
@@ -67,14 +71,17 @@ export function vitePluginAstroExpressiveCode({
 	const shikiAssetRegExp = /(?<=\n)\s*\{[\s\S]*?"id": "(.*?)",[\s\S]*?\n\s*\},?\s*\n/g
 	const shikiBundledLanguagesModuleRegExp = /\/shiki\/dist\/langs(?:-bundle-full-[^/]+)?\.m?js$/
 
+	const emitExternalStylesheet = processedEcConfig.emitExternalStylesheet ?? true
+	const injectCssAndJs = processedEcConfig.injectCssAndJs ?? 'inline'
+	const injectCssAndJsInline = injectCssAndJs === 'inline'
+
 	const noQuery = (source: string) => source.split('?')[0]
 
 	const getVirtualModuleContents = (source: string) => {
 		// In dev mode, serve the extracted styles & scripts as virtual modules
 		if (command === 'dev') {
-			for (const file of [...styles, ...scripts]) {
-				const [fileName, contents] = file
-				if (noQuery(fileName) === noQuery(source)) return contents
+			for (const resource of [styles, scripts]) {
+				if (noQuery(resource.route) === noQuery(source)) return resource.content
 			}
 		}
 		return source in modules ? modules[source] : undefined
@@ -96,7 +103,7 @@ export function vitePluginAstroExpressiveCode({
 					if (resolved) return resolved
 				}
 				// Resolve other virtual modules
-				if (getVirtualModuleContents(source)) return `\0${source}`
+				if (getVirtualModuleContents(source) !== undefined) return `\0${source}`
 			},
 			load: (id) => (id?.[0] === '\0' ? getVirtualModuleContents(id.slice(1)) : undefined),
 			// If any file imported by the EC config file changes, restart the server
@@ -145,17 +152,20 @@ export function vitePluginAstroExpressiveCode({
 		},
 		// Add a second plugin that only runs in build mode (to avoid Vite warnings about emitFile)
 		// which emits the extracted styles & scripts as static assets
-		{
+		injectCssAndJsInline && {
 			name: 'vite-plugin-astro-expressive-code-build',
 			apply: 'build',
 			buildEnd() {
-				for (const file of [...styles, ...scripts]) {
-					const [fileName, source] = file
+				const resources = [emitExternalStylesheet && styles, scripts].filter(Boolean) as {
+					route: string
+					content: string
+				}[]
+				for (const resource of resources) {
 					this.emitFile({
 						type: 'asset',
 						// Remove leading slash and any query params
-						fileName: noQuery(fileName.slice(1)),
-						source,
+						fileName: noQuery(resource.route.slice(1)),
+						source: resource.content,
 					})
 				}
 			},
