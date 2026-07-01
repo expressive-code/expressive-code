@@ -71,6 +71,7 @@ export function vitePluginAstroExpressiveCode({
 	const shikiAssetRegExp = /(?<=\n)\s*\{[\s\S]*?"id": "(.*?)",[\s\S]*?\n\s*\},?\s*\n/g
 	const shikiBundledLanguagesModuleRegExp = /\/shiki\/dist\/langs(?:-bundle-full-[^/]+)?\.m?js$/
 
+	const emitExternalStylesheet = processedEcConfig.emitExternalStylesheet ?? true
 	const injectCssAndJs = processedEcConfig.injectCssAndJs ?? 'inline'
 	const injectCssAndJsInline = injectCssAndJs === 'inline'
 
@@ -155,7 +156,11 @@ export function vitePluginAstroExpressiveCode({
 			name: 'vite-plugin-astro-expressive-code-build',
 			apply: 'build',
 			buildEnd() {
-				for (const resource of [styles, scripts]) {
+				const resources = [emitExternalStylesheet && styles, scripts].filter(Boolean) as {
+					route: string
+					content: string
+				}[]
+				for (const resource of resources) {
 					this.emitFile({
 						type: 'asset',
 						// Remove leading slash and any query params
