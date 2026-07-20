@@ -148,7 +148,9 @@ describe('ExpressiveCodeEngine', () => {
 		})
 		test('Scrollbar styles are enabled by default', async () => {
 			const engine = new ExpressiveCodeEngine({})
-			expect(await engine.getBaseStyles()).toMatch(/::-webkit-scrollbar/)
+			const styles = await engine.getBaseStyles()
+			expect(styles).toMatch(/::-webkit-scrollbar/)
+			expect(styles).toContain('::-webkit-scrollbar-corner{background:transparent}')
 		})
 		test('Scrollbar styles can be disabled by setting `useThemedScrollbars` to false', async () => {
 			const engine = new ExpressiveCodeEngine({ useThemedScrollbars: false })
