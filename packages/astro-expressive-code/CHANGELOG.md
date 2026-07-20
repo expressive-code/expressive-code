@@ -1,5 +1,13 @@
 # astro-expressive-code
 
+## 0.44.1
+
+### Patch Changes
+
+- ef538d8: Prevent a white corner from appearing when themed horizontal and vertical scrollbars are both visible.
+- Updated dependencies [ef538d8]
+  - rehype-expressive-code@0.44.1
+
 ## 0.44.0
 
 ### Minor Changes
