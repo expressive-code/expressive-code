@@ -1,5 +1,16 @@
 # expressive-code
 
+## 0.44.1
+
+### Patch Changes
+
+- ef538d8: Prevent a white corner from appearing when themed horizontal and vertical scrollbars are both visible.
+- Updated dependencies [ef538d8]
+  - @expressive-code/core@0.44.1
+  - @expressive-code/plugin-frames@0.44.1
+  - @expressive-code/plugin-shiki@0.44.1
+  - @expressive-code/plugin-text-markers@0.44.1
+
 ## 0.44.0
 
 ### Patch Changes
