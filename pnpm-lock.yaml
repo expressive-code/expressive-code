@@ -193,9 +193,6 @@ importers:
       '@eslint/css-tree':
         specifier: 3.6.9
         version: 3.6.9
-      hast-util-select:
-        specifier: ^6.0.2
-        version: 6.0.2
       hast-util-to-html:
         specifier: ^9.0.1
         version: 9.0.1
@@ -227,6 +224,9 @@ importers:
       hast-util-sanitize:
         specifier: ^5.0.1
         version: 5.0.1
+      hast-util-select:
+        specifier: ^6.0.2
+        version: 6.0.2
       shiki:
         specifier: ^4.0.2
         version: 4.0.2
