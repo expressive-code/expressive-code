@@ -17,12 +17,18 @@
     "types": "./dist/index.d.ts",
     "default": "./dist/index.js"
   },
+  "imports": {
+    "#oniguruma-wasm": {
+      "workerd": "./dist/oniguruma-wasm-workerd.js",
+      "default": "./dist/oniguruma-wasm-default.js"
+    }
+  },
   "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsup ./src/index.ts --format esm --dts --sourcemap --clean",
+    "build": "tsup ./src/index.ts ./src/oniguruma-wasm-default.ts ./src/oniguruma-wasm-workerd.ts --format esm --dts --sourcemap --clean --external \"#oniguruma-wasm\"",
     "coverage": "vitest run --coverage --typecheck",
     "test": "vitest run --reporter verbose --typecheck",
     "test-short": "vitest run --reporter basic --typecheck",

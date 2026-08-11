@@ -352,7 +352,7 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 			})
 		}
 		// Process styles (scoping, minifying, etc.)
-		const processedStyles = await processPluginStyles(pluginStyles)
+		const processedStyles = processPluginStyles(pluginStyles)
 		return wrapInCascadeLayer([...processedStyles].join(''), this.cascadeLayer)
 	}
 
@@ -376,6 +376,8 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 	 * Please note that these styles must be added to the page together with the base styles
 	 * returned by {@link getBaseStyles}.
 	 */
+	// Keep the public Promise-returning API even though CSS processing is synchronous.
+	// eslint-disable-next-line @typescript-eslint/require-await
 	async getThemeStyles(): Promise<string> {
 		const themeStyles: string[] = []
 		const renderDeclarations = (declarations: Map<string, string>) => [...declarations].map(([varName, varValue]) => `${varName}:${varValue}`).join(';')
@@ -404,7 +406,7 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 			.filter((selector) => selector)
 			.join(',')
 		themeStyles.push(
-			await scopeAndMinifyNestedCss(`
+			scopeAndMinifyNestedCss(`
 				${baseVarSelectors} {
 					${renderDeclarations(baseVars)}
 				}
@@ -448,7 +450,7 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 						this.themes.map((theme) => `${theme.name} (${theme.type})`).join(', '),
 					].join(' ')
 				)
-			const darkModeMediaQuery = await scopeAndMinifyNestedCss(`
+			const darkModeMediaQuery = scopeAndMinifyNestedCss(`
 				@media (prefers-color-scheme: ${altType}) {
 					${this.themeCssRoot}${notBaseThemeSelector} {
 						${firstAltVariant.cssVars}
@@ -468,7 +470,7 @@ export class ExpressiveCodeEngine implements ResolvedExpressiveCodeEngineConfig 
 				if (!themeSelector) continue
 
 				themeStyles.push(
-					await scopeAndMinifyNestedCss(`
+					scopeAndMinifyNestedCss(`
 						${this.themeCssRoot}${themeSelector} &${notBaseThemeSelector}, &${themeSelector} {
 							${cssVars};
 							${coreStyles}

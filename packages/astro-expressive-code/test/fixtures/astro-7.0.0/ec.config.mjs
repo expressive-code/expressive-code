@@ -1,11 +1,8 @@
 // @ts-check
 import { defineEcConfig, definePlugin } from 'astro-expressive-code'
 import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections'
-import { createRequire } from 'node:module'
+import summerTime from 'summer-time/themes/summer-time-vscode-theme.json' with { type: 'json' }
 import testLanguage from './shiki-langs/test-language.mjs'
-
-const require = createRequire(import.meta.url)
-const summerTime = require('summer-time/themes/summer-time-vscode-theme.json')
 
 function addStylesPlugin() {
 	return definePlugin({

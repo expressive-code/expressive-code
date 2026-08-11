@@ -5,8 +5,10 @@ import { matches, select, selectAll } from 'hast-util-select'
 import { visit } from 'unist-util-visit'
 import { visitParents, CONTINUE, EXIT, SKIP } from 'unist-util-visit-parents'
 import { h, s } from 'hastscript'
-import postcss, { Declaration } from 'postcss'
+import type { DeclarationList } from '@eslint/css-tree'
+import { generate, parse } from './internal/css-tree'
 import { serializeCssStringValue } from './internal/escaping'
+import { validateCssDelimiters } from './internal/css'
 
 export { visit, visitParents, CONTINUE, EXIT, SKIP }
 export { toHtml, toText, matches, select, selectAll, h, s }
@@ -72,19 +74,23 @@ export function getInlineStyles(node: Element): Map<string, string> {
 	const styleString = node.properties?.style?.toString().trim() || ''
 	if (!styleString) return styles
 
-	// @ts-expect-error PostCSS has incorrect types when using exactOptionalPropertyTypes
-	const postCssOptions: { from?: string } = { from: undefined }
-
-	// Attempt to parse the style string and extract its root-level declarations
 	try {
-		const root = postcss.parse(styleString, postCssOptions)
-
-		// Extract all root-level declarations into the styles map
-		root.each((node) => {
-			if (node.type === 'decl') styles.set(node.prop, node.value)
-		})
+		validateCssDelimiters(styleString)
+		const declarationList = parse(styleString, {
+			context: 'declarationList',
+			positions: true,
+			onParseError(error) {
+				throw error
+			},
+		}) as DeclarationList
+		for (const declaration of declarationList.children) {
+			if (declaration.type !== 'Declaration') throw new Error('Invalid inline style declaration')
+			const value = declaration.value.loc ? styleString.slice(declaration.value.loc.start.offset, declaration.value.loc.end.offset).trim() : generate(declaration.value)
+			styles.set(declaration.property, value)
+		}
 	} catch {
 		// Treat invalid inline styles as if they were empty
+		styles.clear()
 	}
 
 	return styles
@@ -96,17 +102,7 @@ export function getInlineStyles(node: Element): Map<string, string> {
  * Any existing styles will be overwritten.
  */
 export function setInlineStyles(node: Element, styles: Map<string, string>) {
-	const styleString = [...styles]
-		.map(([prop, value]) =>
-			new Declaration({
-				prop,
-				value,
-				raws: {
-					between: ':',
-				},
-			}).toString()
-		)
-		.join(';')
+	const styleString = [...styles].map(([prop, value]) => `${prop}:${value}`).join(';')
 	setProperty(node, 'style', styleString)
 }
 

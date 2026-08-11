@@ -110,7 +110,7 @@ export async function renderGroup({
 	return {
 		renderedGroupAst: groupRenderData.groupAst,
 		renderedGroupContents,
-		styles: await processPluginStyles(pluginStyles),
+		styles: processPluginStyles(pluginStyles),
 	}
 }
 

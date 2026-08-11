@@ -1,5 +1,5 @@
-import postcss, { Root } from 'postcss'
-import postcssNested from 'postcss-nested'
+import type { Atrule, Block, Declaration, Rule, Selector, StyleSheet } from '@eslint/css-tree'
+import { fork } from './css-tree'
 import { escapeRegExp } from './escaping'
 
 export const groupWrapperElement = 'div'
@@ -49,82 +49,198 @@ export const cssVarReplacements = new Map<string, string>([
 	['frames', 'frm'],
 ])
 
-const preprocessor = postcss([
-	// Prevent top-level selectors that are already scoped from being scoped twice
-	(root: Root) => {
-		const groupWrapperScope = `.${groupWrapperClassName}`
-		root.walkRules((rule) => {
-			if (rule.parent?.parent === root) {
-				rule.selectors = rule.selectors.map((selector) => {
-					if (selector.indexOf(groupWrapperScope) === 0) {
-						return selector.slice(groupWrapperScope.length).trim() || '&'
-					}
-					return selector
-				})
+const groupWrapperScope = `.${groupWrapperClassName}`
+const escapedGroupWrapperScope = escapeRegExp(groupWrapperScope)
+const regExpScopedTopLevel = new RegExp(`^${escapedGroupWrapperScope} .*(${escapedGroupWrapperScope}|:root|html|body)`)
+const bubblingAtRules = new Set(['container', 'layer', 'media', 'scope', 'starting-style', 'supports'])
+const keyframesAtRules = ['keyframes', '-moz-keyframes', '-webkit-keyframes']
+const unwrappedAtRules = new Set(['document', 'font-face', 'page', ...keyframesAtRules])
+const cssTree = fork((config) => {
+	for (const name of ['container', 'scope', 'starting-style', 'supports']) {
+		const atRule = config.atrule[name]
+		if (!atRule) continue
+		atRule.parse.block = function (isStyleBlock = false) {
+			return this.Block(isStyleBlock, { allowNestedRules: true })
+		}
+	}
+	for (const name of keyframesAtRules) {
+		config.atrule[name] = {
+			parse: {
+				block() {
+					return this.Block(false)
+				},
+			},
+		}
+	}
+	return config
+})
+const { generate, parse, walk } = cssTree
+
+export function validateCssDelimiters(css: string) {
+	// css-tree recovers from unclosed delimiters, but plugin CSS should fail instead of being silently repaired.
+	const stack: string[] = []
+	let quote = ''
+	let inComment = false
+
+	for (let i = 0; i < css.length; i++) {
+		const char = css[i]
+		const next = css[i + 1]
+		if (inComment) {
+			if (char === '*' && next === '/') {
+				inComment = false
+				i++
 			}
-		})
-	},
-	// Parse SASS-like nested selectors
-	postcssNested(),
-])
-const processor = postcss([
-	// Prevent selectors targeting the wrapper class name or top-level elements from being scoped
-	(root: Root) => {
-		const groupWrapperScope = escapeRegExp(`.${groupWrapperClassName}`)
-		const regExpScopedTopLevel = new RegExp(`^${groupWrapperScope} .*(${groupWrapperScope}|:root|html|body)`, 'g')
-		root.walkRules((rule) => {
-			rule.selectors = rule.selectors.map((selector) => selector.replace(regExpScopedTopLevel, '$1'))
-		})
-	},
-	// Apply some simple minifications
-	(root: Root) => {
-		// Remove whitespace after the last rule
-		root.raws.after = ''
-		// Discard comments
-		root.walkComments((comment) => {
-			comment.remove()
-		})
-		// Process rules
-		root.walkRules((rule) => {
-			rule.selector = rule.selectors.join(',')
-			rule.raws.before = rule.raws.before?.trim() || ''
-			rule.raws.between = ''
-			rule.raws.after = ''
-			rule.raws.semicolon = false
-		})
-		// Process at-rules like `@media`
-		root.walkAtRules((atRule) => {
-			atRule.raws.before = atRule.raws.before?.trim() || ''
-			atRule.raws.between = ''
-			atRule.raws.after = ''
-		})
-		// Process declarations
-		root.walkDecls((decl) => {
-			decl.raws.before = decl.raws.before?.trim() || ''
-			/* c8 ignore next */
-			decl.raws.between = decl.raws.between?.trim() || ':'
-			decl.raws.value = {
-				value: decl.value,
-				raw: decl.raws.value?.raw.trim() ?? decl.value.trim(),
+			continue
+		}
+		if (char === '\\') {
+			i++
+			continue
+		}
+		if (quote) {
+			if (char === quote) quote = ''
+			continue
+		}
+		if (char === '/' && next === '*') {
+			inComment = true
+			i++
+			continue
+		}
+		if (char === '"' || char === "'") {
+			quote = char
+			continue
+		}
+		if (char === '(' || char === '[' || char === '{') {
+			stack.push(char === '(' ? ')' : char === '[' ? ']' : '}')
+		} else if (char === ')' || char === ']' || char === '}') {
+			if (stack.pop() !== char) throw new Error(`Unexpected "${char}"`)
+		}
+	}
+
+	if (inComment) throw new Error('Unclosed comment')
+	if (quote) throw new Error('Unclosed string')
+	if (stack.length) throw new Error(`Unclosed "${stack.at(-1)}"`)
+}
+
+function parseCss(source: string, context = 'stylesheet') {
+	return parse(source, {
+		context,
+		positions: true,
+		onParseError(error) {
+			throw error
+		},
+	})
+}
+
+function getSourceText(node: { loc?: { start: { offset: number }; end: { offset: number } } | null }, source: string) {
+	return node.loc ? source.slice(node.loc.start.offset, node.loc.end.offset) : ''
+}
+
+function generateDeclaration(declaration: Declaration, source: string) {
+	const value = getSourceText(declaration.value, source).trim() || generate(declaration.value)
+	return `${declaration.property}:${value}${declaration.important ? '!important' : ''}`
+}
+
+function getSelectors(prelude: Rule['prelude']): Selector[] {
+	if (prelude.type === 'Raw') throw new Error(`Invalid selector "${prelude.value}"`)
+	return [...prelude.children] as Selector[]
+}
+
+function selectorContainsNesting(selector: Selector) {
+	let result = false
+	walk(selector, {
+		visit: 'NestingSelector',
+		enter() {
+			result = true
+		},
+	})
+	return result
+}
+
+function generateSelector(selector: Selector, source: string, parentSelector?: string) {
+	const sourceText = getSourceText(selector, source).trim() || generate(selector)
+	if (!parentSelector || !selectorContainsNesting(selector)) return parentSelector ? `${parentSelector} ${sourceText}` : sourceText
+
+	const replacements: { start: number; end: number }[] = []
+	walk(selector, {
+		visit: 'NestingSelector',
+		enter(node) {
+			if (node.loc && selector.loc) {
+				replacements.push({ start: node.loc.start.offset - selector.loc.start.offset, end: node.loc.end.offset - selector.loc.start.offset })
 			}
-		})
-	},
-])
+		},
+	})
+	return replacements.sort((a, b) => b.start - a.start).reduce((result, { start, end }) => `${result.slice(0, start)}${parentSelector}${result.slice(end)}`, sourceText)
+}
 
-export async function scopeAndMinifyNestedCss(css: string): Promise<string> {
-	// @ts-expect-error PostCSS has incorrect types when using exactOptionalPropertyTypes
-	const postCssOptions: { from?: string } = { from: undefined }
+function combineSelectors(parentSelectors: string[] | undefined, childPrelude: Rule['prelude'], source: string) {
+	const childSelectors = getSelectors(childPrelude)
+	if (!parentSelectors) return childSelectors.map((selector) => generateSelector(selector, source))
 
-	// Scope and parse the styles
-	const root = postcss.parse(`.${groupWrapperClassName}{${css}}`, postCssOptions)
+	const result: string[] = []
+	for (const childSelector of childSelectors) {
+		for (const parentSelector of parentSelectors) {
+			const combined = generateSelector(childSelector, source, parentSelector)
+			result.push(combined.replace(regExpScopedTopLevel, '$1'))
+		}
+	}
+	return result
+}
 
-	// Preprocess the parsed root node
-	const preprocessedStyles = await preprocessor.process(root, postCssOptions)
+function generateAtRuleHeader(atRule: Atrule, source: string) {
+	return `@${atRule.name}${atRule.prelude ? ` ${getSourceText(atRule.prelude, source).trim() || generate(atRule.prelude)}` : ''}`
+}
 
-	// Process the preprocessed result (the root node is still the same)
-	const processedStyles = await processor.process(preprocessedStyles, postCssOptions)
+function emitBlock(block: Block, source: string, parentSelectors?: string[]): string {
+	let result = ''
+	let declarations: Declaration[] = []
+	const flushDeclarations = (hasFollowingChild = false) => {
+		if (!declarations.length) return
+		const contents = declarations.map((declaration) => generateDeclaration(declaration, source)).join(';')
+		result += parentSelectors?.length ? `${parentSelectors.join(',')}{${contents}}` : contents
+		if (!parentSelectors?.length && hasFollowingChild) result += ';'
+		declarations = []
+	}
 
-	return processedStyles.css
+	for (const child of block.children) {
+		if (child.type === 'Comment') continue
+		if (child.type === 'Declaration') {
+			declarations.push(child)
+			continue
+		}
+		flushDeclarations(true)
+
+		if (child.type === 'Rule') {
+			result += emitBlock(child.block, source, combineSelectors(parentSelectors, child.prelude, source))
+			continue
+		}
+		if (child.type !== 'Atrule') throw new Error(`Unsupported CSS node "${child.type}"`)
+
+		const header = generateAtRuleHeader(child, source)
+		if (!child.block) {
+			result += `${header};`
+		} else if (child.name === 'at-root') {
+			result += emitBlock(child.block, source)
+		} else if (unwrappedAtRules.has(child.name)) {
+			result += `${header}{${emitBlock(child.block, source)}}`
+		} else if (bubblingAtRules.has(child.name)) {
+			result += `${header}{${emitBlock(child.block, source, parentSelectors)}}`
+		} else if (parentSelectors?.length) {
+			result += `${parentSelectors.join(',')}{${header}{${emitBlock(child.block, source)}}}`
+		} else {
+			result += `${header}{${emitBlock(child.block, source)}}`
+		}
+	}
+	flushDeclarations()
+	return result
+}
+
+export function scopeAndMinifyNestedCss(css: string): string {
+	validateCssDelimiters(css)
+	const source = `${groupWrapperScope}{${css}}`
+	const styleSheet = parseCss(source) as StyleSheet
+	const wrapperRule = styleSheet.children.first
+	if (wrapperRule?.type !== 'Rule') throw new Error('Failed to create CSS scope')
+	return emitBlock(wrapperRule.block, source, [groupWrapperScope])
 }
 
 export type PluginStyles = { pluginName: string; styles: string }
@@ -137,7 +253,7 @@ const processedStylesCache = new Map<string, string>()
  * - Ensures that all selectors are scoped, unless they target the root element, html or body.
  * - Minifies the CSS.
  */
-export async function processPluginStyles(pluginStyles: PluginStyles[]): Promise<Set<string>> {
+export function processPluginStyles(pluginStyles: PluginStyles[]): Set<string> {
 	const result = new Set<string>()
 	const seenStyles = new Set<string>()
 
@@ -157,7 +273,7 @@ export async function processPluginStyles(pluginStyles: PluginStyles[]): Promise
 
 		try {
 			// Scope the plugin styles to our group wrapper and minify them
-			const processedCss = await scopeAndMinifyNestedCss(styles)
+			const processedCss = scopeAndMinifyNestedCss(styles)
 			// Add the processed styles to the result
 			result.add(processedCss)
 			// Cache the processed styles

@@ -7,10 +7,12 @@ export const getCode = (no: number) => `
 console.log('I ${no === 1 ? `should` : `should NOT`} have styles and scripts added');
 `
 export let blockNumber = 1
+const isWorkerd = typeof (globalThis as typeof globalThis & { WebSocketPair?: unknown }).WebSocketPair === 'function'
 
 ---
 
 <MainLayout>
+	<p data-runtime>{isWorkerd ? 'workerd' : 'other'}</p>
 	<h1>Code components in Astro files</h1>
 	<Code code={getCode(blockNumber++)} lang="js" mark={2} meta="addStyles" />
 	<Code code={getCode(blockNumber++)} lang="js" mark={2} />

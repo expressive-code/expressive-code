@@ -39,7 +39,7 @@ async function createRegexEngine(engine: PluginShikiOptions['engine']) {
 	// The [...engine...][0] syntax makes it easier to find this code in the built package,
 	// allowing astro-expressive-code to remove unused engines from the SSR bundle
 	if (engine === 'javascript') return [(await import('shiki/engine/javascript')).createJavaScriptRegexEngine({ forgiving: true })][0]
-	return [(await import('shiki/engine/oniguruma')).createOnigurumaEngine(import('shiki/wasm'))][0]
+	return [(await import('shiki/engine/oniguruma')).createOnigurumaEngine((await import('#oniguruma-wasm')).loadOnigurumaWasm())][0]
 }
 
 export async function ensureThemeIsLoaded(highlighter: HighlighterCore, theme: ExpressiveCodeTheme, styleVariants: StyleVariant[]) {

@@ -1,6 +1,8 @@
 import { describe, expect, test } from 'vitest'
 import { annotateMatchingTextParts, getHookTestResult, getMultiHookTestResult } from './utils'
 import { groupWrapperClassName } from '../src/internal/css'
+import { getInlineStyles, setInlineStyles } from '../src/hast'
+import type { Element } from 'hast'
 
 const groupWrapperScope = `.${groupWrapperClassName}`
 
@@ -11,6 +13,18 @@ describe('Processes CSS styles added by plugins', () => {
 				addStyles(`.invalid { color: red;`)
 			})
 		}).rejects.toThrow(/TestPlugin.*color: red/)
+	})
+	test('Throws on malformed balanced declarations', async () => {
+		await expect(async () => {
+			await getHookTestResult('postprocessRenderedLine', ({ addStyles }) => {
+				addStyles(`a { color: red; broken }`)
+			})
+		}).rejects.toThrow(/could not be processed/)
+	})
+	test.each([`a { color red: blue }`, `a { color::red }`])('Throws on malformed property/value boundaries: %s', async (styles) => {
+		await expect(async () => {
+			await getHookTestResult('postprocessRenderedLine', ({ addStyles }) => addStyles(styles))
+		}).rejects.toThrow(/could not be processed/)
 	})
 	describe('Scopes styles to prevent leaking out', () => {
 		test('Adds a scope to top-level rules', async () => {
@@ -44,6 +58,15 @@ describe('Processes CSS styles added by plugins', () => {
 		})
 	})
 	describe('Minifies styles', () => {
+		test('Preserves block values in custom properties', async () => {
+			await expectResultStyles(`a { --x: { bar: baz }; color: red }`, `#GRP a{--x:{ bar: baz };color:red}`)
+		})
+		test('Preserves token boundaries around comments', async () => {
+			await expectResultStyles(`a { --n: 1/**/2 }`, `#GRP a{--n:1/**/2}`)
+		})
+		test('Allows custom property values starting with a colon', async () => {
+			await expectResultStyles(`a { --pseudo: :hover }`, `#GRP a{--pseudo::hover}`)
+		})
 		test('Removes whitespace before, after and between rules', async () => {
 			await expectResultStyles(
 				`
@@ -95,6 +118,12 @@ describe('Processes CSS styles added by plugins', () => {
 		})
 	})
 	describe('Allows SASS-like nesting', () => {
+		test('Preserves declarations after nested rules to maintain cascade order', async () => {
+			await expectResultStyles(
+				`a { color: red; @media (width > 1px) { color: blue } color: green }`,
+				`#GRP a{color:red}@media (width > 1px){#GRP a{color:blue}}#GRP a{color:green}`
+			)
+		})
 		test('Simple nesting', async () => {
 			await expectResultStyles(
 				`
@@ -224,6 +253,18 @@ describe('Processes CSS styles added by plugins', () => {
 				`@keyframes slidein{from{transform:translateX(0%)}to{transform:translateX(100%)}}`
 			)
 		})
+		test('@keyframes with percentage selectors', async () => {
+			await expectResultStyles(`@keyframes fade { 0% { opacity: 0 } 100% { opacity: 1 } }`, `@keyframes fade{0%{opacity:0}100%{opacity:1}}`)
+		})
+		test('@starting-style', async () => {
+			await expectResultStyles(`@starting-style { a { opacity: 0 } }`, `@starting-style{#GRP a{opacity:0}}`)
+		})
+		test('@scope', async () => {
+			await expectResultStyles(`@scope (.card) { a { color: red } }`, `@scope (.card){#GRP a{color:red}}`)
+		})
+		test('@page descriptors followed by margin rules', async () => {
+			await expectResultStyles(`@page { margin: 1cm; @top-left { content: "Title" } }`, `@page{margin:1cm;@top-left{content:"Title"}}`)
+		})
 	})
 	describe('Deduplicates styles', () => {
 		test('When duplicates are added by a single hook', async () => {
@@ -272,6 +313,60 @@ describe('Processes CSS styles added by plugins', () => {
 				])
 			)
 		})
+	})
+})
+
+describe('Processes inline styles', () => {
+	test('parses separators inside strings, functions, escapes and comments', () => {
+		const node = {
+			type: 'element',
+			tagName: 'span',
+			children: [],
+			properties: {
+				style: `content:"a;b:c";background:url("data:image/svg+xml;a:b");--escaped:a\\;b\\:c;color:/* note;: */ red`,
+			},
+		} satisfies Element
+
+		expect(getInlineStyles(node)).toEqual(
+			new Map([
+				['content', `"a;b:c"`],
+				['background', `url("data:image/svg+xml;a:b")`],
+				['--escaped', `a\\;b\\:c`],
+				['color', 'red'],
+			])
+		)
+	})
+
+	test('treats malformed inline styles as empty', () => {
+		const node = {
+			type: 'element',
+			tagName: 'span',
+			children: [],
+			properties: { style: `color:red;content:"unterminated` },
+		} satisfies Element
+		expect(getInlineStyles(node)).toEqual(new Map())
+	})
+
+	test('treats colonless inline declarations as empty', () => {
+		const node = {
+			type: 'element',
+			tagName: 'span',
+			children: [],
+			properties: { style: `color:red;broken` },
+		} satisfies Element
+		expect(getInlineStyles(node)).toEqual(new Map())
+	})
+
+	test('serializes declarations without altering their values', () => {
+		const node: Element = { type: 'element', tagName: 'span', children: [], properties: {} }
+		setInlineStyles(
+			node,
+			new Map([
+				['content', `"a;b:c"`],
+				['background', `url("data:image/svg+xml;a:b")`],
+			])
+		)
+		expect(node.properties.style).toBe(`content:"a;b:c";background:url("data:image/svg+xml;a:b")`)
 	})
 })
 

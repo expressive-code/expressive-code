@@ -741,18 +741,39 @@ describe.concurrent('Integration into Astro ^6.4.0 using the Unified Markdown pr
 	})
 })
 
-describe.concurrent('Integration into Astro ^7.0.0', () => {
+describe.concurrent('Integration into Astro ^7.0.0 with Cloudflare adapter', () => {
 	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
+	let devHtml = ''
+	let devStatus = 0
 
-	beforeAll(async () => {
-		fixture = await buildFixture({
-			fixtureDir: 'astro-7.0.0',
-			buildCommand: 'pnpm',
-			buildArgs: ['astro', 'build'],
-			outputDir: 'dist',
-			hmrPort: hmrPortBase + 9,
-		})
-	}, fixtureBuildHookTimeoutMs)
+	beforeAll(
+		async () => {
+			const devResponse = await fetchDevFixture({
+				fixtureDir: 'astro-7.0.0',
+				path: '/astro-many-code-components/',
+				port: hmrPortBase + 109,
+				hmrPort: hmrPortBase + 9,
+			})
+			devHtml = devResponse.html
+			devStatus = devResponse.status
+			fixture = await buildFixture({
+				fixtureDir: 'astro-7.0.0',
+				buildCommand: 'pnpm',
+				buildArgs: ['astro', 'build'],
+				outputDir: 'dist/client',
+				cleanDir: 'dist',
+				hmrPort: hmrPortBase + 9,
+			})
+		},
+		process.env.CI ? 180 * 1000 : 60 * 1000
+	)
+
+	test('Renders <Code> components in the Cloudflare dev environment', () => {
+		expect(devStatus).toBe(200)
+		expect(devHtml).toContain('data-runtime>workerd')
+		expect(extractCodeBlocks(devHtml)).toHaveLength(3)
+		expect(devHtml).toContain('class="ec-line highlight mark"')
+	})
 
 	test('Renders code blocks in Markdown files', () => {
 		const html = fixture?.readFile('index.html') ?? ''
@@ -810,6 +831,7 @@ describe.concurrent('Integration into Astro ^7.0.0', () => {
 			],
 		})
 		expect(html).toContain('Code components in Astro files')
+		expect(html).toContain('data-runtime>workerd')
 	})
 
 	describe('Supports custom languages', () => {
@@ -919,6 +941,7 @@ async function buildFixture({
 	buildCommand,
 	buildArgs,
 	outputDir,
+	cleanDir = outputDir,
 	keepPreviousBuild = false,
 	hmrPort,
 }: {
@@ -926,11 +949,13 @@ async function buildFixture({
 	buildCommand: string
 	buildArgs?: string[] | undefined
 	outputDir: string
+	cleanDir?: string | undefined
 	keepPreviousBuild?: boolean | undefined
 	hmrPort?: number | undefined
 }) {
 	const fixturePath = join(__dirname, 'fixtures', fixtureDir)
 	const outputDirPath = join(fixturePath, outputDir)
+	const cleanDirPath = join(fixturePath, cleanDir)
 	const shimPath = join(__dirname, 'fixtures', 'astro-build-shim.cjs')
 	// Some restricted environments report `os.cpus()` as an empty array.
 	// Astro 3.x can derive a build concurrency of 0 from that and crash, so we
@@ -939,8 +964,8 @@ async function buildFixture({
 
 	if (!keepPreviousBuild) {
 		// Remove the output directory if it exists
-		if (existsSync(outputDirPath)) {
-			rmSync(outputDirPath, { recursive: true })
+		if (existsSync(cleanDirPath)) {
+			rmSync(cleanDirPath, { recursive: true })
 		}
 
 		// Run the build command
@@ -967,6 +992,51 @@ async function buildFixture({
 		readDir: (subPath: string) => readdirSync(join(outputDirPath, subPath), 'utf-8'),
 		readDirWithTypes: (subPath: string) => readdirSync(join(outputDirPath, subPath), { encoding: 'utf-8', withFileTypes: true }),
 		readDirWithTypesRecursive: (subPath: string) => readdirSync(join(outputDirPath, subPath), { encoding: 'utf-8', withFileTypes: true, recursive: true }),
+	}
+}
+
+async function fetchDevFixture({
+	fixtureDir,
+	path,
+	port,
+	hmrPort,
+}: {
+	fixtureDir: string
+	path: string
+	port: number
+	hmrPort: number
+}): Promise<{ status: number; html: string }> {
+	const fixturePath = join(__dirname, 'fixtures', fixtureDir)
+	const viteCachePath = join(fixturePath, 'node_modules', '.vite')
+	if (existsSync(viteCachePath)) rmSync(viteCachePath, { recursive: true })
+
+	const child = execa('pnpm', ['astro', 'dev', '--host', '127.0.0.1', '--port', String(port)], {
+		cwd: fixturePath,
+		env: { ...process.env, VITE_HMR_PORT: String(hmrPort) },
+		all: true,
+		reject: false,
+	})
+	let output = ''
+	child.all?.on('data', (chunk: unknown) => {
+		output += String(chunk)
+	})
+	const url = `http://127.0.0.1:${port}${path}`
+	const timeoutAt = Date.now() + (process.env.CI ? 90_000 : 30_000)
+
+	try {
+		while (Date.now() < timeoutAt) {
+			try {
+				const response = await fetch(url)
+				return { status: response.status, html: String(await response.text()) }
+			} catch {
+				await new Promise((resolve) => setTimeout(resolve, 100))
+			}
+		}
+		throw new Error(`Timed out waiting for ${url}\n\n${output}`)
+	} finally {
+		await execa('pnpm', ['astro', 'dev', 'stop'], { cwd: fixturePath, reject: false })
+		child.kill('SIGTERM', { forceKillAfterTimeout: 2_000 })
+		await child
 	}
 }
 
@@ -1014,7 +1084,8 @@ function getCustomLanguageTokenColors(fixture: Awaited<ReturnType<typeof buildFi
 const ecBaseStylesPattern = escapeRegExp('.expressive-code *:not(:is(svg, svg *))')
 
 export function expectStyleElement(requiredContent = ecBaseStylesPattern) {
-	return expect.stringMatching(new RegExp(`^<style>.*?${requiredContent}.*?</style>$`)) as unknown
+	const contentPattern = requiredContent.replace(/\s+/g, '\\s*')
+	return expect.stringMatching(new RegExp(`^<style>.*?${contentPattern}.*?</style>$`)) as unknown
 }
 
 function expectStyleLink(expectedHref: string | RegExp = /\/_astro\/ec\.[a-z0-9]*?\.css/) {

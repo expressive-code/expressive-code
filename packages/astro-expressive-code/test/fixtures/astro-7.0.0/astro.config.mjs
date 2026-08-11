@@ -1,11 +1,17 @@
 // @ts-check
 import { defineConfig } from 'astro/config'
+import cloudflare from '@astrojs/cloudflare'
 import mdx from '@astrojs/mdx'
 import { astroExpressiveCode } from 'astro-expressive-code'
 import { getTestConfig } from '../astro-test-config.mjs'
 
 // https://astro.build/config
 export default defineConfig({
+	output: 'static',
+	adapter: cloudflare({
+		imageService: 'passthrough',
+		prerenderEnvironment: 'workerd',
+	}),
 	integrations: [
 		astroExpressiveCode({
 			// This should get overwritten by the themes specified in `ec.config.mjs`
