@@ -82,7 +82,7 @@ function validateBlockAst({ renderedGroupAst, codeToCopy }: { renderedGroupAst: 
 	const actualCode = copyButton?.properties?.dataCode?.toString().replace(/\u007f/g, '\n')
 	expect(actualCode).toBe(codeToCopy)
 
-	// Expect the copy button background to be a span element,
+	// Expect the copy button background to be a span element.
 	expect(select('pre + .copy button > span', renderedGroupAst)).toBeTruthy()
 	// Button elements only allow phrasing content inside.
 	expect(select('pre + .copy button > div', renderedGroupAst)).toBeFalsy()
