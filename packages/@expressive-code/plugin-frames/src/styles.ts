@@ -446,7 +446,7 @@ export function getFramesBaseStyles({ cssVar }: ResolverContext, options: Plugin
 			background: var(--code-background);
 			opacity: 0.75;
 
-			div {
+			span {
 				position: absolute;
 				inset: 0;
 				border-radius: inherit;
@@ -489,7 +489,7 @@ export function getFramesBaseStyles({ cssVar }: ResolverContext, options: Plugin
 			*/
 			&:hover, &:focus:focus-visible {
 				opacity: 1;
-				div {
+				span {
 					opacity: ${cssVar('frames.inlineButtonBackgroundHoverOrFocusOpacity')};
 				}
 			}
@@ -497,7 +497,7 @@ export function getFramesBaseStyles({ cssVar }: ResolverContext, options: Plugin
 			/* On press, set active background opacity */
 			&:active {
 				opacity: 1;
-				div {
+				span {
 					opacity: ${cssVar('frames.inlineButtonBackgroundActiveOpacity')};
 				}
 			}

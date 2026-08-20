@@ -106,7 +106,7 @@ function getBackgroundColor({ token, ancestors, styleVariant }: { token: Element
 		const node = nodes[i]
 		const classes = getClassNames(node)
 		let nodeBg: string | undefined = undefined
-		if (node.tagName === 'div' && classes.includes('ec-line')) {
+		if (node.tagName === 'span' && classes.includes('ec-line')) {
 			if (classes.includes('mark')) nodeBg = colors.markBg
 			if (classes.includes('del')) nodeBg = colors.delBg
 			if (classes.includes('ins')) nodeBg = colors.insBg
@@ -125,7 +125,7 @@ function getBackgroundColor({ token, ancestors, styleVariant }: { token: Element
 function getLineNodes(renderedGroupAst: Element) {
 	const linesInGroupAst: Element[] = []
 	visit(renderedGroupAst, 'element', (node) => {
-		if (node.tagName === 'div' && getClassNames(node).includes('ec-line')) {
+		if (node.tagName === 'span' && getClassNames(node).includes('ec-line')) {
 			linesInGroupAst.push(node)
 		}
 	})

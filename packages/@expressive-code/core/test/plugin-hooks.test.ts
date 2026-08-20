@@ -73,7 +73,7 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 			})
 			expect(totalHookCalls).toEqual(2)
 			const html = toSanitizedHtml(renderedBlockAst)
-			expect(html).toEqual(`<pre><code><div test="1">${lineCodeHtml[0]}</div><div test="2">${lineCodeHtml[1]}</div></code></pre>`)
+			expect(html).toEqual(`<pre><code><span test="1">${lineCodeHtml[0]}</span><span test="2">${lineCodeHtml[1]}</span></code></pre>`)
 		})
 		test('Can completely replace line AST', async () => {
 			let totalHookCalls = 0
@@ -159,8 +159,8 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 			expect(html).toEqual(
 				[
 					`<pre><code>`,
-					`<a href="#2" edited="3"><div test="1">${lineCodeHtml[0]}</div></a>`,
-					`<a href="#5" edited="6"><div test="4">${lineCodeHtml[1]}</div></a>`,
+					`<a href="#2" edited="3"><span test="1">${lineCodeHtml[0]}</span></a>`,
+					`<a href="#5" edited="6"><span test="4">${lineCodeHtml[1]}</span></a>`,
 					`</code></pre>`,
 				].join('')
 			)
@@ -180,7 +180,7 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 			})
 			expect(totalHookCalls).toEqual(1)
 			const html = toSanitizedHtml(renderedBlockAst)
-			expect(html).toEqual(`<pre test="1"><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`)
+			expect(html).toEqual(`<pre test="1"><code><span>${lineCodeHtml[0]}</span><span>${lineCodeHtml[1]}</span></code></pre>`)
 		})
 		test('Can completely replace block AST', async () => {
 			let totalHookCalls = 0
@@ -262,7 +262,7 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 			})
 			expect(totalHookCalls).toEqual(3)
 			const html = toSanitizedHtml(renderedBlockAst)
-			expect(html).toEqual(`<div test="2" edited="3"><pre test="1"><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre></div>`)
+			expect(html).toEqual(`<div test="2" edited="3"><pre test="1"><code><span>${lineCodeHtml[0]}</span><span>${lineCodeHtml[1]}</span></code></pre></div>`)
 		})
 	})
 	describe('postprocessRenderedBlockGroup', () => {
@@ -284,7 +284,7 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 					// Start of group wrapper
 					`<${groupWrapperElement}>`,
 					'<figure>',
-					`<pre><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`,
+					`<pre><code><span>${lineCodeHtml[0]}</span><span>${lineCodeHtml[1]}</span></code></pre>`,
 					'</figure>',
 					// End of group wrapper
 					`</${groupWrapperElement}>`,
@@ -313,11 +313,11 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 					`<${groupWrapperElement}>`,
 					// Wrapper added by hook around first child
 					'<figure>',
-					`<pre><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`,
+					`<pre><code><span>${lineCodeHtml[0]}</span><span>${lineCodeHtml[1]}</span></code></pre>`,
 					'</figure>',
 					// Wrapper added by hook around second child
 					'<figure>',
-					'<pre><code><div><div class="code">Just one line here!</div></div></code></pre>',
+					'<pre><code><span><span class="code">Just one line here!</span></span></code></pre>',
 					'</figure>',
 					// End of group wrapper
 					`</${groupWrapperElement}>`,
@@ -357,7 +357,7 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 					// Start of group wrapper
 					`<${groupWrapperElement}>`,
 					// Regular code block HTML
-					`<pre><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`,
+					`<pre><code><span>${lineCodeHtml[0]}</span><span>${lineCodeHtml[1]}</span></code></pre>`,
 					// End of group wrapper
 					`</${groupWrapperElement}>`,
 					// End of wrapper added by hook
@@ -441,7 +441,7 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 					// Figure added by first hook
 					'<figure test="1">',
 					// Regular code block HTML
-					`<pre><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`,
+					`<pre><code><span>${lineCodeHtml[0]}</span><span>${lineCodeHtml[1]}</span></code></pre>`,
 					// End of figure added by first hook
 					'</figure>',
 					// End of group wrapper
