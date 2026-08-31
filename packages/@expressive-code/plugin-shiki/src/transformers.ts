@@ -12,10 +12,10 @@ export type BaseHookArgs = {
 /**
  * Throws an error if any of the configured transformers use unsupported hooks.
  */
-export function validateTransformers(options: PluginShikiOptions) {
-	if (!options.transformers) return
+export function validateTransformers(transformers: PluginShikiOptions['transformers']) {
+	if (!transformers) return
 	const unsupportedTransformerHooks: (keyof ShikiTransformer)[] = ['code', 'line', 'postprocess', 'pre', 'root', 'span']
-	for (const transformer of coerceTransformers(options.transformers)) {
+	for (const transformer of coerceTransformers(transformers)) {
 		const unsupportedHook = unsupportedTransformerHooks.find((hook) => transformer[hook] != null)
 		if (unsupportedHook) {
 			throw new ExpressiveCodeShikiTransformerError(transformer, `The transformer hook "${unsupportedHook}" is not supported by Expressive Code yet.`)

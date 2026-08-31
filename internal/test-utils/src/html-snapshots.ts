@@ -1,6 +1,14 @@
 import { mkdirSync, writeFileSync } from 'fs'
 import { join, dirname } from 'path'
-import { ExpressiveCodeEngine, ExpressiveCodeEngineConfig, ExpressiveCodePlugin, ExpressiveCodeTheme, StyleVariant } from '@expressive-code/core'
+import {
+	ExpressiveCodeBlockProps,
+	ExpressiveCodeEngine,
+	ExpressiveCodeEngineConfig,
+	ExpressiveCodePlugin,
+	ExpressiveCodeTheme,
+	PartialAllowUndefined,
+	StyleVariant,
+} from '@expressive-code/core'
 import type { Element } from '@expressive-code/core/hast'
 import { toHtml } from '@expressive-code/core/hast'
 
@@ -11,6 +19,7 @@ export type TestFixture = {
 	code: string
 	language?: string | undefined
 	meta?: string | undefined
+	props?: PartialAllowUndefined<ExpressiveCodeBlockProps> | undefined
 	themes?: ExpressiveCodeTheme[] | undefined
 	plugins: ExpressiveCodePlugin[]
 	engineOptions?: Partial<ExpressiveCodeEngineConfig> | undefined
@@ -26,7 +35,7 @@ export function buildThemeFixtures(themes: ExpressiveCodeTheme[], fixtureContent
 	return [fixture]
 }
 
-async function renderFixture({ fixtureName, code, language = 'js', meta = '', themes, plugins, engineOptions, blockValidationFn }: TestFixture) {
+async function renderFixture({ fixtureName, code, language = 'js', meta = '', props, themes, plugins, engineOptions, blockValidationFn }: TestFixture) {
 	const engine = new ExpressiveCodeEngine({
 		themes,
 		plugins,
@@ -39,6 +48,7 @@ async function renderFixture({ fixtureName, code, language = 'js', meta = '', th
 		code,
 		language,
 		meta,
+		props,
 	})
 
 	return {
