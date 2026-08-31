@@ -74,7 +74,7 @@ export const pluginFramesTexts = new PluginTexts({
 
 pluginFramesTexts.addLocale('de', {
 	terminalWindowFallbackTitle: 'Terminal-Fenster',
-	copyButtonTooltip: 'In die Zwischenablage kopieren',
+	copyButtonTooltip: 'In Zwischenablage kopieren',
 	copyButtonCopied: 'Kopiert!',
 })
 
