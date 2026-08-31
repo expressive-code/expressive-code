@@ -1,10 +1,10 @@
-import { ExpressiveCodePlugin, PluginTexts } from '@expressive-code/core'
+import { type ExpressiveCodePlugin, PluginTexts } from '@expressive-code/core'
 import type { Element } from '@expressive-code/core/hast'
 import { h } from '@expressive-code/core/hast'
 import { framesStyleSettings, getFramesBaseStyles } from './styles'
 import {
 	extractFileNameFromCodeBlock,
-	FrameType,
+	type FrameType,
 	frameTypeFromString,
 	frameTypes,
 	getFileNameFromComment,
@@ -40,6 +40,16 @@ export interface PluginFramesOptions {
 	 * @default true
 	 */
 	removeCommentsWhenCopyingTerminalFrames?: boolean | undefined
+	/**
+	 * If `true`, the "Copy to clipboard" button of terminal window frames
+	 * will remove text marked as deleted using the Text & Line Markers plugin.
+	 *
+	 * This is useful to reduce the copied text to the code that results after the
+	 * marked text is deleted, instead of also copying the deleted portions.
+	 *
+	 * @default false
+	 */
+	removeDeletedTextWhenCopying?: boolean | undefined
 }
 
 export interface PluginFramesProps {
@@ -84,6 +94,7 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 		extractFileNameFromCode: true,
 		showCopyToClipboardButton: true,
 		removeCommentsWhenCopyingTerminalFrames: true,
+		removeDeletedTextWhenCopying: false,
 		...options,
 	}
 	return {
@@ -156,7 +167,32 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 
 				// If enabled, create a button to copy the code to the clipboard
 				if (options.showCopyToClipboardButton) {
-					let codeToCopy = codeBlock.code
+					const linesToCopy: string[] = []
+					for (const line of codeBlock.getLines()) {
+						const charsToKeep = Array<boolean>(line.text.length).fill(true)
+						let wholeLineIsDeleted = false
+
+						// If enabled, don't keep any portions of the code that are marked as deleted
+						if (options.removeDeletedTextWhenCopying) {
+							line.getAnnotations().forEach((annotation) => {
+								if (!('markerType' in annotation && annotation.markerType === 'del')) return
+								// If range is unspecified, use whole line
+								if (!annotation.inlineRange) wholeLineIsDeleted = true
+								const range = annotation.inlineRange ?? {
+									columnStart: 0,
+									columnEnd: charsToKeep.length,
+								}
+								// Mark chars in range as not kept
+								charsToKeep.fill(false, range.columnStart, range.columnEnd)
+							})
+						}
+
+						const processedLine = [...line.text].filter((_, i) => charsToKeep[i]).join('')
+						if (wholeLineIsDeleted) continue
+						linesToCopy.push(processedLine)
+					}
+
+					let codeToCopy = linesToCopy.join('\n')
 
 					// If enabled, remove comment lines starting with `#` from terminal frames
 					if (options.removeCommentsWhenCopyingTerminalFrames && isTerminal) {
