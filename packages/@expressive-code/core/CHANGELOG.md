@@ -1,5 +1,7 @@
 # @expressive-code/core
 
+## 0.44.2
+
 ## 0.44.1
 
 ### Patch Changes

@@ -1,5 +1,12 @@
 # @expressive-code/plugin-frames
 
+## 0.44.2
+
+### Patch Changes
+
+- 9212ad7: Improve German localisation
+  - @expressive-code/core@0.44.2
+
 ## 0.44.1
 
 ### Patch Changes
