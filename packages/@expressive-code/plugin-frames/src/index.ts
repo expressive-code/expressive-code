@@ -1,6 +1,7 @@
 import { ExpressiveCodePlugin, PluginTexts } from '@expressive-code/core'
 import type { Element } from '@expressive-code/core/hast'
 import { h } from '@expressive-code/core/hast'
+import copyJsModule from './copy-js-module.min'
 import { framesStyleSettings, getFramesBaseStyles } from './styles'
 import {
 	extractFileNameFromCodeBlock,
@@ -12,8 +13,15 @@ import {
 	LanguageGroups,
 	LanguagesWithFencedFrontmatter,
 } from './utils'
-import copyJsModule from './copy-js-module.min'
 export type { FramesStyleSettings } from './styles'
+
+export interface PluginFramesTexts {
+	terminalWindowFallbackTitle: string
+	copyButtonTooltip: string
+	copyButtonCopied: string
+}
+
+export type PluginFramesTextOverrides = Partial<PluginFramesTexts>
 
 export interface PluginFramesOptions {
 	/**
@@ -40,6 +48,14 @@ export interface PluginFramesOptions {
 	 * @default true
 	 */
 	removeCommentsWhenCopyingTerminalFrames?: boolean | undefined
+	/**
+	 * Allows host projects to customize any locale-specific texts used by the frames plugin.
+	 *
+	 * Each object key must be a locale code like `en` or `vi`.
+	 * You can also use the special key `default` to override the fallback texts used
+	 * when no locale-specific match is found.
+	 */
+	texts?: Record<string, PluginFramesTextOverrides> | undefined
 }
 
 export interface PluginFramesProps {
@@ -86,6 +102,13 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 		removeCommentsWhenCopyingTerminalFrames: true,
 		...options,
 	}
+
+	if (options.texts) {
+		for (const [locale, localizedTextOverrides] of Object.entries(options.texts || {})) {
+			pluginFramesTexts.overrideTexts(locale === 'default' ? undefined : locale, localizedTextOverrides)
+		}
+	}
+
 	return {
 		name: 'Frames',
 		styleSettings: framesStyleSettings,
