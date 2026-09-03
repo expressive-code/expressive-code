@@ -9,8 +9,8 @@ export type CreateAstroRendererArgs = {
 }
 
 export type AstroExpressiveCodeRenderer = RehypeExpressiveCodeRenderer & {
-	hashedStyles: [string, string][]
-	hashedScripts: [string, string][]
+	hashedStyles: { route: string; content: string }
+	hashedScripts: { route: string; content: string }
 }
 
 export async function createAstroRenderer({ ecConfig, astroConfig, logger }: CreateAstroRendererArgs): Promise<AstroExpressiveCodeRenderer> {
@@ -20,57 +20,63 @@ export async function createAstroRenderer({ ecConfig, astroConfig, logger }: Cre
 	// Determine the assets directory and href prefix from the Astro config
 	const assetsDir = astroConfig.build?.assets || '_astro'
 
-	// Add a plugin that inserts external references to the styles and scripts
-	// that would normally be inlined into the first code block of every page
-	let inlineStyles = ''
-	const hashedStyles: [string, string][] = []
-	const hashedScripts: [string, string][] = []
-	plugins.push({
-		name: 'astro-expressive-code',
-		hooks: {
-			postprocessRenderedBlockGroup: ({ renderData, renderedGroupContents }) => {
-				// Only continue if this is the first code block group of the page
-				const isFirstGroupInDocument = renderedGroupContents[0]?.codeBlock.parentDocument?.positionInDocument?.groupIndex === 0
-				if (!isFirstGroupInDocument) return
+	const injectCssAndJs = ecConfig.injectCssAndJs ?? 'inline'
+	const injectCssAndJsInline = injectCssAndJs === 'inline'
 
-				type HastElement = Extract<(typeof renderData.groupAst.children)[number], { type: 'element' }>
-				const extraElements: HastElement[] = []
+	// eslint-disable-next-line prefer-const
+	let hashedStyles: { route: string; content: string }
+	// eslint-disable-next-line prefer-const
+	let hashedScripts: { route: string; content: string }
 
-				// Add hashed stylesheet links
-				hashedStyles.forEach(([hashedRoute]) => {
-					extraElements.push({
-						type: 'element',
-						tagName: 'link',
-						properties: { rel: 'stylesheet', href: `${getAssetsBaseHref('.css', astroConfig.build?.assetsPrefix, astroConfig.base)}${hashedRoute}` },
-						children: [],
-					})
-				})
+	if (injectCssAndJsInline) {
+		// Add a plugin that inserts external references to the styles and scripts
+		// that would normally be inlined into the first code block of every page
+		plugins.push({
+			name: 'astro-expressive-code',
+			hooks: {
+				postprocessRenderedBlockGroup: ({ renderData, renderedGroupContents }) => {
+					if (!(hashedStyles && hashedScripts)) {
+						return
+					}
+					// Only continue if this is the first code block group of the page
+					const isFirstGroupInDocument = renderedGroupContents[0]?.codeBlock.parentDocument?.positionInDocument?.groupIndex === 0
+					if (!isFirstGroupInDocument) return
 
-				// Add base inline styles (only present if not emitted as external stylesheet)
-				if (inlineStyles) {
-					extraElements.push({
-						type: 'element',
-						tagName: 'style',
-						properties: {},
-						children: [{ type: 'text', value: inlineStyles }],
-					})
-				}
+					type HastElement = Extract<(typeof renderData.groupAst.children)[number], { type: 'element' }>
+					const extraElements: HastElement[] = []
 
-				// Add hashed script module links for all JS modules
-				hashedScripts.forEach(([hashedRoute]) => {
+					if (emitExternalStylesheet) {
+						// Add hashed stylesheet links
+						extraElements.push({
+							type: 'element',
+							tagName: 'link',
+							properties: { rel: 'stylesheet', href: `${getAssetsBaseHref('.css', astroConfig.build?.assetsPrefix, astroConfig.base)}${hashedStyles.route}` },
+							children: [],
+						})
+					} else {
+						// Add base inline styles (only present if not emitted as external stylesheet)
+						extraElements.push({
+							type: 'element',
+							tagName: 'style',
+							properties: {},
+							children: [{ type: 'text', value: hashedStyles.content }],
+						})
+					}
+
+					// Add hashed script module links for all JS modules
 					extraElements.push({
 						type: 'element',
 						tagName: 'script',
-						properties: { type: 'module', src: `${getAssetsBaseHref('.js', astroConfig.build?.assetsPrefix, astroConfig.base)}${hashedRoute}` },
+						properties: { type: 'module', src: `${getAssetsBaseHref('.js', astroConfig.build?.assetsPrefix, astroConfig.base)}${hashedScripts.route}` },
 						children: [],
 					})
-				})
 
-				if (!extraElements.length) return
-				renderData.groupAst.children.unshift(...extraElements)
+					if (!extraElements.length) return
+					renderData.groupAst.children.unshift(...extraElements)
+				},
 			},
-		},
-	})
+		})
+	}
 
 	// Unless Shiki was disabled, merge any supported Shiki settings
 	// from the Astro config into the plugin options
@@ -88,20 +94,15 @@ export async function createAstroRenderer({ ecConfig, astroConfig, logger }: Cre
 		shiki: mergedShikiConfig,
 		...rest,
 	})) as AstroExpressiveCodeRenderer
-	renderer.hashedStyles = hashedStyles
-	renderer.hashedScripts = hashedScripts
 
 	// Extract any base and theme styles from the child renderer, as they are handled by this
 	// integration. Our way of handling them depends on the emitExternalStylesheet option:
 	// - If it's true (which is the default), we move all base and theme styles
 	//   into an external CSS file with a hashed filename
 	// - If it's false, we inline them into the first code block of the page
-	if (emitExternalStylesheet) {
-		const combinedStyles = `${renderer.baseStyles}${renderer.themeStyles}`
-		hashedStyles.push(getHashedRouteWithContent(combinedStyles, `/${assetsDir}/ec.{hash}.css`))
-	} else {
-		inlineStyles = `${renderer.baseStyles}${renderer.themeStyles}`
-	}
+	const combinedStyles = `${renderer.baseStyles}${renderer.themeStyles}`
+	hashedStyles = getHashedRouteWithContent(combinedStyles, `/${assetsDir}/ec.{hash}.css`)
+	renderer.hashedStyles = hashedStyles
 	renderer.baseStyles = ''
 	renderer.themeStyles = ''
 
@@ -110,8 +111,9 @@ export async function createAstroRenderer({ ecConfig, astroConfig, logger }: Cre
 	// does not allow omitting the scripts on pages without any code blocks)
 	const uniqueJsModules = [...new Set<string>(renderer.jsModules)]
 	const mergedJsCode = uniqueJsModules.join('\n')
+	hashedScripts = getHashedRouteWithContent(mergedJsCode, `/${assetsDir}/ec.{hash}.js`)
+	renderer.hashedScripts = hashedScripts
 	renderer.jsModules = []
-	hashedScripts.push(getHashedRouteWithContent(mergedJsCode, `/${assetsDir}/ec.{hash}.js`))
 
 	return renderer
 }
@@ -119,7 +121,7 @@ export async function createAstroRenderer({ ecConfig, astroConfig, logger }: Cre
 /**
  * Generates a hashed route and content tuple for a given content string.
  */
-function getHashedRouteWithContent(content: string, routeTemplate: string): [string, string] {
+function getHashedRouteWithContent(content: string, routeTemplate: string): { route: string; content: string } {
 	const contentHash = getStableObjectHash(content, { hashLength: 5 })
-	return [routeTemplate.replace('{hash}', contentHash), content]
+	return { route: routeTemplate.replace('{hash}', contentHash), content }
 }
