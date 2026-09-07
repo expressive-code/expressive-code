@@ -20,9 +20,9 @@ export function parseSections(value: string): Section[] {
 			if (from > to) return
 
 			// skip any entries that overlap existing sections, since our <details>-based approach can't overlap
+			// (this includes entries that fully contain an existing section, e.g. '3-5, 1-8')
 			for (const { from: existingFrom, to: existingTo } of sections) {
-				if (from >= existingFrom && from <= existingTo) return
-				if (to >= existingFrom && to <= existingTo) return
+				if (from <= existingTo && existingFrom <= to) return
 			}
 
 			sections.push({ from, to, lines: [] })
