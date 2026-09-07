@@ -1,4 +1,5 @@
 import { describe, test, expect } from 'vitest'
+import type { Element } from '@expressive-code/core/hast'
 import { getClassNames, select, selectAll, toText } from '@expressive-code/core/hast'
 import { pluginShiki } from '@expressive-code/plugin-shiki'
 import { pluginTextMarkers } from '@expressive-code/plugin-text-markers'
@@ -97,6 +98,24 @@ describe('Renders collapsed sections', async () => {
 			})
 		})
 
+		test(`Ignores sections that fully contain an already added section`, async ({ task: { name: testName } }) => {
+			const validateSections = buildBlockValidationFn([{ from: 5, to: 7, text: '3 collapsed lines' }])
+			await renderAndOutputHtmlSnapshot({
+				testName,
+				testBaseDir: __dirname,
+				fixtures: buildThemeFixtures(themes, {
+					code: lineMarkerTestText,
+					meta: `collapse={5-7, 1-9}`,
+					plugins: [pluginCollapsibleSections()],
+					blockValidationFn: (context) => {
+						validateSections(context)
+						// Also ensure that no code lines were dropped or duplicated
+						expect(getRenderedCodeLines(context.renderedGroupAst)).toEqual(lineMarkerTestText.split('\n'))
+					},
+				}),
+			})
+		})
+
 		test(`Correctly handles code with text-markers and syntax highlighting`, { timeout: 5 * 1000 }, async ({ task: { name: testName } }) => {
 			await renderAndOutputHtmlSnapshot({
 				testName,
@@ -176,6 +195,18 @@ describe('Renders collapsed sections', async () => {
 		})
 	})
 })
+
+/** Returns the text of all rendered code lines, including the lines hidden inside collapsed sections */
+function getRenderedCodeLines(renderedGroupAst: Element) {
+	const codeAst = select('pre > code', renderedGroupAst)
+	if (!codeAst) throw new Error("Couldn't find code AST when collecting rendered code lines")
+
+	// Replace each section with the lines it contains (= all of its children except the summary)
+	const lines = codeAst.children.flatMap((child) => ('tagName' in child && child.tagName.toLowerCase() === 'details' ? child.children.slice(1) : [child]))
+
+	// Empty code lines are rendered as a single line break, so strip it to get the source text back
+	return lines.map((line) => toText(line, { whitespace: 'pre' }).replace(/\n$/, ''))
+}
 
 type ExpectedSection = Omit<Section, 'lines'> & {
 	text: string
