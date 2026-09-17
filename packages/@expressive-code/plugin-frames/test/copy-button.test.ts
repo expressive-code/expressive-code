@@ -3,6 +3,7 @@ import type { Element } from '@expressive-code/core/hast'
 import { select } from '@expressive-code/core/hast'
 import { renderAndOutputHtmlSnapshot, buildThemeFixtures, loadTestThemes } from '@internal/test-utils'
 import { pluginFrames } from '../src'
+import { pluginTextMarkers } from '../../plugin-text-markers'
 
 const exampleTerminalCode = `
 # Install dev dependencies
@@ -66,6 +67,64 @@ describe('Allows removing comments from terminal window frames', async () => {
 					validateBlockAst({
 						renderedGroupAst,
 						codeToCopy: exampleTerminalCode,
+					})
+				},
+			}),
+		})
+	})
+})
+
+const exampleDeletedCode = `
+def f(n: int) -> int:
+    if n == 0 or n == 1:
+        # FibonacciLucas sequence
+        return n
+        return 2 if n == 0 else 1
+    return f(n - 2) + f(n - 1)
+`.trim()
+
+const exampleDeletedCodeAfterDeletions = `
+def f(n: int) -> int:
+    if n == 0 or n == 1:
+        # Lucas sequence
+        return 2 if n == 0 else 1
+    return f(n - 2) + f(n - 1)
+`.trim()
+
+describe('Allows removing deleted code from frames', async () => {
+	const themes = await loadTestThemes()
+
+	test('Deleted code is not removed by default', async ({ task: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: exampleDeletedCode,
+				language: 'py',
+				meta: 'del="Fibonacci" ins="Lucas" del={4} ins={5}',
+				plugins: [pluginFrames(), pluginTextMarkers()],
+				blockValidationFn: ({ renderedGroupAst }) => {
+					validateBlockAst({
+						renderedGroupAst,
+						codeToCopy: exampleDeletedCode,
+					})
+				},
+			}),
+		})
+	})
+	test('Deleted code can be removed through options', async ({ task: { name: testName } }) => {
+		await renderAndOutputHtmlSnapshot({
+			testName,
+			testBaseDir: __dirname,
+			fixtures: buildThemeFixtures(themes, {
+				code: exampleDeletedCode,
+				language: 'py',
+				meta: 'del="Fibonacci" ins="Lucas" del={4} ins={5}',
+				plugins: [pluginFrames({ removeDeletedTextWhenCopying: true }), pluginTextMarkers()],
+				blockValidationFn: ({ renderedGroupAst }) => {
+					validateBlockAst({
+						renderedGroupAst,
+						codeToCopy: exampleDeletedCodeAfterDeletions,
 					})
 				},
 			}),
