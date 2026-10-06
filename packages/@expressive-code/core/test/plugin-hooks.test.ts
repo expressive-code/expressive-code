@@ -14,6 +14,7 @@ import {
 import { ExpressiveCodePluginHookName } from '../src/common/plugin-hooks'
 import { ExpressiveCodeProcessingState } from '../src/internal/render-block'
 import { groupWrapperElement } from '../src/internal/css'
+import { pluginErrorPreview } from '../../../../docs/plugins/plugin-error-preview.js'
 
 describe('Block-level hooks are called with the correct processing state', () => {
 	const baseState: ExpressiveCodeProcessingState = {
@@ -451,6 +452,33 @@ describe('Rendering hooks allow post-processing ASTs', () => {
 				].join('')
 			)
 		})
+	})
+})
+
+describe('The example plugin used in the "Developing plugins" guide', () => {
+	// The docs use `pluginErrorPreview` to demonstrate how plugins can check
+	// for boolean flags in the meta string using `codeBlock.metaOptions`.
+	// As users may copy this code into their own plugins, it is tested here
+	// to ensure that the documented approach works as intended.
+	const testCases: { meta: string; applies: boolean }[] = [
+		// Code blocks without the flag must be left untouched
+		{ meta: '', applies: false },
+		{ meta: 'title="example.js"', applies: false },
+		// The `error-preview` flag applies the plugin's transformations
+		{ meta: 'error-preview', applies: true },
+		{ meta: 'error-preview=true', applies: true },
+		// A value of `false` disables the plugin
+		{ meta: 'error-preview=false', applies: false },
+		// The flag must not match inside other options
+		{ meta: 'del="error-preview"', applies: false },
+		{ meta: 'my-other-plugin del="error-preview"', applies: false },
+	]
+	test.each(testCases)('meta `$meta`', async ({ meta, applies }) => {
+		const { codeBlock } = await getMultiPluginTestResult({
+			plugins: [pluginErrorPreview()],
+			input: [{ code: 'const x = ~~oops~~ //! wait', language: 'js', meta }],
+		})
+		expect(codeBlock.getLine(0)?.text).toBe(applies ? 'const x = oops wait' : 'const x = ~~oops~~ //! wait')
 	})
 })
 

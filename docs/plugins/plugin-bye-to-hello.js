@@ -9,7 +9,7 @@ export function pluginByeToHello() {
 			// of the word "bye" with "hello" in any code block
 			preprocessCode: (context) => {
 				// Only apply this to code blocks with the `bye-to-hello` meta
-				if (!context.codeBlock.meta.includes('bye-to-hello')) return
+				if (!context.codeBlock.metaOptions.getBoolean('bye-to-hello')) return
 
 				context.codeBlock.getLines().forEach((line) => {
 					const word = 'bye'
