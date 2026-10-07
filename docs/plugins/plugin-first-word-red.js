@@ -7,7 +7,7 @@ export function pluginFirstWordRed() {
 		hooks: {
 			postprocessAnalyzedCode: (context) => {
 				// Only apply this to code blocks with the `first-word-red` meta
-				if (!context.codeBlock.meta.includes('first-word-red')) return
+				if (!context.codeBlock.metaOptions.getBoolean('first-word-red')) return
 
 				// Get the first line of the code block
 				const firstLine = context.codeBlock.getLine(0)

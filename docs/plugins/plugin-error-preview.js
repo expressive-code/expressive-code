@@ -48,7 +48,7 @@ export function pluginErrorPreview() {
 		hooks: {
 			preprocessCode: (context) => {
 				// Only apply this to code blocks with the `error-preview` meta
-				if (!context.codeBlock.meta.includes('error-preview')) return
+				if (!context.codeBlock.metaOptions.getBoolean('error-preview')) return
 
 				context.codeBlock.getLines().forEach((line) => {
 					// Find all squiggles markup in the line
@@ -72,7 +72,7 @@ export function pluginErrorPreview() {
 			},
 			postprocessAnalyzedCode: (context) => {
 				// Only apply this to code blocks with the `error-preview` meta
-				if (!context.codeBlock.meta.includes('error-preview')) return
+				if (!context.codeBlock.metaOptions.getBoolean('error-preview')) return
 
 				context.codeBlock.getLines().forEach((line) => {
 					// Find a `//!` comment surrounded by spaces
