@@ -102,8 +102,15 @@ export function vitePluginAstroExpressiveCode({
 			// If any file imported by the EC config file changes, restart the server
 			async handleHotUpdate({ modules, server }) {
 				if (!modules || !server) return
+				// Keep track of the lowest depth at which each module was already explored
+				// below to prevent the traversal from following every single importer path,
+				// which would take a very long time on large sites with many shared importers
+				const exploredDepths = new Map<(typeof modules)[0], number>()
 				const isImportedByEcConfig = (module: (typeof modules)[0], depth: number = 0) => {
 					if (!module || !module.importers || depth >= 6) return false
+					const exploredDepth = exploredDepths.get(module)
+					if (exploredDepth !== undefined && exploredDepth <= depth) return false
+					exploredDepths.set(module, depth)
 					for (const importingModule of module.importers) {
 						if (noQuery(module.url).endsWith('/ec.config.mjs')) {
 							return true
