@@ -68,6 +68,27 @@ export interface PluginShikiOptions {
 	engine?: 'oniguruma' | 'javascript' | undefined
 }
 
+export interface PluginShikiProps {
+	/**
+	 * Additional transformers to add to the shiki transformer list defined in the expressive code configuration.
+	 *
+	 * These transformers will be appended to the array.
+	 *
+	 * **Warning:** This option is experimental and only supports a very limited subset of
+	 * transformer features. Currently, only the `preprocess` and `tokens` hooks are supported,
+	 * and only if they do not modify the code block's text.
+	 *
+	 * Trying to use unsupported features will throw an error. For more information, see:
+	 *
+	 * https://expressive-code.com/key-features/syntax-highlighting/#transformers
+	 */
+	transformers?: ShikiTransformer[] | unknown[] | undefined
+}
+
+declare module '@expressive-code/core' {
+	export interface ExpressiveCodeBlockProps extends PluginShikiProps {}
+}
+
 /**
  * A list of all themes bundled with Shiki.
  */
@@ -101,14 +122,23 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 	const { langs, langAlias = {}, injectLangsIntoNestedCodeBlocks, engine } = options
 
 	// Validate all configured transformers
-	validateTransformers(options)
+	validateTransformers(options.transformers)
 
 	return {
 		name: 'Shiki',
 		hooks: {
 			performSyntaxAnalysis: async ({ codeBlock, styleVariants, config: { logger } }) => {
+				validateTransformers(codeBlock.props.transformers)
 				const codeLines = codeBlock.getLines()
 				let code = codeBlock.code
+
+				const localOptions: PluginShikiOptions = {
+					...options,
+				}
+
+				if (codeBlock.props.transformers) {
+					localOptions.transformers = [...(options.transformers ?? []), ...codeBlock.props.transformers]
+				}
 
 				// If the code block uses a terminal language and includes placeholder strings
 				// in angle brackets (e.g. `<username>`), Shiki will treat the closing `>` as
@@ -171,7 +201,7 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 						}
 
 						// Run preprocess hook of all configured transformers
-						runPreprocessHook({ options, code, codeBlock, codeToTokensOptions })
+						runPreprocessHook({ options: localOptions, code, codeBlock, codeToTokensOptions })
 
 						const codeToTokensBase = highlighter.codeToTokensBase
 						await runHighlighterTask(() => {
@@ -179,7 +209,7 @@ export function pluginShiki(options: PluginShikiOptions = {}): ExpressiveCodePlu
 						})
 
 						// Run tokens hook of all configured transformers
-						tokenLines = runTokensHook({ options, code, codeBlock, codeToTokensOptions, tokenLines })
+						tokenLines = runTokensHook({ options: localOptions, code, codeBlock, codeToTokensOptions, tokenLines })
 					} catch (err) {
 						/* c8 ignore next */
 						const error = err instanceof Error ? err : new Error(String(err))
