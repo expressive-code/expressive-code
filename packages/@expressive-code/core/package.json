@@ -50,7 +50,7 @@
     "hast-util-to-text": "^4.0.1",
     "hastscript": "^9.0.0",
     "postcss": "^8.4.38",
-    "postcss-nested": "^6.0.1",
+    "postcss-nested": "^7.0.2",
     "unist-util-visit": "^5.0.0",
     "unist-util-visit-parents": "^6.0.1"
   },
