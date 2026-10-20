@@ -253,3 +253,16 @@ If `preserveIndent` is `true`, this value is added to the indentation of the ori
 :::note
 This option only affects how the code block is displayed and does not change the actual code. When copied to the clipboard, the code will still contain the original unwrapped lines.
 :::
+
+### transformers
+
+<PropertySignature>
+- Type: [`ShikiTransformer[]`](/key-features/syntax-highlighting/#transformers)
+- Default: `[]`
+</PropertySignature>
+
+Defines [shiki transformers](/key-features/syntax-highlighting/#transformers) to apply to the specific code block.
+
+:::caution[Experimental option with very limited support]
+See the [associated page](/key-features/syntax-highlighting/#transformers) for more details.
+:::
