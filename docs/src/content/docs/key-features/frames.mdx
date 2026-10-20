@@ -206,6 +206,17 @@ If `true`, the "Copy to clipboard" button of terminal window frames will remove 
 
 This is useful to reduce the copied text to the actual commands users need to run, instead of also copying explanatory comments or instructions.
 
+#### removeDeletedTextWhenCopying
+
+<PropertySignature>
+- Type: `boolean`
+- Default: ``false``
+</PropertySignature>
+
+If `true`, the "Copy to clipboard" button of terminal window frames will remove text marked as deleted using the Text & Line Markers plugin.
+
+This is useful to reduce the copied text to the code that results after the marked text is deleted, instead of also copying the deleted portions.
+
 #### showCopyToClipboardButton
 
 <PropertySignature>
