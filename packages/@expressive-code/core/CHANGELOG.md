@@ -1,5 +1,11 @@
 # @expressive-code/core
 
+## 0.44.3
+
+### Patch Changes
+
+- 4612143: Updates `postcss-nested` dependency
+
 ## 0.44.2
 
 ## 0.44.1
