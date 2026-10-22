@@ -155,17 +155,17 @@ export function renderLineToAst({
 	})
 
 	// Create a line node for all rendered parts
-	let lineNode = h(`div.${codeLineClass}`)
+	let lineNode = h(`span.${codeLineClass}`)
 
 	// If we have any gutter elements, wrap a gutter container around the elements
 	// and add it to the line's nodes
 	if (renderedGutterElements.length) {
-		lineNode.children.push(h('div.gutter', renderedGutterElements))
+		lineNode.children.push(h('span.gutter', renderedGutterElements))
 	}
 
 	// Now also wrap the code in a container and add it to the line's nodes
 	// (in case the line is empty, insert a line break to ensure it still gets rendered)
-	lineNode.children.push(h('div.code', partNodes.length > 0 ? partNodes : h(null, '\n')))
+	lineNode.children.push(h('span.code', partNodes.length > 0 ? partNodes : h(null, '\n')))
 
 	// Render line-level annotations
 	annotations.forEach((annotation) => {
@@ -200,15 +200,15 @@ export function getRenderEmptyLineFn(context: ExpressiveCodeHookContextBase & { 
 		})
 
 		// Create a line node for all rendered parts
-		const lineAst = h(`div.${codeLineClass}`)
+		const lineAst = h(`span.${codeLineClass}`)
 
 		// If we have any gutter elements, wrap a gutter container around the elements
 		// and add it to the line's nodes
-		const gutterWrapper = renderedGutterElements.length ? h('div.gutter', renderedGutterElements) : undefined
+		const gutterWrapper = renderedGutterElements.length ? h('span.gutter', renderedGutterElements) : undefined
 		if (gutterWrapper) lineAst.children.push(gutterWrapper)
 
 		// Now also wrap the code in a container and add it to the line's nodes
-		const codeWrapper = h('div.code')
+		const codeWrapper = h('span.code')
 		lineAst.children.push(codeWrapper)
 
 		return {

@@ -785,7 +785,7 @@ function buildMarkerValidationFn(
 
 		// Expect that the correct code was rendered
 		if (expectedCode !== undefined) {
-			const matchingElements = selectAll(`div.ec-line .code`, renderedGroupAst)
+			const matchingElements = selectAll(`span.ec-line .code`, renderedGroupAst)
 			const actualCode = matchingElements
 				.map((line) => {
 					const text = toText(line, { whitespace: 'pre' })
@@ -831,7 +831,7 @@ function pseudoSyntaxHighlighter(options: { highlights: { text: string; colors: 
 function pluginLineNumbers(): ExpressiveCodePlugin {
 	const renderLineNumber = ({ codeBlock, line }: GutterRenderContext) => {
 		const lineIdx = codeBlock.getLines().indexOf(line)
-		return h('div.ln', `${lineIdx + 1}`)
+		return h('span.ln', `${lineIdx + 1}`)
 	}
 	return {
 		name: 'Line numbers',
@@ -854,7 +854,7 @@ function pluginLineNumbers(): ExpressiveCodePlugin {
 				addGutterElement({
 					renderPhase: 'earlier',
 					renderLine: renderLineNumber,
-					renderPlaceholder: () => h('div.ln'),
+					renderPlaceholder: () => h('span.ln'),
 				})
 			},
 			postprocessRenderedBlock: ({ codeBlock, renderData }) => {
