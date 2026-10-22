@@ -839,6 +839,14 @@ describe.concurrent('Integration into Astro ^7.0.0', () => {
 		expectExternalAssetsToBeEmitted(fixture, 'js')
 	})
 
+	test('Propagates localized copy button text through `getBlockLocale`', () => {
+		const html = fixture?.readFile('vi/index.html') ?? ''
+		expectCopyButtonTexts(html, {
+			title: 'Sao chép vào bộ nhớ tạm',
+			copied: 'Đã sao chép!',
+		})
+	})
+
 	test('Config options from `ec.config.mjs` are merged with integration options', () => {
 		const matchingAssets = enumerateAssets(fixture, 'css')
 		const cssContents = fixture?.readFile(`_astro/${matchingAssets[0]}`) ?? ''
@@ -1025,4 +1033,12 @@ function expectStyleLink(expectedHref: string | RegExp = /\/_astro\/ec\.[a-z0-9]
 function expectScriptLink(expectedSrc: string | RegExp = /\/_astro\/ec\.[a-z0-9]*?\.js/) {
 	const srcPattern = typeof expectedSrc === 'string' ? escapeRegExp(expectedSrc) : expectedSrc.source
 	return expect.stringMatching(new RegExp(`^<script type="module" src="${srcPattern}"`)) as unknown
+}
+
+function expectCopyButtonTexts(html: string, expected: { title: string; copied: string }) {
+	const hast = fromHtml(html, { fragment: true })
+	const buttons = selectAll('.expressive-code .copy button', hast)
+	expect(buttons).toHaveLength(1)
+	expect(buttons[0]?.properties?.title).toBe(expected.title)
+	expect(buttons[0]?.properties?.dataCopied).toBe(expected.copied)
 }

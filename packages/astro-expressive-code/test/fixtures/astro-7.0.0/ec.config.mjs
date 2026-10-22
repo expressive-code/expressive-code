@@ -27,6 +27,19 @@ function addStylesPlugin() {
 export default defineEcConfig({
 	themes: [summerTime, 'solarized-light'],
 	plugins: [pluginCollapsibleSections(), addStylesPlugin()],
+	frames: {
+		texts: {
+			vi: {
+				copyButtonTooltip: 'Sao chép vào bộ nhớ tạm',
+				copyButtonCopied: 'Đã sao chép!',
+			},
+		},
+	},
+	getBlockLocale: ({ file }) => {
+		if (file.url?.pathname.startsWith('/vi/')) return 'vi'
+		if (file.path.includes('/src/pages/vi/')) return 'vi'
+		return 'en'
+	},
 	shiki: {
 		langs: [testLanguage],
 		injectLangsIntoNestedCodeBlocks: true,
