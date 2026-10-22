@@ -15,3 +15,5 @@ declare module 'virtual:astro-expressive-code/api' {
 	export const createAstroRenderer: typeof import('astro-expressive-code').createAstroRenderer
 	export const mergeEcConfigOptions: typeof import('astro-expressive-code').mergeEcConfigOptions
 }
+
+declare module 'virtual:astro-expressive-code/styles.css'

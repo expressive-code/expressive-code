@@ -1,8 +1,8 @@
-import type { HastPluginDefinition, HastVisitorContext } from 'satteri'
+import type { HastPluginDefinition, HastVisitorContext, MdxjsEsm } from 'satteri'
 import type { Element } from 'rehype-expressive-code/hast'
-import type { ExpressiveCodeBlockOptions, RehypeExpressiveCodeDocument, RehypeExpressiveCodeOptions, RehypeExpressiveCodeRenderer } from 'rehype-expressive-code'
-import { createRenderer, ExpressiveCodeBlock } from 'rehype-expressive-code'
+import type { ExpressiveCodeBlockOptions, RehypeExpressiveCodeDocument, RehypeExpressiveCodeOptions } from 'rehype-expressive-code'
 import { fileURLToPath } from 'url-extras'
+import { CodeProps } from '../components/types'
 
 type CodeBlockInfo = {
 	lang: string
@@ -11,9 +11,7 @@ type CodeBlockInfo = {
 }
 
 export function satteriExpressiveCodePlugin(options: RehypeExpressiveCodeOptions): HastPluginDefinition {
-	const { tabWidth = 2, getBlockLocale, customCreateRenderer } = options
-	const customCreateBlock = createSatteriBlockFactory(options.customCreateBlock)
-	let asyncRenderer: Promise<RehypeExpressiveCodeRenderer> | RehypeExpressiveCodeRenderer | undefined
+	const { tabWidth = 2, getBlockLocale } = options
 	let firstBlockClaimed = false
 
 	return {
@@ -27,11 +25,6 @@ export function satteriExpressiveCodePlugin(options: RehypeExpressiveCodeOptions
 				const isFirstBlock = !firstBlockClaimed
 				firstBlockClaimed = true
 
-				if (asyncRenderer === undefined) {
-					asyncRenderer = (customCreateRenderer ?? createRenderer)(options)
-				}
-				const { ec, baseStyles, themeStyles, jsModules } = await asyncRenderer
-
 				let normalizedCode = codeBlockInfo.text
 				if (tabWidth > 0) normalizedCode = normalizedCode.replace(/\t/g, ' '.repeat(tabWidth))
 
@@ -44,46 +37,36 @@ export function satteriExpressiveCodePlugin(options: RehypeExpressiveCodeOptions
 						sourceFilePath: file.path,
 					},
 				}
+				const codeProps: CodeProps = {
+					code: input.code,
+					lang: input.language,
+					meta: input.meta,
+				}
 				if (getBlockLocale) {
-					input.locale = await getBlockLocale({ input, file })
+					const locale = await getBlockLocale({ input, file })
+					if (locale) {
+						codeProps.locale = locale
+					}
 				}
-
-				const codeBlock = await customCreateBlock({ input, file })
-				const { renderedGroupAst, styles } = await ec.render(codeBlock)
-				const extraElements: Element[] = []
-				const stylesToPrepend: string[] = []
 
 				if (isFirstBlock) {
-					if (baseStyles) stylesToPrepend.push(baseStyles)
-					if (themeStyles) stylesToPrepend.push(themeStyles)
-				}
-				stylesToPrepend.push(...styles)
-				if (stylesToPrepend.length) {
-					extraElements.push({
-						type: 'element',
-						tagName: 'style',
-						properties: {},
-						children: [{ type: 'text', value: stylesToPrepend.join('') }],
-					})
-				}
-				if (isFirstBlock) {
-					jsModules.forEach((moduleCode) => {
-						extraElements.push({
-							type: 'element',
-							tagName: 'script',
-							properties: { type: 'module' },
-							children: [{ type: 'text', value: moduleCode }],
-						})
-					})
-				}
-				if (extraElements.length) {
-					const firstChild = renderedGroupAst.children.length > 0 ? renderedGroupAst.children[0] : undefined
-					const firstChildIsStyle = firstChild?.type === 'element' && ['style', 'link'].includes(firstChild.tagName)
-					const insertIndex = firstChildIsStyle ? 1 : 0
-					renderedGroupAst.children.splice(insertIndex, 0, ...extraElements)
+					ctx.insertBefore(node, {
+						type: 'mdxjsEsm',
+						value: "import { Code as ExpressiveCodeInternal } from 'astro-expressive-code/components'",
+					} as MdxjsEsm)
 				}
 
-				return renderedGroupAst
+				return {
+					type: 'mdxJsxFlowElement',
+					name: 'ExpressiveCodeInternal',
+					attributes: Object.entries(codeProps).map(([key, value]) => ({
+						type: 'mdxJsxAttribute',
+						name: key,
+						// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+						value,
+					})),
+					children: [],
+				}
 			},
 		},
 	}
@@ -120,24 +103,6 @@ function createSatteriDocumentFile(ctx: HastVisitorContext): RehypeExpressiveCod
 				fileURL,
 			},
 		},
-	}
-}
-
-/**
- * Wraps an optional user `customCreateBlock` so that every code block created by the Sätteri plugin
- * receives a `positionInDocument.groupIndex`. Sätteri visits code blocks without tracking their
- * order within a document, but our renderer uses this index to inject page-wide styles & scripts
- * exactly once per document (before the first block it processes for each source file).
- */
-function createSatteriBlockFactory(userCreateBlock: RehypeExpressiveCodeOptions['customCreateBlock']): NonNullable<RehypeExpressiveCodeOptions['customCreateBlock']> {
-	const groupIndexByDocument = new Map<string, number>()
-	return async ({ input, file }) => {
-		const documentKey = input.parentDocument?.sourceFilePath || file.path || ''
-		const groupIndex = groupIndexByDocument.get(documentKey) ?? 0
-		groupIndexByDocument.set(documentKey, groupIndex + 1)
-		input.parentDocument = { ...input.parentDocument, positionInDocument: { groupIndex } }
-		if (userCreateBlock) return userCreateBlock({ input, file })
-		return new ExpressiveCodeBlock(input)
 	}
 }
 
