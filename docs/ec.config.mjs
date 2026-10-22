@@ -20,4 +20,6 @@ export default defineEcConfig({
 	defaultProps: {
 		showLineNumbers: false,
 	},
+	// Since our docs site contains code blocks on almost every page, the trade off makes sense
+	injectCssAndJs: 'head',
 })

@@ -23,6 +23,23 @@ export type AstroExpressiveCodeOptions = RehypeExpressiveCodeOptions & {
 	 */
 	emitExternalStylesheet?: boolean | undefined
 	/**
+	 * Controls how the CSS and JavaScript for expressive code blocks are injected.
+	 *
+	 * - `'inline'` - Inject the CSS and JavaScript inside each rendered `<Code />` Astro component and fenced code block in Markdown files.
+	 *   Note this might cause the browser to render half of the page then when encountered the first code block,
+	 *   it will be blocked to get the CSS and then render the rest of the page,
+	 *   this might also injected them multiple times in some cases.
+	 * - `'head'` - Inject the CSS and JavaScript once into the document `<head>`.
+	 *   Note this will inject them to every page.
+	 * - `'none'` - Do not inject any CSS or JavaScript.
+	 *   You can import them in your Astro components through
+	 * 	 `import virtual:astro-expressive-code/styles.css` in the font matter
+	 * 	 and `<script src="virtual:astro-expressive-code/scripts.js"></script>`.
+	 *
+	 * @default 'inline'
+	 */
+	injectCssAndJs?: 'inline' | 'head' | 'none'
+	/**
 	 * This advanced option allows you to influence the rendering process by creating
 	 * your own `AstroExpressiveCodeRenderer` or processing the base styles and JS modules
 	 * added to every page.
