@@ -1,0 +1,9 @@
+---
+import MainLayout from '../layouts/MainLayout.astro'
+import { Code } from 'astro-expressive-code/components'
+---
+
+<MainLayout>
+	<h1>Code component in an Astro file</h1>
+	<Code code={`console.log('Code component')`} lang="js" />
+</MainLayout>

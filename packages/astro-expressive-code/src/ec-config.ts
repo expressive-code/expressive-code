@@ -83,6 +83,20 @@ export function getEcConfigFileUrl(projectRootUrl: URL | string) {
 }
 
 /**
+ * Returns the names of any EC config files in the Astro project root that will be ignored
+ * because they use an unsupported file extension (e.g. `ec.config.ts` or `ec.config.mts`).
+ */
+export function findUnsupportedEcConfigFiles(projectRootUrl: URL | string) {
+	// Importing `node:fs` (even dynamically) breaks SSR builds for non-Node environments
+	// like Cloudflare, so we use `process.getBuiltinModule()` if available instead
+	const nodeProcess = globalThis.process as { getBuiltinModule?: ((id: string) => unknown) | undefined } | undefined
+	const fs = nodeProcess?.getBuiltinModule?.('node:fs') as { existsSync: (path: URL) => boolean } | undefined
+	if (!fs) return []
+	const fileNames = ['ec.config.js', 'ec.config.cjs', 'ec.config.ts', 'ec.config.mts', 'ec.config.cts']
+	return fileNames.filter((fileName) => fs.existsSync(new URL(`./${fileName}`, projectRootUrl)))
+}
+
+/**
  * Attempts to import an EC config file in the Astro project root and returns its default export.
  *
  * If no config file is found, an empty object is returned.

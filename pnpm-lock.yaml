@@ -548,6 +548,19 @@ importers:
         specifier: ^22.12.0
         version: 22.19.9
 
+  packages/astro-expressive-code/test/fixtures/astro-7.0.0-ec-config-mts:
+    dependencies:
+      astro:
+        specifier: ^7.0.0
+        version: 7.0.2(@astrojs/markdown-remark@7.2.0)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.1)(@types/node@22.19.9)(jiti@1.21.7)(rollup@4.55.1)(yaml@2.8.2)
+      astro-expressive-code:
+        specifier: workspace:^
+        version: link:../../..
+    devDependencies:
+      '@types/node':
+        specifier: ^22.12.0
+        version: 22.19.9
+
   packages/expressive-code:
     dependencies:
       '@expressive-code/core':
