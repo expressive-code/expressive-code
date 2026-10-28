@@ -1,6 +1,10 @@
 /**
- * Updates the `tabindex` attribute of a code block's `pre` element
+ * Updates the `tabindex`, `role` and `aria-label` attributes of a code block's `pre` element
  * based on whether the code block is scrollable.
+ *
+ * The accessible name is taken from the localized `data-scroll-label` attribute
+ * and must only be present together with the role, as the generic role
+ * of a plain `pre` element must not be named.
  */
 function updateTabIndex(el: Element) {
 	if (!el) return
@@ -8,10 +12,13 @@ function updateTabIndex(el: Element) {
 	const needsTabIndex = el.scrollWidth > el.clientWidth
 	if (needsTabIndex && !hasTabIndex) {
 		el.setAttribute('tabindex', '0')
-		el.setAttribute('role', 'region')
+		el.setAttribute('role', 'group')
+		const label = el.getAttribute('data-scroll-label')
+		if (label) el.setAttribute('aria-label', label)
 	} else if (!needsTabIndex && hasTabIndex) {
 		el.removeAttribute('tabindex')
 		el.removeAttribute('role')
+		el.removeAttribute('aria-label')
 	}
 }
 
