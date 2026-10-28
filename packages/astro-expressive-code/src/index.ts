@@ -2,7 +2,15 @@ import type { AstroIntegration } from 'astro'
 import type { BundledShikiLanguage, RehypeExpressiveCodeOptions } from 'rehype-expressive-code'
 import rehypeExpressiveCode from 'rehype-expressive-code'
 import { ConfigSetupHookArgs, PartialAstroConfig, isSatteriProcessor, isUnifiedProcessor } from './astro-config'
-import { AstroExpressiveCodeOptions, CustomConfigPreprocessors, ConfigPreprocessorFn, getEcConfigFileUrl, loadEcConfigFile, mergeEcConfigOptions } from './ec-config'
+import {
+	AstroExpressiveCodeOptions,
+	CustomConfigPreprocessors,
+	ConfigPreprocessorFn,
+	findUnsupportedEcConfigFiles,
+	getEcConfigFileUrl,
+	loadEcConfigFile,
+	mergeEcConfigOptions,
+} from './ec-config'
 import { createAstroRenderer } from './renderer'
 import { satteriExpressiveCodePlugin } from './satteri'
 import { vitePluginAstroExpressiveCode } from './vite-plugin'
@@ -51,6 +59,14 @@ export function astroExpressiveCode(integrationOptions: AstroExpressiveCodeOptio
 
 				// Watch the EC config file for changes (including creation/deletion)
 				addWatchFile(getEcConfigFileUrl(astroConfig.root))
+
+				// Warn about EC config files that would otherwise be silently ignored
+				for (const fileName of findUnsupportedEcConfigFiles(astroConfig.root)) {
+					logger.warn(
+						`Ignoring unsupported config file "${fileName}". Expressive Code only loads "ec.config.mjs",
+						so please rename the file and make sure that it only contains JavaScript code.`.replace(/\s+/g, ' ')
+					)
+				}
 
 				// If an EC config file is present, load it and use it to override or extend
 				// the options passed directly to the integration
