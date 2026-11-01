@@ -136,4 +136,14 @@ test('Merges overlapping sections', async () => {
 	await expectMetaResult('collapse={2-5,1-2}', {
 		sections: [{ from: 2, to: 5 }],
 	})
+
+	// A range that fully contains an already added section overlaps it, too,
+	// so it must be skipped no matter which of the two ranges comes first
+	await expectMetaResult('collapse={3-5,1-8}', {
+		sections: [{ from: 3, to: 5 }],
+	})
+
+	await expectMetaResult('collapse={1-8,3-5}', {
+		sections: [{ from: 1, to: 8 }],
+	})
 })
