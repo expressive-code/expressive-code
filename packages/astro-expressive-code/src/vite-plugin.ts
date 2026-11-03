@@ -20,14 +20,17 @@ export function vitePluginAstroExpressiveCode({
 	astroConfig,
 	command,
 }: {
-	styles: [string, string][]
+	styles: string
 	scripts: [string, string][]
 	ecIntegrationOptions: AstroExpressiveCodeOptions
 	processedEcConfig: AstroExpressiveCodeOptions
 	astroConfig: PartialAstroConfig
 	command: HookParameters<'astro:config:setup'>['command']
 }): NonNullable<ViteUserConfig['plugins']>[number] {
-	const modules: Record<string, string> = {}
+	// Map virtual module names to their code contents as strings
+	const modules: Record<string, string> = {
+		'virtual:astro-expressive-code/styles.css': processedEcConfig.emitExternalStylesheet === false ? '' : styles,
+	}
 
 	// Create virtual config module
 	const configModuleContents: string[] = []
@@ -72,7 +75,7 @@ export function vitePluginAstroExpressiveCode({
 	const getVirtualModuleContents = (source: string) => {
 		// In dev mode, serve the extracted styles & scripts as virtual modules
 		if (command === 'dev') {
-			for (const file of [...styles, ...scripts]) {
+			for (const file of scripts) {
 				const [fileName, contents] = file
 				if (noQuery(fileName) === noQuery(source)) return contents
 			}
@@ -96,7 +99,7 @@ export function vitePluginAstroExpressiveCode({
 					if (resolved) return resolved
 				}
 				// Resolve other virtual modules
-				if (getVirtualModuleContents(source)) return `\0${source}`
+				if (getVirtualModuleContents(source) !== undefined) return `\0${source}`
 			},
 			load: (id) => (id?.[0] === '\0' ? getVirtualModuleContents(id.slice(1)) : undefined),
 			// If any file imported by the EC config file changes, restart the server
@@ -144,12 +147,12 @@ export function vitePluginAstroExpressiveCode({
 			},
 		},
 		// Add a second plugin that only runs in build mode (to avoid Vite warnings about emitFile)
-		// which emits the extracted styles & scripts as static assets
+		// which emits the extracted scripts as static assets
 		{
 			name: 'vite-plugin-astro-expressive-code-build',
 			apply: 'build',
 			buildEnd() {
-				for (const file of [...styles, ...scripts]) {
+				for (const file of scripts) {
 					const [fileName, source] = file
 					this.emitFile({
 						type: 'asset',
