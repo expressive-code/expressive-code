@@ -1,0 +1,15 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "include": ["components/index.ts"],
+  "compilerOptions": {
+    // We don't need to resolve the `Code.astro` component import (which would require TS 7.1 and the Astro content
+    // mapper) to generate the declarations as it's explicitly cast to `Component<CodeProps>`.
+    "noCheck": true,
+    // Declarations must not be emitted next to the component sources as TypeScript would resolve relative imports to
+    // the `.ts` source files instead of their declarations.
+    "outDir": "./dist/components",
+    // Clear the base config paths mapping to avoid emitting extra declarations.
+    "paths": {},
+    "rootDir": "components"
+  }
+}
