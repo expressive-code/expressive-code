@@ -1,5 +1,12 @@
 # @expressive-code/plugin-collapsible-sections
 
+## 0.44.4
+
+### Patch Changes
+
+- f2a4e5c: Fixes styling to hide the default `<details>` marker in newer WebKit browsers
+  - @expressive-code/core@0.44.4
+
 ## 0.44.3
 
 ### Patch Changes
