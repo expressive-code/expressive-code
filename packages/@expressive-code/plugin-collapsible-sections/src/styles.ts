@@ -173,6 +173,9 @@ export function getCollapsibleSectionsBaseStyles({ cssVar }: ResolverContext) {
 					display: none;
 				}
 
+				/* Recent WebKit has some regression that prevents the workaround above from working */
+				display: flex;
+
 				/* Expand & collapse icons */
 				:is(.expand, .collapse) {
 					position: relative;
