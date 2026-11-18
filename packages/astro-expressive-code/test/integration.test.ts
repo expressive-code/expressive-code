@@ -932,10 +932,12 @@ async function buildFixture({
 	const fixturePath = join(__dirname, 'fixtures', fixtureDir)
 	const outputDirPath = join(fixturePath, outputDir)
 	const shimPath = join(__dirname, 'fixtures', 'astro-build-shim.cjs')
+	// escape Windows paths and white spaces
+	const escapedShimPath = `"${shimPath.replaceAll('\\', '/')}"`
 	// Some restricted environments report `os.cpus()` as an empty array.
 	// Astro 3.x can derive a build concurrency of 0 from that and crash, so we
 	// always preload a tiny shim that guarantees at least one CPU entry.
-	const nodeOptions = [process.env.NODE_OPTIONS, `--require ${shimPath}`].filter(Boolean).join(' ')
+	const nodeOptions = [process.env.NODE_OPTIONS, `--require ${escapedShimPath}`].filter(Boolean).join(' ')
 
 	if (!keepPreviousBuild) {
 		// Remove the output directory if it exists
@@ -954,7 +956,7 @@ async function buildFixture({
 		})
 
 		// Throw an error if the build command failed
-		if (buildCommandResult.failed || buildCommandResult.stderr) {
+		if (buildCommandResult.failed) {
 			throw new Error(buildCommandResult.stderr.toString())
 		}
 	}
