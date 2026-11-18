@@ -93,7 +93,9 @@ export function vitePluginAstroExpressiveCode({
 				// Resolve EC config file if present
 				if (source === 'virtual:astro-expressive-code/ec-config') {
 					const resolved = await this.resolve('./ec.config.mjs')
-					if (resolved) return resolved
+					// Vite may resolve this to `ec.config.mts`, which the integration does not load,
+					// so only accept `ec.config.mjs` to ensure that both use the same config
+					if (resolved && noQuery(resolved.id).endsWith('/ec.config.mjs')) return resolved
 				}
 				// Resolve other virtual modules
 				if (getVirtualModuleContents(source)) return `\0${source}`

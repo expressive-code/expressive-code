@@ -854,6 +854,38 @@ describe.concurrent('Integration into Astro ^7.0.0', () => {
 	})
 })
 
+describe.concurrent('Integration into Astro ^7.0.0 with an unsupported `ec.config.mts` file', () => {
+	let fixture: Awaited<ReturnType<typeof buildFixture>> | undefined
+
+	beforeAll(async () => {
+		fixture = await buildFixture({
+			fixtureDir: 'astro-7.0.0-ec-config-mts',
+			buildCommand: 'pnpm',
+			buildArgs: ['astro', 'build'],
+			outputDir: 'dist',
+			hmrPort: hmrPortBase + 10,
+		})
+	}, fixtureBuildHookTimeoutMs)
+
+	test('Warns that the config file is ignored', () => {
+		expect(fixture?.buildOutput).toContain('Ignoring unsupported config file "ec.config.mts"')
+	})
+
+	test('Renders code blocks in Markdown files', () => {
+		const html = fixture?.readFile('index.html') ?? ''
+		validateHtml(html, fixture, { expectedHtmlRegExp: /Markdown code block/ })
+	})
+
+	test('Renders <Code> components in Astro files using the same stylesheet as Markdown code blocks', () => {
+		const html = fixture?.readFile('astro-code-component/index.html') ?? ''
+		validateHtml(html, fixture, { expectedHtmlRegExp: /Code component/ })
+	})
+
+	test('Emits an external stylesheet into the Astro assets dir', () => {
+		expectExternalAssetsToBeEmitted(fixture, 'css')
+	})
+})
+
 function validateHtml(
 	html: string,
 	fixture: Awaited<ReturnType<typeof buildFixture>> | undefined,
@@ -936,6 +968,7 @@ async function buildFixture({
 	// Astro 3.x can derive a build concurrency of 0 from that and crash, so we
 	// always preload a tiny shim that guarantees at least one CPU entry.
 	const nodeOptions = [process.env.NODE_OPTIONS, `--require ${shimPath}`].filter(Boolean).join(' ')
+	let buildOutput = ''
 
 	if (!keepPreviousBuild) {
 		// Remove the output directory if it exists
@@ -957,12 +990,15 @@ async function buildFixture({
 		if (buildCommandResult.failed || buildCommandResult.stderr) {
 			throw new Error(buildCommandResult.stderr.toString())
 		}
+
+		buildOutput = buildCommandResult.stdout
 	}
 
 	// Return an object that contains the output directory path and allows to read files from it
 	return {
 		fixtureDir,
 		path: outputDirPath,
+		buildOutput,
 		readFile: (filePath: string) => readFileSync(join(outputDirPath, filePath), 'utf-8'),
 		readDir: (subPath: string) => readdirSync(join(outputDirPath, subPath), 'utf-8'),
 		readDirWithTypes: (subPath: string) => readdirSync(join(outputDirPath, subPath), { encoding: 'utf-8', withFileTypes: true }),
