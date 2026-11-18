@@ -11,6 +11,7 @@ import { StyleVariant } from '../src/common/style-variants'
 import { findDeclsBySelectorAndProperty, findDeclsByStyleSetting, parseCss, getCoreJsModules } from '../../../../internal/test-utils'
 import { ExpressiveCodeTheme } from '../src/common/theme'
 import { groupWrapperClassName } from '../src/internal/css'
+import { coreTexts } from '../src/internal/core-plugins'
 import { codeLineClass } from '../src/common/style-settings'
 import { escapeRegExp } from '../src/internal/escaping'
 
@@ -107,13 +108,29 @@ describe('ExpressiveCodeEngine', () => {
 		describe('<pre> element has a `data-language` property', () => {
 			test('Language "md"', async () => {
 				const { renderedBlockAst } = await getMultiPluginTestResult({ plugins: [], input: [{ ...defaultBlockOptions }] })
-				const html = toSanitizedHtml(renderedBlockAst, { extraAttributes: ['data*'] })
+				const html = toSanitizedHtml(renderedBlockAst, { extraAttributes: ['dataLanguage'] })
 				expect(html).toEqual(`<pre data-language="md"><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`)
 			})
 			test('Missing language becomes "plaintext"', async () => {
 				const { renderedBlockAst } = await getMultiPluginTestResult({ plugins: [], input: [{ ...defaultBlockOptions, language: '' }] })
-				const html = toSanitizedHtml(renderedBlockAst, { extraAttributes: ['data*'] })
+				const html = toSanitizedHtml(renderedBlockAst, { extraAttributes: ['dataLanguage'] })
 				expect(html).toEqual(`<pre data-language="plaintext"><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`)
+			})
+		})
+		describe('<pre> element has a localized `data-scroll-label` property', () => {
+			test('Uses the default text', async () => {
+				const { renderedBlockAst } = await getMultiPluginTestResult({ plugins: [] })
+				const html = toSanitizedHtml(renderedBlockAst, { extraAttributes: ['dataScrollLabel'] })
+				expect(html).toEqual(`<pre data-scroll-label="Scrollable code"><code><div>${lineCodeHtml[0]}</div><div>${lineCodeHtml[1]}</div></code></pre>`)
+			})
+			test('Uses the text matching the block locale', async () => {
+				const { renderedBlockAst } = await getMultiPluginTestResult({ plugins: [], input: [{ ...defaultBlockOptions, locale: 'de-DE' }] })
+				expect(renderedBlockAst.properties.dataScrollLabel).toEqual('Scrollbarer Code')
+			})
+			test('Supports custom texts', async () => {
+				coreTexts.overrideTexts('xy', { scrollableCodeLabel: 'Test label' })
+				const { renderedBlockAst } = await getMultiPluginTestResult({ plugins: [], input: [{ ...defaultBlockOptions, locale: 'xy' }] })
+				expect(renderedBlockAst.properties.dataScrollLabel).toEqual('Test label')
 			})
 		})
 		describe('Allows plugin hooks to access theme colors', () => {

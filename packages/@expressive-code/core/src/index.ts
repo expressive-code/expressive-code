@@ -19,6 +19,8 @@ export * from './helpers/i18n'
 export * from './helpers/meta-options'
 export * from './helpers/objects'
 
+export { coreTexts } from './internal/core-plugins'
+
 import { cssVarReplacements as internalCssVarReplacements } from './internal/css'
 
 /** @deprecated Please pass a `cssVarReplacements` property to the `PluginStyleSettings` constructor instead. */

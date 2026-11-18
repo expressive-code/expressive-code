@@ -1,7 +1,16 @@
 import { AnnotationRenderOptions, ExpressiveCodeAnnotation, isInlineStyleAnnotation } from '../common/annotation'
 import { ExpressiveCodePlugin } from '../common/plugin'
+import { PluginTexts } from '../common/plugin-texts'
 import { h } from '../hast'
 import tabindexJsModule from './tabindex-js-module.min'
+
+export const coreTexts = new PluginTexts({
+	scrollableCodeLabel: 'Scrollable code',
+})
+
+coreTexts.addLocale('de', {
+	scrollableCodeLabel: 'Scrollbarer Code',
+})
 
 export const corePlugins: ExpressiveCodePlugin[] = [
 	{
@@ -34,6 +43,15 @@ export const corePlugins: ExpressiveCodePlugin[] = [
 	{
 		name: 'Scrollable block tabindex',
 		jsModules: [tabindexJsModule],
+		hooks: {
+			postprocessRenderedBlock: ({ renderData, locale }) => {
+				// Provide a localized accessible name that the JS module
+				// applies to the `pre` element while the code block is scrollable
+				const { blockAst } = renderData
+				if (blockAst.tagName !== 'pre') return
+				blockAst.properties.dataScrollLabel = coreTexts.get(locale).scrollableCodeLabel
+			},
+		},
 	},
 ]
 
