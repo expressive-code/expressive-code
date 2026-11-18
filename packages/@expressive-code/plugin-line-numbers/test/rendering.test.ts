@@ -43,13 +43,13 @@ describe('Renders line numbers', async () => {
 				blockValidationFn: (actual) => {
 					// Expect line 2 to have the correct line number
 					// and be marked as deleted
-					const secondLine = selectSingle(`code > div.ec-line:nth-of-type(2)`, actual.renderedGroupAst)
+					const secondLine = selectSingle(`code > span.ec-line:nth-of-type(2)`, actual.renderedGroupAst)
 					expect(toText(selectSingle(`.gutter .ln`, secondLine))).toEqual('2')
 					expect(getClassNames(secondLine)).toContain('del')
 
 					// Expect line 6 to have the correct line number,
 					// be marked as inserted, and have the label "A"
-					const sixthLine = selectSingle(`code > div.ec-line:nth-of-type(6)`, actual.renderedGroupAst)
+					const sixthLine = selectSingle(`code > span.ec-line:nth-of-type(6)`, actual.renderedGroupAst)
 					expect(toText(selectSingle(`.gutter .ln`, sixthLine))).toEqual('6')
 					expect(getClassNames(sixthLine)).toEqual(expect.arrayContaining(['ins', 'tm-label']))
 					expect(getInlineStyles(sixthLine).get('--tmLabel')).toEqual("'A'")
@@ -61,7 +61,7 @@ describe('Renders line numbers', async () => {
 
 					// Expect line number 9 to be inside the collapsible section,
 					// be marked, and have the label "B"
-					const ninthLine = selectSingle(`code > details > div.ec-line:nth-of-type(1)`, actual.renderedGroupAst)
+					const ninthLine = selectSingle(`code > details > span.ec-line:nth-of-type(1)`, actual.renderedGroupAst)
 					expect(toText(selectSingle(`.gutter .ln`, ninthLine))).toEqual('9')
 					expect(getClassNames(ninthLine)).toEqual(expect.arrayContaining(['mark', 'tm-label']))
 					expect(getInlineStyles(ninthLine).get('--tmLabel')).toEqual("'B'")

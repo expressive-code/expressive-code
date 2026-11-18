@@ -178,7 +178,7 @@ export function pluginFrames(options: PluginFramesOptions = {}): ExpressiveCodeP
 									'data-copied': texts.copyButtonCopied,
 									'data-code': codeToCopy,
 								},
-								[h('div')]
+								[h('span')]
 							),
 						])
 					)

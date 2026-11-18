@@ -147,7 +147,7 @@ export const defaultBlockOptions = {
 	meta: 'test',
 }
 
-export const lineCodeHtml = ['<div class="code">Example code...</div>', '<div class="code">...with two lines!</div>']
+export const lineCodeHtml = ['<span class="code">Example code...</span>', '<span class="code">...with two lines!</span>']
 
 export function toSanitizedHtml(ast: Parents, options?: { extraAttributes?: PropertyDefinition[] | undefined }) {
 	const html = toHtml(sanitize(ast, { attributes: { '*': ['test', 'edited', ['className', /^code$/], ...(options?.extraAttributes ?? [])], a: ['href'] }, tagNames: null }))
